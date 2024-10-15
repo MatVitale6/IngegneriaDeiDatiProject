@@ -1,0 +1,2831 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_font_bold ltx_title_document" style="font-size:298%;">
+  Cultural evolution in populations of Large Language Models
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id1.1.id1">
+     Jérémy Perez
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_text ltx_font_bold" id="id2.2.id1">
+     Corresponding author:
+    </span>
+    <span class="ltx_text ltx_font_typewriter" id="id3.3.id2">
+     jeremy.perez@inria.fr
+    </span>
+    <span class="ltx_contact ltx_role_affiliation">
+     Flowers Team, INRIA, Bordeaux, France
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id4.1.id1">
+     Corentin Léger
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Flowers Team, INRIA, Bordeaux, France
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id5.1.id1">
+     Marcela Ovando-Tellez
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     GIN-IMN, CNRS, Bordeaux, France
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id6.1.id1">
+     Chris Foulon
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     GIN-IMN, CNRS, Bordeaux, France
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id7.1.id1">
+     Joan Dussauld
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Independent Researcher
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id8.1.id1">
+     Pierre-Yves Oudeyer
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Flowers Team, INRIA, Bordeaux, France
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id9.1.id1">
+     Clément Moulin-Frier
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Flowers Team, INRIA, Bordeaux, France
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id10.id1">
+   Research in cultural evolution aims at providing causal explanations for the change of culture over time. Over the past decades, this field has generated an important body of knowledge, using experimental, historical, and computational methods. While computational models have been very successful at generating testable hypotheses about the effects of several factors, such as population structure or transmission biases, some phenomena have so far been more complex to capture using agent-based and formal models. This is in particular the case for the effect of the transformations of social information induced by evolved cognitive mechanisms. We here propose that leveraging the capacity of Large Language Models (LLMs) to mimic human behavior may be fruitful to address this gap. On top of being an useful approximation of human cultural dynamics, multi-agents models featuring generative agents are also important to study for their own sake. Indeed, as artificial agents are bound to participate more and more to the evolution of culture, it is crucial to better understand the dynamics of machine-generated cultural evolution. We here present a framework for simulating cultural evolution in populations of LLMs, allowing the manipulation of variables known to be important in cultural evolution, such as network structure, personality, and the way social information is aggregated and transformed. The software we developed for conducting these simulations is open-source and features an intuitive user-interface, which we hope will help to build bridges between the fields of cultural evolution and generative artificial intelligence.
+  </p>
+ </div>
+ <div class="ltx_pagination ltx_role_start_2_columns">
+ </div>
+ <figure class="ltx_figure" id="S0.F1">
+  <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="138" id="S0.F1.1.g1" src="/html/2403.08882/assets/x1.png" width="518"/>
+  <figcaption class="ltx_caption ltx_centering">
+   <span class="ltx_tag ltx_tag_figure">
+    <span class="ltx_text" id="S0.F1.6.1.1" style="font-size:90%;">
+     Figure 1
+    </span>
+    :
+   </span>
+   <span class="ltx_text ltx_font_bold" id="S0.F1.7.2" style="font-size:90%;">
+    (a)
+    <span class="ltx_text ltx_font_medium" id="S0.F1.7.2.1">
+     LLM agents are organized into networks wherein each agent interacts with neighboring agents by exchanging stories.
+    </span>
+    (b)
+    <span class="ltx_text ltx_font_medium" id="S0.F1.7.2.2">
+     Each agent is assigned a specific personality and either initialization instructions (for the first generation) or transformation instructions (after the first generation), serving as prompts for generating new stories from their neighbors’ narratives.
+    </span>
+    (c)
+    <span class="ltx_text ltx_font_medium" id="S0.F1.7.2.3">
+     Once the network structure and agent characteristics are defined, we simulate the cultural evolution of texts across generations of agents. The simulation begins by prompting agents to initialize stories, after which we allow the narratives to evolve dynamically through interactions within the agent network
+    </span>
+   </span>
+  </figcaption>
+ </figure>
+ <section class="ltx_section ltx_indent_first" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Myths and stories are found in every human culture around the world. Research using phylogenetic methods has revealed that myths evolve in a way analogous to genes, progressively changing as some elements are discarded and new elements added as they are passed through generations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      44
+     </a>
+     ]
+    </cite>
+    . Some of these myths display a surprising stability, being retained with minor modifications though generations. For example, the Baku dream-eater demons, mythological creatures made of various animal parts, have been part of the Japanese folklore since at least the 15th century
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    . Moreover, myths in distinct cultures seem to exhibit shared features, possibly pointing to convergent evolution. This is for example the case of historical myths (i.e., myths depicting events considered foundational for a given group), which have been found to possess many similar elements, such as narratives featuring the collective challenges faced in the history of the group
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib41" title="">
+      41
+     </a>
+     ]
+    </cite>
+    . This raises questions regarding the factors that determine the cultural success, the stability, and the directions of evolution of myths and stories.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    More generally, providing causal explanations to the change of culture over time is the central aim of research in cultural evolution. Contributions to this question are generally seen as falling into two schools of thought: the first one, referred to as the Californian school, adopts the framework of gene-culture co-evolution
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib40" title="">
+      40
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ]
+    </cite>
+    . This school emphasizes how evolved social learning mechanisms and transmission biases respectively contribute to the stability of culture and the direction of its evolution, and assume that the logic of natural selection applies to cultural traits as it does for genes
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib40" title="">
+      40
+     </a>
+     ]
+    </cite>
+    . The second school, referred to as the Parisian school, adopts the framework of Cultural Attraction Theory (CAT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib43" title="">
+      43
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      36
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    . Disagreeing on the central role attributed to selection, this view rather emphasizes how non-random transformations of cultural information during transmission events can explain how cultural traits progressively evolve toward stable forms, which are referred to as attractors. Taking inspiration from population genetics, the Californian school has successfully employed computational models to generate predictions, for instance about the effect of group size
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    , network structure
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    , or transmission fidelity
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    . As for CAT, although computational models have also been proposed
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , they were mainly aimed at making conceptual points rather than to generate testable predictions, and attraction dynamics have thus been studied mainly through experiments
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib33" title="">
+      33
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      32
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    and historical data analysis
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    This prevalence of experimental and historical methods is likely attributable to the difficulty in capturing factors of attraction—such as evolved psychological mechanisms—that influence cultural evolution within agent-based or formal models.
+Here, we propose that this limitation of agent-based models can be overcome by using generative artificial agents. In particular, using Large Language Models (LLMs) to simulate the evolution of linguistic culture appears fruitful, as we can expect those models to transform cultural information in realistic ways.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    On top of allowing to generate hypotheses about the causes of cultural change in humans societies, studying the evolution of culture in populations of generative agents is also crucial to understand the dynamics of AI-generated cultural evolution. Indeed, although technology has long influenced cultural evolution, for example with the invention of the printing press, some authors have argued that the recent advances in generative algorithms are likely to result in an unprecedented shift in cultural evolution. The fact that algorithms are now participating in the creation of cultural traits sets us at the very beginning of an era of “machine culture”, defined as “culture mediated or generated by machines”
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    . Therefore, studying the dynamics of machine-generated culture becomes highly important. Applying paradigms from Cultural Attraction theory to study LLMs has already began to generate precious insights about the bias exhibited by LLMs when transmitting linguistic content
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Overall, it appears that there is much to gain by using LLMs as agents to simulate the evolution of culture. So far, the fields of cultural evolution and generative artificial intelligence have remained quite disconnected, and facilitating exchanges between these fields seems promising for generating important findings. Some parallel works have investigated the use of Large Language Models as agents in multi-agent simulations, although these studies were not specifically designed to model cultural evolution
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib38" title="">
+      38
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib47" title="">
+      47
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Here, we propose an open-source software for simulating the transmission and evolution of linguistic culture in populations of Large Language models. This software features an intuitive interface that allows to manipulate many variables of interest, such as the structure of the social network, the ways in which different sources of information are aggregated, or the personalities of the different agents. We also introduce several visualizations and measures that are useful for tracking the results of the simulations. We hope that this tool will pave the way for more interaction between the fields of cultural evolution and generative artificial intelligence. This software is open source and accessible at
+    <a class="ltx_ref ltx_href" href="https://github.com/jeremyperez2/LLM-Culture" target="_blank" title="">
+     this link
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="145" id="S1.F2.g1" src="/html/2403.08882/assets/x2.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S1.F2.14.1.1" style="font-size:90%;">
+      Figure 2
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S1.F2.15.2" style="font-size:90%;">
+     Visualization of the evolution of the texts generated along a chain of 50 agents (i.e. 50 generations of one agent per generation).
+     <span class="ltx_text ltx_font_bold" id="S1.F2.15.2.1">
+      (a)
+     </span>
+     The similarity matrix represents the semantic similarity between all stories generated. The color of the cell at row
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.2">
+      i
+     </span>
+     , column
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.3">
+      j
+     </span>
+     corresponds to the similarity of the stories
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.4">
+      i
+     </span>
+     and
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.5">
+      j
+     </span>
+     , which here corresponds to the stories generated at generation
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.6">
+      i
+     </span>
+     and generation
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.7">
+      j
+     </span>
+     .
+     <span class="ltx_text ltx_font_bold" id="S1.F2.15.2.8">
+      (b)
+     </span>
+     The similarity graph is another way of visualizing the similarity between all generated stories. Each node corresponds to one story, and the distance between node is proportional to the semantic distance between corresponding stories. Stories generated at successive generations are linked by a wider edge and arer assigned similar colors.
+     <span class="ltx_text ltx_font_bold" id="S1.F2.15.2.9">
+      (c)
+     </span>
+     We also visualize the words used at each generation. Words are along the x-axis, and generation along the y-axis. A dot at position
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.10">
+      (x,y)
+     </span>
+     means that the word
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.11">
+      x
+     </span>
+     was used in a story at generation
+     <span class="ltx_text ltx_font_italic" id="S1.F2.15.2.12">
+      y
+     </span>
+     . A line means that the corresponding word was used by two successive generations. We only display the first half of the figure here. The complete figure can be found in the Fig.
+     <a class="ltx_ref" href="#A3.F15" title="Supplementary Figure 15 ‣ C.2 Additional results ‣ Appendix C Additional metrics and results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       15
+      </span>
+     </a>
+     of Appendix.
+    </span>
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section ltx_indent_first" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Methods
+  </h2>
+  <section class="ltx_subsection ltx_indent_first" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Description of the model
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The model presented here simulates the cultural evolution of linguistic content in a population of large language models (LLMs). Each agent can be seen as an independent instance of a LLM. The agent are arranged according to a specified social network structure (Fig.
+     <a class="ltx_ref" href="#S0.F1" title="Figure 1 ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .a). Network structures that can currently be generated with the software are detailed in the Appendix
+     <a class="ltx_ref" href="#A1.SS0.SSS0.Px3" title="Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     . At the first generation, all agents are prompted with an Initialization Prompt. This prompt describes what kind of content the agents should generate. For example, one could chose “Tell me a story” as the initialization prompt. All agents then output an answer by passing the initialization prompt to their respective instance of the LLM. The agents then transmit stories to their neighbors (according to the specified network structure): each agent receives a new prompt, which is the concatenation of a Transformation Prompt and the list of stories produced by its neighbors at the previous generation (Fig.
+     <a class="ltx_ref" href="#S0.F1" title="Figure 1 ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .b). An example of a Transformation Prompt could be “Here are some stories. Make up a new one by combining two of them”. Agents can additionally be provided with a personality, which is always added at the top of their prompt. For example, a personality prompt could be “You are very imaginative”. Agents may either all have the same personality or have different personalities.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection ltx_indent_first" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Analysis
+   </h3>
+   <section class="ltx_subsubsection ltx_indent_first" id="S2.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      2.2.1
+     </span>
+     Similarity
+    </h4>
+    <div class="ltx_para" id="S2.SS2.SSS1.p1">
+     <p class="ltx_p" id="S2.SS2.SSS1.p1.4">
+      The main metric we use to analyze our results is the similarity between texts. To compute this metric, we first use TfidfVectorizers from scikit-learn
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib39" title="">
+        39
+       </a>
+       ]
+      </cite>
+      to convert texts into meaningful numerical representations. We then compute the cosine similarity
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib16" title="">
+        16
+       </a>
+       ]
+      </cite>
+      between all the texts generated, resulting in a similarity matrix of size
+      <math alttext="(N_{agents}" class="ltx_math_unparsed" display="inline" id="S2.SS2.SSS1.p1.1.m1.1">
+       <semantics id="S2.SS2.SSS1.p1.1.m1.1a">
+        <mrow id="S2.SS2.SSS1.p1.1.m1.1b">
+         <mo id="S2.SS2.SSS1.p1.1.m1.1.1" stretchy="false">
+          (
+         </mo>
+         <msub id="S2.SS2.SSS1.p1.1.m1.1.2">
+          <mi id="S2.SS2.SSS1.p1.1.m1.1.2.2">
+           N
+          </mi>
+          <mrow id="S2.SS2.SSS1.p1.1.m1.1.2.3">
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.2">
+            a
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.1.m1.1.2.3.1" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.3">
+            g
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.1.m1.1.2.3.1a" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.4">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.1.m1.1.2.3.1b" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.5">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.1.m1.1.2.3.1c" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.6">
+            t
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.1.m1.1.2.3.1d" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.1.m1.1.2.3.7">
+            s
+           </mi>
+          </mrow>
+         </msub>
+        </mrow>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS1.p1.1.m1.1c">
+         (N_{agents}
+        </annotation>
+       </semantics>
+      </math>
+      *
+      <math alttext="N_{generations})" class="ltx_math_unparsed" display="inline" id="S2.SS2.SSS1.p1.2.m2.1">
+       <semantics id="S2.SS2.SSS1.p1.2.m2.1a">
+        <mrow id="S2.SS2.SSS1.p1.2.m2.1b">
+         <msub id="S2.SS2.SSS1.p1.2.m2.1.1">
+          <mi id="S2.SS2.SSS1.p1.2.m2.1.1.2">
+           N
+          </mi>
+          <mrow id="S2.SS2.SSS1.p1.2.m2.1.1.3">
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.2">
+            g
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.3">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1a" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.4">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1b" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.5">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1c" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.6">
+            r
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1d" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.7">
+            a
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1e" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.8">
+            t
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1f" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.9">
+            i
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1g" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.10">
+            o
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1h" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.11">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.2.m2.1.1.3.1i" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.2.m2.1.1.3.12">
+            s
+           </mi>
+          </mrow>
+         </msub>
+         <mo id="S2.SS2.SSS1.p1.2.m2.1.2" stretchy="false">
+          )
+         </mo>
+        </mrow>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS1.p1.2.m2.1c">
+         N_{generations})
+        </annotation>
+       </semantics>
+      </math>
+      X
+      <math alttext="(N_{agents}" class="ltx_math_unparsed" display="inline" id="S2.SS2.SSS1.p1.3.m3.1">
+       <semantics id="S2.SS2.SSS1.p1.3.m3.1a">
+        <mrow id="S2.SS2.SSS1.p1.3.m3.1b">
+         <mo id="S2.SS2.SSS1.p1.3.m3.1.1" stretchy="false">
+          (
+         </mo>
+         <msub id="S2.SS2.SSS1.p1.3.m3.1.2">
+          <mi id="S2.SS2.SSS1.p1.3.m3.1.2.2">
+           N
+          </mi>
+          <mrow id="S2.SS2.SSS1.p1.3.m3.1.2.3">
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.2">
+            a
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.3.m3.1.2.3.1" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.3">
+            g
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.3.m3.1.2.3.1a" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.4">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.3.m3.1.2.3.1b" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.5">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.3.m3.1.2.3.1c" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.6">
+            t
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.3.m3.1.2.3.1d" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.3.m3.1.2.3.7">
+            s
+           </mi>
+          </mrow>
+         </msub>
+        </mrow>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS1.p1.3.m3.1c">
+         (N_{agents}
+        </annotation>
+       </semantics>
+      </math>
+      *
+      <math alttext="N_{generations})" class="ltx_math_unparsed" display="inline" id="S2.SS2.SSS1.p1.4.m4.1">
+       <semantics id="S2.SS2.SSS1.p1.4.m4.1a">
+        <mrow id="S2.SS2.SSS1.p1.4.m4.1b">
+         <msub id="S2.SS2.SSS1.p1.4.m4.1.1">
+          <mi id="S2.SS2.SSS1.p1.4.m4.1.1.2">
+           N
+          </mi>
+          <mrow id="S2.SS2.SSS1.p1.4.m4.1.1.3">
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.2">
+            g
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.3">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1a" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.4">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1b" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.5">
+            e
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1c" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.6">
+            r
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1d" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.7">
+            a
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1e" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.8">
+            t
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1f" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.9">
+            i
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1g" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.10">
+            o
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1h" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.11">
+            n
+           </mi>
+           <mo id="S2.SS2.SSS1.p1.4.m4.1.1.3.1i" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mi id="S2.SS2.SSS1.p1.4.m4.1.1.3.12">
+            s
+           </mi>
+          </mrow>
+         </msub>
+         <mo id="S2.SS2.SSS1.p1.4.m4.1.2" stretchy="false">
+          )
+         </mo>
+        </mrow>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS1.p1.4.m4.1c">
+         N_{generations})
+        </annotation>
+       </semantics>
+      </math>
+      , where the color of the cell (i,j) represents the similarity between story i and story j.
+     </p>
+    </div>
+    <div class="ltx_para" id="S2.SS2.SSS1.p2">
+     <p class="ltx_p" id="S2.SS2.SSS1.p2.1">
+      From this similarity matrix, we extract more interpretable measures. The first one is the within-generation similarity, which captures how similar are the texts generated at a given generation with each other. The second one is the successive similarity, which represents the average similarity between the texts generated at a given generation and the texts generated at the previous generation. The last one is the similarity with the first generation, which is the average similarity between the texts generated at a given generation and the texts generated at the first generation.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection ltx_indent_first" id="S2.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      2.2.2
+     </span>
+     Visualization
+    </h4>
+    <div class="ltx_para" id="S2.SS2.SSS2.p1">
+     <p class="ltx_p" id="S2.SS2.SSS2.p1.1">
+      We also provide two visualization techniques that offer qualitative insights into the generated data.
+     </p>
+    </div>
+    <section class="ltx_paragraph ltx_indentfirst" id="S2.SS2.SSS2.Px1">
+     <h5 class="ltx_title ltx_title_paragraph">
+      Word chains
+     </h5>
+     <div class="ltx_para" id="S2.SS2.SSS2.Px1.p1">
+      <p class="ltx_p" id="S2.SS2.SSS2.Px1.p1.1">
+       We extract the key words from each text and represent their evolution though generations. To extract keywords from texts, we tokenize the text into words, remove common stopwords and non-alphanumeric tokens, calculate the frequency distribution of the remaining words, and select the top keywords based on their frequency. This allows to visualize which words are the most frequent, the most stable, or the most often reinvented.
+      </p>
+     </div>
+    </section>
+    <section class="ltx_paragraph ltx_indentfirst" id="S2.SS2.SSS2.Px2">
+     <h5 class="ltx_title ltx_title_paragraph">
+      Similarity network
+     </h5>
+     <div class="ltx_para" id="S2.SS2.SSS2.Px2.p1">
+      <p class="ltx_p" id="S2.SS2.SSS2.Px2.p1.1">
+       We also represent the similarity between generations using a graph network, where each node represents a generation of texts. The positioning of nodes is determined by a layout algorithm provided by the NetworkX library
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib15" title="">
+         15
+        </a>
+        ]
+       </cite>
+       , arranging them based on their similarities and interconnections. Generations with the highest similarity are positioned closer together, and successive generations, represented by similar colors, are linked by thicker edges. This approach provides an intuitive depiction of the evolutionary dynamics of the generated content.
+      </p>
+     </div>
+    </section>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section ltx_indent_first" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Preliminary Results
+  </h2>
+  <figure class="ltx_figure" id="S3.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="290" id="S3.F3.1.g1" src="/html/2403.08882/assets/x3.png" width="518"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S3.F3.14.2.1" style="font-size:90%;">
+      Figure 3
+     </span>
+     :
+    </span>
+    <span class="ltx_text ltx_font_bold" id="S3.F3.3.2.1" style="font-size:90%;">
+     Effect of network structure :
+     <span class="ltx_text ltx_font_medium" id="S3.F3.3.2.1.2">
+      Cultural dynamics of a population of 10 agents over 10 generations for three different types of network structures.
+     </span>
+     (a), (b), (c)
+     <span class="ltx_text ltx_font_medium" id="S3.F3.3.2.1.1">
+      Similarity matrices for a fully-connected network, a caveman network with 2 cliques, and a circle network. The index of a story is defined as the agent’s index (here between 0 and 10) +
+      <math alttext="N_{agents}" class="ltx_Math" display="inline" id="S3.F3.3.2.1.1.m1.1">
+       <semantics id="S3.F3.3.2.1.1.m1.1b">
+        <msub id="S3.F3.3.2.1.1.m1.1.1" xref="S3.F3.3.2.1.1.m1.1.1.cmml">
+         <mi id="S3.F3.3.2.1.1.m1.1.1.2" xref="S3.F3.3.2.1.1.m1.1.1.2.cmml">
+          N
+         </mi>
+         <mrow id="S3.F3.3.2.1.1.m1.1.1.3" xref="S3.F3.3.2.1.1.m1.1.1.3.cmml">
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.2" xref="S3.F3.3.2.1.1.m1.1.1.3.2.cmml">
+           a
+          </mi>
+          <mo id="S3.F3.3.2.1.1.m1.1.1.3.1" lspace="0em" rspace="0em" xref="S3.F3.3.2.1.1.m1.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.3" xref="S3.F3.3.2.1.1.m1.1.1.3.3.cmml">
+           g
+          </mi>
+          <mo id="S3.F3.3.2.1.1.m1.1.1.3.1b" lspace="0em" rspace="0em" xref="S3.F3.3.2.1.1.m1.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.4" xref="S3.F3.3.2.1.1.m1.1.1.3.4.cmml">
+           e
+          </mi>
+          <mo id="S3.F3.3.2.1.1.m1.1.1.3.1c" lspace="0em" rspace="0em" xref="S3.F3.3.2.1.1.m1.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.5" xref="S3.F3.3.2.1.1.m1.1.1.3.5.cmml">
+           n
+          </mi>
+          <mo id="S3.F3.3.2.1.1.m1.1.1.3.1d" lspace="0em" rspace="0em" xref="S3.F3.3.2.1.1.m1.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.6" xref="S3.F3.3.2.1.1.m1.1.1.3.6.cmml">
+           t
+          </mi>
+          <mo id="S3.F3.3.2.1.1.m1.1.1.3.1e" lspace="0em" rspace="0em" xref="S3.F3.3.2.1.1.m1.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.F3.3.2.1.1.m1.1.1.3.7" xref="S3.F3.3.2.1.1.m1.1.1.3.7.cmml">
+           s
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.F3.3.2.1.1.m1.1c">
+         <apply id="S3.F3.3.2.1.1.m1.1.1.cmml" xref="S3.F3.3.2.1.1.m1.1.1">
+          <csymbol cd="ambiguous" id="S3.F3.3.2.1.1.m1.1.1.1.cmml" xref="S3.F3.3.2.1.1.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.F3.3.2.1.1.m1.1.1.2.cmml" xref="S3.F3.3.2.1.1.m1.1.1.2">
+           𝑁
+          </ci>
+          <apply id="S3.F3.3.2.1.1.m1.1.1.3.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3">
+           <times id="S3.F3.3.2.1.1.m1.1.1.3.1.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.1">
+           </times>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.2.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.2">
+            𝑎
+           </ci>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.3.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.3">
+            𝑔
+           </ci>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.4.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.4">
+            𝑒
+           </ci>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.5.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.5">
+            𝑛
+           </ci>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.6.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.6">
+            𝑡
+           </ci>
+           <ci id="S3.F3.3.2.1.1.m1.1.1.3.7.cmml" xref="S3.F3.3.2.1.1.m1.1.1.3.7">
+            𝑠
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.F3.3.2.1.1.m1.1d">
+         N_{agents}
+        </annotation>
+       </semantics>
+      </math>
+      * generation-index. For example, the story 3 belongs to the first generation, and story 13 to the second generation. The color of the cell at row
+      <span class="ltx_text ltx_font_italic" id="S3.F3.3.2.1.1.1">
+       i
+      </span>
+      and column
+      <span class="ltx_text ltx_font_italic" id="S3.F3.3.2.1.1.2">
+       j
+      </span>
+      represents the semantic similarity between stories
+      <span class="ltx_text ltx_font_italic" id="S3.F3.3.2.1.1.3">
+       i
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S3.F3.3.2.1.1.4">
+       j
+      </span>
+      . Black lines mark the separation between generations.
+     </span>
+     (d)
+     <span class="ltx_text ltx_font_medium" id="S3.F3.3.2.1.3">
+      Evolution of the average similarity between stories produced at a generation and stories at the generation just before.
+     </span>
+     (e)
+     <span class="ltx_text ltx_font_medium" id="S3.F3.3.2.1.4">
+      Evolution of the average similarity between each pair of stories produced at a given generation.
+     </span>
+     (f)
+     <span class="ltx_text ltx_font_medium" id="S3.F3.3.2.1.5">
+      Evolution of the average similarity between stories produced a given generation and stories produced at the first generation. Lines represent averages over 5 simulations, and the filled areas represent the standard deviations.
+     </span>
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    The results presented in this paper are preliminary, and are mainly meant to illustrate how one can manipulate with the different variables to see their effects on the measures described above. However, they do already offer some interesting insights.
+   </p>
+  </div>
+  <section class="ltx_subsection ltx_indent_first" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Transmission chain
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     We first illustrate the dynamics of the model using a linear transmission chain of 50 agents (i.e one agent per generation for 50 generations). The initialization and transmission prompts used are provided in the Section
+     <a class="ltx_ref" href="#A1.SS0.SSS0.Px2" title="Prompts used for the experiments ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     of Appendix. The agents were not assigned any personality for this experiment (personality prompt is empty).
+Fig.
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .a shows the similarity matrix for this chain. We can notice that stories seem to evolve in a punctuated manner: there is an alternation of phases where stories are transmitted with no modifications, and phases where stories are modified.
+These dynamics recall previous observations from experiments and modelling work in cultural evolution
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib46" title="">
+       46
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ]
+     </cite>
+     , where cultural information was found to evolve in a sequence of bursts and stasis.
+The transition matrix also suggests the existence of hierarchically structured clusters of stories that are not identical but share some degree of similarity.
+Fig.
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .b shows the graph of similarity of this chain, which allows to visualize how stories progressively evolve through a semantic space. Looking at this graph suggests that stories got ”trapped” in a specific part of the semantic space for a while (from generation 14 to 41), possibly indicating the presence of an attractor.
+Fig.
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .c shows the chain-of-words representation for this chain. This visualization allows to notice that some words are very stable, being kept almost throughout the chain, such as the word ”magic”, while some words only last for the first few generations before being lost, such as the word ”learn”.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="281" id="S3.F4.1.g1" src="/html/2403.08882/assets/x4.png" width="518"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S3.F4.8.1.1" style="font-size:90%;">
+       Figure 4
+      </span>
+      :
+     </span>
+     <span class="ltx_text ltx_font_bold" id="S3.F4.9.2" style="font-size:90%;">
+      Effect of transmission prompts :
+      <span class="ltx_text ltx_font_medium" id="S3.F4.9.2.1">
+       Cultural dynamics of a population of 10 agents over 10 generations for four different transmission prompts.
+      </span>
+      (a), (b), (c), (d)
+      <span class="ltx_text ltx_font_medium" id="S3.F4.9.2.2">
+       Similarity matrices for the ”CombineTwo”, ”MinorChanges”, ”Repeat” and ”MaximizeDifference” transformation prompts.
+      </span>
+      (e)
+      <span class="ltx_text ltx_font_medium" id="S3.F4.9.2.3">
+       Evolution of the average similarity between stories produced at a generation and stories at the generation just before.
+      </span>
+      (f)
+      <span class="ltx_text ltx_font_medium" id="S3.F4.9.2.4">
+       Evolution of the average similarity between each pair of stories produced at a given generation.
+      </span>
+      (g)
+      <span class="ltx_text ltx_font_medium" id="S3.F4.9.2.5">
+       Evolution of the average similarity between stories produced a given generation and stories produced at the first generation. Lines represent averages over 5 simulations, and the filled areas represent the standard deviations.
+      </span>
+     </span>
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection ltx_indent_first" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Effect of network structure
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     We first manipulated the network structure by running 5 simulations of 10 agents for 10 generations, for each network structure (Fig .
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     ). We compared three network structures: a fully-connected network, a circle network, and a caveman network with 2 cliques (see Fig .S
+     <a class="ltx_ref" href="#A1.F1" title="Supplementary Figure 1 ‣ Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     of the Appendix). We only show one of the five similarity matrices for each network structure, and provide all matrices in Appendix
+     <a class="ltx_ref" href="#A3.SS2" title="C.2 Additional results ‣ Appendix C Additional metrics and results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       C.2
+      </span>
+     </a>
+     . Qualitatively, the similarity matrices reveals distinct patterns for each network structure: while similarity appears to increase homogeneously for the fully-connected network, it does so in a clustered manner for the caveman and circle networks. Looking at the evolution of the similarity measures, we observe that for all structures, stories get more and more similar to stories of the same generation and of the previous generation, indicating a progressive homogenisation of the population. We also observe that stories get more and more dissimlar with stories from the first generation. For all measures, these dynamics seem to happen at a faster rate for the fully-connected structure than for the caveman network, itself faster than the circle network. These results replicate findings from previous work in network science and cultural evolution, where models and experiments reveal that more efficient networks (that is, networks with smaller average path length) lead to quicker diffusion of information and thus lower diversity
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection ltx_indent_first" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Effect of transformation prompt
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     We then manipulated the transformation prompt by running 5 simulations of 10 agents for 10 iterations (Fig.
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.1 Transmission chain ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     ). We compared the effect of four different transformation prompts referred to as ”Combine2”, ”MinorChanges”, ”Repeat” and ”MaximizeDifference”. The exact content of these prompts is provided in Appendix
+     <a class="ltx_ref" href="#A1.SS0.SSS0.Px2" title="Prompts used for the experiments ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     .
+These dynamics reveal that clear differences can be observed, and those differences are aligned with what would be expected. For example, the Repeat prompt leads to high within- and between- generation similarity, while these metrics are low for the MaximizeDifference prompt. Apart for the MaximizeDifference condition, all conditions show a gradual increase in the simlilarity with previous generation and within-generation, indicating a progressive homogenisation of the cultural content. Lastly, for all conditions but the Repeat condition, similarity with the initial generation appears to decrease over time. This is in particular interesting for the MaximizeDifference condition, as the second generation was already instructed to maximize the difference with the first generation.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection ltx_indent_first" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Effect of different personalities
+   </h3>
+   <figure class="ltx_figure" id="S3.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="289" id="S3.F5.1.g1" src="/html/2403.08882/assets/x5.png" width="518"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S3.F5.8.1.1" style="font-size:90%;">
+       Figure 5
+      </span>
+      :
+     </span>
+     <span class="ltx_text ltx_font_bold" id="S3.F5.9.2" style="font-size:90%;">
+      Effect of personalities :
+      <span class="ltx_text ltx_font_medium" id="S3.F5.9.2.1">
+       Cultural dynamics of a population of 10 agents over 10 generations for four different personnalities.
+      </span>
+      (a), (b), (c), (d)
+      <span class="ltx_text ltx_font_medium" id="S3.F5.9.2.2">
+       Similarity matrices for ”NoPersonality”, ”Creative”, ”NotCreative” and Mixed population of ”Creative” and ”NotCreative”.
+      </span>
+      (e)
+      <span class="ltx_text ltx_font_medium" id="S3.F5.9.2.3">
+       Evolution of the average similarity between stories produced at a generation and stories at the generation just before.
+      </span>
+      (f)
+      <span class="ltx_text ltx_font_medium" id="S3.F5.9.2.4">
+       Evolution of the average similarity between each pair of stories produced at a given generation.
+      </span>
+      (g)
+      <span class="ltx_text ltx_font_medium" id="S3.F5.9.2.5">
+       Evolution of the average similarity between stories produced a given generation and stories produced at the first generation. Lines represent averages over 5 simulations, and the filled areas represent the standard deviations
+      </span>
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     We then manipulated the personality assigned to agents by running 5 simulations of 10 agents for 10 generations (Fig.
+     <a class="ltx_ref" href="#S3.F5" title="Figure 5 ‣ 3.4 Effect of different personalities ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     ). We compared 4 different conditions. In the first one, agents were not assigned any personality. In the second one, all agents were assigned the personality ”Creative”. In the third one, all agents were assigned the personality ”NotCreative”. In the fourth one, half of the agents were assigned the personality ”Creative” and the other half was assigned the personality ”NotCreative”. Details of the personality prompts can be found in Appendix
+     <a class="ltx_ref" href="#A1.SS0.SSS0.Px2" title="Prompts used for the experiments ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     . Although performing more simulations would be necessary to draw conclusions, it does seem that different personalities differentially impact cultural dynamics. In particular, our results suggest that agents in the Creative condition generate more variation than agents in the NotCreative condition: indeed, the NotCreative appears to exhibit higher similarity with the first generation, between successive generations, and within generations compared to the Creative condition. Also interesting is the fact the the MixedPopulation condtion seems to be more similar to the Creative condition than to the NotCreative condition, even though it contains Creative and NotCreative agents in equal proportions. This suggests that the cultural dynamics of an heterogeneous population may not reflect the proportions of the different personalities it contains.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section ltx_indent_first" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Discussion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    We introduced a framework for modelling cultural evolution in population of LLMs agents, along with several metrics and visualizations that allows to extract qualitative and quantitative insights about the resulting cultural dynamics. We presented how this framework allows to manipulate several variables known to impact cultural evolution, namely the network structure, the way of transforming previous social information, and agents’ personalities. Although the results presented in this paper are still preliminary, they already reveal several insights. First, the fact our simulations replicate several findings from empirical and theoretical work in cultural evolution confirms that LLMs-based multi-agent models are an adequate tool for generating hypotheses about the dynamics of human culture. It also suggests that results from studies of human-generated culture may apply to machine-generated culture. Moreover, we found that manipulating personality and social information transformation appears to have significant impact on the observed dynamics. This suggests that using LLMs to study cultural evolution is promising, as these variables have so far been difficult to model using traditional modelling tools. It also indicates that the dynamics of machine-generated culture will likely be influenced by the specific way in which generative agents are instructed to use pre-existing social information, and which personality traits to emulate.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    These results were preliminary and should mainly be seen as proof of concept. Future work will involve performing more systematic and rigorous analyses of the effect of the different variables on cultural evolution. It would also be interesting to compare how different groups, all starting with the same story, evolve over time.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    Although Large Language models are a useful proxy of human behavior, some precautions must be taken when generalizing results of such simulation to human behavior. First, because of the biases in their training set, LLMs are mainly representative of western culture
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    . As such, they may not be able to capture the specific dynamics of other cultures. A potential way to alleviate that is to use models that were trained on more representative datasets, such as the BLOOM model whose training data includes 46 different languages
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib49" title="">
+      49
+     </a>
+     ]
+    </cite>
+    . More generally, precisely evaluating to what extent current models miss some aspects of non-western cultures is a major direction for future work on machine-generated cultural evolution. A second limitation to keep in mind is that in some situations, LLMs may struggle to role-play and impersonate specific characters
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    . Better understanding to what extent they take into account their assigned personality when creating cultural content is a crucial step in order to derive hypotheses about human culture using such models.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    Another important difference between this model and human cultural evolution is that the latter is grounded in a physical environment. As such, the success of cultural traits not only depend on the cognitive mechanisms of the agents transmitting it, but also on their relationship with the environment of the agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib45" title="">
+      45
+     </a>
+     ]
+    </cite>
+    . For example, beliefs in moralizing gods have been found to be predicted with high accuracy by the ecological and historical context
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    . Extending this model to include interaction with a physical environment therefore seems like a very promising direction.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p5">
+   <p class="ltx_p" id="S4.p5.1">
+    Finally, the current model assumes that personalities are fixed and stable through time. However in humans, there are feedback loops between the cultural traits expressed in a group and the personalities, values and preferences of its member
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib42" title="">
+      42
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    . Including such interactions would be fruitful to model phenomena such as opinion dynamics and polarization.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p6">
+   <p class="ltx_p" id="S4.p6.1">
+    More generally, although we here focused on the dynamics of collective creation, this framework is suited to explore other questions related to collective behavior, including opinion dynamics, collective innovation and the evolution of language.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p7">
+   <p class="ltx_p" id="S4.p7.1">
+    Overall, we have sketched how using generative agents to simulate cultural evolution may be promising, both for generating hypotheses about human cultural evolution and for better understanding the dynamics of machine-generated culture. We hope that making this tool easy to use (see usage details in Appendix
+    <a class="ltx_ref" href="#A2" title="Appendix B User Interface ‣ Cultural evolution in populations of Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      B
+     </span>
+    </a>
+    ) and accessible to the scientific community will foster more exchanges between the fields of cultural evolution and generative artificial intelligence.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section ltx_indentfirst" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Acknowledgements
+  </h2>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    This research was partially funded by the French National Research Agency (
+    <a class="ltx_ref ltx_href" href="https://anr.fr/" target="_blank" title="">
+     ANR
+    </a>
+    , project ECOCURL, Grant ANR-20-CE23-0006).
+This work benefitted from access to the Jean Zay (Idris) supercomputer associated with the Genci grant A0151011996.
+This research originated as a project from the Hackathon
+    <a class="ltx_ref ltx_href" href="https://sites.google.com/view/hack1robo/accueil" target="_blank" title="">
+     Hack1Robo
+    </a>
+    .
+We also thank Maxime Derex for participating in helpful discussions.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_end_2_columns">
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Alberto Acerbi, Mathieu Charbonneau, Helena Miton, and Thom Scott-Phillips.
+    </span>
+    <span class="ltx_bibblock">
+     Culture without copying or selection.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Evolutionary Human Sciences
+     </span>
+     , 3:e50, January 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Cambridge University Press.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Alberto Acerbi and Joseph M. Stubbersfield.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models show human-like content biases in transmission chain experiments.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the National Academy of Sciences of the United States of America
+     </span>
+     , 120(44):e2313790120, October 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Mohammad Atari, Mona J Xue, Peter S Park, Damián E Blasi, and Joseph Henrich.
+    </span>
+    <span class="ltx_bibblock">
+     Which humans?, Sep 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Carlos A. Botero, Beth Gardner, Kathryn R. Kirby, Joseph Bulbulia, Michael C. Gavin, and Russell D. Gray.
+    </span>
+    <span class="ltx_bibblock">
+     The ecology of religious beliefs.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Proceedings of the National Academy of Sciences
+     </span>
+     , 111(47):16784–16789, 2014.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Robert Boyd and Peter J. Richerson.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Culture and the Evolutionary Process
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     University of Chicago Press, June 1988.
+    </span>
+    <span class="ltx_bibblock">
+     Google-Books-ID: MBg4oBsCKU8C.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Levin Brinkmann, Fabian Baumann, Jean-François Bonnefon, Maxime Derex, Thomas F. Müller, Anne-Marie Nussberger, Agnieszka Czaplicka, Alberto Acerbi, Thomas L. Griffiths, Joseph Henrich, Joel Z. Leibo, Richard McElreath, Pierre-Yves Oudeyer, Jonathan Stray, and Iyad Rahwan.
+    </span>
+    <span class="ltx_bibblock">
+     Machine culture.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      Nature Human Behaviour
+     </span>
+     , 7(11):1855–1868, November 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Number: 11 Publisher: Nature Publishing Group.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Luigi Luca Cavalli-Sforza and Marcus W. Feldman.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Cultural Transmission and Evolution: A Quantitative Approach
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Princeton University Press, May 1981.
+    </span>
+    <span class="ltx_bibblock">
+     Google-Books-ID: FDfBDwAAQBAJ.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Nicolas Claidière, Thomas C. Scott-Phillips, and Dan Sperber.
+    </span>
+    <span class="ltx_bibblock">
+     How Darwinian is cultural evolution?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      Philosophical Transactions of the Royal Society B: Biological Sciences
+     </span>
+     , 369(1642):20130368, May 2014.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Nicolas Claidière, Kenny Smith, Simon Kirby, and Joel Fagot.
+    </span>
+    <span class="ltx_bibblock">
+     Cultural evolution of systematically structured behaviour in a non-human primate.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings. Biological sciences / The Royal Society
+     </span>
+     , 281, December 2014.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Nicole Creanza, Oren Kolodny, and Marcus W. Feldman.
+    </span>
+    <span class="ltx_bibblock">
+     Greater than the sum of its parts? Modelling population contact and interaction of cultural repertoires.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      Journal of The Royal Society Interface
+     </span>
+     , 14(130):20170171, May 2017.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Maxime Derex and Robert Boyd.
+    </span>
+    <span class="ltx_bibblock">
+     Partial connectivity increases cultural accumulation within groups.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      Proceedings of the National Academy of Sciences
+     </span>
+     , 113(11):2982–2987, March 2016.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Proceedings of the National Academy of Sciences.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Maxime Derex, Charles Perreault, and Robert Boyd.
+    </span>
+    <span class="ltx_bibblock">
+     Divide and conquer: intermediate levels of population fragmentation maximize cultural accumulation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      Philosophical Transactions of the Royal Society B: Biological Sciences
+     </span>
+     , 373(1743):20170062, February 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Edgar Dubourg and Nicolas Baumard.
+    </span>
+    <span class="ltx_bibblock">
+     Why imaginary worlds? The psychological foundations and cultural evolution of fictions with imaginary worlds.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      Behavioral and Brain Sciences
+     </span>
+     , 45:e276, January 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Olga Feher, Haibin Wang, Sigal Saar, Partha P. Mitra, and Ofer Tchernichovski.
+    </span>
+    <span class="ltx_bibblock">
+     De novo establishment of wild-type song culture in the zebra finch.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      Nature
+     </span>
+     , 459(7246):564–568, May 2009.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Aric Hagberg, Pieter Swart, and Daniel S Chult.
+    </span>
+    <span class="ltx_bibblock">
+     Exploring network structure, dynamics, and function using networkx.
+    </span>
+    <span class="ltx_bibblock">
+     Technical report, Los Alamos National Lab.(LANL), Los Alamos, NM (United States), 2008.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Jiawei Han, Micheline Kamber, and Jian Pei.
+    </span>
+    <span class="ltx_bibblock">
+     2 - Getting to Know Your Data.
+    </span>
+    <span class="ltx_bibblock">
+     In Jiawei Han, Micheline Kamber, and Jian Pei, editors,
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      Data Mining (Third Edition)
+     </span>
+     , The Morgan Kaufmann Series in Data Management Systems, pages 39–82. Morgan Kaufmann, Boston, January 2012.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Joseph Henrich.
+    </span>
+    <span class="ltx_bibblock">
+     Demography and Cultural Evolution: How Adaptive Cultural Processes Can Produce Maladaptive Losses—The Tasmanian Case.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      American Antiquity
+     </span>
+     , 69(2):197–214, April 2004.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Joseph Henrich.
+    </span>
+    <span class="ltx_bibblock">
+     The Secret of Our Success: How Culture Is Driving Human Evolution, Domesticating Our Species, and Making Us Smarter.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      The Secret of Our Success
+     </span>
+     . Princeton University Press, October 2015.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     E. Tory Higgins.
+    </span>
+    <span class="ltx_bibblock">
+     Culture and Personality: Variability across Universal Motives as the Missing Link.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      Social and Personality Psychology Compass
+     </span>
+     , 2(2):608–634, 2008.
+    </span>
+    <span class="ltx_bibblock">
+     _eprint: https://onlinelibrary.wiley.com/doi/pdf/10.1111/j.1751-9004.2007.00075.x.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Dan R. Johnson, James C. Kaufman, Brendan S. Baker, John D. Patterson, Baptiste Barbot, Adam E. Green, Janet van Hell, Evan Kennedy, Grace F. Sullivan, Christa L. Taylor, Thomas Ward, and Roger E. Beaty.
+    </span>
+    <span class="ltx_bibblock">
+     Divergent semantic integration (DSI): Extracting creativity from narratives with distributional semantic modeling.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      Behavior Research Methods
+     </span>
+     , 55(7):3726–3759, October 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Michael L. Kalish, Thomas L. Griffiths, and Stephan Lewandowsky.
+    </span>
+    <span class="ltx_bibblock">
+     Iterated learning: Intergenerational knowledge transmission reveals inductive biases.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      Psychonomic Bulletin &amp; Review
+     </span>
+     , 14(2):288–294, 2007.
+    </span>
+    <span class="ltx_bibblock">
+     Place: US Publisher: Psychonomic Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Piers Kelly, James Winters, Helena Miton, and Olivier Morin.
+    </span>
+    <span class="ltx_bibblock">
+     The predictable evolution of letter shapes: An emergent script of West Africa recapitulates historical change in writing systems.
+    </span>
+    <span class="ltx_bibblock">
+     February 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: OSF.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Yoed N Kenett.
+    </span>
+    <span class="ltx_bibblock">
+     What can quantitative measures of semantic distance tell us about creativity?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Current Opinion in Behavioral Sciences
+     </span>
+     , 27:11–16, June 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Oren Kolodny, Nicole Creanza, and Marcus W. Feldman.
+    </span>
+    <span class="ltx_bibblock">
+     Evolution in leaps: The punctuated accumulation and loss of cultural innovations.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      Proceedings of the National Academy of Sciences
+     </span>
+     , 112(49):E6762–E6769, December 2015.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Proceedings of the National Academy of Sciences.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Grgur Kovač, Rémy Portelas, Masataka Sawayama, Peter Ford Dominey, and Pierre-Yves Oudeyer.
+    </span>
+    <span class="ltx_bibblock">
+     Stick to your role! stability of personal values expressed in large language models, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     David Lazer and Allan Friedman.
+    </span>
+    <span class="ltx_bibblock">
+     The Network Structure of Exploration and Exploitation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      Administrative Science Quarterly
+     </span>
+     , 52(4):667–694, December 2007.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: SAGE Publications Inc.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     Hannah M. Lewis and Kevin N. Laland.
+    </span>
+    <span class="ltx_bibblock">
+     Transmission fidelity is the key to the build-up of cumulative culture.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      Philosophical Transactions of the Royal Society B: Biological Sciences
+     </span>
+     , 367(1599):2171–2180, August 2012.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Wing Lian, Bleys Goodson, Guan Wang, Eugene Pentland, Austin Cook, Chanvichet Vong, and ”Teknium”.
+    </span>
+    <span class="ltx_bibblock">
+     Mistralorca: Mistral-7b model instruct-tuned on filtered openorcav1 gpt-4 dataset.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca" target="_blank" title="">
+      https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca
+     </a>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     Steven Loria.
+    </span>
+    <span class="ltx_bibblock">
+     textblob documentation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      Release 0.15
+     </span>
+     , 2, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     Alex Mesoudi.
+    </span>
+    <span class="ltx_bibblock">
+     Cultural selection and biased transformation: two dynamics of cultural evolution.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      Philosophical Transactions of the Royal Society B: Biological Sciences
+     </span>
+     , 376, May 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Helena Miton.
+    </span>
+    <span class="ltx_bibblock">
+     Cultural Attraction.
+    </span>
+    <span class="ltx_bibblock">
+     February 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: OSF.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     Helena Miton, Nicolas Claidière, and Hugo Mercier.
+    </span>
+    <span class="ltx_bibblock">
+     Universal cognitive mechanisms explain the cultural success of bloodletting.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Evolution and Human Behavior
+     </span>
+     , 36(4):303–312, 2015.
+    </span>
+    <span class="ltx_bibblock">
+     Place: Netherlands Publisher: Elsevier Science.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Helena Miton, Thomas Wolf, Cordula Vesper, Günther Knoblich, and Dan Sperber.
+    </span>
+    <span class="ltx_bibblock">
+     Motor constraints influence cultural evolution of rhythm.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      Proceedings of the Royal Society B: Biological Sciences
+     </span>
+     , 287(1937):20202001, October 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     Elena Miu, Ned Gulley, Kevin N. Laland, and Luke Rendell.
+    </span>
+    <span class="ltx_bibblock">
+     Innovation and cumulative culture through tweaks and leaps in online programming contests.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      Nature Communications
+     </span>
+     , 9(1):2321, June 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Number: 1 Publisher: Nature Publishing Group.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     Joel Mokyr.
+    </span>
+    <span class="ltx_bibblock">
+     Punctuated Equilibria and Technological Progress.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      The American Economic Review
+     </span>
+     , 80(2):350–354, 1990.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: American Economic Association.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     Olivier Morin.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      How Traditions Live and Die
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Oxford University Press, 2016.
+    </span>
+    <span class="ltx_bibblock">
+     Google-Books-ID: kSukCgAAQBAJ.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Eleni Nisioti, Mateo Mahaut, Pierre-Yves Oudeyer, Ida Momennejad, and Clément Moulin-Frier.
+    </span>
+    <span class="ltx_bibblock">
+     Social Network Structure Shapes Innovation: Experience-sharing in RL with SAPIENS, November 2022.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2206.05060 [cs].
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative Agents: Interactive Simulacra of Human Behavior, August 2023.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2304.03442 [cs].
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     Fabian Pedregosa, Gaël Varoquaux, Alexandre Gramfort, Vincent Michel, Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron Weiss, Vincent Dubourg, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Scikit-learn: Machine learning in python.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      Journal of machine learning research
+     </span>
+     , 12(Oct):2825–2830, 2011.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Peter J. Richerson and Robert Boyd.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      Not By Genes Alone: How Culture Transformed Human Evolution
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     University of Chicago Press, June 2008.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     Amine Sijilmassi, Lou Safra, and Nicolas Baumard.
+    </span>
+    <span class="ltx_bibblock">
+     ‘Our Roots Run Deep’: Historical Myths as Culturally Evolved Technologies for Coalitional Recruitment.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.1.1">
+      Behavioral and Brain Sciences
+     </span>
+     , pages 1–44, January 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Cambridge University Press.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     Paul E. Smaldino, Aaron Lukaszewski, Christopher von Rueden, and Michael Gurven.
+    </span>
+    <span class="ltx_bibblock">
+     Niche diversity can explain cross-cultural differences in personality structure.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib42.1.1">
+      Nature Human Behaviour
+     </span>
+     , 3(12):1276–1283, December 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Number: 12 Publisher: Nature Publishing Group.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [43]
+    </span>
+    <span class="ltx_bibblock">
+     Dan Sperber.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.1.1">
+      Explaining Culture: A Naturalistic Approach
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Oxford: Basil Blackwell, 1996.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [44]
+    </span>
+    <span class="ltx_bibblock">
+     Jamshid J. Tehrani and Julien d’Huy.
+    </span>
+    <span class="ltx_bibblock">
+     Phylogenetics Meets Folklore: Bioinformatics Approaches to the Study of International Folktales.
+    </span>
+    <span class="ltx_bibblock">
+     In Ralph Kenna, Máirín MacCarron, and Pádraig MacCarron, editors,
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.1.1">
+      Maths Meets Myths: Quantitative Approaches to Ancient Narratives
+     </span>
+     , Understanding Complex Systems, pages 91–114. Springer International Publishing, Cham, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib45">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [45]
+    </span>
+    <span class="ltx_bibblock">
+     Bill Thompson and Thomas L. Griffiths.
+    </span>
+    <span class="ltx_bibblock">
+     Human biases limit cumulative innovation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib45.1.1">
+      Proceedings of the Royal Society B: Biological Sciences
+     </span>
+     , 288(1946):20202752, March 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib46">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [46]
+    </span>
+    <span class="ltx_bibblock">
+     Sergi Valverde and Ricard V. Solé.
+    </span>
+    <span class="ltx_bibblock">
+     Punctuated equilibrium in the large-scale evolution of programming languages†.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib46.1.1">
+      Journal of The Royal Society Interface
+     </span>
+     , 12(107):20150249, June 2015.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Royal Society.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib47">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [47]
+    </span>
+    <span class="ltx_bibblock">
+     Alexander Sasha Vezhnevets, John P. Agapiou, Avia Aharon, Ron Ziv, Jayd Matyas, Edgar A. Duéñez-Guzmán, William A. Cunningham, Simon Osindero, Danny Karmon, and Joel Z. Leibo.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agent-based modeling with actions grounded in physical, social, or digital space using Concordia, December 2023.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2312.03664 [cs] version: 2.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib48">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [48]
+    </span>
+    <span class="ltx_bibblock">
+     Duncan J. Watts.
+    </span>
+    <span class="ltx_bibblock">
+     Networks, Dynamics, and the Small‐World Phenomenon.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib48.1.1">
+      American Journal of Sociology
+     </span>
+     , 105(2):493–527, September 1999.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib49">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [49]
+    </span>
+    <span class="ltx_bibblock">
+     BigScience Workshop.
+    </span>
+    <span class="ltx_bibblock">
+     BLOOM: A 176B-Parameter Open-Access Multilingual Language Model, June 2023.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2211.05100 [cs].
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix ltx_indent_first" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Simulation details
+  </h2>
+  <section class="ltx_paragraph ltx_indentfirst" id="A1.SS0.SSS0.Px1">
+   <h5 class="ltx_title ltx_title_paragraph">
+    LLM used
+   </h5>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px1.p1.1">
+     The results presented in this paper were generated using MistralOrca
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ]
+     </cite>
+     , which is a version of openAI’s Mistral-7B Model, instruct-tuned on Filtered OpenOrcaV1 GPT-4 Dataset. We used a quantized GGUFv2 version, quantized using the method ”GGML-TYPE-Q4-K”.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph ltx_indentfirst" id="A1.SS0.SSS0.Px2">
+   <h5 class="ltx_title ltx_title_paragraph">
+    Prompts used for the experiments
+   </h5>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px2.p1.1">
+     For the chain of 50 agents (Section
+     <a class="ltx_ref" href="#S3.SS1" title="3.1 Transmission chain ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3.1
+      </span>
+     </a>
+     ), the initialization prompt used was ”Imagine that you are telling a story to your kid. What would that story be? Just output the story, nothing else.” The transformation prompt used was ”Here is one or more stories you were told as a kid. It is now your turn to tell a story at your kid. Tell that story. Write only one story. Do not output anything else.”.
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px2.p2">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px2.p2.1">
+     For all other simulations, the initialization prompt was ”Tell me a story”. Except when manipulating the transformation prompt, the transmission prompt for all simulations was CombineTwo. Here is the complete list of transformation prompts used in our experiments :
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px2.p3">
+    <ul class="ltx_itemize" id="A1.I1">
+     <li class="ltx_item" id="A1.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I1.i1.p1">
+       <p class="ltx_p" id="A1.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I1.i1.p1.1.1">
+         CombineTwo (default)
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I1.i1.p1.2">
+        <p class="ltx_p" id="A1.I1.i1.p1.2.1">
+         ”You will receive stories. Pick the two stories you prefer, and create a story that is combination of these two stories. Just output your story, don’t write anything else.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+     <li class="ltx_item" id="A1.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I1.i2.p1">
+       <p class="ltx_p" id="A1.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I1.i2.p1.1.1">
+         MinorChanges
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I1.i2.p1.2">
+        <p class="ltx_p" id="A1.I1.i2.p1.2.1">
+         ”You will receive a list of one or more stories. Create a new story by making some minor changes to one of those stories. Just output one story, do not output anything else.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+     <li class="ltx_item" id="A1.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I1.i3.p1">
+       <p class="ltx_p" id="A1.I1.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I1.i3.p1.1.1">
+         Repeat
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I1.i3.p1.2">
+        <p class="ltx_p" id="A1.I1.i3.p1.2.1">
+         ”You will receive stories. Select only one of these stories, and repeat it. Just output the story, don’t write anything else.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+     <li class="ltx_item" id="A1.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I1.i4.p1">
+       <p class="ltx_p" id="A1.I1.i4.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I1.i4.p1.1.1">
+         MaximizeDifference
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I1.i4.p1.2">
+        <p class="ltx_p" id="A1.I1.i4.p1.2.1">
+         ”You will receive stories. Create a story that is as different as possible from the stories you received. Just output your story, nothing else.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px2.p4">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px2.p4.1">
+     Except when manipulating the personality, the personality prompt was an empty string for all simulations. When manipulating the personalities, the prompts were:
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px2.p5">
+    <ul class="ltx_itemize" id="A1.I2">
+     <li class="ltx_item" id="A1.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I2.i1.p1">
+       <p class="ltx_p" id="A1.I2.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I2.i1.p1.1.1">
+         Creative
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I2.i1.p1.2">
+        <p class="ltx_p" id="A1.I2.i1.p1.2.1">
+         ”For what follows, pretend that you are a very creative person.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+     <li class="ltx_item" id="A1.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I2.i2.p1">
+       <p class="ltx_p" id="A1.I2.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.I2.i2.p1.1.1">
+         NotCreative
+        </span>
+        :
+       </p>
+       <blockquote class="ltx_quote" id="A1.I2.i2.p1.2">
+        <p class="ltx_p" id="A1.I2.i2.p1.2.1">
+         “For what follows, pretend that you are not a very creative person.”
+        </p>
+       </blockquote>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+  <section class="ltx_paragraph ltx_indentfirst" id="A1.SS0.SSS0.Px3">
+   <h5 class="ltx_title ltx_title_paragraph">
+    Network structure
+   </h5>
+   <div class="ltx_para" id="A1.SS0.SSS0.Px3.p1">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px3.p1.1">
+     Unless the network structure was the manipulated variable, the default structure was a fully-connected network (Supplementary Fig .
+     <a class="ltx_ref" href="#A1.F1" title="Supplementary Figure 1 ‣ Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .a). We also used a chain network (Supplementary Fig .
+     <a class="ltx_ref" href="#A1.F1" title="Supplementary Figure 1 ‣ Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .d) in Section
+     <a class="ltx_ref" href="#S3.SS1" title="3.1 Transmission chain ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3.1
+      </span>
+     </a>
+     , as well as circle (Supplementary Fig .
+     <a class="ltx_ref" href="#A1.F1" title="Supplementary Figure 1 ‣ Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .b) and caveman (Supplementary Fig .
+     <a class="ltx_ref" href="#A1.F1" title="Supplementary Figure 1 ‣ Network structure ‣ Appendix A Simulation details ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .d) networks in Section
+     <a class="ltx_ref" href="#S3.SS2" title="3.2 Effect of network structure ‣ 3 Preliminary Results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3.2
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F1">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="169" id="A1.F1.1.g1" src="/html/2403.08882/assets/figs/combined_networks.png" width="673"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A1.F1.7.1.1" style="font-size:90%;">
+       Supplementary Figure 1
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A1.F1.8.2" style="font-size:90%;">
+      Different types of networks used in our experiments with 10 agents. In a fully connected network
+      <span class="ltx_text ltx_font_bold" id="A1.F1.8.2.1">
+       (a)
+      </span>
+      , every agent is directly connected to every other agent, enabling efficient dissemination of information. In a circular network
+      <span class="ltx_text ltx_font_bold" id="A1.F1.8.2.2">
+       (b)
+      </span>
+      , agents are connected in a circular fashion, thereby forming a closed loop where stories flow sequentially around the circle. The caveman network
+      <span class="ltx_text ltx_font_bold" id="A1.F1.8.2.3">
+       (c)
+      </span>
+      consists of agents organized into cliques, with our example showcasing two cliques of 5 agents each. In the chain network
+      <span class="ltx_text ltx_font_bold" id="A1.F1.8.2.4">
+       (d)
+      </span>
+      , agents are arranged linearly, and content generation happens sequentially, meaning that agents only generate a story after receiving the story of the previous agent in the chain.
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix ltx_indent_first" id="A2">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix B
+   </span>
+   User Interface
+  </h2>
+  <figure class="ltx_figure" id="A2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="324" id="A2.F2.1.g1" src="/html/2403.08882/assets/x6.png" width="518"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="A2.F2.3.1.1" style="font-size:90%;">
+      Supplementary Figure 2
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="A2.F2.4.2" style="font-size:90%;">
+     Screenshot of the Graphical User Interface
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="A2.p1">
+   <p class="ltx_p" id="A2.p1.1">
+    To allow researchers to easily use our model, we developed an intuitive user interface that allows to manipulate the variables of interest and generate figures (see Supplementary Figure
+    <a class="ltx_ref" href="#A2.F2" title="Supplementary Figure 2 ‣ Appendix B User Interface ‣ Cultural evolution in populations of Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    ) . In the Simulation panel, users can set these variables. Starting from the top of the panel, users can select how many agents they wish to simulate (“Number of agents”), how many generations to simulate (“Number of generations”), and how many times to repeat the simulations (”Number of seeds”). Users can also select which initialization prompt and transformation prompt to use (“Initialization prompt” and “Transformation prompt”). Users may add a new prompts by clicking on the “Add prompt…” button. This opens a new window in which they can set the name and content of the prompt. Users can also select which network structure to use for the simulation. When “sequence” is selected, agents are arranged in a chain, and each agents waits to receive the output of the previous agent in the chain before generating its own output. The other options are ”Circle”, which creates a cyclic graph, ”Caveman”, which creates a connected-caveman network
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib48" title="">
+      48
+     </a>
+     ]
+    </cite>
+    (in which case the user must also select the number of cliques), and a ”Fully-Connected”, which creates a fully-connected network. The structure of the chosen graph is displayed on the right side of the window. Finally, users can also select the personalities to assign to the agents. A checkbox allows to indicate whether all agents should have the same personality. If it is the case, users can select the corresponding personality in the drop-down menu. Like for the prompts, users can add new personalities to the list. If agents have different personalities, the users can assign each agent its personality in the corresponding list.
+On top of these parameters, users should give a name to the simulation, which will be the name of the folder in which results are saved. Users should also specify the URL to send the request to in order to get answers from the LLM. We generated such an URL using a library from oogabooga (https://github.com/oobabooga/text-generation-webui), and provide details of this procedure in the README file of
+    <a class="ltx_ref ltx_href" href="https://github.com/jeremyperez2/LLM-Culture" target="_blank" title="">
+     our github repository
+    </a>
+    .
+Once all of these parameters have been set, users can run the simulations by clicking on ”Run”. Once the simulation has terminated, figures will be generated and displayed in the Figures tab of the GUI, as well as being stored in the result folder.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_appendix ltx_indent_first" id="A3">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix C
+   </span>
+   Additional metrics and results
+  </h2>
+  <section class="ltx_subsection ltx_indent_first" id="A3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.1
+    </span>
+    Additional metrics
+   </h3>
+   <section class="ltx_paragraph ltx_indentfirst" id="A3.SS1.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Creativity
+    </h5>
+    <div class="ltx_para" id="A3.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="A3.SS1.SSS0.Px1.p1.1">
+      To obtain the creativity of a text, we compute the average semantic distance between all pairs of words in this text. This way of measuring creativity is supported by recent studies
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib23" title="">
+        23
+       </a>
+       ]
+      </cite>
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib20" title="">
+        20
+       </a>
+       ]
+      </cite>
+      .
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph ltx_indentfirst" id="A3.SS1.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Positivity and subjectivity
+    </h5>
+    <div class="ltx_para" id="A3.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="A3.SS1.SSS0.Px2.p1.1">
+      We used TextBlob
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib29" title="">
+        29
+       </a>
+       ]
+      </cite>
+      to perform sentiment analysis on the content generated. In particular, we used their measures of positivity and subjectivity and looked at their evolution through generations.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection ltx_indent_first" id="A3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.2
+    </span>
+    Additional results
+   </h3>
+   <div class="ltx_para" id="A3.SS2.p1">
+    <p class="ltx_p" id="A3.SS2.p1.1">
+     The evolution of those additional metrics though generations is shown in Supplementary Figure
+     <a class="ltx_ref" href="#A3.F3" title="Supplementary Figure 3 ‣ C.2 Additional results ‣ Appendix C Additional metrics and results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , Supplementary Figure
+     <a class="ltx_ref" href="#A3.F4" title="Supplementary Figure 4 ‣ C.2 Additional results ‣ Appendix C Additional metrics and results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     and Supplementary Figure
+     <a class="ltx_ref" href="#A3.F5" title="Supplementary Figure 5 ‣ C.2 Additional results ‣ Appendix C Additional metrics and results ‣ Cultural evolution in populations of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A3.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="113" id="A3.F3.g1" src="/html/2403.08882/assets/x7.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F3.2.1.1" style="font-size:90%;">
+       Supplementary Figure 3
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F3.3.2" style="font-size:90%;">
+      Evolution of additional metrics for four different network structures
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="114" id="A3.F4.g1" src="/html/2403.08882/assets/x8.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F4.2.1.1" style="font-size:90%;">
+       Supplementary Figure 4
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F4.3.2" style="font-size:90%;">
+      Evolution of additional metrics for four different transformation prompts: Combine2, MinorChanges, Repeat, and MaximizeDifference
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="114" id="A3.F5.g1" src="/html/2403.08882/assets/x9.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F5.2.1.1" style="font-size:90%;">
+       Supplementary Figure 5
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F5.3.2" style="font-size:90%;">
+      Evolution of additional metrics for different personalities: NoPersonality, Creative, NotCreative, Mixed population of Creative and NotCreative
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="93" id="A3.F6.g1" src="/html/2403.08882/assets/x10.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F6.2.1.1" style="font-size:90%;">
+       Supplementary Figure 6
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F6.3.2" style="font-size:90%;">
+      All similarity Matrices for the Fully-Connected Network.
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="96" id="A3.F7.g1" src="/html/2403.08882/assets/x11.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F7.2.1.1" style="font-size:90%;">
+       Supplementary Figure 7
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F7.3.2" style="font-size:90%;">
+      All similarity Matrices for the Caveman Network
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F8">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="93" id="A3.F8.g1" src="/html/2403.08882/assets/x12.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F8.2.1.1" style="font-size:90%;">
+       Supplementary Figure 8
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F8.3.2" style="font-size:90%;">
+      All similarity Matrices for the Circle Network
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F9">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="93" id="A3.F9.g1" src="/html/2403.08882/assets/x13.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F9.2.1.1" style="font-size:90%;">
+       Supplementary Figure 9
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F9.3.2" style="font-size:90%;">
+      All similarity Matrices for the MinorChanges transformation prompt
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F10">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="92" id="A3.F10.g1" src="/html/2403.08882/assets/x14.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F10.2.1.1" style="font-size:90%;">
+       Supplementary Figure 10
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F10.3.2" style="font-size:90%;">
+      All similarity Matrices for the Repeat Prompt
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F11">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="95" id="A3.F11.g1" src="/html/2403.08882/assets/x15.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F11.2.1.1" style="font-size:90%;">
+       Supplementary Figure 11
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F11.3.2" style="font-size:90%;">
+      All similarity Matrices for the MaximizeDifference transformation Prompt
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F12">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="93" id="A3.F12.g1" src="/html/2403.08882/assets/x16.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F12.2.1.1" style="font-size:90%;">
+       Supplementary Figure 12
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F12.3.2" style="font-size:90%;">
+      All similarity Matrices for the Creative personality
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F13">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="95" id="A3.F13.g1" src="/html/2403.08882/assets/x17.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F13.2.1.1" style="font-size:90%;">
+       Supplementary Figure 13
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F13.3.2" style="font-size:90%;">
+      All similarity Matrices for the NotCreative personality
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F14">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="92" id="A3.F14.g1" src="/html/2403.08882/assets/x18.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F14.2.1.1" style="font-size:90%;">
+       Supplementary Figure 14
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F14.3.2" style="font-size:90%;">
+      All similarity Matrices for the Mixed Population
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A3.F15">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="858" id="A3.F15.1.g1" src="/html/2403.08882/assets/figs/rotated_wordchains.png" width="303"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="A3.F15.3.1.1" style="font-size:90%;">
+       Supplementary Figure 15
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="A3.F15.4.2" style="font-size:90%;">
+      Complete rotated word chains plot of fig .
+      <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Cultural evolution in populations of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+     </span>
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+</article>

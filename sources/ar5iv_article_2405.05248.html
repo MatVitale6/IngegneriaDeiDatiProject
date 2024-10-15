@@ -1,0 +1,2449 @@
+<article class="ltx_document ltx_authors_1line ltx_fleqn">
+ <h1 class="ltx_title ltx_title_document">
+  LLMs with Personalities in Multi-issue Negotiation Games
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Sean Noh
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Dartmouth College, Program in Quantitative Social Science, Hanover NH 03755, USA
+    </span>
+   </span>
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Ho-Chun Herbert Chang
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_affiliation">
+     Dartmouth College, Program in Quantitative Social Science, Hanover NH 03755, USA
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id1.id1">
+   Powered by large language models (LLMs), AI agents have become capable of many human tasks. Using the most canonical definitions of the Big Five personality, we measure the ability of LLMs to negotiate within a game-theoretical framework, as well as methodological challenges to measuring notions of fairness and risk. Simulations (n=1,500) for both single-issue and multi-issue negotiation reveal increase in domain complexity with asymmetric issue valuations improve agreement rates but decrease surplus from aggressive negotiation. Through gradient-boosted regression and shapley explainers, we find high openness, conscientiousness, and neuroticism are associated with fair tendencies; low agreeableness and low openness are associated with rational tendencies. Low conscientiousness is associated with high toxicity. These results indicate that LLMs may have built-in guardrails that default to fair behavior, but can be “jail broken” to exploit agreeable opponents. We also offer pragmatic insight in how negotiation bots can be designed, and a framework of assessing negotiation behavior based on game theory and computational social science.
+  </p>
+ </div>
+ <div class="ltx_classification">
+  <h6 class="ltx_title ltx_title_classification">
+   keywords:
+  </h6>
+  large-language models, negotiation games, game theory, personality
+ </div>
+ <section class="ltx_section" id="Sx1" lang="en">
+  <h2 class="ltx_title ltx_title_section">
+   Introduction
+  </h2>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    Powered by large language models (LLMs), AI agents have become capable of many human tasks. This presents the risk of agents exploiting humans, as well as methodological challenges to measuring notions of fairness and risk. While existing research has assessed the ability of agents to bargain and bid, there is a gap between the game theory of bargaining and linguistic analysis. Combining game theory with LLMs and natural language processing, this study aims to assess AI agents’ ability to bargain, by using LLMs to simulate negotiations between agents with OCEAN-based personalities.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p2">
+   <p class="ltx_p" id="Sx1.p2.1">
+    Negotiation is a fundamental task for humans. It is a process where parties can settle issues, discover surplus, and create value. Due to it’s ubiquity, it has been widely studied in many contexts, including economics
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , business
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , communication
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , and behavioral psychology
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    . In the social sciences, a significant stream considers how individual differences contribute to divergent outcomes in negotiation. In particular, personality traits have been shown to modulate bargaining in a few different ways. The Big Five personality traits, particularly neuroticism, extraversion, and agreeableness, are associated with collaborative, compromising, or collaborative behavior
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    . Personality also has influences on ultimatum bargaining decisions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    , motivational orientations such as optimism
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    , and other typologies of negotiation predilections such as aggression and submission
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    . However, other studies have shown situational factors may play a larger role, including the rhetoric used
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p3">
+   <p class="ltx_p" id="Sx1.p3.1">
+    In tandem, negotiation can also be formalized through the lens of game theory, specifically bargaining games. Canonically, a negotiation game is a two player game where players divide one or more issues, with each issue being valued differently by each agent. Each agent aims to maximize their utility. At the start of the game, agents are informed of the maximum rounds to split the issues. If no agreement is reached by the final round, both players receive nothing. Each round consists of an
+    <span class="ltx_text ltx_font_italic" id="Sx1.p3.1.1">
+     offer
+    </span>
+    and
+    <span class="ltx_text ltx_font_italic" id="Sx1.p3.1.2">
+     response
+    </span>
+    . An offer includes a proposed division of the issues. A response either accepts the offer, ending the game and dividing the issues accordingly, or rejects the offer, moving the game to the next round. On an agent’s turn, the agent responds to the previous offer and then, if rejecting the offer, makes a counteroffer. In the past decade, there has been a particular effort in artificial intelligence
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    to model autonomous agents capable of producing rational and fair outcomes.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p4">
+   <p class="ltx_p" id="Sx1.p4.1">
+    The advent of ChatGPT in 2022 effectively combines these two streams of research. Since 2017, agents were shown to misrepresent their intentions within negotiation dialogues
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    . In parallel, studies have not just proposed large-language models as a way to simulate subjects for social scientific experiments
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ]
+    </cite>
+    , but have also sought to quantify their ability to perform causal reasoning and rational decision making
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    .
+For instance, it has been shown AI agents can "jailbroken" using persuasion techniques
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ]
+    </cite>
+    . We build on contemporary work considering personality and LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    and negotiation on different base models
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    . Moreover, success in deep reinforcement learning (DRL) almost ten years ago in games such as Chess
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    , Go
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ]
+    </cite>
+    , Poker
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      29
+     </a>
+     ]
+    </cite>
+    and Atari games
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    have inspired DRL’s application to complex human tasks, such as negotiation. Baarslag divides negotiation into three pillars— the
+    <span class="ltx_text ltx_font_italic" id="Sx1.p4.1.1">
+     bidding strategy
+    </span>
+    ,
+    <span class="ltx_text ltx_font_italic" id="Sx1.p4.1.2">
+     opponent modeling
+    </span>
+    , and
+    <span class="ltx_text ltx_font_italic" id="Sx1.p4.1.3">
+     acceptance strategy
+    </span>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p5">
+   <p class="ltx_p" id="Sx1.p5.1">
+    With LLMs at our disposal, the combination of both the quantitative and qualitative dimension of negotiation is now feasible.
+Our research questions are as follows:
+   </p>
+   <ul class="ltx_itemize" id="Sx1.I1">
+    <li class="ltx_item" id="Sx1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i1.p1">
+      <p class="ltx_p" id="Sx1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i1.p1.1.1">
+        RQ1:
+       </span>
+       Which personality-based agents yield the highest returns?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i2.p1">
+      <p class="ltx_p" id="Sx1.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i2.p1.1.1">
+        RQ2:
+       </span>
+       How does domain complexity influence payoffs for different agent types?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i3.p1">
+      <p class="ltx_p" id="Sx1.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i3.p1.1.1">
+        RQ3:
+       </span>
+       What language and rhetorical features are most prevalent amongst each of the agent-types?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i4.p1">
+      <p class="ltx_p" id="Sx1.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i4.p1.1.1">
+        RQ4:
+       </span>
+       What pairings head-to-head result in the highest level of exploitation?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i5.p1">
+      <p class="ltx_p" id="Sx1.I1.i5.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i5.p1.1.1">
+        RQ5:
+       </span>
+       Among agent-type, toxicity, round type, and rhetorical strategies, what yields the highest utilities?
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <section class="ltx_subsection" id="Sx1.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Negotiation games
+   </h3>
+   <div class="ltx_para" id="Sx1.SSx1.p1">
+    <p class="ltx_p" id="Sx1.SSx1.p1.1">
+     To assess the ability of different personality agents to negotiate with each other, we created ten types of agents to compete against each other in both single- and multi-issue negotiations. In each game, two agents were created as distinct instances of the
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.1">
+      gpt-4-turbo
+     </span>
+     model using the ChatGPT API. Each agent was defined as one of ten personality types: either a high or low level of
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.2">
+      openness
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.3">
+      conscientiousness
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.4">
+      extroversion
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.5">
+      agreeableness
+     </span>
+     , or
+     <span class="ltx_text ltx_font_italic" id="Sx1.SSx1.p1.1.6">
+      neuroticism
+     </span>
+     . Agent personalities were initialized [or The system content of each agent was initialized] based on personality facets described by Howard and Howard
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx1.SSx1.p2">
+    <p class="ltx_p" id="Sx1.SSx1.p2.8">
+     Each agent played against all other agents, including itself, as both the first player to make an offer (P1) and the first player to respond to an offer (P2). For single-issue negotiations, agents divided
+     <math alttext="\$100" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.1.m1.1">
+      <semantics id="Sx1.SSx1.p2.1.m1.1a">
+       <mrow id="Sx1.SSx1.p2.1.m1.1.1" xref="Sx1.SSx1.p2.1.m1.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.1.m1.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.1.m1.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.1.m1.1.1.2" xref="Sx1.SSx1.p2.1.m1.1.1.2.cmml">
+         100
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.1.m1.1b">
+        <apply id="Sx1.SSx1.p2.1.m1.1.1.cmml" xref="Sx1.SSx1.p2.1.m1.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.1.m1.1.1.1.cmml" xref="Sx1.SSx1.p2.1.m1.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.1.m1.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.1.m1.1.1.2">
+          100
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.1.m1.1c">
+        \$100
+       </annotation>
+      </semantics>
+     </math>
+     . For multi-issue negotiations, agents divided 10 apples, 10 bananas, and 10 crepes, which they valued according to a preference profile. P1 valued apples at
+     <math alttext="\$1" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.2.m2.1">
+      <semantics id="Sx1.SSx1.p2.2.m2.1a">
+       <mrow id="Sx1.SSx1.p2.2.m2.1.1" xref="Sx1.SSx1.p2.2.m2.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.2.m2.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.2.m2.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.2.m2.1.1.2" xref="Sx1.SSx1.p2.2.m2.1.1.2.cmml">
+         1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.2.m2.1b">
+        <apply id="Sx1.SSx1.p2.2.m2.1.1.cmml" xref="Sx1.SSx1.p2.2.m2.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.2.m2.1.1.1.cmml" xref="Sx1.SSx1.p2.2.m2.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.2.m2.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.2.m2.1.1.2">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.2.m2.1c">
+        \$1
+       </annotation>
+      </semantics>
+     </math>
+     , bananas at
+     <math alttext="\$2" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.3.m3.1">
+      <semantics id="Sx1.SSx1.p2.3.m3.1a">
+       <mrow id="Sx1.SSx1.p2.3.m3.1.1" xref="Sx1.SSx1.p2.3.m3.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.3.m3.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.3.m3.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.3.m3.1.1.2" xref="Sx1.SSx1.p2.3.m3.1.1.2.cmml">
+         2
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.3.m3.1b">
+        <apply id="Sx1.SSx1.p2.3.m3.1.1.cmml" xref="Sx1.SSx1.p2.3.m3.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.3.m3.1.1.1.cmml" xref="Sx1.SSx1.p2.3.m3.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.3.m3.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.3.m3.1.1.2">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.3.m3.1c">
+        \$2
+       </annotation>
+      </semantics>
+     </math>
+     , and crepes at
+     <math alttext="\$3" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.4.m4.1">
+      <semantics id="Sx1.SSx1.p2.4.m4.1a">
+       <mrow id="Sx1.SSx1.p2.4.m4.1.1" xref="Sx1.SSx1.p2.4.m4.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.4.m4.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.4.m4.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.4.m4.1.1.2" xref="Sx1.SSx1.p2.4.m4.1.1.2.cmml">
+         3
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.4.m4.1b">
+        <apply id="Sx1.SSx1.p2.4.m4.1.1.cmml" xref="Sx1.SSx1.p2.4.m4.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.4.m4.1.1.1.cmml" xref="Sx1.SSx1.p2.4.m4.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.4.m4.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.4.m4.1.1.2">
+          3
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.4.m4.1c">
+        \$3
+       </annotation>
+      </semantics>
+     </math>
+     . P2 had an opposite valuation of apples at
+     <math alttext="\$3" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.5.m5.1">
+      <semantics id="Sx1.SSx1.p2.5.m5.1a">
+       <mrow id="Sx1.SSx1.p2.5.m5.1.1" xref="Sx1.SSx1.p2.5.m5.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.5.m5.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.5.m5.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.5.m5.1.1.2" xref="Sx1.SSx1.p2.5.m5.1.1.2.cmml">
+         3
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.5.m5.1b">
+        <apply id="Sx1.SSx1.p2.5.m5.1.1.cmml" xref="Sx1.SSx1.p2.5.m5.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.5.m5.1.1.1.cmml" xref="Sx1.SSx1.p2.5.m5.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.5.m5.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.5.m5.1.1.2">
+          3
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.5.m5.1c">
+        \$3
+       </annotation>
+      </semantics>
+     </math>
+     , bananas at
+     <math alttext="\$2" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.6.m6.1">
+      <semantics id="Sx1.SSx1.p2.6.m6.1a">
+       <mrow id="Sx1.SSx1.p2.6.m6.1.1" xref="Sx1.SSx1.p2.6.m6.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.6.m6.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.6.m6.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.6.m6.1.1.2" xref="Sx1.SSx1.p2.6.m6.1.1.2.cmml">
+         2
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.6.m6.1b">
+        <apply id="Sx1.SSx1.p2.6.m6.1.1.cmml" xref="Sx1.SSx1.p2.6.m6.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.6.m6.1.1.1.cmml" xref="Sx1.SSx1.p2.6.m6.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.6.m6.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.6.m6.1.1.2">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.6.m6.1c">
+        \$2
+       </annotation>
+      </semantics>
+     </math>
+     , and crepes at
+     <math alttext="\$1" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.7.m7.1">
+      <semantics id="Sx1.SSx1.p2.7.m7.1a">
+       <mrow id="Sx1.SSx1.p2.7.m7.1.1" xref="Sx1.SSx1.p2.7.m7.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.7.m7.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.7.m7.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.7.m7.1.1.2" xref="Sx1.SSx1.p2.7.m7.1.1.2.cmml">
+         1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.7.m7.1b">
+        <apply id="Sx1.SSx1.p2.7.m7.1.1.cmml" xref="Sx1.SSx1.p2.7.m7.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.7.m7.1.1.1.cmml" xref="Sx1.SSx1.p2.7.m7.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.7.m7.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.7.m7.1.1.2">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.7.m7.1c">
+        \$1
+       </annotation>
+      </semantics>
+     </math>
+     . Agents took turns responding to and making offers until an agreement was reached or round six ended. If no agreement was made by the sixth round, the game ended in default and both agents received a payoff of
+     <math alttext="\$0" class="ltx_Math" display="inline" id="Sx1.SSx1.p2.8.m8.1">
+      <semantics id="Sx1.SSx1.p2.8.m8.1a">
+       <mrow id="Sx1.SSx1.p2.8.m8.1.1" xref="Sx1.SSx1.p2.8.m8.1.1.cmml">
+        <mo id="Sx1.SSx1.p2.8.m8.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p2.8.m8.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p2.8.m8.1.1.2" xref="Sx1.SSx1.p2.8.m8.1.1.2.cmml">
+         0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p2.8.m8.1b">
+        <apply id="Sx1.SSx1.p2.8.m8.1.1.cmml" xref="Sx1.SSx1.p2.8.m8.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p2.8.m8.1.1.1.cmml" xref="Sx1.SSx1.p2.8.m8.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p2.8.m8.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p2.8.m8.1.1.2">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p2.8.m8.1c">
+        \$0
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx1.SSx1.p3">
+    <p class="ltx_p" id="Sx1.SSx1.p3.5">
+     The purpose of this experiment is to analyze how effective different LLM-agent personalities are at negotiating with a deadline. Thus, it is important to consider the negotiations from a game theoretic perspective. In a six round game between two rational agents, P2 has a massive advantage as it is always able to make the final offer. P2 will decline all proposals until the final round, where it will offer the minimum to P1. P1 will accept any offer with a greater payoff than
+     <math alttext="\$0" class="ltx_Math" display="inline" id="Sx1.SSx1.p3.1.m1.1">
+      <semantics id="Sx1.SSx1.p3.1.m1.1a">
+       <mrow id="Sx1.SSx1.p3.1.m1.1.1" xref="Sx1.SSx1.p3.1.m1.1.1.cmml">
+        <mo id="Sx1.SSx1.p3.1.m1.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p3.1.m1.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p3.1.m1.1.1.2" xref="Sx1.SSx1.p3.1.m1.1.1.2.cmml">
+         0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p3.1.m1.1b">
+        <apply id="Sx1.SSx1.p3.1.m1.1.1.cmml" xref="Sx1.SSx1.p3.1.m1.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p3.1.m1.1.1.1.cmml" xref="Sx1.SSx1.p3.1.m1.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p3.1.m1.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p3.1.m1.1.1.2">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p3.1.m1.1c">
+        \$0
+       </annotation>
+      </semantics>
+     </math>
+     because if it declines, the game will end in default and P1 will receive nothing. Thus, the Nash Equilibrium, or the outcome assuming perfect play between two rational agents, is a
+     <math alttext="\$99" class="ltx_Math" display="inline" id="Sx1.SSx1.p3.2.m2.1">
+      <semantics id="Sx1.SSx1.p3.2.m2.1a">
+       <mrow id="Sx1.SSx1.p3.2.m2.1.1" xref="Sx1.SSx1.p3.2.m2.1.1.cmml">
+        <mo id="Sx1.SSx1.p3.2.m2.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p3.2.m2.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p3.2.m2.1.1.2" xref="Sx1.SSx1.p3.2.m2.1.1.2.cmml">
+         99
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p3.2.m2.1b">
+        <apply id="Sx1.SSx1.p3.2.m2.1.1.cmml" xref="Sx1.SSx1.p3.2.m2.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p3.2.m2.1.1.1.cmml" xref="Sx1.SSx1.p3.2.m2.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p3.2.m2.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p3.2.m2.1.1.2">
+          99
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p3.2.m2.1c">
+        \$99
+       </annotation>
+      </semantics>
+     </math>
+     payoff for P2 and a
+     <math alttext="\$1" class="ltx_Math" display="inline" id="Sx1.SSx1.p3.3.m3.1">
+      <semantics id="Sx1.SSx1.p3.3.m3.1a">
+       <mrow id="Sx1.SSx1.p3.3.m3.1.1" xref="Sx1.SSx1.p3.3.m3.1.1.cmml">
+        <mo id="Sx1.SSx1.p3.3.m3.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p3.3.m3.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p3.3.m3.1.1.2" xref="Sx1.SSx1.p3.3.m3.1.1.2.cmml">
+         1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p3.3.m3.1b">
+        <apply id="Sx1.SSx1.p3.3.m3.1.1.cmml" xref="Sx1.SSx1.p3.3.m3.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p3.3.m3.1.1.1.cmml" xref="Sx1.SSx1.p3.3.m3.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p3.3.m3.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p3.3.m3.1.1.2">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p3.3.m3.1c">
+        \$1
+       </annotation>
+      </semantics>
+     </math>
+     payoff for P1 in the single-issue case. In the multi-issue case, P2 will give away one crepe, which it values least, resulting in an outcome of 10 apples, 10 bananas, and 9 crepes for a payoff of
+     <math alttext="\$59" class="ltx_Math" display="inline" id="Sx1.SSx1.p3.4.m4.1">
+      <semantics id="Sx1.SSx1.p3.4.m4.1a">
+       <mrow id="Sx1.SSx1.p3.4.m4.1.1" xref="Sx1.SSx1.p3.4.m4.1.1.cmml">
+        <mo id="Sx1.SSx1.p3.4.m4.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p3.4.m4.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p3.4.m4.1.1.2" xref="Sx1.SSx1.p3.4.m4.1.1.2.cmml">
+         59
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p3.4.m4.1b">
+        <apply id="Sx1.SSx1.p3.4.m4.1.1.cmml" xref="Sx1.SSx1.p3.4.m4.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p3.4.m4.1.1.1.cmml" xref="Sx1.SSx1.p3.4.m4.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p3.4.m4.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p3.4.m4.1.1.2">
+          59
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p3.4.m4.1c">
+        \$59
+       </annotation>
+      </semantics>
+     </math>
+     . P1 will receive a payoff of
+     <math alttext="\$3" class="ltx_Math" display="inline" id="Sx1.SSx1.p3.5.m5.1">
+      <semantics id="Sx1.SSx1.p3.5.m5.1a">
+       <mrow id="Sx1.SSx1.p3.5.m5.1.1" xref="Sx1.SSx1.p3.5.m5.1.1.cmml">
+        <mo id="Sx1.SSx1.p3.5.m5.1.1.1" rspace="0.167em" xref="Sx1.SSx1.p3.5.m5.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx1.SSx1.p3.5.m5.1.1.2" xref="Sx1.SSx1.p3.5.m5.1.1.2.cmml">
+         3
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx1.SSx1.p3.5.m5.1b">
+        <apply id="Sx1.SSx1.p3.5.m5.1.1.cmml" xref="Sx1.SSx1.p3.5.m5.1.1">
+         <csymbol cd="latexml" id="Sx1.SSx1.p3.5.m5.1.1.1.cmml" xref="Sx1.SSx1.p3.5.m5.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx1.SSx1.p3.5.m5.1.1.2.cmml" type="integer" xref="Sx1.SSx1.p3.5.m5.1.1.2">
+          3
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx1.SSx1.p3.5.m5.1c">
+        \$3
+       </annotation>
+      </semantics>
+     </math>
+     for 1 crepe.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx2" lang="en">
+  <h2 class="ltx_title ltx_title_section">
+   Results
+  </h2>
+  <div class="ltx_para" id="Sx2.p1">
+   <p class="ltx_p" id="Sx2.p1.1">
+    We ran ten trials of single-issue negotiation games and five trials of multi-issue games. Each trial consisted of all ten agent personalities playing against each other as both P1 and P2 for a total of 100 games per trial. This yields a total sample size of 1,000 single-issue games and 500 multi-issue games.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="Sx2.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Agreeableness and Domain Complexity
+   </h3>
+   <figure class="ltx_figure" id="Sx2.F1">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="394" id="Sx2.F1.g1" src="/html/2405.05248/assets/figures/payoffs.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     Normalized payoffs of personality-based agents in single and multi issue games (a) including and (b) excluding games ending in default.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx2.SSx1.p1">
+    <p class="ltx_p" id="Sx2.SSx1.p1.1">
+     Figure
+     <a class="ltx_ref" href="#Sx2.F1" title="Figure 1 ‣ Agreeableness and Domain Complexity ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     shows the normalized payoff of each agent personality in single and multi issue games, with and without games ending in default. We find that agreeableness influences average payoff the most. In both the single and multi issue games, the personalities with the highest payoffs had the lowest default rates (a comparison of default rates and payoffs can be found in the appendix). Based on the literature, these personalities tended to be more accommodating, more passive, and less ambitious, with personality facets such as "willing to help others", "open to reexamining values", "slow to anger", and "stays in background". However, while these personalities were able to reach more agreements, this does not characterize the full range of dynamics.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx1.p2">
+    <p class="ltx_p" id="Sx2.SSx1.p2.1">
+     Conditional on an agreement being made, low agreeableness leads to high returns. In the single-issue case, Figure
+     <a class="ltx_ref" href="#Sx2.F1" title="Figure 1 ‣ Agreeableness and Domain Complexity ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     b shows that low agreeableness and low openness, the personalities with the highest default rates, generated the highest value when an agreement was made. This indicates that agreeableness directly modulates the reserve price, or lowest payoff that an agent will accept. In the multi-issue case, while low agreeableness still had one of the highest returns, it did not have as extreme of an advantage over the other personalities. In fact, high agreeableness and high openness had a very similar average payoff. This is because in multi-issue games, these more cooperative personalities were best able to use the agents’ differing preference profiles to find more efficient and lucrative deals.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx1.p3">
+    <p class="ltx_p" id="Sx2.SSx1.p3.1">
+     Overall, we find that domain complexity with asymmetric issue valuations tends to increase payoffs for agents. Figure
+     <a class="ltx_ref" href="#Sx2.F1" title="Figure 1 ‣ Agreeableness and Domain Complexity ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     a shows that all agents achieved higher payoffs in the multi-issue negotiations than the single-issue negotiations. One reason for this is a lower default rate in multi-issue negotiations. While agents came to an agreement in only 64.3% of single-issue games, they reached agreement in 89.0% of games in the multi-issue case. However, the increased payoff average in multi-issue games was not solely caused by more frequent agreements; Figure
+     <a class="ltx_ref" href="#Sx2.F1" title="Figure 1 ‣ Agreeableness and Domain Complexity ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     b shows that even with defaulted games removed, almost all agents had a higher payoff in multi-issue games. This is because in multi-issue games, the different preferences of issues allows agents to find synergistic trade-offs that increase both agents’ utilities. Multi-issue games allow for better deals, which results in more agreements. Together, these answer
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx1.p3.1.1">
+      RQ1
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx1.p3.1.2">
+      RQ2
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx2.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Agent-based differences
+   </h3>
+   <figure class="ltx_figure" id="Sx2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="334" id="Sx2.F2.g1" src="/html/2405.05248/assets/figures/tox_p1_advantage_defaults.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     (a) Toxicity in single-issue bargaining games by personality and (b) payoff advantage for P1 in multi-issue games.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx2.SSx2.p1">
+    <p class="ltx_p" id="Sx2.SSx2.p1.1">
+     Next, we turn our attention to personality-based differences in terms of negotiation behavior. Beyond fairness, one risk of AI is verbal harm, similar to the motivations of content moderation on social media platforms. Even if a personality yields higher or even fairer payoffs, verbal harm may still be a risk beyond game-theoretic conceptions of good outcomes. Figure
+     <a class="ltx_ref" href="#Sx2.F2" title="Figure 2 ‣ Agent-based differences ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     a shows the toxicity scores of the outputs of each agent as measured by Google Perspective. We find that low conscientiousness and high neuroticism contribute to toxic language. Comparatively, other agent types have significantly lower toxicity scores. This also points to how different personality types, based on their initiation from their canonical definitions, may yield asymmetric lingusitical outcomes.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx2.p2">
+    <p class="ltx_p" id="Sx2.SSx2.p2.1">
+     Additionally, we find some LLM agents tend to act vindictively rather than rationally. In a six round game between two rational agents, P2 should have a large advantage because P1 will accept anything it offers in the final round. However, Figure
+     <a class="ltx_ref" href="#Sx2.F2" title="Figure 2 ‣ Agent-based differences ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     b indicates that P1 slightly outperforms P2 in many of these multi-issue games. This may be due to irrational spitefulness. Out of 130 multi-issue games that progressed to the final round, only 66 concluded in a deal. 49.2% of the time, agents decided to decline the final offer and receive no payoff rather than accept the portion of the resources that they were offered. However, some agents such as low agreeableness and low openness have negative scores, which may suggest tendencies toward rational behavior.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx2.p3">
+    <p class="ltx_p" id="Sx2.SSx2.p3.1">
+     These results show that agents, based on their initialized personalities, may yield more toxic, vindictive, or rational behavior. This answers
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx2.p3.1.1">
+      RQ3
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx2.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Exploitation against other agents
+   </h3>
+   <figure class="ltx_figure" id="Sx2.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="257" id="Sx2.F3.g1" src="/html/2405.05248/assets/figures/direct_heads_up_agreements.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Payoffs in (a) single-issue bargaining games by head-to-head match up and (b) multi-issue bargaining games between Hi-Agree and Lo-Agree personalities, excluding games ending in default.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx2.SSx3.p1">
+    <p class="ltx_p" id="Sx2.SSx3.p1.1">
+     Next, we consider the head-to-head behavior of agents. Figure
+     <a class="ltx_ref" href="#Sx2.F3" title="Figure 3 ‣ Exploitation against other agents ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     shows the payoffs of agent personalities against each individual opponent. We find that in the single-issue case, low agreeableness heavily exploits other personalities. Figure
+     <a class="ltx_ref" href="#Sx2.F3" title="Figure 3 ‣ Exploitation against other agents ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     a shows the payoffs for each personality as P1 against every other personality when an agreement was made. The payoffs of the P2 agents can be found by subtracting the P1 payoffs from the
+     <math alttext="\$100" class="ltx_Math" display="inline" id="Sx2.SSx3.p1.1.m1.1">
+      <semantics id="Sx2.SSx3.p1.1.m1.1a">
+       <mrow id="Sx2.SSx3.p1.1.m1.1.1" xref="Sx2.SSx3.p1.1.m1.1.1.cmml">
+        <mo id="Sx2.SSx3.p1.1.m1.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p1.1.m1.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx2.SSx3.p1.1.m1.1.1.2" xref="Sx2.SSx3.p1.1.m1.1.1.2.cmml">
+         100
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p1.1.m1.1b">
+        <apply id="Sx2.SSx3.p1.1.m1.1.1.cmml" xref="Sx2.SSx3.p1.1.m1.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p1.1.m1.1.1.1.cmml" xref="Sx2.SSx3.p1.1.m1.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx2.SSx3.p1.1.m1.1.1.2.cmml" type="integer" xref="Sx2.SSx3.p1.1.m1.1.1.2">
+          100
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p1.1.m1.1c">
+        \$100
+       </annotation>
+      </semantics>
+     </math>
+     being split. This shows that although low agreeableness led to high default rates, it was able to negotiate large advantages when agents did find agreement. Low agreeableness was particularly effective at exploiting high agreeableness, high neuroticism, and low conscientiousness. It did not reach agreement with high conscientiousness, low agreeableness, and low openness. Low openness was also exploitative, especially against high agreeableness. High agreeableness was the most exploitable personality and was not able to outperform any personality it faced.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx3.p2">
+    <p class="ltx_p" id="Sx2.SSx3.p2.5">
+     In the multi-issue case, exploitation was not as pronounced. Figure
+     <a class="ltx_ref" href="#Sx2.F3" title="Figure 3 ‣ Exploitation against other agents ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     b shows the payoff heat map of games between high agreeableness and low agreeableness in multi-issue games. The figure has the payoffs of certain outcomes plotted as (x,y,z) where x is the perspective player’s
+     <math alttext="\$1" class="ltx_Math" display="inline" id="Sx2.SSx3.p2.1.m1.1">
+      <semantics id="Sx2.SSx3.p2.1.m1.1a">
+       <mrow id="Sx2.SSx3.p2.1.m1.1.1" xref="Sx2.SSx3.p2.1.m1.1.1.cmml">
+        <mo id="Sx2.SSx3.p2.1.m1.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p2.1.m1.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx2.SSx3.p2.1.m1.1.1.2" xref="Sx2.SSx3.p2.1.m1.1.1.2.cmml">
+         1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p2.1.m1.1b">
+        <apply id="Sx2.SSx3.p2.1.m1.1.1.cmml" xref="Sx2.SSx3.p2.1.m1.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p2.1.m1.1.1.1.cmml" xref="Sx2.SSx3.p2.1.m1.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx2.SSx3.p2.1.m1.1.1.2.cmml" type="integer" xref="Sx2.SSx3.p2.1.m1.1.1.2">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p2.1.m1.1c">
+        \$1
+       </annotation>
+      </semantics>
+     </math>
+     valued item, y is their
+     <math alttext="\$2" class="ltx_Math" display="inline" id="Sx2.SSx3.p2.2.m2.1">
+      <semantics id="Sx2.SSx3.p2.2.m2.1a">
+       <mrow id="Sx2.SSx3.p2.2.m2.1.1" xref="Sx2.SSx3.p2.2.m2.1.1.cmml">
+        <mo id="Sx2.SSx3.p2.2.m2.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p2.2.m2.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx2.SSx3.p2.2.m2.1.1.2" xref="Sx2.SSx3.p2.2.m2.1.1.2.cmml">
+         2
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p2.2.m2.1b">
+        <apply id="Sx2.SSx3.p2.2.m2.1.1.cmml" xref="Sx2.SSx3.p2.2.m2.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p2.2.m2.1.1.1.cmml" xref="Sx2.SSx3.p2.2.m2.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx2.SSx3.p2.2.m2.1.1.2.cmml" type="integer" xref="Sx2.SSx3.p2.2.m2.1.1.2">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p2.2.m2.1c">
+        \$2
+       </annotation>
+      </semantics>
+     </math>
+     valued item, and z is their
+     <math alttext="\$3" class="ltx_Math" display="inline" id="Sx2.SSx3.p2.3.m3.1">
+      <semantics id="Sx2.SSx3.p2.3.m3.1a">
+       <mrow id="Sx2.SSx3.p2.3.m3.1.1" xref="Sx2.SSx3.p2.3.m3.1.1.cmml">
+        <mo id="Sx2.SSx3.p2.3.m3.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p2.3.m3.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx2.SSx3.p2.3.m3.1.1.2" xref="Sx2.SSx3.p2.3.m3.1.1.2.cmml">
+         3
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p2.3.m3.1b">
+        <apply id="Sx2.SSx3.p2.3.m3.1.1.cmml" xref="Sx2.SSx3.p2.3.m3.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p2.3.m3.1.1.1.cmml" xref="Sx2.SSx3.p2.3.m3.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx2.SSx3.p2.3.m3.1.1.2.cmml" type="integer" xref="Sx2.SSx3.p2.3.m3.1.1.2">
+          3
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p2.3.m3.1c">
+        \$3
+       </annotation>
+      </semantics>
+     </math>
+     valued item. While in the single-issue case, low agreeableness dominated the match up, earning
+     <math alttext="\$67/100" class="ltx_Math" display="inline" id="Sx2.SSx3.p2.4.m4.1">
+      <semantics id="Sx2.SSx3.p2.4.m4.1a">
+       <mrow id="Sx2.SSx3.p2.4.m4.1.1" xref="Sx2.SSx3.p2.4.m4.1.1.cmml">
+        <mo id="Sx2.SSx3.p2.4.m4.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p2.4.m4.1.1.1.cmml">
+         $
+        </mo>
+        <mrow id="Sx2.SSx3.p2.4.m4.1.1.2" xref="Sx2.SSx3.p2.4.m4.1.1.2.cmml">
+         <mn id="Sx2.SSx3.p2.4.m4.1.1.2.2" xref="Sx2.SSx3.p2.4.m4.1.1.2.2.cmml">
+          67
+         </mn>
+         <mo id="Sx2.SSx3.p2.4.m4.1.1.2.1" xref="Sx2.SSx3.p2.4.m4.1.1.2.1.cmml">
+          /
+         </mo>
+         <mn id="Sx2.SSx3.p2.4.m4.1.1.2.3" xref="Sx2.SSx3.p2.4.m4.1.1.2.3.cmml">
+          100
+         </mn>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p2.4.m4.1b">
+        <apply id="Sx2.SSx3.p2.4.m4.1.1.cmml" xref="Sx2.SSx3.p2.4.m4.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p2.4.m4.1.1.1.cmml" xref="Sx2.SSx3.p2.4.m4.1.1.1">
+          currency-dollar
+         </csymbol>
+         <apply id="Sx2.SSx3.p2.4.m4.1.1.2.cmml" xref="Sx2.SSx3.p2.4.m4.1.1.2">
+          <divide id="Sx2.SSx3.p2.4.m4.1.1.2.1.cmml" xref="Sx2.SSx3.p2.4.m4.1.1.2.1">
+          </divide>
+          <cn id="Sx2.SSx3.p2.4.m4.1.1.2.2.cmml" type="integer" xref="Sx2.SSx3.p2.4.m4.1.1.2.2">
+           67
+          </cn>
+          <cn id="Sx2.SSx3.p2.4.m4.1.1.2.3.cmml" type="integer" xref="Sx2.SSx3.p2.4.m4.1.1.2.3">
+           100
+          </cn>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p2.4.m4.1c">
+        \$67/100
+       </annotation>
+      </semantics>
+     </math>
+     as P1 and
+     <math alttext="\$59/100" class="ltx_Math" display="inline" id="Sx2.SSx3.p2.5.m5.1">
+      <semantics id="Sx2.SSx3.p2.5.m5.1a">
+       <mrow id="Sx2.SSx3.p2.5.m5.1.1" xref="Sx2.SSx3.p2.5.m5.1.1.cmml">
+        <mo id="Sx2.SSx3.p2.5.m5.1.1.1" rspace="0.167em" xref="Sx2.SSx3.p2.5.m5.1.1.1.cmml">
+         $
+        </mo>
+        <mrow id="Sx2.SSx3.p2.5.m5.1.1.2" xref="Sx2.SSx3.p2.5.m5.1.1.2.cmml">
+         <mn id="Sx2.SSx3.p2.5.m5.1.1.2.2" xref="Sx2.SSx3.p2.5.m5.1.1.2.2.cmml">
+          59
+         </mn>
+         <mo id="Sx2.SSx3.p2.5.m5.1.1.2.1" xref="Sx2.SSx3.p2.5.m5.1.1.2.1.cmml">
+          /
+         </mo>
+         <mn id="Sx2.SSx3.p2.5.m5.1.1.2.3" xref="Sx2.SSx3.p2.5.m5.1.1.2.3.cmml">
+          100
+         </mn>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx3.p2.5.m5.1b">
+        <apply id="Sx2.SSx3.p2.5.m5.1.1.cmml" xref="Sx2.SSx3.p2.5.m5.1.1">
+         <csymbol cd="latexml" id="Sx2.SSx3.p2.5.m5.1.1.1.cmml" xref="Sx2.SSx3.p2.5.m5.1.1.1">
+          currency-dollar
+         </csymbol>
+         <apply id="Sx2.SSx3.p2.5.m5.1.1.2.cmml" xref="Sx2.SSx3.p2.5.m5.1.1.2">
+          <divide id="Sx2.SSx3.p2.5.m5.1.1.2.1.cmml" xref="Sx2.SSx3.p2.5.m5.1.1.2.1">
+          </divide>
+          <cn id="Sx2.SSx3.p2.5.m5.1.1.2.2.cmml" type="integer" xref="Sx2.SSx3.p2.5.m5.1.1.2.2">
+           59
+          </cn>
+          <cn id="Sx2.SSx3.p2.5.m5.1.1.2.3.cmml" type="integer" xref="Sx2.SSx3.p2.5.m5.1.1.2.3">
+           100
+          </cn>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx3.p2.5.m5.1c">
+        \$59/100
+       </annotation>
+      </semantics>
+     </math>
+     as P2, in this scenario the outcomes are much more even. This is because in a multi-issue case, each player’s most valuable and sought after resource is its opponent’s least valuable. In other words, agents are able to identify complementary interests. This makes efficiency important in securing the best outcomes.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx3.p3">
+    <p class="ltx_p" id="Sx2.SSx3.p3.1">
+     Another way to understand this is through the Pareto frontier, or the set of outcomes that cannot improve the payoff of one player without decreasing the payoff of the other player. Outcomes outside of the Pareto frontier are inefficient because at least one player’s payoff could be improved at no cost to its opponent. In this scenario, the Pareto frontier where utilities are maximized are the points on the line from (0, 0, 10) to (0, 10, 10). High agreeableness was able to get its highest payoffs close to this frontier, which indicates that its best outcomes were efficient, including high amounts of its most valued item and low amounts of its least valued item. In contrast, the low agreeableness personality has a more vertically shaped plot, indicating that it was reaching similar payoffs at varying opponent’s payoffs and thus was not as effective at progressing toward the Pareto frontier. These results answer
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx3.p3.1.1">
+      RQ4
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx2.SSx4">
+   <h3 class="ltx_title ltx_title_subsection">
+    Feature Analysis
+   </h3>
+   <figure class="ltx_figure" id="Sx2.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="284" id="Sx2.F4.g1" src="/html/2405.05248/assets/figures/regression_defaults.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     (a) SHAP feature analysis on multi-issue games and (b) correlation scatter plot for model prediction (
+     <math alttext="r^{2}" class="ltx_Math" display="inline" id="Sx2.F4.2.m1.1">
+      <semantics id="Sx2.F4.2.m1.1b">
+       <msup id="Sx2.F4.2.m1.1.1" xref="Sx2.F4.2.m1.1.1.cmml">
+        <mi id="Sx2.F4.2.m1.1.1.2" xref="Sx2.F4.2.m1.1.1.2.cmml">
+         r
+        </mi>
+        <mn id="Sx2.F4.2.m1.1.1.3" xref="Sx2.F4.2.m1.1.1.3.cmml">
+         2
+        </mn>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="Sx2.F4.2.m1.1c">
+        <apply id="Sx2.F4.2.m1.1.1.cmml" xref="Sx2.F4.2.m1.1.1">
+         <csymbol cd="ambiguous" id="Sx2.F4.2.m1.1.1.1.cmml" xref="Sx2.F4.2.m1.1.1">
+          superscript
+         </csymbol>
+         <ci id="Sx2.F4.2.m1.1.1.2.cmml" xref="Sx2.F4.2.m1.1.1.2">
+          𝑟
+         </ci>
+         <cn id="Sx2.F4.2.m1.1.1.3.cmml" type="integer" xref="Sx2.F4.2.m1.1.1.3">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.F4.2.m1.1d">
+        r^{2}
+       </annotation>
+      </semantics>
+     </math>
+     =0.924).
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx2.SSx4.p1">
+    <p class="ltx_p" id="Sx2.SSx4.p1.1">
+     Lastly, we evaluate which of these personality, linguistic features, and domain-specific variables influence the resultant payoff. We build a gradient-boosting model using CatBoost
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     , a popular tree-based regressor. However, while machine learning techniques like gradient boosting yield higher accuracies than canonical statistics, their “black box” nature has limited their interpretability. In recent years, SHAP Explainers have become a common tool for understanding feature importance. The algorithm is based on Shapley Values in game theory, which focuses on calculating the utility contributions of individual players to a coalition of players
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ]
+     </cite>
+     . Instead of players, SHAP evaluates power sets of features and their contribution to minimizing error in the model
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx4.p2">
+    <p class="ltx_p" id="Sx2.SSx4.p2.1">
+     Each personality trait was either high, neutral, or low. Player turn was low for P1 and high for P2. For the linguistic scores, an agent’s text was classified with four sets of two labels using zero-shot classification. With outputs as probabilities between two labels, these can be interpretted as a spectrum between two dueling notions. A high
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.1">
+      rational
+     </span>
+     score meant the text was classified as more rational than
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.2">
+      fair
+     </span>
+     . A high
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.3">
+      assertive
+     </span>
+     score meant the text was classified as more assertive than
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.4">
+      submissive
+     </span>
+     . A high
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.5">
+      competitive
+     </span>
+     score meant the text was classified as more competitive than
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.6">
+      collaborative
+     </span>
+     . A high
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.7">
+      cutthroat
+     </span>
+     score meant the text was classified as more cutthroat than
+     <span class="ltx_text ltx_font_bold" id="Sx2.SSx4.p2.1.8">
+      naive
+     </span>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx4.p3">
+    <p class="ltx_p" id="Sx2.SSx4.p3.1">
+     Figure
+     <a class="ltx_ref" href="#Sx2.F4" title="Figure 4 ‣ Feature Analysis ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     a) shows the SHAP values for overall multi-issue negotiation outcomes. The X-axis denotes model impact; positive indicates an increase in utility. The y-axis shows the covariates are ranked by their overall importance. Each point on the beeswarm graph indicates one game, with a high value indicated in red. For instance, on the rational to fair spectrum, the more fair the agent is, the greater the payoff; the more rational, the lower the payoff. However, a more assertive tone is associated with higher payoffs. Additionally, compared to linguistic features, personality has a significant impact on payoff [what does this mean?]. High extraversion leads to lower payoffs. As shown prior, starting first seems to have a greater effect on resultant utility. In general we find high agreeableness, high conscientiousness, high openness, and high neuroticism all positively correlate to greater payoffs. The inverse is also true. Figure
+     <a class="ltx_ref" href="#Sx2.F4" title="Figure 4 ‣ Feature Analysis ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     b) shows the correlation of our predicted payoffs against actual payoffs, with
+     <math alttext="r^{2}=0.924" class="ltx_Math" display="inline" id="Sx2.SSx4.p3.1.m1.1">
+      <semantics id="Sx2.SSx4.p3.1.m1.1a">
+       <mrow id="Sx2.SSx4.p3.1.m1.1.1" xref="Sx2.SSx4.p3.1.m1.1.1.cmml">
+        <msup id="Sx2.SSx4.p3.1.m1.1.1.2" xref="Sx2.SSx4.p3.1.m1.1.1.2.cmml">
+         <mi id="Sx2.SSx4.p3.1.m1.1.1.2.2" xref="Sx2.SSx4.p3.1.m1.1.1.2.2.cmml">
+          r
+         </mi>
+         <mn id="Sx2.SSx4.p3.1.m1.1.1.2.3" xref="Sx2.SSx4.p3.1.m1.1.1.2.3.cmml">
+          2
+         </mn>
+        </msup>
+        <mo id="Sx2.SSx4.p3.1.m1.1.1.1" xref="Sx2.SSx4.p3.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="Sx2.SSx4.p3.1.m1.1.1.3" xref="Sx2.SSx4.p3.1.m1.1.1.3.cmml">
+         0.924
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx4.p3.1.m1.1b">
+        <apply id="Sx2.SSx4.p3.1.m1.1.1.cmml" xref="Sx2.SSx4.p3.1.m1.1.1">
+         <eq id="Sx2.SSx4.p3.1.m1.1.1.1.cmml" xref="Sx2.SSx4.p3.1.m1.1.1.1">
+         </eq>
+         <apply id="Sx2.SSx4.p3.1.m1.1.1.2.cmml" xref="Sx2.SSx4.p3.1.m1.1.1.2">
+          <csymbol cd="ambiguous" id="Sx2.SSx4.p3.1.m1.1.1.2.1.cmml" xref="Sx2.SSx4.p3.1.m1.1.1.2">
+           superscript
+          </csymbol>
+          <ci id="Sx2.SSx4.p3.1.m1.1.1.2.2.cmml" xref="Sx2.SSx4.p3.1.m1.1.1.2.2">
+           𝑟
+          </ci>
+          <cn id="Sx2.SSx4.p3.1.m1.1.1.2.3.cmml" type="integer" xref="Sx2.SSx4.p3.1.m1.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <cn id="Sx2.SSx4.p3.1.m1.1.1.3.cmml" type="float" xref="Sx2.SSx4.p3.1.m1.1.1.3">
+          0.924
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx4.p3.1.m1.1c">
+        r^{2}=0.924
+       </annotation>
+      </semantics>
+     </math>
+     . The cluster of 0s indicate the situation where the default option is reached (no one get’s paid).
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx2.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="284" id="Sx2.F5.g1" src="/html/2405.05248/assets/figures/regression_agreements.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     (a) SHAP feature analysis on multi-issue games ending in agreement (or excluding games ending in default) and (b) correlation scatter plot for model prediction (
+     <math alttext="r^{2}" class="ltx_Math" display="inline" id="Sx2.F5.2.m1.1">
+      <semantics id="Sx2.F5.2.m1.1b">
+       <msup id="Sx2.F5.2.m1.1.1" xref="Sx2.F5.2.m1.1.1.cmml">
+        <mi id="Sx2.F5.2.m1.1.1.2" xref="Sx2.F5.2.m1.1.1.2.cmml">
+         r
+        </mi>
+        <mn id="Sx2.F5.2.m1.1.1.3" xref="Sx2.F5.2.m1.1.1.3.cmml">
+         2
+        </mn>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="Sx2.F5.2.m1.1c">
+        <apply id="Sx2.F5.2.m1.1.1.cmml" xref="Sx2.F5.2.m1.1.1">
+         <csymbol cd="ambiguous" id="Sx2.F5.2.m1.1.1.1.cmml" xref="Sx2.F5.2.m1.1.1">
+          superscript
+         </csymbol>
+         <ci id="Sx2.F5.2.m1.1.1.2.cmml" xref="Sx2.F5.2.m1.1.1.2">
+          𝑟
+         </ci>
+         <cn id="Sx2.F5.2.m1.1.1.3.cmml" type="integer" xref="Sx2.F5.2.m1.1.1.3">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.F5.2.m1.1d">
+        r^{2}
+       </annotation>
+      </semantics>
+     </math>
+     =0.937).
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx2.SSx4.p4">
+    <p class="ltx_p" id="Sx2.SSx4.p4.1">
+     However, perhaps more interesting are the results contingent on acceptance. Figure
+     <a class="ltx_ref" href="#Sx2.F5" title="Figure 5 ‣ Feature Analysis ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     a) shows that an agent will be able to extract more value with a rational argument than a fair argument. Fair arguments lead to more deals, but rational arguments secure higher valued deals.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx2.SSx4.p5">
+    <p class="ltx_p" id="Sx2.SSx4.p5.1">
+     Predicated on agreement, agreeableness is the most important personality trait and interestingly, both low and high agreeableness lead to increased payoffs. As indicated by Figure
+     <a class="ltx_ref" href="#Sx2.F2" title="Figure 2 ‣ Agent-based differences ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , this is due to propensity to hard-line negotiation and more rational behavior. In other words, if agreement rates increase due to improved rational behavior, the low agreeableness trait may be more successful. This indicates that acting cooperatively or greedily can lead to positive outcomes. Figure
+     <a class="ltx_ref" href="#Sx2.F5" title="Figure 5 ‣ Feature Analysis ‣ Results ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     b) shows the model prediction once again, with
+     <math alttext="r^{2}=0.937" class="ltx_Math" display="inline" id="Sx2.SSx4.p5.1.m1.1">
+      <semantics id="Sx2.SSx4.p5.1.m1.1a">
+       <mrow id="Sx2.SSx4.p5.1.m1.1.1" xref="Sx2.SSx4.p5.1.m1.1.1.cmml">
+        <msup id="Sx2.SSx4.p5.1.m1.1.1.2" xref="Sx2.SSx4.p5.1.m1.1.1.2.cmml">
+         <mi id="Sx2.SSx4.p5.1.m1.1.1.2.2" xref="Sx2.SSx4.p5.1.m1.1.1.2.2.cmml">
+          r
+         </mi>
+         <mn id="Sx2.SSx4.p5.1.m1.1.1.2.3" xref="Sx2.SSx4.p5.1.m1.1.1.2.3.cmml">
+          2
+         </mn>
+        </msup>
+        <mo id="Sx2.SSx4.p5.1.m1.1.1.1" xref="Sx2.SSx4.p5.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="Sx2.SSx4.p5.1.m1.1.1.3" xref="Sx2.SSx4.p5.1.m1.1.1.3.cmml">
+         0.937
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx2.SSx4.p5.1.m1.1b">
+        <apply id="Sx2.SSx4.p5.1.m1.1.1.cmml" xref="Sx2.SSx4.p5.1.m1.1.1">
+         <eq id="Sx2.SSx4.p5.1.m1.1.1.1.cmml" xref="Sx2.SSx4.p5.1.m1.1.1.1">
+         </eq>
+         <apply id="Sx2.SSx4.p5.1.m1.1.1.2.cmml" xref="Sx2.SSx4.p5.1.m1.1.1.2">
+          <csymbol cd="ambiguous" id="Sx2.SSx4.p5.1.m1.1.1.2.1.cmml" xref="Sx2.SSx4.p5.1.m1.1.1.2">
+           superscript
+          </csymbol>
+          <ci id="Sx2.SSx4.p5.1.m1.1.1.2.2.cmml" xref="Sx2.SSx4.p5.1.m1.1.1.2.2">
+           𝑟
+          </ci>
+          <cn id="Sx2.SSx4.p5.1.m1.1.1.2.3.cmml" type="integer" xref="Sx2.SSx4.p5.1.m1.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <cn id="Sx2.SSx4.p5.1.m1.1.1.3.cmml" type="float" xref="Sx2.SSx4.p5.1.m1.1.1.3">
+          0.937
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx2.SSx4.p5.1.m1.1c">
+        r^{2}=0.937
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx3" lang="en">
+  <h2 class="ltx_title ltx_title_section">
+   Discussion
+  </h2>
+  <div class="ltx_para" id="Sx3.p1">
+   <p class="ltx_p" id="Sx3.p1.1">
+    In this paper, we make a first attempt of understanding the behavior of personality-endowed LLMs from a game theoretic and rhetorical perspective. Through our five research question on individual and pair-wise performance, we have three main generalizations. First, we find that more agreeable agents have the highest payoffs but are exploitable by less agreeable agents. In a heterogeneous environment, our research indicates that negotiation bots with high agreeableness will be able to make deals with a broad range of customers, but bots with low agreeableness will be able to exploit and get maximum value when a deal is made. However, in multi-issue negotiations, agents that are exploitative or collaborative can succeed, depending on their opponent.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx3.p2">
+   <p class="ltx_p" id="Sx3.p2.1">
+    Second, the behavior of these agents are generally fair rather than rational. From a game theory perspective, these agents have a lot of irrationality. One clear example is agents refusing final offers, resulting in a lot of lost utility. LLM negotiation bots will need a logic-based counterpart to exhibit full rational behavior in the marketplace. On the other hand, this may serve as an innate guardrail to limit exploitation against humans.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx3.p3">
+   <p class="ltx_p" id="Sx3.p3.1">
+    Third, we offer some insight to negotiation bot design. From a linguistics perspective, bots with fairness-based arguments will be able to reach more deals while bots with rational arguments will extract increased value. Assertive language is highly beneficial for a bot, as it increases both agreement rate and extracted value. However, more aggressive personalities do tend to be more toxic, and developers will need to weigh the potential payoff benefits of this style with a negative negotiating environment, or disentangle assertiveness with aggression.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx3.p4">
+   <p class="ltx_p" id="Sx3.p4.1">
+    This study has a few limitations. First, we cannot be certain that these LLM-based personalities correspond to the human-conception of these traits. However, our focus is on how these LLMs inherently encode these definitions and their subsequent behavior. Our work clearly shows asymmetric behavior based on the initialization of these agents, that tend toward existing definitions. Further work can be done to align LLM behavior to the human conception of the big five typology, such as using survey results to fine-tune responses. Second, this experiment was done on multi-issue negotiations with complementary preference profiles. Research should be done on multi-issue negotiations with symmetric preference profiles and how various personalities perform in a situation where no surplus value can be made from efficient deals. In other words, by shrinking the zone of potential agreement, results may tend toward the single-issue case.
+Overall, this paper provides a standardized way of evaluating the performance of agents with different personalities, using well-established approaches from computational social science and game theory.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx4" lang="en">
+  <h2 class="ltx_title ltx_title_section">
+   Methods
+  </h2>
+  <section class="ltx_subsection" id="Sx4.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Agent-Initialization and Gameplay
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx1.p1">
+    <p class="ltx_p" id="Sx4.SSx1.p1.1">
+     Each agent was initialized as a ChatBot using the
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx1.p1.1.1">
+      gpt-4-turbo
+     </span>
+     ChatGPT model. The system content of the model was used to explain the bot’s personality based on Howard and Howard’s
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ]
+     </cite>
+     personality facets. For example, the system content of the high openness bot was: "You are a bot with a high level of openness. Words that describe you are: imaginative, daydreams, appreciates art and beauty, values all emotions, prefers variety, tries new things, broad intellectual curiosity, open to reexamining values". The descriptions of all personalities can be found in the appendix.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx1.p2">
+    <p class="ltx_p" id="Sx4.SSx1.p2.1">
+     To start the game, P1 would be sent a message explaining the rules of the game and told to make an initial offer. Then, P2 would be sent a similar message that included that initial offer and told to make a response. The game prompt can be found in the appendix. Players took turns responding to offers until the game ended in agreement or defaulted in round six.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx1.p3">
+    <p class="ltx_p" id="Sx4.SSx1.p3.2">
+     Each agent was instructed to respond in three parts, as shown in Figure
+     <a class="ltx_ref" href="#Sx4.F6" title="Figure 6 ‣ Agent-Initialization and Gameplay ‣ Methods ‣ LLMs with Personalities in Multi-issue Negotiation Games">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     . In Part A, agents responded to the previous offer. In a multi-issue game, the agent first calculated the utility of the previous opponent’s offer. Agents then could accept or reject the previous offer. To accept, the agent must state “I accept.” The absence of this in a response was interpreted as a rejection. If the agent rejected the previous offer, they would propose a counteroffer in Part B. First, they would state the current round. Then, they stated their offer, which would included the outcomes for each agent and attempt to persuade the opponent to accept. In Part C, the agent explained its strategy, which is not shared with their opponent. At the end of an agent’s turn, parts A and B were extracted and sent to the opponent. Agents alternated until either an agreement was reached or the final round finished. If the agents did not come to an agreement, agents defaulted and ended with
+     <math alttext="\$0" class="ltx_Math" display="inline" id="Sx4.SSx1.p3.1.m1.1">
+      <semantics id="Sx4.SSx1.p3.1.m1.1a">
+       <mrow id="Sx4.SSx1.p3.1.m1.1.1" xref="Sx4.SSx1.p3.1.m1.1.1.cmml">
+        <mo id="Sx4.SSx1.p3.1.m1.1.1.1" rspace="0.167em" xref="Sx4.SSx1.p3.1.m1.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx4.SSx1.p3.1.m1.1.1.2" xref="Sx4.SSx1.p3.1.m1.1.1.2.cmml">
+         0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx4.SSx1.p3.1.m1.1b">
+        <apply id="Sx4.SSx1.p3.1.m1.1.1.cmml" xref="Sx4.SSx1.p3.1.m1.1.1">
+         <csymbol cd="latexml" id="Sx4.SSx1.p3.1.m1.1.1.1.cmml" xref="Sx4.SSx1.p3.1.m1.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx4.SSx1.p3.1.m1.1.1.2.cmml" type="integer" xref="Sx4.SSx1.p3.1.m1.1.1.2">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx4.SSx1.p3.1.m1.1c">
+        \$0
+       </annotation>
+      </semantics>
+     </math>
+     in a single-issue game and 0 apples, 0 bananas, and 0 crepes in a multi-issue game. If an offer was accepted in a single-issue game, each agent was asked what amount of the
+     <math alttext="\$100" class="ltx_Math" display="inline" id="Sx4.SSx1.p3.2.m2.1">
+      <semantics id="Sx4.SSx1.p3.2.m2.1a">
+       <mrow id="Sx4.SSx1.p3.2.m2.1.1" xref="Sx4.SSx1.p3.2.m2.1.1.cmml">
+        <mo id="Sx4.SSx1.p3.2.m2.1.1.1" rspace="0.167em" xref="Sx4.SSx1.p3.2.m2.1.1.1.cmml">
+         $
+        </mo>
+        <mn id="Sx4.SSx1.p3.2.m2.1.1.2" xref="Sx4.SSx1.p3.2.m2.1.1.2.cmml">
+         100
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="Sx4.SSx1.p3.2.m2.1b">
+        <apply id="Sx4.SSx1.p3.2.m2.1.1.cmml" xref="Sx4.SSx1.p3.2.m2.1.1">
+         <csymbol cd="latexml" id="Sx4.SSx1.p3.2.m2.1.1.1.cmml" xref="Sx4.SSx1.p3.2.m2.1.1.1">
+          currency-dollar
+         </csymbol>
+         <cn id="Sx4.SSx1.p3.2.m2.1.1.2.cmml" type="integer" xref="Sx4.SSx1.p3.2.m2.1.1.2">
+          100
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="Sx4.SSx1.p3.2.m2.1c">
+        \$100
+       </annotation>
+      </semantics>
+     </math>
+     it kept and its opponent kept according to the final offer. If these answers aligned, each agent was given a payoff equal to the amount of money they ended with. If the answers did not align, they were given a -1 payoff and the game was ignored in analysis and results. In a multi-issue game, the agent that proposed the final offer restated the offer in a structured format.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx1.p4">
+    <p class="ltx_p" id="Sx4.SSx1.p4.1">
+     Before analysis of single-issue games, all games resulting in a payoff of -1 were removed. Before analysis of multi-issue games, the outcomes of 20 games were manually corrected. These games were flagged for having too many numbers in the final confirmation (e.g. an agent stated its outcome and its opponent’s outcome when instructed to state its outcome) or the agent outcomes did not match (e.g. a game recorded P1 as ending with 7 apples and P2 ending with 6 apples. This was usually caused by an agent stating the apples, bananas, and crepes in the incorrect order).
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx4.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="181" id="Sx4.F6.g1" src="/html/2405.05248/assets/figures/round_structure.png" width="550"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Round structure of a negotiation game, designed for LLM agents.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Zero-Shot
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx2.p1">
+    <p class="ltx_p" id="Sx4.SSx2.p1.1">
+     Our linguistic analysis used BERTopic Zero-Shot Classification. The text output from each player in each multi-issue game was extracted, excluding the offer confirmation at the end of the game. This included the reasoning of each agent in Part C. Each agent’s text was then classified by four pairs of candidate labels. The text would be classified as four probabilities of: (cooperative, competitive), (fair, rational), (submissive, assertive), and (naive, cutthroat), indicating how relatively closely the text aligned with each label. Because these scores are dependent, one score from each pair was input as a variable for the gradient-boosting regression and SHAP explainers.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Gradient-Boosting Regression and SHAP Explainers
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx3.p1">
+    <p class="ltx_p" id="Sx4.SSx3.p1.1">
+     To perform our regression, agent outcomes in multi-issue games were turned into vectors. There were five ternary dimensions for personality, with potential values of 1 if the agent was high in that trait, -1 if the agent was low in that trait, and 0 if the agent was based on a different trait. There was one binary dimension for turn, with potential values of 0 for P1 and 1 for P2. There was one dimension for every pair of candidate labels in the linguistic analysis. There was one dimension for the agent’s payoff.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx3.p2">
+    <p class="ltx_p" id="Sx4.SSx3.p2.1">
+     We used CatBoostRegressor to perform a regression on these vectors with the Root Mean Squared Error loss function. This model had a correlation of 92.4% when including defaults and 93.7% when removing defaults. We found SHAP values for this model using SHAP Tree Explainer. This showed us how each feature in the model affected the payoff. Although only competitive, rational, assertive, and cutthroat are listed as features, they are all derived from the candidate label pairings.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_bibliography" id="bib" lang="en">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Osborne, M. J. &amp; Rubinstein, A.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      A course in game theory
+     </em>
+     (MIT press, 1994).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Raiffa, H.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      The art and science of negotiation
+     </em>
+     (Harvard University Press, 1982).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Walsh, W. E. &amp; Wellman, M. P.
+    </span>
+    <span class="ltx_bibblock">
+     Modeling supply chain formation in multiagent systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      International Workshop on Agent-Mediated Electronic Commerce
+     </em>
+     , 94–101 (Springer, 1999).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Lewicki, R. J., Barry, B. &amp; Saunders, D. M.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Essentials of negotiation
+     </em>
+     (McGraw-Hill Education, 2016).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Ehlich, K. &amp; Wagner, J.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      The discourse of business negotiation
+     </em>
+     , vol. 8 (Walter de Gruyter, 2011).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Huang, C.-C., Liang, W.-Y., Lai, Y.-H. &amp; Lin, Y.-C.
+    </span>
+    <span class="ltx_bibblock">
+     The agent-based negotiation process for b2c e-commerce.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib6.1.1.1">
+       \JournalTitle
+      </span>
+      Expert Systems with Applications
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib6.2.2">
+      37
+     </span>
+     , 348–359 (2010).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Arvanitis, A. &amp; Karampatzos, A.
+    </span>
+    <span class="ltx_bibblock">
+     Negotiation and aristotle’s rhetoric: Truth over interests?
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib7.1.1.1">
+       \JournalTitle
+      </span>
+      Philosophical Psychology
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib7.2.2">
+      24
+     </span>
+     , 845–860 (2011).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Maaravi, Y., Ganzach, Y. &amp; Pazy, A.
+    </span>
+    <span class="ltx_bibblock">
+     Negotiation as a form of persuasion: Arguments in first offers.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib8.1.1.1">
+       \JournalTitle
+      </span>
+      Journal of personality and social psychology
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib8.2.2">
+      101
+     </span>
+     , 245 (2011).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Rubin, J. Z. &amp; Brown, B. R.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      The social psychology of bargaining and negotiation
+     </em>
+     (Elsevier, 2013).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     De Dreu, C. K., Beersma, B., Steinel, W. &amp; Van Kleef, G. A.
+    </span>
+    <span class="ltx_bibblock">
+     The psychology of negotiation: Principles and basic processes.
+    </span>
+    <span class="ltx_bibblock">
+     In Kruglanski, A. W. &amp; Higgins, E. T. (eds.)
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Social psychology: Handbook of basic principles
+     </em>
+     (The Guilford Press, New York, NY, US, 2007).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Ma, Z.
+    </span>
+    <span class="ltx_bibblock">
+     Exploring the relationships between the big five personality factors, conflict styles, and bargaining behaviors.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      IACM 18th Annual Conference
+     </em>
+     (2005).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Marlowe, D., Gergen, K. J. &amp; Doob, A. N.
+    </span>
+    <span class="ltx_bibblock">
+     Opponent’s personality, expectation of social interaction, and interpersonal bargaining.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib12.1.1.1">
+       \JournalTitle
+      </span>
+      Journal of Personality and Social Psychology
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib12.2.2">
+      3
+     </span>
+     , 206 (1966).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Brandstätter, H. &amp; Königstein, M.
+    </span>
+    <span class="ltx_bibblock">
+     Personality influences on ultimatum bargaining decisions.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib13.1.1.1">
+       \JournalTitle
+      </span>
+      European Journal of Personality
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib13.2.2">
+      15
+     </span>
+     , S53–S70 (2001).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Nassiri-Mofakham, F., Ghasem-Aghaee, N., Ali Nematbakhsh, M. &amp; Baraani-Dastjerdi, A.
+    </span>
+    <span class="ltx_bibblock">
+     A personality-based simulation of bargaining in e-commerce.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib14.1.1.1">
+       \JournalTitle
+      </span>
+      Simulation &amp; gaming
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib14.2.2">
+      39
+     </span>
+     , 83–100 (2008).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Morris, M. W., Larrick, R. P. &amp; Su, S. K.
+    </span>
+    <span class="ltx_bibblock">
+     Misperceiving negotiation counterparts: When situationally determined bargaining behaviors are attributed to personality traits.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib15.1.1.1">
+       \JournalTitle
+      </span>
+      Journal of Personality and Social Psychology
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib15.2.2">
+      77
+     </span>
+     , 52 (1999).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Chang, H.-C. H.
+    </span>
+    <span class="ltx_bibblock">
+     Multi-issue negotiation with deep reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib16.1.1.1">
+       \JournalTitle
+      </span>
+      Knowledge-Based Systems
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib16.2.2">
+      211
+     </span>
+     , 106544 (2021).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Jennings, N. R.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Automated negotiation: prospects, methods and challenges.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib17.2.1.1">
+       \JournalTitle
+      </span>
+      Group Decision and Negotiation
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib17.3.2">
+      10
+     </span>
+     , 199–215 (2001).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Kraus, S.
+    </span>
+    <span class="ltx_bibblock">
+     Negotiation and cooperation in multi-agent environments.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib18.1.1.1">
+       \JournalTitle
+      </span>
+      Artificial intelligence
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib18.2.2">
+      94
+     </span>
+     , 79–97 (1997).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Gerding, E. H., van Bragt, D. D. B. &amp; La Poutré, J. A.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      Scientific approaches and techniques for negotiation: a game theoretic and artificial intelligence perspective
+     </em>
+     (Centrum voor Wiskunde en Informatica, 2000).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Lewis, M., Yarats, D., Dauphin, Y. N., Parikh, D. &amp; Batra, D.
+    </span>
+    <span class="ltx_bibblock">
+     Deal or no deal? end-to-end learning for negotiation dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib20.1.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:1706.05125
+     </em>
+     (2017).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Yang, J.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Harnessing the power of llms in practice: A survey on chatgpt and beyond.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib21.2.1.1">
+       \JournalTitle
+      </span>
+      ACM Transactions on Knowledge Discovery from Data
+     </em>
+     (2023).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Liu, X.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Large language models and causal inference in collaboration: A comprehensive survey.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib22.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:2403.09606
+     </em>
+     (2024).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Duan, J.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Gtbench: Uncovering the strategic reasoning limitations of llms via game-theoretic evaluations.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib23.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:2402.12348
+     </em>
+     (2024).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Zeng, Y.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     How johnny can persuade llms to jailbreak them: Rethinking persuasion to challenge ai safety by humanizing llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib24.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:2401.06373
+     </em>
+     (2024).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Mei, Q., Xie, Y., Yuan, W. &amp; Jackson, M. O.
+    </span>
+    <span class="ltx_bibblock">
+     A turing test: Are ai chatbots behaviorally similar to humans?
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib25.1.1.1">
+       \JournalTitle
+      </span>
+      Available at SSRN
+     </em>
+     (2023).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Davidson, T. R.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating language model agency through negotiations.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib26.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:2401.04536
+     </em>
+     (2024).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     Silver, D.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Mastering the game of go with deep neural networks and tree search.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib27.2.1.1">
+       \JournalTitle
+      </span>
+      nature
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib27.3.2">
+      529
+     </span>
+     , 484 (2016).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Silver, D.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Mastering chess and shogi by self-play with a general reinforcement learning algorithm.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib28.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:1712.01815
+     </em>
+     (2017).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     Brown, N. &amp; Sandholm, T.
+    </span>
+    <span class="ltx_bibblock">
+     Superhuman ai for heads-up no-limit poker: Libratus beats top professionals.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib29.1.1.1">
+       \JournalTitle
+      </span>
+      Science
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib29.2.2">
+      359
+     </span>
+     , 418–424 (2018).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     Mnih, V.
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      et al.
+     </em>
+    </span>
+    <span class="ltx_bibblock">
+     Playing atari with deep reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.2.1">
+      <span class="ltx_ERROR undefined" id="bib.bib30.2.1.1">
+       \JournalTitle
+      </span>
+      arXiv preprint arXiv:1312.5602
+     </em>
+     (2013).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Howard, P. J. &amp; Howard, J. M.
+    </span>
+    <span class="ltx_bibblock">
+     The big five quickstart: An introduction to the five factor model of personality for human resource professionals.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib31.1.1.1">
+       \JournalTitle
+      </span>
+      ERIC
+     </em>
+     (1995).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     Prokhorenkova, L., Gusev, G., Vorobev, A., Dorogush, A. V. &amp; Gulin, A.
+    </span>
+    <span class="ltx_bibblock">
+     Catboost: unbiased boosting with categorical features.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib32.1.1.1">
+       \JournalTitle
+      </span>
+      Advances in neural information processing systems
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib32.2.2">
+      31
+     </span>
+     (2018).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Hart, S.
+    </span>
+    <span class="ltx_bibblock">
+     Shapley value.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      Game theory
+     </em>
+     , 210–216 (Springer, 1989).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     Lundberg, S. M. &amp; Lee, S.-I.
+    </span>
+    <span class="ltx_bibblock">
+     A unified approach to interpreting model predictions.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      <span class="ltx_ERROR undefined" id="bib.bib34.1.1.1">
+       \JournalTitle
+      </span>
+      Advances in neural information processing systems
+     </em>
+     <span class="ltx_text ltx_font_bold" id="bib.bib34.2.2">
+      30
+     </span>
+     (2017).
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_section" id="Sx5" lang="en">
+  <h2 class="ltx_title ltx_title_section">
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="Sx5.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Default Rates
+   </h3>
+   <figure class="ltx_figure" id="Sx5.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="527" id="Sx5.F7.g1" src="/html/2405.05248/assets/figures/payoffs_defaults.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     Normalized payoffs and default rates of personality-based agents in (a, b) single and (c, d) multi issue games.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx5.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Personality Initialization
+   </h3>
+   <div class="ltx_para" id="Sx5.SSx2.p1">
+    <p class="ltx_p" id="Sx5.SSx2.p1.1">
+     The system content for each bot personality is listed below.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx5.SSx2.p2">
+    <dl class="ltx_description" id="Sx5.I2">
+     <dt class="ltx_item" id="Sx5.I2.ix1">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix1.1.1.1">
+        HighOpenness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix1.p1">
+       <p class="ltx_p" id="Sx5.I2.ix1.p1.1">
+        You are a bot with a high level of openness. Words that describe you are: imaginative, daydreams, appreciates art and beauty, values all emotions, prefers variety, tries new things, broad intellectual curiosity, open to reexamining values
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix2">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix2.1.1.1">
+        HighConscientiousness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix2.p1">
+       <p class="ltx_p" id="Sx5.I2.ix2.p1.1">
+        You are a bot with a high level of conscientiousness. Words that describe you are: feels capable and effective, well-organized, neat, tidy, governed by conscience, reliable, driven to achieve success, focused on completing tasks, thinks carefully before acting
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix3">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix3.1.1.1">
+        HighExtraversion:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix3.p1">
+       <p class="ltx_p" id="Sx5.I2.ix3.p1.1">
+        You are a bot with a high level of extraversion. Words that describe you are: affectionate, friendly, intimate, gregarious, prefers company, assertive, speaks up, leads, vigorous pace, craves excitement, cheerful, optimistic
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix4">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix4.1.1.1">
+        HighAgreeableness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix4.p1">
+       <p class="ltx_p" id="Sx5.I2.ix4.p1.1">
+        You are a bot with a high level of agreeableness. Words that describe you are: see others as honest &amp; well-intentioned, straightforward, frank, willing to help others, yields under conflict, defers, self-effacing, humble, tender-minded, easily moved
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix5">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix5.1.1.1">
+        HighNeuroticism:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix5.p1">
+       <p class="ltx_p" id="Sx5.I2.ix5.p1.1">
+        You are a bot with a high level of neuroticism. Words that describe you are: worrying, uneasy, quick to feel anger, easily discouraged, more easily embarrassed, easily tempted, difficulty coping
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix6">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix6.1.1.1">
+        LowOpenness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix6.p1">
+       <p class="ltx_p" id="Sx5.I2.ix6.p1.1">
+        You are a bot with a low level of openness. Words that describe you are: focuses on here and now, uninterested in art, ignores and discounts feelings, prefers the familiar, narrower intellectual focus, dogmatic, conservative
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix7">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix7.1.1.1">
+        LowConscientiousness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix7.p1">
+       <p class="ltx_p" id="Sx5.I2.ix7.p1.1">
+        You are a bot with a low level of conscientiousness. Words that describe you are: often feels unprepared, unorganized, unmethodical, casual about obligations, low need for achievement, procrastinates, distracted, spontaneous, hasty
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix8">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix8.1.1.1">
+        LowExtraversion:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix8.p1">
+       <p class="ltx_p" id="Sx5.I2.ix8.p1.1">
+        You are a bot with a low level of extraversion. Words that describe you are: reserved, formal, seldom seeks company, stays in background, leisurely pace, low need for thrills, less exuberant
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix9">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix9.1.1.1">
+        LowAgreeableness:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix9.p1">
+       <p class="ltx_p" id="Sx5.I2.ix9.p1.1">
+        You are a bot with a low level of agreeableness. Words that describe you are: cynical, skeptical, guarded, stretches truth, reluctant to get involved, aggressive, competitive, feels superior to others, hardheaded, rational
+       </p>
+      </div>
+     </dd>
+     <dt class="ltx_item" id="Sx5.I2.ix10">
+      <span class="ltx_tag ltx_tag_item">
+       <span class="ltx_text ltx_font_bold" id="Sx5.I2.ix10.1.1.1">
+        LowNeuroticism:
+       </span>
+      </span>
+     </dt>
+     <dd class="ltx_item">
+      <div class="ltx_para" id="Sx5.I2.ix10.p1">
+       <p class="ltx_p" id="Sx5.I2.ix10.p1.1">
+        You are a bot with a low level of neuroticism. Words that describe you are: relaxed, calm, composed, slow to anger, slowly discouraged, hard to embarrass, resists urges easily, handles stress easily
+       </p>
+      </div>
+     </dd>
+    </dl>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx5.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Game Prompts
+   </h3>
+   <div class="ltx_para" id="Sx5.SSx3.p1">
+    <p class="ltx_p" id="Sx5.SSx3.p1.1">
+     See pages - of
+     <a class="ltx_ref" href="game_prompts.pdf" title="">
+      game_prompts.pdf
+     </a>
+    </p>
+   </div>
+  </section>
+ </section>
+</article>

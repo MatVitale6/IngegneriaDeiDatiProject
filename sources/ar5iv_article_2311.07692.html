@@ -1,0 +1,4320 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Naman Goel
+    <br class="ltx_break"/>
+    University of Oxford
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     naman.goel@cs.ox.ac.uk
+     <br class="ltx_break"/>
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   The surprisingly likely criterion in the seminal work of Prelec (the Bayesian Truth Serum) guarantees truthfulness in a game-theoretic multi-agent setting, by rewarding rational agents to maximise the expected information gain with their answers w.r.t. their probabilistic beliefs. We investigate the relevance of a similar criterion for responses of LLMs. We hypothesize that if the surprisingly likely criterion works in LLMs, under certain conditions, the responses that maximize the reward under this criterion should be more accurate than the responses that only maximize the posterior probability. Using benchmarks including the TruthfulQA benchmark and using openly available LLMs: GPT-2 and LLaMA-2, we show that the method indeed improves the accuracy significantly (for example, upto 24 percentage points aggregate improvement on TruthfulQA and upto 70 percentage points improvement on individual categories of questions).
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Recent demonstrations of the promising capabilities of large language models (LLMs) have raised hopes about their use in a wide range of useful applications. However, one major issue with state-of-the-art LLMs that casts doubts on this optimism is their tendency to generate factually incorrect text. There are various ongoing efforts to address this issue. Promising efforts include scaling
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    , retrieval augmentation/grounding
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , in-context learning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    , chain-of-thought reasoning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    and other prompting, self-consistency
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    , advanced decoding techniques
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , uncertainty measurement based techniques
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , self-improvement
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , shifting model activations during inference
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    , locating and editing factual information
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    , learning from human feedback
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    , learning from AI feedback
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    etc. While extremely useful, none of these efforts have fully solved the problem; perhaps because there are multiple reasons causing the problem
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    and therefore, multiple complementary solutions are required. For example, LLMs may generate incorrect information if correct information is not present in the training data or because correct information can not be inferred from the training data, and other similar reasons related to limitations of data and/or model. However, it is also possible that in some cases, LLMs provide incorrect information due to mis-specified rewards or due to incorrect aggregation of information. We call this behavior non-truthful. For example, a common way is to reward LLM to generate answers that have maximum probability conditioned on the prompt. Here, the probability calculated by LLM depends on data points in its training set and is not necessarily calibrated with reality/facts. Using various data points in the training set, LLM may generate correct or incorrect information (or refuse to provide any information) depending on its reward. A very interesting demonstration is due to Lin et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    , who showed that LLMs generated false answers that mimic popular misconceptions learned from human texts. The research question is whether there exists a better reward than maximum probability conditioned on the prompt, to avoid this behavior.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    In this paper, we investigate whether and to what extent, the surprisingly likely (a.k.a. surprisingly common) criterion from game-theoretic truthful information elicitation literature can be useful in this regard. In a seminal work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ]
+    </cite>
+    , Prelec considers the problem of eliciting truthful information from a group of rational agents and designs the Bayesian Truth Serum (BTS) for incentivizing truthfulness. Interesting examples, where BTS is particularly useful, include eliciting subjective information that is impossible to verify or objective information that is rare or difficult to obtain. Theoretical guarantees apply more generally beyond these examples. The key idea in BTS is to reward the answer that is more commonly reported than predicted apriori by agents, instead of the answer that is merely the most commonly reported one. Beyond game-theoretical incentive guarantees, it has also been shown in crowdsourcing settings that a BTS motivated aggregation method selects more correct answers
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    . Later developments in the field used motivation from the surprisingly likely criterion of BTS for designing incentive mechanisms with application in various settings (further discussed in Section
+    <a class="ltx_ref" href="#S2.SS1" title="2.1 Surprisingly Likely Criterion in Game Theory ‣ 2 Background and Related Work ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      2.1
+     </span>
+    </a>
+    ). However, its application in the domain of LLMs has not been explored yet. We empirically investigate different ways of measuring the surprisingly likely criterion in LLMs. Through experiments on TruthfulQA, COPA and StoryCloze benchmarks, we show that the surprisingly likely criterion significantly improves the accuracy of responses. For example, on the TruthfulQA benchmark, we find a consistent pattern of significant gains in accuracy across different large language models (upto 24 percentage points). We also analyze the performance by different categories of questions and observe that the trend of significant accuracy gains holds across most (but not all) categories, with some categories showing upto 70 percentage points improvement.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Background and Related Work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Surprisingly Likely Criterion in Game Theory
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The problem of information elicitation without verification (i.e. when correct information is not available for scoring and agents who provide information have to be incentivized for telling the truth) is modeled as a Bayesian game between multiple agents in the literature. The incentive mechanism in the Bayesian Truth Serum requires every agent to submit two reports for a question. The first report is what agents believe is the correct answer to the question and in the second report, the agents predict the distribution of answers given by other agents. The reward of an agent is the sum of two reward terms. One of the terms (called prediction score) measures how close is the prediction of the agent about the distribution of other agents’ answers to the actual distribution. The second term (called the information score) measures the log of the ratio between the frequency of the reported answer and the geometric mean of the predictions about the answer. The resulting reward is shown to be incentive-compatible i.e. in equilibrium, the agents can maximise their reward by telling what they believe is the correct answer to the question instead of strategizing to non-truthfully obtain a higher reward.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Motivated by the BTS, a number of other reward/scoring mechanisms have been proposed in the literature. In particular, many of the proposals were designed for crowdsourcing settings without the need for the agents to explicitly submit their prediction about other agents’ answers. An example scenario is measurement of pollution at a particular place and time, where no independent ground truth measurement exists. Multiple independent agents measure and report the value to a center, but there is no trusted verification of the ground truth. Observers have to exert effort to accurately measure the value, and the center needs to provide a reward to compensate for it. Peer prediction mechanisms
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     consider this setting as a Bayesian game among the observers, where each tries to maximize the reward attributed to their report. The simplest form is output agreement
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     , where reports are rewarded proportionally to the frequency of the same report among peers. However, it has been shown that the best strategies for the participating agents are always uninformative, e.g. all report the same value
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ]
+     </cite>
+     . This can be corrected by scaling the reward by the rarity of the answer among similar questions (apriori similar place/time in the pollution measurement example), by dividing the reward or subtracting the frequency of the answer
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ]
+     </cite>
+     . Various schemes exist with different game-theoretic arguments but they all amount to the same “surprisingly common” criterion. In a recent survey, Faltings
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     identifies three different types of mechanisms for information elicitation without verification. The first is agreement, where the reward is proportional to the frequency of the answer among other responses, often calibrated by the overall likelihood of agreement
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ]
+     </cite>
+     . The second is information-theoretic, where the reward is proportional to the pairwise mutual information between the answer and the answers given by peers
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ]
+     </cite>
+     . The third type computes the reward based on the improvement in the quality of the resulting model (the Peer Truth Serum)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    PMI in Computational Linguistics
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     The information-theoretic measure of pointwise mutual information (PMI)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     is a well-known concept in computation linguistics and natural language processing literature
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ]
+     </cite>
+     . It has been used for a number of purposes such as words association
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ]
+     </cite>
+     , keyword generation improving diversity of text
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       38
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ]
+     </cite>
+     , removing surface-form competition
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ]
+     </cite>
+     , normalisation in few-shot setting for multiple-choice questions
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ]
+     </cite>
+     , increasing agreement with grounding
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ]
+     </cite>
+     etc. Coincidentally, PMI like measure is also popular in the game-theoretic information elicitation literature, albeit the definitions, the methods of measuring it and the purpose of its application are different. We are interested in investigating the suitability of the surprisingly likely criterion as a general reward mechanism for improving truthfulness in LLMs. For this, we use the TruthfulQA benchmark where non-truthfulness has been observed to be a problem.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Surprisingly Likely Criterion For Responses of Large Language Models
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.3">
+    We first measure prior and posterior likelihood of a response in language models. We call the likelihood of the response given a less specific context (e.g., an empty string or a question mark ‘?’) as the prior likelihood of the response in the language model. We call the likelihood of the response given the question text as the posterior likelihood of the response in the language model. For example, the question (
+    <math alttext="q" class="ltx_Math" display="inline" id="S3.p1.1.m1.1">
+     <semantics id="S3.p1.1.m1.1a">
+      <mi id="S3.p1.1.m1.1.1" xref="S3.p1.1.m1.1.1.cmml">
+       q
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.1.m1.1b">
+       <ci id="S3.p1.1.m1.1.1.cmml" xref="S3.p1.1.m1.1.1">
+        𝑞
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.1.m1.1c">
+       q
+      </annotation>
+     </semantics>
+    </math>
+    ) may be “According to the Bible, what forbidden fruit did Adam and Eve eat in the Garden of Eden?" A response (
+    <math alttext="r" class="ltx_Math" display="inline" id="S3.p1.2.m2.1">
+     <semantics id="S3.p1.2.m2.1a">
+      <mi id="S3.p1.2.m2.1.1" xref="S3.p1.2.m2.1.1.cmml">
+       r
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.2.m2.1b">
+       <ci id="S3.p1.2.m2.1.1.cmml" xref="S3.p1.2.m2.1.1">
+        𝑟
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.2.m2.1c">
+       r
+      </annotation>
+     </semantics>
+    </math>
+    ) for this question may be “The Bible doesn’t specify what kind of fruit Adam and Eve ate" (or “According to the Bible, Adam and Eve ate an apple" … etc). The prior likelihood of response
+    <math alttext="r" class="ltx_Math" display="inline" id="S3.p1.3.m3.1">
+     <semantics id="S3.p1.3.m3.1a">
+      <mi id="S3.p1.3.m3.1.1" xref="S3.p1.3.m3.1.1.cmml">
+       r
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.3.m3.1b">
+       <ci id="S3.p1.3.m3.1.1.cmml" xref="S3.p1.3.m3.1.1">
+        𝑟
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.3.m3.1c">
+       r
+      </annotation>
+     </semantics>
+    </math>
+    is:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex1">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="P(r|\text{`?'})" class="ltx_Math" display="block" id="S3.Ex1.m1.1">
+        <semantics id="S3.Ex1.m1.1a">
+         <mrow id="S3.Ex1.m1.1.1" xref="S3.Ex1.m1.1.1.cmml">
+          <mi id="S3.Ex1.m1.1.1.3" xref="S3.Ex1.m1.1.1.3.cmml">
+           P
+          </mi>
+          <mo id="S3.Ex1.m1.1.1.2" lspace="0em" rspace="0em" xref="S3.Ex1.m1.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="S3.Ex1.m1.1.1.1.1" xref="S3.Ex1.m1.1.1.1.1.1.cmml">
+           <mo id="S3.Ex1.m1.1.1.1.1.2" stretchy="false" xref="S3.Ex1.m1.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="S3.Ex1.m1.1.1.1.1.1" xref="S3.Ex1.m1.1.1.1.1.1.cmml">
+            <mi id="S3.Ex1.m1.1.1.1.1.1.2" xref="S3.Ex1.m1.1.1.1.1.1.2.cmml">
+             r
+            </mi>
+            <mo fence="false" id="S3.Ex1.m1.1.1.1.1.1.1" xref="S3.Ex1.m1.1.1.1.1.1.1.cmml">
+             |
+            </mo>
+            <mtext id="S3.Ex1.m1.1.1.1.1.1.3" xref="S3.Ex1.m1.1.1.1.1.1.3a.cmml">
+             ‘?’
+            </mtext>
+           </mrow>
+           <mo id="S3.Ex1.m1.1.1.1.1.3" stretchy="false" xref="S3.Ex1.m1.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.Ex1.m1.1b">
+          <apply id="S3.Ex1.m1.1.1.cmml" xref="S3.Ex1.m1.1.1">
+           <times id="S3.Ex1.m1.1.1.2.cmml" xref="S3.Ex1.m1.1.1.2">
+           </times>
+           <ci id="S3.Ex1.m1.1.1.3.cmml" xref="S3.Ex1.m1.1.1.3">
+            𝑃
+           </ci>
+           <apply id="S3.Ex1.m1.1.1.1.1.1.cmml" xref="S3.Ex1.m1.1.1.1.1">
+            <csymbol cd="latexml" id="S3.Ex1.m1.1.1.1.1.1.1.cmml" xref="S3.Ex1.m1.1.1.1.1.1.1">
+             conditional
+            </csymbol>
+            <ci id="S3.Ex1.m1.1.1.1.1.1.2.cmml" xref="S3.Ex1.m1.1.1.1.1.1.2">
+             𝑟
+            </ci>
+            <ci id="S3.Ex1.m1.1.1.1.1.1.3a.cmml" xref="S3.Ex1.m1.1.1.1.1.1.3">
+             <mtext id="S3.Ex1.m1.1.1.1.1.1.3.cmml" xref="S3.Ex1.m1.1.1.1.1.1.3">
+              ‘?’
+             </mtext>
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.Ex1.m1.1c">
+          P(r|\text{`?'})
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <p class="ltx_p" id="S3.p1.4">
+    and the posterior likelihood of the response is:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex2">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="P(r|q)" class="ltx_Math" display="block" id="S3.Ex2.m1.1">
+        <semantics id="S3.Ex2.m1.1a">
+         <mrow id="S3.Ex2.m1.1.1" xref="S3.Ex2.m1.1.1.cmml">
+          <mi id="S3.Ex2.m1.1.1.3" xref="S3.Ex2.m1.1.1.3.cmml">
+           P
+          </mi>
+          <mo id="S3.Ex2.m1.1.1.2" lspace="0em" rspace="0em" xref="S3.Ex2.m1.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="S3.Ex2.m1.1.1.1.1" xref="S3.Ex2.m1.1.1.1.1.1.cmml">
+           <mo id="S3.Ex2.m1.1.1.1.1.2" stretchy="false" xref="S3.Ex2.m1.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="S3.Ex2.m1.1.1.1.1.1" xref="S3.Ex2.m1.1.1.1.1.1.cmml">
+            <mi id="S3.Ex2.m1.1.1.1.1.1.2" xref="S3.Ex2.m1.1.1.1.1.1.2.cmml">
+             r
+            </mi>
+            <mo fence="false" id="S3.Ex2.m1.1.1.1.1.1.1" xref="S3.Ex2.m1.1.1.1.1.1.1.cmml">
+             |
+            </mo>
+            <mi id="S3.Ex2.m1.1.1.1.1.1.3" xref="S3.Ex2.m1.1.1.1.1.1.3.cmml">
+             q
+            </mi>
+           </mrow>
+           <mo id="S3.Ex2.m1.1.1.1.1.3" stretchy="false" xref="S3.Ex2.m1.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.Ex2.m1.1b">
+          <apply id="S3.Ex2.m1.1.1.cmml" xref="S3.Ex2.m1.1.1">
+           <times id="S3.Ex2.m1.1.1.2.cmml" xref="S3.Ex2.m1.1.1.2">
+           </times>
+           <ci id="S3.Ex2.m1.1.1.3.cmml" xref="S3.Ex2.m1.1.1.3">
+            𝑃
+           </ci>
+           <apply id="S3.Ex2.m1.1.1.1.1.1.cmml" xref="S3.Ex2.m1.1.1.1.1">
+            <csymbol cd="latexml" id="S3.Ex2.m1.1.1.1.1.1.1.cmml" xref="S3.Ex2.m1.1.1.1.1.1.1">
+             conditional
+            </csymbol>
+            <ci id="S3.Ex2.m1.1.1.1.1.1.2.cmml" xref="S3.Ex2.m1.1.1.1.1.1.2">
+             𝑟
+            </ci>
+            <ci id="S3.Ex2.m1.1.1.1.1.1.3.cmml" xref="S3.Ex2.m1.1.1.1.1.1.3">
+             𝑞
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.Ex2.m1.1c">
+          P(r|q)
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.1">
+    We call a response surprisingly likely if the ratio between the posterior likelihood of the response and the prior likelihood of the response is high. Since log is an increasing function, this is equivalent to saying that the difference between the posterior
+    <em class="ltx_emph ltx_font_italic" id="S3.p2.1.1">
+     log
+    </em>
+    likelihood of the response and the prior
+    <em class="ltx_emph ltx_font_italic" id="S3.p2.1.2">
+     log
+    </em>
+    likelihood of the response is high. Therefore, in the rest of the paper, we will not discuss the ratio and log difference separately. In our experiments, we selected the response for which this ratio was the highest. Further, we also experimented with a few other ways of defining the surprisingly likely response. These included: 1) the response with the highest difference (instead of ratio) between the posterior likelihood of the response and the prior likelihood of the response; 2) the response which has the minimum prior among top k (i.e. k highest posterior) responses.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    It would also be interesting to investigate other ways of measuring surprising likeliness of responses in future work. For example, conditioning on less specific contexts (e.g. some keywords from the question) instead of conditioning on just ‘?’ to calculate prior.
+   </p>
+  </div>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px1">
+   <h5 class="ltx_title ltx_title_paragraph">
+    Intuitive Explanation:
+   </h5>
+   <div class="ltx_para ltx_noindent" id="S3.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px1.p1.1">
+     The following mental model provides an informal but intuitive explanation of the correspondence between the information elicitation setting discussed in Section
+     <a class="ltx_ref" href="#S2.SS1" title="2.1 Surprisingly Likely Criterion in Game Theory ‣ 2 Background and Related Work ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2.1
+      </span>
+     </a>
+     and LLMs. When considering question answering, we can think of the LLM as modeling the frequency of occurrence of each answer string following the question string among all the texts used in training. We can consider each of these text snippets a separate report of the answer to the question. Then the score assigned to a text snippet can be computed in the same way: the probability that the same answer occurs in another text snippet following the question, divided by the probability of that answer overall in all text snippets in training. The reward under the surprisingly likely criterion would incentivize the LLM to put emphasis on the specific context and provide the correct answer (even if the correct answer is not popular, as measured using related but different or imprecise contexts). For example, take the question: Which city in the Netherlands has the headquarters of the Dutch government? The correct answer is The Hague. If we used reduced context for prior (similar questions): Which city in the Netherlands has the headquarters of X? Amsterdam could be the most likely answer (it is the biggest city). Another reduced context could be: Which city has the headquarters of X? Probably London or New York will be the most likely answer. Similarly, we could consider: Which city? The Hague is very unlikely. The surprisingly likely reward can be thought of as compensating the LLM for this.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Benchmarks
+   </h3>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     TruthfulQA:
+    </h5>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px1.p1.1">
+      The TruthfulQA benchmark
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib17" title="">
+        17
+       </a>
+       ]
+      </cite>
+      comprises 817 questions that span 38 categories, including health, law, finance and politics etc. The authors of the benchmark observed that models generated many false answers that mimic popular misconceptions and larger models performed worse than smaller models. Most state-of-the-art large language models continue to perform poorly on this benchmark
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib42" title="">
+        42
+       </a>
+       ,
+       <a class="ltx_ref" href="#bib.bib43" title="">
+        43
+       </a>
+       ]
+      </cite>
+      . In addition to the questions, the benchmark also contains several possible answers for each question: one of the answers is marked as best answer and other answers are marked as either correct or incorrect answers. There are between 3 and 25 answers for every question in the benchmark. On average there are 7.6 answers per question: 4.12 are incorrect and 3.47 are correct or best.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     COPA:
+    </h5>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px2.p1.1">
+      The Choice Of Plausible Alternatives (COPA) benchmark
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib44" title="">
+        44
+       </a>
+       ]
+      </cite>
+      consists of 1000 questions, split equally into development and test sets of 500 questions each. We used the development set in our experiments. Each question is composed of a premise and two alternatives, where the task is to select the alternative that more plausibly has a causal relation with the premise. The correct alternative is randomized so that the expected performance of randomly guessing is 50%.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px3">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Story Cloze:
+    </h5>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p1.1">
+      Story Cloze is a commonsense reasoning test
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib45" title="">
+        45
+       </a>
+       ]
+      </cite>
+      ; it asks a system to choose the correct ending to a four-sentence story. The benchmark contain two ending choices for each of the four-sentence story, out of which one is correct. We used the development set in our experiments which has 1871 stories.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Measuring Posterior and Prior Likelihoods in LLMs
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.3">
+     For our experiments with the TruthfulQA dataset, we used the logits in the pre-trained large language models for the strings ‘?’+
+     <math alttext="r" class="ltx_Math" display="inline" id="S4.SS2.p1.1.m1.1">
+      <semantics id="S4.SS2.p1.1.m1.1a">
+       <mi id="S4.SS2.p1.1.m1.1.1" xref="S4.SS2.p1.1.m1.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.1.m1.1b">
+        <ci id="S4.SS2.p1.1.m1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.1.m1.1c">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="q+r" class="ltx_Math" display="inline" id="S4.SS2.p1.2.m2.1">
+      <semantics id="S4.SS2.p1.2.m2.1a">
+       <mrow id="S4.SS2.p1.2.m2.1.1" xref="S4.SS2.p1.2.m2.1.1.cmml">
+        <mi id="S4.SS2.p1.2.m2.1.1.2" xref="S4.SS2.p1.2.m2.1.1.2.cmml">
+         q
+        </mi>
+        <mo id="S4.SS2.p1.2.m2.1.1.1" xref="S4.SS2.p1.2.m2.1.1.1.cmml">
+         +
+        </mo>
+        <mi id="S4.SS2.p1.2.m2.1.1.3" xref="S4.SS2.p1.2.m2.1.1.3.cmml">
+         r
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.2.m2.1b">
+        <apply id="S4.SS2.p1.2.m2.1.1.cmml" xref="S4.SS2.p1.2.m2.1.1">
+         <plus id="S4.SS2.p1.2.m2.1.1.1.cmml" xref="S4.SS2.p1.2.m2.1.1.1">
+         </plus>
+         <ci id="S4.SS2.p1.2.m2.1.1.2.cmml" xref="S4.SS2.p1.2.m2.1.1.2">
+          𝑞
+         </ci>
+         <ci id="S4.SS2.p1.2.m2.1.1.3.cmml" xref="S4.SS2.p1.2.m2.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.2.m2.1c">
+        q+r
+       </annotation>
+      </semantics>
+     </math>
+     to obtain the cross entropy for tokens in
+     <math alttext="r" class="ltx_Math" display="inline" id="S4.SS2.p1.3.m3.1">
+      <semantics id="S4.SS2.p1.3.m3.1a">
+       <mi id="S4.SS2.p1.3.m3.1.1" xref="S4.SS2.p1.3.m3.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.3.m3.1b">
+        <ci id="S4.SS2.p1.3.m3.1.1.cmml" xref="S4.SS2.p1.3.m3.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.3.m3.1c">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     ; giving negative prior and negative posterior log likelihoods respectively.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     For experiments with the Story Cloze benchmark, we used a similar strategy as above except that we conditioned on the last punctuation from the last input sentence of the story (instead of ‘?’) for measuring the prior likelihood of
+     <math alttext="r" class="ltx_Math" display="inline" id="S4.SS2.p2.1.m1.1">
+      <semantics id="S4.SS2.p2.1.m1.1a">
+       <mi id="S4.SS2.p2.1.m1.1.1" xref="S4.SS2.p2.1.m1.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.1.m1.1b">
+        <ci id="S4.SS2.p2.1.m1.1.1.cmml" xref="S4.SS2.p2.1.m1.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.1.m1.1c">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     . For the COPA benchmark, we condition on ‘because’ or ‘so’ depending on question tag (‘cause’/‘effect’) instead of ‘?’ for measuring the prior likelihood. This is consistent with prior work
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Models
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     We used openly available pre-trained models GPT-2 (from OpenAI)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib46" title="">
+       46
+      </a>
+      ]
+     </cite>
+     and LLaMA-2 (from Meta)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ]
+     </cite>
+     in our experiments. Specifically, we used the following models: GPT-2 S (124 million parameters), GPT-2 M (355 million parameters), GPT-2 L (774 million parameters), GPT-2 XL (1558 million parameters), LLaMA-2 7B (7 billion parameters), LLaMA-2 13B (13 billion parameters) and LLaMA-2 70B (70 billion parameters). For LLaMA-2 70B, we used the 4-bit version due to resource constraints; for all other models, we used their full precision versions. All models were obtained through Hugging Face
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib47" title="">
+       47
+      </a>
+      ]
+     </cite>
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         1
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://huggingface.co/models" target="_blank" title="">
+         https://huggingface.co/models
+        </a>
+       </span>
+      </span>
+     </span>
+     . Experiments were run on NVIDIA A100.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     Note that we used the publicly released
+     <em class="ltx_emph ltx_font_italic" id="S4.SS3.p2.1.1">
+      base
+     </em>
+     versions of GPT-2 and LLaMA-2 for probability calculations. The probabilities may differ in other versions of the models.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     We do not use closed models such as GPT-3.5/4 in our experiments because there is lack of transparency in model development and further steps like reinforcement learning. Thus, meaning of probability outputs is not clear and results would be inconclusive. We note however that open models such as LLaMA-2 are very competitive to closed models in capabilities
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ]
+     </cite>
+     . Further, like all commercial products in this space, closed models tend to be updated frequently and research results using such products/models are difficult to reproduce.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.4
+    </span>
+    Results
+   </h3>
+   <section class="ltx_subsubsection" id="S4.SS4.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.4.1
+     </span>
+     TruthfulQA Benchmark: Aggregate Performance Improvement
+    </h4>
+    <figure class="ltx_table" id="S4.T1">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      TruthfulQA Benchmark
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T1.1">
+      <tr class="ltx_tr" id="S4.T1.1.1">
+       <td class="ltx_td ltx_nopad ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.1.1">
+        <svg height="19.07" overflow="visible" version="1.1" width="93.78">
+         <g transform="translate(0,19.07) scale(1,-1)">
+          <path d="M 0,19.07 93.78,0" stroke="#000000" stroke-width="0.4">
+          </path>
+          <g class="ltx_svg_fog" transform="translate(0,0)">
+           <g transform="translate(0,9.46) scale(1, -1)">
+            <foreignobject height="9.46" overflow="visible" width="29.98">
+             <span class="ltx_inline-block" id="S4.T1.1.1.1.pic1.1.1">
+              <span class="ltx_inline-block ltx_align_left" id="S4.T1.1.1.1.pic1.1.1.1">
+               <span class="ltx_p" id="S4.T1.1.1.1.pic1.1.1.1.1">
+                LLM
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+          <g class="ltx_svg_fog" transform="translate(46.89,9.46)">
+           <g transform="translate(0,9.61) scale(1, -1)">
+            <foreignobject height="9.61" overflow="visible" width="46.89">
+             <span class="ltx_inline-block" id="S4.T1.1.1.1.pic1.2.1">
+              <span class="ltx_inline-block ltx_align_right" id="S4.T1.1.1.1.pic1.2.1.1">
+               <span class="ltx_p" id="S4.T1.1.1.1.pic1.2.1.1.1">
+                Method
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+         </g>
+        </svg>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.2">
+        <span class="ltx_text" id="S4.T1.1.1.2.1">
+         MxPost
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.3">
+        <span class="ltx_text" id="S4.T1.1.1.3.1">
+         MxRatio
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.4">
+        <span class="ltx_text" id="S4.T1.1.1.4.1">
+         MxDiff
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.5">
+        <span class="ltx_text" id="S4.T1.1.1.5.1">
+         MxPostN
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.6">
+        <span class="ltx_text" id="S4.T1.1.1.6.1">
+         Top2MinPr
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.1.7">
+        <span class="ltx_text" id="S4.T1.1.1.7.1">
+         Top2MaxPr
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.2.1">
+        GPT-2 S
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.2">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.3">
+        0.51
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.4">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.5">
+        0.397
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.2.6.1">
+         0.52
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.2.7">
+        0.47
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.3">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.3.1">
+        GPT-2 M
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.2">
+        0.38
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.3.3.1">
+         0.5
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.4">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.5">
+        0.39
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.6">
+        0.48
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.3.7">
+        0.44
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.4">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.4.1">
+        GPT-2 L
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.2">
+        0.37
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.4.3.1">
+         0.5
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.4">
+        0.35
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.5">
+        0.38
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.6">
+        0.48
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.4.7">
+        0.44
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.5">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.5.1">
+        GPT-2 XL
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.2">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.5.3.1">
+         0.52
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.4">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.5">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.6">
+        0.47
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.5.7">
+        0.43
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.6.1">
+        LLaMA-2 7B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.2">
+        0.34
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.6.3.1">
+         0.58
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.4">
+        0.32
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.5">
+        0.54
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.6">
+        0.47
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.6.7">
+        0.40
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.7">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.7.1">
+        LLaMA-2 13B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.2">
+        0.43
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.7.3.1">
+         0.59
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.4">
+        0.45
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.5">
+        0.55
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.6">
+        0.54
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.1.7.7">
+        0.47
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.8">
+       <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.8.1">
+        LLaMA-2 70B (4bit)
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.2">
+        0.37
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.8.3.1">
+         0.58
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.4">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.5">
+        0.51
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.6">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.8.7">
+        0.41
+       </td>
+      </tr>
+     </table>
+    </figure>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS1.p1">
+     <p class="ltx_p" id="S4.SS4.SSS1.p1.1">
+      We first discuss the results on the TruthfulQA benchmark. Table
+      <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.4.1 TruthfulQA Benchmark: Aggregate Performance Improvement ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      shows the accuracy of different methods over all the questions in the TruthfulQA dataset. We measured accuracy as the fraction of questions for which the selected answer (by the respective method) was either the best answer or one of the correct answers in the benchmark. ‘MxPost’ refers to the maximum posterior selection method. ‘MxRatio’ refers to the surprisingly likely selection method using the ratio of posterior and prior likelihoods. ‘MxDiff’ refers to the surprisingly likely selection method using the difference of posterior and prior likelihoods. ‘MxPostN’ refers to the maximum posterior selection method in which posterior is normalised by the number of tokens in the response. ‘Top2MinPr’ refers to the selection method of shortlisting top 2 responses with highest posterior and then selecting the one with the smaller prior. ‘Top2MaxPr’ refers to the selection method of shortlisting top 2 responses with highest posterior and then selecting the one with the higher prior. ‘Top2MaxPr’ alludes to a completely opposite criterion i.e. selecting unsurprisingly likely responses and could show an advantage in some conditions depending on the training data etc. It is clear from the table that the surprisingly likely criterion beats all other baseline selection methods by significant margins. For e.g. the difference between the MxPost and the MxRatio methods is of 16 percentage points for GPT-2 XL and LLaMA-2 13B models. For the LLaMA-2 70B model, the difference is even bigger (24 percentage points). In general, the Top2MinPr method also improves results but is not as good as the MxRatio method. MxDiff method does not work that well.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS1.p2">
+     <p class="ltx_p" id="S4.SS4.SSS1.p2.1">
+      Further, authors of the TruthfulQA dataset noted that the performance of language models decreased with increasing size of the models for GPT-2 and GPT-3. We observe from Table
+      <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.4.1 TruthfulQA Benchmark: Aggregate Performance Improvement ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      that unlike MxPost and MxPostN methods, the MxRatio method is quite robust to the ‘inverse scaling’.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS1.p3">
+     <p class="ltx_p" id="S4.SS4.SSS1.p3.1">
+      Finally, it is also interesting to note that 4-bit quantization in LLaMA-2 70B causes a significant drop in accuracy for other methods, but the MxRatio appears quite robust to quantization as well.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS1.p4">
+     <p class="ltx_p" id="S4.SS4.SSS1.p4.9">
+      <em class="ltx_emph ltx_font_italic" id="S4.SS4.SSS1.p4.9.1">
+       Remark:
+      </em>
+      We also noticed that raising
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.1.m1.1">
+       <semantics id="S4.SS4.SSS1.p4.1.m1.1a">
+        <mi id="S4.SS4.SSS1.p4.1.m1.1.1" xref="S4.SS4.SSS1.p4.1.m1.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.1.m1.1b">
+         <ci id="S4.SS4.SSS1.p4.1.m1.1.1.cmml" xref="S4.SS4.SSS1.p4.1.m1.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.1.m1.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      to a higher value in the Top
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.2.m2.1">
+       <semantics id="S4.SS4.SSS1.p4.2.m2.1a">
+        <mi id="S4.SS4.SSS1.p4.2.m2.1.1" xref="S4.SS4.SSS1.p4.2.m2.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.2.m2.1b">
+         <ci id="S4.SS4.SSS1.p4.2.m2.1.1.cmml" xref="S4.SS4.SSS1.p4.2.m2.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.2.m2.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      MinPr method can bring further advantage (accuracy may improve upto
+      <math alttext="66\%" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.3.m3.1">
+       <semantics id="S4.SS4.SSS1.p4.3.m3.1a">
+        <mrow id="S4.SS4.SSS1.p4.3.m3.1.1" xref="S4.SS4.SSS1.p4.3.m3.1.1.cmml">
+         <mn id="S4.SS4.SSS1.p4.3.m3.1.1.2" xref="S4.SS4.SSS1.p4.3.m3.1.1.2.cmml">
+          66
+         </mn>
+         <mo id="S4.SS4.SSS1.p4.3.m3.1.1.1" xref="S4.SS4.SSS1.p4.3.m3.1.1.1.cmml">
+          %
+         </mo>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.3.m3.1b">
+         <apply id="S4.SS4.SSS1.p4.3.m3.1.1.cmml" xref="S4.SS4.SSS1.p4.3.m3.1.1">
+          <csymbol cd="latexml" id="S4.SS4.SSS1.p4.3.m3.1.1.1.cmml" xref="S4.SS4.SSS1.p4.3.m3.1.1.1">
+           percent
+          </csymbol>
+          <cn id="S4.SS4.SSS1.p4.3.m3.1.1.2.cmml" type="integer" xref="S4.SS4.SSS1.p4.3.m3.1.1.2">
+           66
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.3.m3.1c">
+         66\%
+        </annotation>
+       </semantics>
+      </math>
+      ). A higher value of
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.4.m4.1">
+       <semantics id="S4.SS4.SSS1.p4.4.m4.1a">
+        <mi id="S4.SS4.SSS1.p4.4.m4.1.1" xref="S4.SS4.SSS1.p4.4.m4.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.4.m4.1b">
+         <ci id="S4.SS4.SSS1.p4.4.m4.1.1.cmml" xref="S4.SS4.SSS1.p4.4.m4.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.4.m4.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      in Top
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.5.m5.1">
+       <semantics id="S4.SS4.SSS1.p4.5.m5.1a">
+        <mi id="S4.SS4.SSS1.p4.5.m5.1.1" xref="S4.SS4.SSS1.p4.5.m5.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.5.m5.1b">
+         <ci id="S4.SS4.SSS1.p4.5.m5.1.1.cmml" xref="S4.SS4.SSS1.p4.5.m5.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.5.m5.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      MinPr implies giving even more weight to smaller values of the prior, compared to high values of the posterior. While it may be a useful approach in practice for response generation, the TruthfulQA benchmarks has a limited number of example answers per question. So, a very high value of
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.6.m6.1">
+       <semantics id="S4.SS4.SSS1.p4.6.m6.1a">
+        <mi id="S4.SS4.SSS1.p4.6.m6.1.1" xref="S4.SS4.SSS1.p4.6.m6.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.6.m6.1b">
+         <ci id="S4.SS4.SSS1.p4.6.m6.1.1.cmml" xref="S4.SS4.SSS1.p4.6.m6.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.6.m6.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      in our experiments would be equivalent to almost ignoring the posterior, which does not translate to a meaningful approach for response generation given a context. Therefore, we report results for
+      <math alttext="k=2" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.7.m7.1">
+       <semantics id="S4.SS4.SSS1.p4.7.m7.1a">
+        <mrow id="S4.SS4.SSS1.p4.7.m7.1.1" xref="S4.SS4.SSS1.p4.7.m7.1.1.cmml">
+         <mi id="S4.SS4.SSS1.p4.7.m7.1.1.2" xref="S4.SS4.SSS1.p4.7.m7.1.1.2.cmml">
+          k
+         </mi>
+         <mo id="S4.SS4.SSS1.p4.7.m7.1.1.1" xref="S4.SS4.SSS1.p4.7.m7.1.1.1.cmml">
+          =
+         </mo>
+         <mn id="S4.SS4.SSS1.p4.7.m7.1.1.3" xref="S4.SS4.SSS1.p4.7.m7.1.1.3.cmml">
+          2
+         </mn>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.7.m7.1b">
+         <apply id="S4.SS4.SSS1.p4.7.m7.1.1.cmml" xref="S4.SS4.SSS1.p4.7.m7.1.1">
+          <eq id="S4.SS4.SSS1.p4.7.m7.1.1.1.cmml" xref="S4.SS4.SSS1.p4.7.m7.1.1.1">
+          </eq>
+          <ci id="S4.SS4.SSS1.p4.7.m7.1.1.2.cmml" xref="S4.SS4.SSS1.p4.7.m7.1.1.2">
+           𝑘
+          </ci>
+          <cn id="S4.SS4.SSS1.p4.7.m7.1.1.3.cmml" type="integer" xref="S4.SS4.SSS1.p4.7.m7.1.1.3">
+           2
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.7.m7.1c">
+         k=2
+        </annotation>
+       </semantics>
+      </math>
+      only. No such improvement in accuracy was observed for high values of
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.8.m8.1">
+       <semantics id="S4.SS4.SSS1.p4.8.m8.1a">
+        <mi id="S4.SS4.SSS1.p4.8.m8.1.1" xref="S4.SS4.SSS1.p4.8.m8.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.8.m8.1b">
+         <ci id="S4.SS4.SSS1.p4.8.m8.1.1.cmml" xref="S4.SS4.SSS1.p4.8.m8.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.8.m8.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      for the Top
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS1.p4.9.m9.1">
+       <semantics id="S4.SS4.SSS1.p4.9.m9.1a">
+        <mi id="S4.SS4.SSS1.p4.9.m9.1.1" xref="S4.SS4.SSS1.p4.9.m9.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS1.p4.9.m9.1b">
+         <ci id="S4.SS4.SSS1.p4.9.m9.1.1.cmml" xref="S4.SS4.SSS1.p4.9.m9.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS1.p4.9.m9.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      MaxPr method. For brevity, all this experimental data is skipped from the paper but is available on request.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS4.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.4.2
+     </span>
+     TruthfulQA Benchmark: Performance Improvement By Question Type
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS2.p1">
+     <p class="ltx_p" id="S4.SS4.SSS2.p1.1">
+      Out of the 817 questions in the TruthfulQA benchmark, 437 are adversarially filtered questions and the rest 380 are unfiltered questions. The adversarially filtered questions were the ones that the authors of TruthfulQA selected based on the observed pattern of LLM producing wrong answers for them. The unfiltered questions did not go through similar filtering but they too were crafted based on the expectation that LLMs would produce wrong answers for them. Table
+      <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.4.2 TruthfulQA Benchmark: Performance Improvement By Question Type ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      shows the comparison of MxPost and MxRatio methods for the unfiltered and filtered questions using different LLMs. We observe from the table that the aggregate gain in accuracy for MxRatio over MxPost that we saw earlier comes from both types of questions. We also observe that there is generally a trend that adversarially filtered questions contribute slightly more gain in accuracy than the unfiltered questions.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T2">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 2:
+      </span>
+      TruthfulQA Benchmark: Adversarially Filtered vs Unfiltered Questions
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T2.1">
+      <tr class="ltx_tr" id="S4.T2.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.1.2">
+        <span class="ltx_text" id="S4.T2.1.1.2.1">
+         Model
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.1">
+        <span class="ltx_text ltx_nopad" id="S4.T2.1.1.1.1">
+         <svg height="38.05" overflow="visible" version="1.1" width="117">
+          <g transform="translate(0,38.05) scale(1,-1)">
+           <path d="M 0,38.05 117,0" stroke="#000000" stroke-width="0.4">
+           </path>
+           <g class="ltx_svg_fog" transform="translate(0,0)">
+            <g transform="translate(0,9.61) scale(1, -1)">
+             <foreignobject height="9.61" overflow="visible" width="46.89">
+              <span class="ltx_inline-block" id="S4.T2.1.1.1.1.pic1.1.1">
+               <span class="ltx_inline-block ltx_align_left" id="S4.T2.1.1.1.1.pic1.1.1.1">
+                <span class="ltx_p" id="S4.T2.1.1.1.1.pic1.1.1.1.1">
+                 Method
+                </span>
+               </span>
+              </span>
+             </foreignobject>
+            </g>
+           </g>
+           <g class="ltx_svg_fog" transform="translate(58.5,9.61)">
+            <g transform="translate(0,28.44) scale(1, -1)">
+             <foreignobject height="28.44" overflow="visible" width="58.5">
+              <span class="ltx_inline-block" id="S4.T2.1.1.1.1.pic1.2.1">
+               <span class="ltx_inline-block ltx_align_right" id="S4.T2.1.1.1.1.pic1.2.1.1">
+                <span class="ltx_p" id="S4.T2.1.1.1.1.pic1.2.1.1.1">
+                 Question
+                </span>
+                <span class="ltx_p" id="S4.T2.1.1.1.1.pic1.2.1.1.2">
+                 Type
+                </span>
+               </span>
+              </span>
+             </foreignobject>
+            </g>
+           </g>
+          </g>
+         </svg>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.3">
+        <span class="ltx_text" id="S4.T2.1.1.3.1">
+         Filtered
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.4">
+        <span class="ltx_text" id="S4.T2.1.1.4.1">
+         Unfiltered
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.2.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.2.1.1">
+         GPT-2 S
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.3">
+        0.41
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.4">
+        0.44
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.3">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.3.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.3.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.3.2.1">
+         0.5
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.3.3.1">
+         0.53
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.4">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.4.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.4.1.1">
+         GPT-2 M
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.4.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.4.3">
+        0.37
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.4.4">
+        0.4
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.5">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.5.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.5.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.5.2.1">
+         0.46
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.5.3.1">
+         0.54
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.6.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.6.1.1">
+         GPT-2 L
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.6.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.6.3">
+        0.34
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.6.4">
+        0.4
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.7">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.7.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.7.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.7.2.1">
+         0.48
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.7.3.1">
+         0.52
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.8">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.8.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.8.1.1">
+         GPT-2 XL
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.8.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.8.3">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.8.4">
+        0.41
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.9">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.9.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.9.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.9.2.1">
+         0.49
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.9.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.9.3.1">
+         0.55
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.10">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.10.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.10.1.1">
+         LLaMA-2 7B
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.10.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.10.3">
+        0.31
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.10.4">
+        0.38
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.11">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.11.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.11.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.11.2.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.11.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.11.3.1">
+         0.61
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.12">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.12.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.12.1.1">
+         LLaMA-2 13B
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.12.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.12.3">
+        0.43
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.12.4">
+        0.44
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.13">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.13.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.13.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.13.2.1">
+         0.59
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.13.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.13.3.1">
+         0.59
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.14">
+       <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.14.1" rowspan="2">
+        <span class="ltx_text" id="S4.T2.1.14.1.1">
+         LLaMA-2 70B (4bit)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.14.2">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.14.3">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.14.4">
+        0.43
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.15">
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T2.1.15.1">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T2.1.15.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.15.2.1">
+         0.59
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T2.1.15.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.15.3.1">
+         0.56
+        </span>
+       </td>
+      </tr>
+     </table>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS4.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.4.3
+     </span>
+     TruthfulQA Benchmark: Performance Improvement By Answer Type
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS3.p1">
+     <p class="ltx_p" id="S4.SS4.SSS3.p1.1">
+      We also investigated how many questions that were correctly answered by MxPost but incorrectly by MxRatio and how many questions that were correctly answered by both MxPost and MxRatio. The motivation for looking at these numbers is to confirm that the accuracy gain for MxRatio is not due to simply selecting an opposite answer than MxPost. For LLaMA-2 7B, we observed that for 313 questions MxPost was wrong but MxRatio was correct, and for 161 questions both gave correct answers. In contrast, for 120 questions, MxPost gave correct answer but MxRatio gave incorrect answers. For the remaining 223 questions, both gave incorrect answers. For brevity, we do not report these numbers for other models in the paper, but this data is available on request. In the next subsection, we investigate whether there is a pattern in the type of questions on which MxPost works better than MxRatio.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T3">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 3:
+      </span>
+      TruthfulQA Benchmark: Question Categories
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T3.1">
+      <tr class="ltx_tr" id="S4.T3.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.1.1" rowspan="2">
+        <span class="ltx_text" id="S4.T3.1.1.1.1">
+         Category
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="2" id="S4.T3.1.1.2">
+        LLaMA-2 7B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="2" id="S4.T3.1.1.3">
+        LLaMA-2 13B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="2" id="S4.T3.1.1.4">
+        GPT-2 XL
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.2">
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.1">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.2">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.3">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.4">
+        MxRatio
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.5">
+        MxPost
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.2.6">
+        MxRatio
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.3">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.3.1">
+        Advertising
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.2">
+        0.38
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.3.1">
+         0.62
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.4.1">
+         0.77
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.5">
+        0.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.6">
+        0.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.3.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.7.1">
+         0.69
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.4">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.4.1">
+        Confusion: Other
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.2">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.4.3.1">
+         0.63
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.4">
+        0.13
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.4.5.1">
+         0.38
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.6">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.4.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.4.7.1">
+         0.50
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.5">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.5.1">
+        Confusion: People
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.2">
+        0.04
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.5.3.1">
+         0.74
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.4">
+        0.09
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.5.5.1">
+         0.65
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.6">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.5.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.5.7.1">
+         0.61
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.6.1">
+        Confusion: Places
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.2">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.6.3.1">
+         0.93
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.4">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.6.5.1">
+         0.73
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.6">
+        0.47
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.6.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.6.7.1">
+         0.67
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.7">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.7.1">
+        Conspiracies
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.2">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.7.3.1">
+         0.80
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.4">
+        0.60
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.5">
+        0.60
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.6">
+        0.40
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.7.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.7.7.1">
+         0.68
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.8">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.8.1">
+        Distraction
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.2">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.8.3.1">
+         0.36
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.4">
+        0.14
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.8.5.1">
+         0.29
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.6">
+        0.07
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.8.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.8.7.1">
+         0.21
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.9">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.9.1">
+        Economics
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.2">
+        0.35
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.9.3.1">
+         0.55
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.4">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.9.5.1">
+         0.58
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.6">
+        0.23
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.9.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.9.7.1">
+         0.48
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.10">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.10.1">
+        Education
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.2">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.10.3.1">
+         0.40
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.4">
+        0.10
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.10.5.1">
+         0.40
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.6">
+        0.20
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.10.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.10.7.1">
+         0.60
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.11">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.11.1">
+        Fiction
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.2">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.11.3.1">
+         0.63
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.4">
+        0.57
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.11.5.1">
+         0.73
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.6">
+        0.60
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.11.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.11.7.1">
+         0.67
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.12">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.12.1">
+        Finance
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.2">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.3">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.4">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.5">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.12.6.1">
+         0.33
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.12.7">
+        0.22
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.13">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.13.1">
+        Health
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.2">
+        0.25
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.13.3.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.4">
+        0.29
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.13.5.1">
+         0.58
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.6">
+        0.24
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.13.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.13.7.1">
+         0.73
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.14">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.14.1">
+        History
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.2">
+        0.29
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.14.3.1">
+         0.75
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.4">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.14.5.1">
+         0.75
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.6">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.14.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.14.7.1">
+         0.46
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.15">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.15.1">
+        Indexical Error: Identity
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.2">
+        0.22
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.15.3.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.4">
+        0.44
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.5">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.6">
+        0.22
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.15.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.15.7.1">
+         0.44
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.16">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.16.1">
+        Indexical Error: Location
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.2">
+        0.09
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.3">
+        0.09
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.4">
+        0.64
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.5">
+        0.18
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.16.6.1">
+         0.09
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.16.7">
+        0.00
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.17">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.17.1">
+        Indexical Error: Other
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.2">
+        0.19
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.3">
+        0.19
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.17.4.1">
+         0.76
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.5">
+        0.19
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.17.6.1">
+         0.33
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.17.7">
+        0.19
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.18">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.18.1">
+        Indexical Error: Time
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.18.2.1">
+         0.44
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.3">
+        0.06
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.18.4.1">
+         0.88
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.5">
+        0.19
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.18.6.1">
+         0.50
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.18.7">
+        0.00
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.19">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.19.1">
+        Language
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.19.2.1">
+         0.76
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.3">
+        0.67
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.19.4.1">
+         0.71
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.5">
+        0.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.19.6.1">
+         0.76
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.19.7">
+        0.52
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.20">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.20.1">
+        Law
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.2">
+        0.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.20.3.1">
+         0.52
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.4">
+        0.53
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.20.5.1">
+         0.64
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.6">
+        0.39
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.20.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.20.7.1">
+         0.52
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.21">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.21.1">
+        Logical Falsehood
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.21.2.1">
+         0.86
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.3">
+        0.29
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.21.4.1">
+         0.86
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.5">
+        0.29
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.21.6.1">
+         0.50
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.21.7">
+        0.14
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.22">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.22.1">
+        Mandela Effect
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.22.2.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.3">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.22.4.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.5">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.22.6.1">
+         0.33
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.22.7">
+        0.17
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.23">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.23.1">
+        Misconceptions
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.2">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.23.3.1">
+         0.73
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.4">
+        0.29
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.23.5.1">
+         0.70
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.6">
+        0.34
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.23.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.23.7.1">
+         0.64
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.24">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.24.1">
+        Misconceptions: Topical
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.2">
+        0.25
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.24.3.1">
+         0.50
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.4">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.24.5.1">
+         0.25
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.6">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.24.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.24.7.1">
+         0.75
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.25">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.25.1">
+        Misinformation
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.25.2.1">
+         0.75
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.3">
+        0.08
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.25.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.5">
+        0.17
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.25.6.1">
+         0.92
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.25.7">
+        0.17
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.26">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.26.1">
+        Misquotations
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.2">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.26.3.1">
+         0.88
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.4">
+        0.31
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.26.5.1">
+         0.88
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.6">
+        0.13
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.26.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.26.7.1">
+         0.56
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.27">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.27.1">
+        Myths and Fairytales
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.2">
+        0.14
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.27.3.1">
+         0.71
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.4">
+        0.19
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.27.5.1">
+         0.62
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.6">
+        0.24
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.27.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.27.7.1">
+         0.57
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.28">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.28.1">
+        Nutrition
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.2">
+        0.25
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.28.3.1">
+         0.69
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.4">
+        0.38
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.28.5.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.6">
+        0.31
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.28.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.28.7.1">
+         0.38
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.29">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.29.1">
+        Paranormal
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.2">
+        0.31
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.29.3.1">
+         0.62
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.4">
+        0.27
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.29.5.1">
+         0.77
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.6">
+        0.27
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.29.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.29.7.1">
+         0.58
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.30">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.30.1">
+        Politics
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.30.2.1">
+         0.60
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.3">
+        0.10
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.30.4.1">
+         0.80
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.5">
+        0.40
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.30.6.1">
+         0.30
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.30.7">
+        0.00
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.31">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.31.1">
+        Proverbs
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.2">
+        0.11
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.31.3.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.4">
+        0.11
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.31.5.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.6">
+        0.28
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.31.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.31.7.1">
+         0.67
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.32">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.32.1">
+        Psychology
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.2">
+        0.21
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.32.3.1">
+         0.37
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.4">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.32.5.1">
+         0.47
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.6">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.32.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.32.7.1">
+         0.53
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.33">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.33.1">
+        Religion
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.2">
+        0.33
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.33.3.1">
+         0.60
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.33.4.1">
+         0.47
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.5">
+        0.40
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.33.6.1">
+         0.40
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.33.7">
+        0.33
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.34">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.34.1">
+        Science
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.2">
+        0.11
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.34.3.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.4">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.34.5.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.6">
+        0.00
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.34.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.34.7.1">
+         0.67
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.35">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.35.1">
+        Sociology
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.2">
+        0.49
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.35.3.1">
+         0.55
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.4">
+        0.53
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.35.5.1">
+         0.56
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.6">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.35.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.35.7.1">
+         0.51
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.36">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.36.1">
+        Statistics
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.36.2.1">
+         0.60
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.3">
+        0.40
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.36.4.1">
+         0.80
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.5">
+        0.60
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.36.6.1">
+         0.60
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.36.7">
+        0.20
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.37">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.37.1">
+        Stereotypes
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.2">
+        0.46
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.37.3.1">
+         0.63
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.4">
+        0.42
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.37.5.1">
+         0.83
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.6">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.37.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.37.7.1">
+         0.67
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.38">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.38.1">
+        Subjective
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.2">
+        0.22
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.38.3.1">
+         0.33
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.38.4.1">
+         0.89
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.5">
+        0.78
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.38.6.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.38.7">
+        0.44
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.39">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.39.1">
+        Superstitions
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.2">
+        0.50
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.39.3.1">
+         0.68
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.4">
+        0.41
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.39.5.1">
+         0.77
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.39.6.1">
+         0.64
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.1.39.7">
+        0.59
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.40">
+       <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.40.1">
+        Weather
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.2">
+        0.53
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.40.3.1">
+         0.65
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.4">
+        0.53
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.40.5.1">
+         0.59
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.6">
+        0.53
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.1.40.7">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.40.7.1">
+         0.71
+        </span>
+       </td>
+      </tr>
+     </table>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS4.SSS4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.4.4
+     </span>
+     TruthfulQA Benchmark: Performance Improvement By Question Category
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS4.p1">
+     <p class="ltx_p" id="S4.SS4.SSS4.p1.1">
+      The questions in the TruthfulQA are also categorised by labels such as economics, education, health, distraction, misconceptions, conspiracies, history, misinformation, politics, nutrition etc. There are 38 diverse categories in the benchmark. Table
+      <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.4.3 TruthfulQA Benchmark: Performance Improvement By Answer Type ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      shows the breakdown of performance of MxPost and MxRatio by question categories. For brevity, we report this breakdown for GPT-2 XL, LLaMA-2 7B and LLaMA-2 13B. We observe from the table that for majority of the question categories, MxRatio performs better than MxPost. For example, in the case of LLaMA-2 7B: in 28 categories MxRatio works better, in 7 categories MxPost works better, and in 3 categories both methods perform same. This shows that the improvement by MxRatio is not due to a few types of questions only but can be observed across the wide spectrum of questions. In some categories, there is an improvement of upto 70 percentage points.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S4.SS4.SSS4.p2">
+     <p class="ltx_p" id="S4.SS4.SSS4.p2.1">
+      We did not find an obvious semantic pattern about the types of questions where MxPost works better than MxRatio but a few observations are worth noting. For example, the category Logical Falsehood is about tautology, like “Are all real numbers real numbers?". MxRatio does not work well on these kinds of questions. Considering the motivation for the surprisingly likely criterion, we did not expect the method to improve accuracy on such questions, but the fact that accuracy decreased is an important consideration and requires further research. Further, we also noted that for many of the categories where MxPost does better (e.g., for Indexical Error: Time and Misinformation categories, that have significant drop), the correct and best answers in the benchmark is just “I have no comment." It may be possible to encourage this behavior based on a hybrid method that uses a minimum threshold for posterior or for the ratio. On the other hand, these results may also hint at the limitation of the surprisingly likely criterion for certain special categories of questions (or answers). It may be worth investigating this further at a more granular level (per question and answer text) in future work and see if an effective hybrid method can be developed.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS4.SSS5">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.4.5
+     </span>
+     COPA and StoryCloze Benchmarks
+    </h4>
+    <div class="ltx_para" id="S4.SS4.SSS5.p1">
+     <p class="ltx_p" id="S4.SS4.SSS5.p1.3">
+      The results on the TruthfulQA benchmark show that the surprisingly likely criterion does help significantly to tackle the non-truthfulness problem in LLMs in most categories of questions. We next also test the methods on two other benchmarks (COPA and StoryCloze) to show that the surprisingly likely criterion, at least, does not make things worse on these traditional benchmarks. COPA and StoryCloze benchmarks have only two choices in the dataset. We do not report Top
+      <math alttext="2" class="ltx_Math" display="inline" id="S4.SS4.SSS5.p1.1.m1.1">
+       <semantics id="S4.SS4.SSS5.p1.1.m1.1a">
+        <mn id="S4.SS4.SSS5.p1.1.m1.1.1" xref="S4.SS4.SSS5.p1.1.m1.1.1.cmml">
+         2
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS5.p1.1.m1.1b">
+         <cn id="S4.SS4.SSS5.p1.1.m1.1.1.cmml" type="integer" xref="S4.SS4.SSS5.p1.1.m1.1.1">
+          2
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS5.p1.1.m1.1c">
+         2
+        </annotation>
+       </semantics>
+      </math>
+      MinPr and Top
+      <math alttext="2" class="ltx_Math" display="inline" id="S4.SS4.SSS5.p1.2.m2.1">
+       <semantics id="S4.SS4.SSS5.p1.2.m2.1a">
+        <mn id="S4.SS4.SSS5.p1.2.m2.1.1" xref="S4.SS4.SSS5.p1.2.m2.1.1.cmml">
+         2
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS5.p1.2.m2.1b">
+         <cn id="S4.SS4.SSS5.p1.2.m2.1.1.cmml" type="integer" xref="S4.SS4.SSS5.p1.2.m2.1.1">
+          2
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS5.p1.2.m2.1c">
+         2
+        </annotation>
+       </semantics>
+      </math>
+      MaxPr for these benchmarks because that would be equivalent to ignoring the context and choosing an answer only based on prior of the answers, which as for high values of
+      <math alttext="k" class="ltx_Math" display="inline" id="S4.SS4.SSS5.p1.3.m3.1">
+       <semantics id="S4.SS4.SSS5.p1.3.m3.1a">
+        <mi id="S4.SS4.SSS5.p1.3.m3.1.1" xref="S4.SS4.SSS5.p1.3.m3.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S4.SS4.SSS5.p1.3.m3.1b">
+         <ci id="S4.SS4.SSS5.p1.3.m3.1.1.cmml" xref="S4.SS4.SSS5.p1.3.m3.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS4.SSS5.p1.3.m3.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      in the TruthfulQA benchmark, does not translate to a meaningful approach for response generation given a context. We observe from Tables
+      <a class="ltx_ref" href="#S4.T4" title="Table 4 ‣ 4.4.5 COPA and StoryCloze Benchmarks ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      and
+      <a class="ltx_ref" href="#S4.T5" title="Table 5 ‣ 4.4.5 COPA and StoryCloze Benchmarks ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      that the surprisingly likely criterion either improves the performance or in a few cases leaves the performance unchanged
+      <span class="ltx_note ltx_role_footnote" id="footnote2">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          2
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          2
+         </span>
+         There is an unexplained observation in Tables
+         <a class="ltx_ref" href="#S4.T4" title="Table 4 ‣ 4.4.5 COPA and StoryCloze Benchmarks ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+          <span class="ltx_text ltx_ref_tag">
+           4
+          </span>
+         </a>
+         and
+         <a class="ltx_ref" href="#S4.T5" title="Table 5 ‣ 4.4.5 COPA and StoryCloze Benchmarks ‣ 4.4 Results ‣ 4 Experiments ‣ On The Truthfulness of ‘Surprisingly Likely’ Responses of Large Language Models">
+          <span class="ltx_text ltx_ref_tag">
+           5
+          </span>
+         </a>
+         : for LLaMA-2 13 B, all methods perform poorly. We double checked our code and experiment data and even re-ran the calculations, but it is not clear why LLaMA-2 13 B performs poorly on these benchmarks.
+        </span>
+       </span>
+      </span>
+      .
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T4">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 4:
+      </span>
+      COPA Benchmark
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T4.1">
+      <tr class="ltx_tr" id="S4.T4.1.1">
+       <td class="ltx_td ltx_nopad ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.1.1">
+        <svg height="19.07" overflow="visible" version="1.1" width="93.78">
+         <g transform="translate(0,19.07) scale(1,-1)">
+          <path d="M 0,19.07 93.78,0" stroke="#000000" stroke-width="0.4">
+          </path>
+          <g class="ltx_svg_fog" transform="translate(0,0)">
+           <g transform="translate(0,9.46) scale(1, -1)">
+            <foreignobject height="9.46" overflow="visible" width="29.98">
+             <span class="ltx_inline-block" id="S4.T4.1.1.1.pic1.1.1">
+              <span class="ltx_inline-block ltx_align_left" id="S4.T4.1.1.1.pic1.1.1.1">
+               <span class="ltx_p" id="S4.T4.1.1.1.pic1.1.1.1.1">
+                LLM
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+          <g class="ltx_svg_fog" transform="translate(46.89,9.46)">
+           <g transform="translate(0,9.61) scale(1, -1)">
+            <foreignobject height="9.61" overflow="visible" width="46.89">
+             <span class="ltx_inline-block" id="S4.T4.1.1.1.pic1.2.1">
+              <span class="ltx_inline-block ltx_align_right" id="S4.T4.1.1.1.pic1.2.1.1">
+               <span class="ltx_p" id="S4.T4.1.1.1.pic1.2.1.1.1">
+                Method
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+         </g>
+        </svg>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.1.2">
+        <span class="ltx_text" id="S4.T4.1.1.2.1">
+         MxPost
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.1.3">
+        <span class="ltx_text" id="S4.T4.1.1.3.1">
+         MxRatio
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.1.4">
+        <span class="ltx_text" id="S4.T4.1.1.4.1">
+         MxDiff
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.1.5">
+        <span class="ltx_text" id="S4.T4.1.1.5.1">
+         MxPostN
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.2.1">
+        GPT-2 S
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.2.2">
+        0.61
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.2.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.2.3.1">
+         0.63
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.2.4">
+        0.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.2.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.2.5.1">
+         0.63
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.3">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.3.1">
+        GPT-2 M
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.3.2">
+        0.67
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.3.3.1">
+         0.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.3.4">
+        0.67
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.3.5">
+        0.66
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.4">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.4.1">
+        GPT-2 L
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.4.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.4.2.1">
+         0.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.4.3">
+        0.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.4.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.4.4.1">
+         0.70
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.4.5">
+        0.68
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.5">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.5.1">
+        GPT-2 XL
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.5.2">
+        0.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.5.3.1">
+         0.72
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.5.4">
+        0.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.5.5">
+        0.68
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.6.1">
+        LLaMA-2 7B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.6.2">
+        0.82
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.6.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.6.3.1">
+         0.83
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.6.4">
+        0.82
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.6.5">
+        0.69
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.7">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.7.1">
+        LLaMA-2 13B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.7.2">
+        0.61
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.7.3.1">
+         0.65
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.7.4">
+        0.49
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T4.1.7.5">
+        0.51
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.8">
+       <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T4.1.8.1">
+        LLaMA-2 70B (4bit)
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T4.1.8.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.8.2.1">
+         0.88
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T4.1.8.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.8.3.1">
+         0.88
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T4.1.8.4">
+        0.87
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T4.1.8.5">
+        0.74
+       </td>
+      </tr>
+     </table>
+    </figure>
+    <figure class="ltx_table" id="S4.T5">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 5:
+      </span>
+      StoryCloze Benchmark
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T5.1">
+      <tr class="ltx_tr" id="S4.T5.1.1">
+       <td class="ltx_td ltx_nopad ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.1.1">
+        <svg height="19.07" overflow="visible" version="1.1" width="93.78">
+         <g transform="translate(0,19.07) scale(1,-1)">
+          <path d="M 0,19.07 93.78,0" stroke="#000000" stroke-width="0.4">
+          </path>
+          <g class="ltx_svg_fog" transform="translate(0,0)">
+           <g transform="translate(0,9.46) scale(1, -1)">
+            <foreignobject height="9.46" overflow="visible" width="29.98">
+             <span class="ltx_inline-block" id="S4.T5.1.1.1.pic1.1.1">
+              <span class="ltx_inline-block ltx_align_left" id="S4.T5.1.1.1.pic1.1.1.1">
+               <span class="ltx_p" id="S4.T5.1.1.1.pic1.1.1.1.1">
+                LLM
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+          <g class="ltx_svg_fog" transform="translate(46.89,9.46)">
+           <g transform="translate(0,9.61) scale(1, -1)">
+            <foreignobject height="9.61" overflow="visible" width="46.89">
+             <span class="ltx_inline-block" id="S4.T5.1.1.1.pic1.2.1">
+              <span class="ltx_inline-block ltx_align_right" id="S4.T5.1.1.1.pic1.2.1.1">
+               <span class="ltx_p" id="S4.T5.1.1.1.pic1.2.1.1.1">
+                Method
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+         </g>
+        </svg>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.1.2">
+        <span class="ltx_text" id="S4.T5.1.1.2.1">
+         MxPost
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.1.3">
+        <span class="ltx_text" id="S4.T5.1.1.3.1">
+         MxRatio
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.1.4">
+        <span class="ltx_text" id="S4.T5.1.1.4.1">
+         MxDiff
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.1.5">
+        <span class="ltx_text" id="S4.T5.1.1.5.1">
+         MxPostN
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.2.1">
+        GPT-2 S
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.2.2">
+        0.58
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.2.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.2.3.1">
+         0.67
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.2.4">
+        0.58
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.2.5">
+        0.60
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.3">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.3.1">
+        GPT-2 M
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.3.2">
+        0.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.3.3.1">
+         0.71
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.3.4">
+        0.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.3.5">
+        0.67
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.4">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.4.1">
+        GPT-2 L
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.4.2">
+        0.64
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.4.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.4.3.1">
+         0.72
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.4.4">
+        0.64
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.4.5">
+        0.69
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.5">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.5.1">
+        GPT-2 XL
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.5.2">
+        0.67
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.5.3.1">
+         0.76
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.5.4">
+        0.67
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.5.5">
+        0.72
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.6.1">
+        LLaMA-2 7B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.6.2">
+        0.77
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.6.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.6.3.1">
+         0.82
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.6.4">
+        0.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.6.5">
+        0.68
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.7">
+       <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.7.1">
+        LLaMA-2 13B
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.7.2">
+        0.54
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.7.3.1">
+         0.63
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.7.4">
+        0.52
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T5.1.7.5">
+        0.53
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.8">
+       <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T5.1.8.1">
+        LLaMA-2 70B (4bit)
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T5.1.8.2">
+        0.77
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T5.1.8.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T5.1.8.3.1">
+         0.85
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T5.1.8.4">
+        0.68
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T5.1.8.5">
+        0.70
+       </td>
+      </tr>
+     </table>
+    </figure>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusions and Future Work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we discussed a novel connection between the game-theoretic truthful information elicitation literature and improving the accuracy of the responses of large language models. Specifically, we empirically investigated the applicability of the surprisingly likely criterion (motivated from the Bayesian Truth Serum of Prelec) to reward the LLMs to provide more accurate information. Our results show that the method significantly improves accuracy on benchmarks including TruthfulQA. We also discussed the strengths and limitations of this approach by analyzing performance across different types of questions/answers.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    It will be interesting future work to construct precise theoretical models under which an approach like this works or does not work well for LLMs. Further, we have explored one possible way to measure the surprising likeliness of LLM responses (i.e. based on likelihoods of response conditioned on context and without conditioning on context), but there may exist other ways depending on the theoretical model. For example, for prior, one may condition on less specific contexts (e.g. some keywords from the question) instead of conditioning on just ‘?’. One may also explore simulating crowdsourcing setting using temperature parameter and employing BTS motivated aggregation. Finally, while our experiments show that taking into account the prior probability helps in finding more correct answers, it remains crucial future work to show how this can be best operationalised to make LLMs generate more correct responses in the first place. Possible ideas include intervening at decoding stage or at pre-training or later stages through reward modification, for e.g. using reinforcement learning.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Acknowledgements
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    The author was supported by Oxford Martin’s programme on ‘Ethical Web and Data Architectures (EWADA) in the Age of AI’. Special thanks to Prof Boi Faltings for his participation in many discussions that significantly helped the author while writing the paper. The author also thanks Dr. Debjit Paul for his kind help in running an earlier version of the code on a compute cluster when the author did not have access to sufficient compute. Any errors in the paper are of the author only.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Yi Tay, Rishi Bommasani, Colin Raffel, Barret Zoph, Sebastian
+Borgeaud, Dani Yogatama, Maarten Bosma, Denny Zhou, Donald Metzler, Ed H.
+Chi, Tatsunori Hashimoto, Oriol Vinyals, Percy Liang, Jeff Dean, and William
+Fedus.
+    </span>
+    <span class="ltx_bibblock">
+     Emergent abilities of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Transactions on Machine Learning Research
+     </span>
+     , 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Survey Certification.
+    </span>
+    <span class="ltx_bibblock">
+     URL:
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openreview.net/forum?id=yzkSU5zdwD" target="_blank" title="">
+      https://openreview.net/forum?id=yzkSU5zdwD
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir
+Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim
+Rocktäschel, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Retrieval-augmented generation for knowledge-intensive nlp tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+33:9459–9474, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla
+Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      Advances in neural information processing systems
+     </span>
+     ,
+33:1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V
+Le, Denny Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:24824–24837, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V Le, Ed H. Chi, Sharan Narang,
+Aakanksha Chowdhery, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Self-consistency improves chain of thought reasoning in language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      The Eleventh International Conference on Learning
+Representations
+     </span>
+     , 2023.
+    </span>
+    <span class="ltx_bibblock">
+     URL:
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openreview.net/forum?id=1PL1NIMMrw" target="_blank" title="">
+      https://openreview.net/forum?id=1PL1NIMMrw
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Yung-Sung Chuang, Yujia Xie, Hongyin Luo, Yoon Kim, James Glass, and Pengcheng
+He.
+    </span>
+    <span class="ltx_bibblock">
+     Dola: Decoding by contrasting layers improves factuality in large
+language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2309.03883
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Yijun Xiao and William Yang Wang.
+    </span>
+    <span class="ltx_bibblock">
+     On hallucination and predictive uncertainty in conditional language
+generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Proceedings of the 16th Conference of the European Chapter of
+the Association for Computational Linguistics: Main Volume
+     </span>
+     , pages
+2734–2744, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Liangming Pan, Michael Saxon, Wenda Xu, Deepak Nathani, Xinyi Wang, and
+William Yang Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Automatically correcting large language models: Surveying the
+landscape of diverse self-correction strategies.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2308.03188
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Kenneth Li, Oam Patel, Fernanda Viégas, Hanspeter Pfister, and Martin
+Wattenberg.
+    </span>
+    <span class="ltx_bibblock">
+     Inference-time intervention: Eliciting truthful answers from a
+language model.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Kevin Meng, David Bau, Alex Andonian, and Yonatan Belinkov.
+    </span>
+    <span class="ltx_bibblock">
+     Locating and editing factual associations in gpt.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:17359–17372, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela
+Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Training language models to follow instructions with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:27730–27744, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Yuntao Bai, Saurav Kadavath, Sandipan Kundu, Amanda Askell, Jackson Kernion,
+Andy Jones, Anna Chen, Anna Goldie, Azalia Mirhoseini, Cameron McKinnon,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Constitutional ai: Harmlessness from ai feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2212.08073
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Harrison Lee, Samrat Phatale, Hassan Mansoor, Kellie Lu, Thomas Mesnard, Colton
+Bishop, Victor Carbune, and Abhinav Rastogi.
+    </span>
+    <span class="ltx_bibblock">
+     Rlaif: Scaling reinforcement learning from human feedback with ai
+feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2309.00267
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Beck Labash, and Ashwin Gopinath.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: an autonomous agent with dynamic memory and
+self-reflection.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2303.11366
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Yixuan Weng, Minjun Zhu, Shizhu He, Kang Liu, and Jun Zhao.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models are reasoners with self-verification.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2212.09561
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Hongbin Ye, Tong Liu, Aijia Zhang, Wei Hua, and Weiqiang Jia.
+    </span>
+    <span class="ltx_bibblock">
+     Cognitive mirage: A review of hallucinations in large language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2309.06794
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Stephanie Lin, Jacob Hilton, and Owain Evans.
+    </span>
+    <span class="ltx_bibblock">
+     TruthfulQA: Measuring how models mimic human falsehoods.
+    </span>
+    <span class="ltx_bibblock">
+     In Smaranda Muresan, Preslav Nakov, and Aline Villavicencio, editors,
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 60th Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers)
+     </span>
+     , pages 3214–3252, Dublin,
+Ireland, May 2022. Association for Computational Linguistics.
+    </span>
+    <span class="ltx_bibblock">
+     URL:
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aclanthology.org/2022.acl-long.229" target="_blank" title="">
+      https://aclanthology.org/2022.acl-long.229
+     </a>
+     ,
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.acl-long.229" target="_blank" title="">
+      <span class="ltx_ref ltx_nolink ltx_path ltx_font_typewriter">
+       doi:10.18653/v1/2022.acl-long.229
+      </span>
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Drazen Prelec.
+    </span>
+    <span class="ltx_bibblock">
+     A bayesian truth serum for subjective data.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      science
+     </span>
+     , 306(5695):462–466, 2004.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Dražen Prelec, H Sebastian Seung, and John McCoy.
+    </span>
+    <span class="ltx_bibblock">
+     A solution to the single-question crowd wisdom problem.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      Nature
+     </span>
+     , 541(7638):532–535, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Boi Faltings and Goran Radanovic.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      Game theory for data science: Eliciting truthful information
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Springer Nature, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Luis Von Ahn and Laura Dabbish.
+    </span>
+    <span class="ltx_bibblock">
+     Labeling images with a computer game.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      Proceedings of the SIGCHI conference on Human factors in
+computing systems
+     </span>
+     , pages 319–326, 2004.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Radu Jurca, Boi Faltings, and Walter Binder.
+    </span>
+    <span class="ltx_bibblock">
+     Reliable qos monitoring based on client feedback.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      Proceedings of the 16th international conference on World
+Wide Web
+     </span>
+     , pages 1003–1012, 2007.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Radu Jurca and Boi Faltings.
+    </span>
+    <span class="ltx_bibblock">
+     Incentives for answering hypothetical questions.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Workshop on Social Computing and User Generated Content,
+EC-11
+     </span>
+     , 2011.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Boi Faltings, Radu Jurca, and Goran Radanovic.
+    </span>
+    <span class="ltx_bibblock">
+     Peer truth serum: incentives for crowdsourcing measurements and
+opinions.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:1704.05269
+     </span>
+     , 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Goran Radanovic, Boi Faltings, and Radu Jurca.
+    </span>
+    <span class="ltx_bibblock">
+     Incentives for effort in crowdsourcing using the peer truth serum.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      ACM Transactions on Intelligent Systems and Technology (TIST)
+     </span>
+     ,
+7(4):1–28, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Boi Faltings.
+    </span>
+    <span class="ltx_bibblock">
+     Game-theoretic mechanisms for eliciting accurate information.
+    </span>
+    <span class="ltx_bibblock">
+     In Edith Elkind, editor,
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      Proceedings of the Thirty-Second
+International Joint Conference on Artificial Intelligence, IJCAI-23
+     </span>
+     , pages
+6601–6609. International Joint Conferences on Artificial Intelligence
+Organization, 8 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Survey Track.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.24963/ijcai.2023/740" target="_blank" title="">
+      <span class="ltx_ref ltx_nolink ltx_path ltx_font_typewriter">
+       doi:10.24963/ijcai.2023/740
+      </span>
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     Anirban Dasgupta and Arpita Ghosh.
+    </span>
+    <span class="ltx_bibblock">
+     Crowdsourced judgement elicitation with endogenous proficiency.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      Proceedings of the 22nd international conference on World
+Wide Web
+     </span>
+     , pages 319–330, 2013.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Victor Shnayder, Arpit Agarwal, Rafael Frongillo, and David C Parkes.
+    </span>
+    <span class="ltx_bibblock">
+     Informed truthfulness in multi-task peer prediction.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      Proceedings of the 2016 ACM Conference on Economics and
+Computation
+     </span>
+     , pages 179–196, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     Yuqing Kong and Grant Schoenebeck.
+    </span>
+    <span class="ltx_bibblock">
+     An information theoretic framework for designing information
+elicitation mechanisms that reward truth-telling.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      ACM Transactions on Economics and Computation (TEAC)
+     </span>
+     ,
+7(1):1–33, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     Goran Radanovic and Boi Faltings.
+    </span>
+    <span class="ltx_bibblock">
+     Incentive schemes for participatory sensing.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      Proceedings of the 14th international conference on
+autonomous agents and multiagent systems (AAMAS’15)
+     </span>
+     , number CONF, pages
+1081–1089, 2015.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Naman Goel and Boi Faltings.
+    </span>
+    <span class="ltx_bibblock">
+     Personalized peer truth serum for eliciting multi-attribute personal
+data.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.1.1">
+      Uncertainty in Artificial Intelligence
+     </span>
+     , pages 18–27. PMLR,
+2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     Robert M Fano.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Transmission of information: A statistical theory of
+communications
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     MIT Press, 1961.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Daniel Jurafsky and James H Martin.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      Speech and Language Processing: An Introduction to Natural
+Language Processing, Computational Linguistics, and Speech Recognition
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Pearson, 2000.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     Kenneth Church and Patrick Hanks.
+    </span>
+    <span class="ltx_bibblock">
+     Word association norms, mutual information, and lexicography.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      Computational linguistics
+     </span>
+     , 16(1):22–29, 1990.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     Lili Mou, Yiping Song, Rui Yan, Ge Li, Lu Zhang, and Zhi Jin.
+    </span>
+    <span class="ltx_bibblock">
+     Sequence to backward and forward sequences: A content-introducing
+approach to generative short-text conversation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      Proceedings of COLING 2016, the 26th International Conference
+on Computational Linguistics: Technical Papers
+     </span>
+     , pages 3349–3358, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     Lili Yao, Yaoyuan Zhang, Yansong Feng, Dongyan Zhao, and Rui Yan.
+    </span>
+    <span class="ltx_bibblock">
+     Towards implicit content-introducing for generative short-text
+conversation systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      Proceedings of the 2017 conference on empirical methods in
+natural language processing
+     </span>
+     , pages 2190–2199, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Kun Zhou, Kai Zhang, Yu Wu, Shujie Liu, and Jingsong Yu.
+    </span>
+    <span class="ltx_bibblock">
+     Unsupervised context rewriting for open domain conversation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.1.1">
+      Proceedings of the 2019 Conference on Empirical Methods in
+Natural Language Processing and the 9th International Joint Conference on
+Natural Language Processing (EMNLP-IJCNLP)
+     </span>
+     , pages 1834–1844, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     Jianheng Tang, Tiancheng Zhao, Chenyan Xiong, Xiaodan Liang, Eric Xing, and
+Zhiting Hu.
+    </span>
+    <span class="ltx_bibblock">
+     Target-guided open-domain conversation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.1.1">
+      Proceedings of the 57th Annual Meeting of the Association for
+Computational Linguistics
+     </span>
+     , pages 5624–5634, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     Junya Takayama and Yuki Arase.
+    </span>
+    <span class="ltx_bibblock">
+     Relevant and informative response generation using pointwise mutual
+information.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      Proceedings of the First Workshop on NLP for Conversational
+AI
+     </span>
+     , pages 133–138, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Ari Holtzman, Peter West, Vered Shwartz, Yejin Choi, and Luke Zettlemoyer.
+    </span>
+    <span class="ltx_bibblock">
+     Surface form competition: Why the highest probability answer isn’t
+always right.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      Proceedings of the 2021 Conference on Empirical Methods in
+Natural Language Processing
+     </span>
+     , pages 7038–7051, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     Peter West, Chris Quirk, Michel Galley, and Yejin Choi.
+    </span>
+    <span class="ltx_bibblock">
+     Probing factually grounded content transfer with factual ablation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.1.1">
+      Findings of the Association for Computational Linguistics:
+ACL 2022
+     </span>
+     , pages 3732–3746, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2303.08774" target="_blank" title="">
+      <span class="ltx_ref ltx_nolink ltx_path ltx_font_typewriter">
+       arXiv:2303.08774
+      </span>
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [43]
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine
+Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Llama 2: Open foundation and fine-tuned chat models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.1.1">
+      arXiv preprint arXiv:2307.09288
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [44]
+    </span>
+    <span class="ltx_bibblock">
+     Melissa Roemmele, Cosmin Adrian Bejan, and Andrew S Gordon.
+    </span>
+    <span class="ltx_bibblock">
+     Choice of plausible alternatives: An evaluation of commonsense causal
+reasoning.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.1.1">
+      2011 AAAI Spring Symposium Series
+     </span>
+     , 2011.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib45">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [45]
+    </span>
+    <span class="ltx_bibblock">
+     Nasrin Mostafazadeh, Nathanael Chambers, Xiaodong He, Devi Parikh, Dhruv Batra,
+Lucy Vanderwende, Pushmeet Kohli, and James Allen.
+    </span>
+    <span class="ltx_bibblock">
+     A corpus and cloze evaluation for deeper understanding of commonsense
+stories.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib45.1.1">
+      Proceedings of the 2016 Conference of the North American
+Chapter of the Association for Computational Linguistics: Human Language
+Technologies
+     </span>
+     , pages 839–849, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib46">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [46]
+    </span>
+    <span class="ltx_bibblock">
+     Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya
+Sutskever, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are unsupervised multitask learners.
+    </span>
+    <span class="ltx_bibblock">
+     2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib47">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [47]
+    </span>
+    <span class="ltx_bibblock">
+     Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue,
+Anthony Moi, Pierric Cistac, Tim Rault, Rémi Louf, Morgan Funtowicz,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Transformers: State-of-the-art natural language processing.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib47.1.1">
+      Proceedings of the 2020 conference on empirical methods in
+natural language processing: system demonstrations
+     </span>
+     , pages 38–45, 2020.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

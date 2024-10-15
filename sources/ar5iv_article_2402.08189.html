@@ -1,0 +1,3457 @@
+<article class="ltx_document ltx_authors_1line ltx_leqno">
+ <h1 class="ltx_title ltx_title_document">
+  Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Karthik Sreedhar
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_email">
+     <a href="mailto:ks4190@columbia.edu">
+      ks4190@columbia.edu
+     </a>
+    </span>
+   </span>
+  </span>
+  <span class="ltx_author_before">
+   and
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Lydia Chilton
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_contact ltx_role_email">
+     <a href="mailto:lc3251@columbia.edu">
+      lc3251@columbia.edu
+     </a>
+    </span>
+    <span class="ltx_contact ltx_role_affiliation">
+     <span class="ltx_text ltx_affiliation_institution" id="id1.1.id1">
+      Columbia University
+     </span>
+     <span class="ltx_text ltx_affiliation_country" id="id2.2.id2">
+      USA
+     </span>
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract.
+  </h6>
+  <p class="ltx_p" id="id3.id1">
+   When creating plans, policies, or applications for people, it is challenging for designers
+to think through the strategic ways that different people will behave.
+Recently, Large Language Models (LLMs) have been shown to create realistic simulations of human-like behavior based on personas.
+We build on this to investigate whether LLMs can simulate human strategic behavior:
+Human strategies are complex because they take into account social norms in addition to aiming to maximize personal gain.
+The ultimatum game is a classic economics experiment used to understand human strategic behavior in a social setting. It shows that people will often choose to “punish” other players to enforce social norms rather than to maximize personal profits.
+We test whether LLMs can replicate this complex behavior in simulations.
+We compare two architectures: single- and multi-agent LLMs. We compare their abilities to (1) simulate human-like actions in the ultimatum game, (2) simulate two player personalities, greedy and fair, and (3) create robust strategies that are logically complete and consistent with personality.
+Our evaluation shows the multi-agent architecture is much more accurate than single LLMs (88% vs. 50%) in simulating human strategy creation and actions for personality pairs. Thus there is potential to use LLMs to simulate human strategic behavior to help designers, planners, and policymakers perform preliminary exploration of how people behave in systems.
+  </p>
+ </div>
+ <span class="ltx_note ltx_note_frontmatter ltx_role_booktitle" id="id1">
+  <sup class="ltx_note_mark">
+   †
+  </sup>
+  <span class="ltx_note_outer">
+   <span class="ltx_note_content">
+    <sup class="ltx_note_mark">
+     †
+    </sup>
+    <span class="ltx_note_type">
+     booktitle:
+    </span>
+   </span>
+  </span>
+ </span>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1.
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Simulations help us design the world. Whether designing earthquake-safe buildings, evaluation plans, economic policies, or even a late assignment policy in a class, it is useful for designers to be able to simulate the effects of their design as a heuristic to guide the process. Although physical simulation has come a long way, simulating human behavior is notoriously difficult. When economists model human behavior, they assume that people are rational actors, but psychology has discovered many important ways in which humans are not rational or strictly profit maximizing
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Kahneman
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2012
+      </span>
+     </a>
+     ;
+     <span class="ltx_text" style="color:#000000;">
+      Ariely
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2008
+      </span>
+     </a>
+     )
+    </cite>
+    . Moreover, people do not behave uniformly – their personalities
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      McCrae and Costa
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2008
+      </span>
+     </a>
+     )
+    </cite>
+    , experiences
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Kidd et al
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      .
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2013
+      </span>
+     </a>
+     )
+    </cite>
+    and circumstances
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Mullainathan and Shafir
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2013
+      </span>
+     </a>
+     )
+    </cite>
+    affect their decision making. Another complexity is that people often act strategically - to reason about other people and base their actions on it (as chess players do). This makes it very mentally demanding for a designer to think through all the possibilities of what people would do in response to a new design or policy.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Recently, LLMs have been shown to be able to simulate plausible human behavior based on personas. This includes modeling the opinions of supreme court justices in past rulings
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Hamilton
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2023
+      </span>
+     </a>
+     )
+    </cite>
+    , simulating a fictional town’s ability to plan and attend events like a party
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Park et al
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      .
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2023
+      </span>
+     </a>
+     )
+    </cite>
+    , and simulating human behavior in classic economic and psychology experiments
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Aher et al
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      .
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2023
+      </span>
+     </a>
+     )
+    </cite>
+    . We build on this to investigate whether LLMs can simulate human strategic behavior. To evaluate not just plausible human behavior but also behavior that accurately reflects what people do, we compare LLM simulations to experimental baselines taken from literature on studies of human strategic behavior.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    The ultimatum game is a classic economics experiment used to understand human social strategic behavior.
+It also captures human’s social behavior (often deemed irrational, such as the desire to “punish” unfair actors) and personality differences (greedy and fair).
+In the ultimatum game, there are two players: a proposer and a receiver. The proposer is given an amount of money, such as $1, and is tasked with offering a portion of the amount to the receiver. The receiver can either accept or reject the offer - if they accept, the players divide the amount as proposed. If they reject, both players receive nothing. Economic theory dictates that a profit-maximizing proposer should offer only $0.01 (the smallest nonzero amount) and keep $0.99, and that the receiver should accept it because $0.01 is more than the receiver would have otherwise. However, experiments with human subjects show that humans do not act in a purely “rational” manner; receivers will reject a low offer to punish proposers for offering an unfair split
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Krawczyk
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2018
+      </span>
+     </a>
+     )
+    </cite>
+    . Moreover, proposers are aware of this, and thus strategically make offers that are closer to fair - especially after multiple rounds of playing the game.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    We use the ultimatum game to test whether LLMs can simulate the strategic, social, and personality aspects of human players.
+We extract human gameplay actions (offers and accept/reject decisions) from economics literature
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Houser and McCabe
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2014
+      </span>
+     </a>
+     )
+    </cite>
+    and evaluate whether LLMs can simulate human behavior in the ultimatum game with 5 rounds. When the game is played for multiple rounds, both players have the opportunity to adjust their actions in response to the actions of the other player. We compare two LLM structures: a single LLM and a multi-agent LLM architecture. We compare their abilities to (1) create realistic strategies, (2) adhere to created strategies, and (3) accurately model two different player personalities: greedy and fair. The single LLM structure involves prompting GPT4 directly, while the multi-agent LLM architecture is adapted from recent literature
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (
+     <span class="ltx_text" style="color:#000000;">
+      Park et al
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      .
+     </span>
+     ,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2023
+      </span>
+     </a>
+     )
+    </cite>
+    . In the single-LLM structure, GPT4 is directly prompted to simulate the actions of both a proposer and receiver over five rounds of the ultimatum game. In the multi-agent LLM architecture, each player is represented by a separate GPT4 agent. Each player is tasked with playing the ultimatum game with the other, with information such as personality being private to the agent. In both conditions, the LLM is tasked with creating a strategy based on a given personality and to play the game according to their personality and strategy.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Our evaluation shows that the multi-agent LLM architecture is much more accurate than using a single LLM to simulate strategic behavior in the ultimatum game. Over 40 simulations, the Multi-agent structure was consistent with human behavior 88% of the time, and the single LLM was on consistent 50% of the time. There are three reasons for for LLM simulations to be inconsistent with human behavior, (1) a created strategy is incomplete, (2) a created strategy is inconsistent with the specified personality, or (3) a player deviates from the created strategy during game play. We find that over 90% of issues in single LLM simulations are caused by the LLMs strategy rather than their gameplay. Incomplete strategies or inconsistent personality strategies, with both categories accounting for a roughly equal amount of errors. There is only 1 of 40 simulations in which an error is caused by a player not adhering to the created strategies. In the multi-agent LLM architecture, the most common issue is strategies inconsistent with personality, accounting for more than 85% of errors
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Based on these results, we believe that multi-agent LLMs show potential to simulate more than just plausible human behavior, but behavior consistent with experimental evidence in complex scenarios. They might one day become a tool for designs to evaluate plans, policies, and interfaces.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2.
+   </span>
+   Related Work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1.
+    </span>
+    Ultimatum Game Background and Experiments
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Prior experiments with human subjects have revealed that humans often reject low offers when playing the ultimatum game, despite economic theory dictating the receiver to accept any positive offer. Houser and McCabe (2014)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Houser and McCabe
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2014
+       </span>
+      </a>
+      )
+     </cite>
+     finds that proposers most commonly offer 40% or 50% of the total amount to the receiver, with the receiver almost always accepting. However, the acceptance rate falls to 50% when offers are 20% of the total amount, and falls further for 10% and lower offers. Krawzcyk (2018)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Krawczyk
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2018
+       </span>
+      </a>
+      )
+     </cite>
+     presents similar findings, recording that receivers reject offers that are 10% of the total amount nearly 90% of the time. The study also notes that in variations of the game that involve multiple rounds, it is a sensible strategy for receivers to reject low offers to drive up future offers in following rounds.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Previous work has shown that there are significant impacts of introducing personality traits and multiple rounds into the ultimatum game that cause human players to act differently from expected economic theory. Brandstätter and Königstein (2001)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Königstein
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2001
+       </span>
+      </a>
+      )
+     </cite>
+     shows that proposers that demonstrate personality traits consistent with selfishness make skewed offers in their favor that highlight a difference between economic rationality and equity. Similarly, receivers that have personality traits consistent with fairness can use rejection as a form of retaliation to “punish” proposers that egregiously violate social norms of equity.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     Vavra et. al. (2018)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Vavra et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2018
+       </span>
+      </a>
+      )
+     </cite>
+     uses the ultimatum game to more broadly study fairness, aiming to explain why receivers reject non-zero offers that are unfair, such as 10% of the total amount, as a way to punish the proposer despite both players ending in a worse outcome than an acceptance. They find that the canonical explanation (players value equal outcomes over personal games) is not sufficient to understand the phenomenon, and that there is abundant evidence that a decision to reject an offer can be influenced by contextual factors (such as multiple rounds) or based on the difference between the actual and expected offer (the latter of which can be heavily influenced by a greedy or fair personality label placed on the receiver).
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     Experiments also show humans from societies of different modernization levels act slightly differently when playing the ultimatum game. Henrich (2000)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Henrich
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2000
+       </span>
+      </a>
+      )
+     </cite>
+     found that proposers from the Machiguenga indigenous people of the Peruvian Amazon made much lower offers to receivers in games of all stakes than their western counterparts. Meanwhile, Alvard (2004)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Alvard
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2004
+       </span>
+      </a>
+      )
+     </cite>
+     found that results from big-game hunting populations in Indonesia were similar to western societies, but had a higher occurrence of “hyper-fairness,” the direct opposite of what was observed in Peru. Tracer (2004) found that results from indigenous populations in Papa New Guinea indicated proposers were greedier than in western society, but not to the extent of the Machiguenga. The variations in results are attributed to tribal relationships and customs.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2.
+    </span>
+    LLM Reasoning
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Previous work has also shown that LLMs are more accurate when asked to create and explain a thought process before acting. Wei et. al. (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Wei et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2022
+       </span>
+      </a>
+      )
+     </cite>
+     shows that requiring LLMs with more than one billion parameters to explain intermediate reasoning steps improves performance. They evaluate chain-of-thought prompting against standard prompting on a database of grade school math word problems, and find that chain-of-though prompting has a solve rate (57%) more than two and a half times that of standard-prompting (18%). Zheng et. al. (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Zheng et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     introduces progressive-hint prompting, which involves users inputting previous provided answers back to LLMs as hints to guide them toward the correct answer. They find that the average accuracy across problem types increases by 20% when using progressive-hint-prompting compared to standard prompting with text-davinci-003. Thus, there is reason to believe that prompting GPT to create strategies before simulating the ultimatum game will lead to more accurate outcomes.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3.
+    </span>
+    Using LLMs to Simulate Strategic Behavior
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Previous research has studied to what degree GPT can simulate human behavior in simple behavioral experiments to mixed results. Aher et. al. (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Aher et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     introduces a new test, called a Turing Experiment, to evaluate the extent to which LLMs can simulate aspects of human behavior via classic human behavior experiments: ultimatum game, garden path sentences, milgram shock experiment, and wisdom of crowds. They compare ultimatum game results from text-davinci-002 simulations to those from past human studies and find that three out of the four results from human studies fall nearly on the trend line created by simulations from the LLM, with the fourth deviating by less than 10%. Results from the next two experiments also closely model human trends, although the fourth reveals a “hyper-accuracy-distortion” present in LLMs. While the evidence is encouraging in supporting that LLMs can replicate human behavior to a reasonable extent, the work uses a now outdated model. In the ultimatum game specifically, the work only tests the simplest case – there is no exploration of multiple round games or personality traits.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     Horton (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Horton
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     builds on this work by using text-davinci-003 and proposes that LLMs can be used like economists use homo economicus, as representations of humans in economic scenarios. The methodology demonstrates that GPT can be given information and preferences and that their behavior can then be explored in scenarios via simulation. Results in several different economic experiments shows that text-davinci-003 will change its behavior mid-simulation, but that there is room for improvement – they conclude that text-davinci-003 is most suited to be used as a “toy model,” or a tool not meant to reflect reality but rather to help a human experimenter think. The results suggest that while there is reason for further exploration, LLMs could not yet be fully trusted to emulate human behavior in economic games.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.4.
+    </span>
+    Multi-Agent Paradigms of LLMs
+   </h3>
+   <div class="ltx_para" id="S2.SS4.p1">
+    <p class="ltx_p" id="S2.SS4.p1.1">
+     Previous studies of GPT’s ability to simulate economic games have primarily used a single LLM, but new agent-based architecture has potential to simulate human behavior more effectively. Park et. al. (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Park et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     introduces a LLM agent architecture that allows for multiple humans to be represented by multiple LLMs that can interact with one another. The architecture includes five components: self-knowledge, memory, plans, reactions, and reflections, and is evaluated using an effective Bayesian rating system called TrueSkill (introduced in Herbrich et. al. (2006)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Herbrich et al
+      </span>
+      <span class="ltx_text" style="color:#000000;">
+       .
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2006
+       </span>
+      </a>
+      )
+     </cite>
+     ). They also evaluate the agent architecture by populating an interactive sandbox to explore specific human scenarios such as planning a Valentine’s Day party or surprise birthday party at the office. They find that agents demonstrate reasonable individual and emergent social behaviors, but leave room for exploration into concrete scenarios like the ultimatum game which require more than “reasonable” performance and have a well-defined expected result.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS4.p2">
+    <p class="ltx_p" id="S2.SS4.p2.1">
+     Hamilton (2023)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Hamilton
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     also introduces a multi-agent system and uses it to simulate judicial rulings of the supreme court of the United States from 2010 to 2016. Nine separate GPT-2 models are trained with authored opinions from each of the nine supreme court justices, all of which achieved greater than 50% accuracy for predicting the justice’s rulings and achieved better-than-random accuracy in predicting overall decisions of the actual supreme court. While encouraging, these results also demonstrate room for improvement and the need for exploration into the matter with the latest GPT models, as 50% accuracy is random for a binary decision, meaning in both metrics examined, the results could not confidently state that outcomes are generally accurate but rather only that there is better-than-random performance, which is a low threshold. A 2023 preprint
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (
+      <span class="ltx_text" style="color:#000000;">
+       Guo
+      </span>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       <span class="ltx_text" style="color:#000000;">
+        2023
+       </span>
+      </a>
+      )
+     </cite>
+     uses GPT Agents to simulate the ultimatum game with two personalities. They look at average offers and acceptance rates of rounds simulated, but do not compare results to human baselines. They prompt agents to create strategies but do not analyze the strategies’ consistency with human behaviors.
+     <span class="ltx_text" id="S2.SS4.p2.1.1" style="color:#000000;">
+     </span>
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section" style="color:#000000;">
+   <span class="ltx_tag ltx_tag_section">
+    3.
+   </span>
+   Experimental Set-Up
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    <span class="ltx_text" id="S3.p1.1.1" style="color:#000000;">
+     To test the ability of LLMs to simulate human-like behavior in the ultimatum game, we ran simulations of the five-round ultimatum game where LLMs were tasked with creating strategies and then playing the game. We did this with two different architectures: a single LLM and a multi-agent LLM architecture. With the single LLM, we directly prompt an LLM to create strategies for both players and simulate the actions of both players acting in accordance with the previously created strategies. For the multi-agent LLM architecture, we adapted recently introduced architectures with each player being represented by a separate LLM agent.
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.1">
+    <span class="ltx_text" id="S3.p2.1.1" style="color:#000000;">
+     We also tested two personality types, greedy and fair, with the expectation that created strategies would be different for different personality types, also resulting in different progressions of gameplay towards ultimately reaching an equal split. For instance, we expected the initial offer in a fair-fair simulation to be an even ($0.50) or close-to-even split and to be accepted, whereas we expected the initial offer in a greedy-fair simulation to be skewed in favor of the proposer and likely be rejected. In total, we ran forty simulations each for both the single LLM and multi-agent LLM architectures (ten simulations for each personality pairing).
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    <span class="ltx_text" id="S3.p3.1.1" style="color:#000000;">
+     For all experiments, we use Open AI’s GPT. We tested both GPT-3.5 and GPT-4, the two most recent large language models released by OpenAI. Specifically, we used the gpt-3.5-turbo and gpt-4-1106-preview models, the latter of which was the first version of GPT-4 released. GPT-4 has been shown to have the ability to interpret inherently human concepts such as equity and also scores well on a variety of standardized tests, ranging from the Bar Exam to the GRE
+    </span>
+    <cite class="ltx_cite ltx_citemacro_citep">
+     <span class="ltx_text" id="S3.p3.1.2.1" style="color:#000000;">
+      (
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      OpenAI et al
+     </span>
+     <span class="ltx_text" style="color:#000000;">
+      .
+     </span>
+     <span class="ltx_text" id="S3.p3.1.3.2.1.1" style="color:#000000;">
+      ,
+     </span>
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      <span class="ltx_text" style="color:#000000;">
+       2023
+      </span>
+     </a>
+     <span class="ltx_text" id="S3.p3.1.4.3" style="color:#000000;">
+      )
+     </span>
+    </cite>
+    <span class="ltx_text" id="S3.p3.1.5" style="color:#000000;">
+     . For both versions of GPT, we set temperature and top P parameters at 0.5, and did not add any frequency or presence penalties.
+    </span>
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1.
+    </span>
+    Research Questions
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     <span class="ltx_text" id="S3.SS1.p1.1.1" style="color:#000000;">
+      In the following experiment section, we specifically address the following research questions:
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <br class="ltx_break"/>
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     <span class="ltx_text" id="S3.SS1.p2.1.1" style="color:#000000;">
+      RQ1. Which LLM architecture more accurately simulates human-like actions in the five-round ultimatum game?
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <br class="ltx_break"/>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.1">
+     <span class="ltx_text" id="S3.SS1.p4.1.1" style="color:#000000;">
+      RQ2. Which LLM architecture more accurately simulates the actions of player personalities?
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p5">
+    <p class="ltx_p" id="S3.SS1.p5.1">
+     <span class="ltx_text" id="S3.SS1.p5.1.1" style="color:#000000;">
+      RQ3. Which LLM architecture more often creates robust strategies: both logically complete and consistent with personality?
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p6">
+    <p class="ltx_p" id="S3.SS1.p6.1">
+     <span class="ltx_text" id="S3.SS1.p6.1.1" style="color:#000000;">
+      Single LLMs and multi-agent LLMs have different potential advantages in simulations. In Single LLMs, the LLM has the full context of all the players’ personalities and actions and could potentially orchestrate strategies and gameplay to achieve a sensible outcome. Global context could allow for a more coherent narrative in the gameplay. Multi-agent LLMs lack the global context of all the agents behavior, as agents can only exchange information through the act of speaking. Although multi-agent LLMs allow the LLM to focus on one agent at a time, they might not expose enough information for agents to make reasonable choices.
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p7">
+    <p class="ltx_p" id="S3.SS1.p7.1">
+     <span class="ltx_text" id="S3.SS1.p7.1.1" style="color:#000000;">
+      For all three research questions, we predict that the multi-agent LLM architecture will perform better because each agent acting independently will better model interactions between multiple humans and more closely resemble the anonymous conditions of the ultimatum game when ran with human subjects. The multi-agent LLM architecture also allows for each agent to focus only on creating strategies and simulating strategies of one human, as opposed to a single LLM having to track the strategy of each player and act accordingly.
+     </span>
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2.
+    </span>
+    Single LLM and Multi-Agent Architecture
+   </h3>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection" style="color:#000000;">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1.
+     </span>
+     Inputs
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS1.p1.1">
+      <span class="ltx_text" id="S3.SS2.SSS1.p1.1.1" style="color:#000000;">
+       For the single-LLM structure, we prompt an LLM to 1) create and display strategies for both players of the five-round ultimatum game, and then 2) simulate with both players acting in accordance with the previously created strategies for 5 rounds. The prompt for two fair players is as follows: “Create a strategy for a fair proposer and a fair receiver in playing the ultimatum game five times with $1. Once the strategies are created, simulate five rounds of the ultimatum game with the proposer and the receiver adhering to the previously outlined strategies.” The prompts for other personality pairings are virtually identical, with only the personality descriptor ahead of each player in the first sentence being changed. In early pilots of the prompt, we discovered that we did not need to explain the ultimatum game or the notion of a proposer or receiver. The LLM had the context to correctly infer the set-up. From the LLMs response to this prompt, we extract the created strategies for both players as well as the offers made by the proposer and the receiver’s response (accept or reject) in each of the five rounds.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS1.p2">
+     <p class="ltx_p" id="S3.SS2.SSS1.p2.1">
+      <span class="ltx_text" id="S3.SS2.SSS1.p2.1.1" style="color:#000000;">
+       For the multi-agent LLM architecture we adapt the agent architecture introduced to simulate a town and its inhabitants called Smallville
+      </span>
+      <cite class="ltx_cite ltx_citemacro_citep">
+       <span class="ltx_text" id="S3.SS2.SSS1.p2.1.2.1" style="color:#000000;">
+        (
+       </span>
+       <span class="ltx_text" style="color:#000000;">
+        Park et al
+       </span>
+       <span class="ltx_text" style="color:#000000;">
+        .
+       </span>
+       <span class="ltx_text" id="S3.SS2.SSS1.p2.1.3.2.1.1" style="color:#000000;">
+        ,
+       </span>
+       <a class="ltx_ref" href="#bib.bib20" title="">
+        <span class="ltx_text" style="color:#000000;">
+         2023
+        </span>
+       </a>
+       <span class="ltx_text" id="S3.SS2.SSS1.p2.1.4.3" style="color:#000000;">
+        )
+       </span>
+      </cite>
+      <span class="ltx_text" id="S3.SS2.SSS1.p2.1.5" style="color:#000000;">
+       . In this architecture, the administrator provides each agent with a name, public and private biographies, instructions (called directives), and an initial plan, which consists of a description, stop condition, and a location. For our experiments, we name each agent as per their role in the game (Proposer or Receiver) and set the initial plan for each player to be to create a strategy for the five-round ultimatum game as per their role and then store it in memory. The ultimatum game does not need players to move around, or the concept of location, so the agents are set to a single location called “Default.” In the private biography, we specify the personality trait of each player (“Proposer is greedy.”). This tells the agent their personality without informing the other agent. The public biography for both agents is left blank, since in experiments with human subjects of the ultimatum game neither player is given any information about the other.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS1.p3">
+     <p class="ltx_p" id="S3.SS2.SSS1.p3.1">
+      <span class="ltx_text" id="S3.SS2.SSS1.p3.1.1" style="color:#000000;">
+       Communication between agents in the Smallville architecture is not inherently turn-taking. To limit agents to turn-based communication as in the ultimatum game, we add instructions for either agent in the directives. The proposer is instructed to make offers only after the receiver has responded to the previous offer and the receiver is instructed to only respond when the proposer makes offers. Agents then use their abilities to create additional plans, react/respond to observed events, and communicate with one another to simulate the five rounds of gameplay.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS1.p4">
+     <p class="ltx_p" id="S3.SS2.SSS1.p4.1">
+      <span class="ltx_text" id="S3.SS2.SSS1.p4.1.1" style="color:#000000;">
+       In our prompt design, we aimed for the simplest prompt that generated the desired behavior. Preliminary prompt testing proved that the ultimatum game did not have to be defined - simply using the term in the prompt produced LLM outputs that showed a comprehensive understanding of the game. We also kept the prompts across the two conditions as similar as possible, adding no extra knowledge or instructions about personality, strategy, or gameplay in either condition.
+      </span>
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection" style="color:#000000;">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.2.
+     </span>
+     Outputs
+    </h4>
+    <figure class="ltx_figure" id="S3.F1">
+     <p class="ltx_p ltx_align_center" id="S3.F1.1">
+      <span class="ltx_text" id="S3.F1.1.1" style="color:#000000;">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="508" id="S3.F1.1.1.g1" src="/html/2402.08189/assets/figures/singleLLMsim.png" width="325"/>
+      </span>
+     </p>
+     <figcaption class="ltx_caption" style="color:#000000;">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 1.
+      </span>
+      An output log from a SingleLLM simulation of two fair players playing five rounds of the ultimatum game. All text and indentation is from the LLM, bold text added by the authors to highlight strategy and gameplay actions.
+     </figcaption>
+    </figure>
+    <figure class="ltx_figure" id="S3.F2">
+     <p class="ltx_p ltx_align_center" id="S3.F2.1">
+      <span class="ltx_text" id="S3.F2.1.1" style="color:#000000;">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="612" id="S3.F2.1.1.g1" src="/html/2402.08189/assets/figures/multiAgentsim.png" width="386"/>
+      </span>
+     </p>
+     <figcaption class="ltx_caption" style="color:#000000;">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 2.
+      </span>
+      An output log from a Multi-Agent simulation of two fair players playing five rounds of the ultimatum game. All text is from the LLM; the labels (underlined) are provided by the architecture.
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S3.SS2.SSS2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS2.p1.1">
+      <span class="ltx_text" id="S3.SS2.SSS2.p1.1.1" style="color:#000000;">
+       In both tested architectures, the LLM outputs contain a log of players actions. In the single LLM architecture, the strategies of both players and subsequent gameplay is displayed in a single output log. Both player strategies are labeled and are in the format of numbered or bullet-point lists which typically involve an instruction for the first round’s offer or response in the first entry, and explains adjustments or changes in strategies for subsequent rounds in the following entries. The gameplay is displayed with each round being represented by three lines: the first being the proposer’s offer, the second being the receiver’s response, and the third explaining what each player receives from the outcome of the round. An example output log is shown in Figure
+      </span>
+      <a class="ltx_ref" href="#S3.F1" style="color:#000000;" title="Figure 1 ‣ 3.2.2. Outputs ‣ 3.2. Single LLM and Multi-Agent Architecture ‣ 3. Experimental Set-Up ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      <span class="ltx_text" id="S3.SS2.SSS2.p1.1.2" style="color:#000000;">
+       from a simulation involving two fair players. The proposer creates a strategy to offer fixed $0.50 offers while the receiver creates a strategy that uses $0.50 as a fair threshold, resulting in five rounds where the proposer offers %0.50 and the receiver accepts.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS2.p2">
+     <p class="ltx_p" id="S3.SS2.SSS2.p2.1">
+      <span class="ltx_text" id="S3.SS2.SSS2.p2.1.1" style="color:#000000;">
+       In the multi-agent LLM architecture, the strategies and actions of each player are displayed in two separate output logs, each representing one of the two agents involved in the simulation. In each of the output logs, the agent first thinks through a strategy creation process, often considering several possible strategies for the ultimatum game before choosing or combining multiple into one strategy and recording it to memory. The gameplay is then displayed as per the turn-based structure specified in each agent’s directives - the proposer makes offers in the first output log, while the receiver indicates their responses in the second output log, both of which we record. An example output log is shown in Figure
+      </span>
+      <a class="ltx_ref" href="#S3.F2" style="color:#000000;" title="Figure 2 ‣ 3.2.2. Outputs ‣ 3.2. Single LLM and Multi-Agent Architecture ‣ 3. Experimental Set-Up ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      <span class="ltx_text" id="S3.SS2.SSS2.p2.1.2" style="color:#000000;">
+       from a simulation involving two fair players. The proposer creates a strategy to offer $0.50 to the proposer, and consider lowering the offer to $0.40 if the receiver repeatedly accepts. The receiver creates a strategy to accept offers that uses a $0.40 threshold. The simulation results in the proposer offering the receiver $0.50 in the first three rounds and $0.40 to the receiver in the last two rounds, with the receiver accepting all five offers.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS2.p3">
+     <p class="ltx_p" id="S3.SS2.SSS2.p3.1">
+      <span class="ltx_text" id="S3.SS2.SSS2.p3.1.1" style="color:#000000;">
+       From this collected data, we record the strategies of each player and the amount offered by the proposer and the receiver’s response in each round, and then compare it with results from human studies to conclude whether or not strategies are human-like and personality consistent and whether a simulation’s outcome is human-like.
+      </span>
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3.
+    </span>
+    Evaluation
+   </h3>
+   <section class="ltx_subsubsection" id="S3.SS3.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection" style="color:#000000;">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.3.1.
+     </span>
+     Evaluation of Gameplay
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS1.p1">
+     <p class="ltx_p" id="S3.SS3.SSS1.p1.1">
+      <span class="ltx_text" id="S3.SS3.SSS1.p1.1.1" style="color:#000000;">
+       Based on large-scale studies of human players
+      </span>
+      <cite class="ltx_cite ltx_citemacro_citep">
+       <span class="ltx_text" id="S3.SS3.SSS1.p1.1.2.1" style="color:#000000;">
+        (
+       </span>
+       <span class="ltx_text" style="color:#000000;">
+        Houser and McCabe
+       </span>
+       <span class="ltx_text" id="S3.SS3.SSS1.p1.1.3.2.1.1" style="color:#000000;">
+        ,
+       </span>
+       <a class="ltx_ref" href="#bib.bib12" title="">
+        <span class="ltx_text" style="color:#000000;">
+         2014
+        </span>
+       </a>
+       ;
+       <span class="ltx_text" style="color:#000000;">
+        Krawczyk
+       </span>
+       <span class="ltx_text" id="S3.SS3.SSS1.p1.1.3.2.1.1" style="color:#000000;">
+        ,
+       </span>
+       <a class="ltx_ref" href="#bib.bib15" title="">
+        <span class="ltx_text" style="color:#000000;">
+         2018
+        </span>
+       </a>
+       <span class="ltx_text" id="S3.SS3.SSS1.p1.1.4.3" style="color:#000000;">
+        )
+       </span>
+      </cite>
+      <span class="ltx_text" id="S3.SS3.SSS1.p1.1.5" style="color:#000000;">
+       , we establish ranges of offers and answers for each personality type. Prior experiments with human studies show that fair proposers will offer equal or close to equal splits between the range of $0.40 to $0.50, with fair receivers typically accepting offers and greedy receivers typically rejecting. Meanwhile, greedy proposers offer initial splits heavily biased in their favor, typically above $0.70, which is typically rejected by both a fair and greedy receiver.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS1.p2">
+     <p class="ltx_p" id="S3.SS3.SSS1.p2.1">
+      <span class="ltx_text" id="S3.SS3.SSS1.p2.1.1" style="color:#000000;">
+       We evaluate the initial offers of each simulation based on these criteria. In the first round, fair proposers are considered to act consistently with their personality if their offer is between $0.40 and $0.60, inclusive. Greedy proposers are considered to act consistently with their personality if their offer is biased in their favor, or strictly less than $0.50 to the receiver. Fair receivers are considered to act consistently with their personality if they reject offers that are less than $0.40 and accept offers that are greater than $0.40. Greedy receivers, however, are only considered to act consistently with their personality if they accept offers that are strictly greater than $0.50; if a greedy receiver accepts any amount less than or equal to $0.50, we consider the receiver to have not inconsistently with the greedy personality.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS1.p3">
+     <p class="ltx_p" id="S3.SS3.SSS1.p3.1">
+      <span class="ltx_text" id="S3.SS3.SSS1.p3.1.1" style="color:#000000;">
+       In subsequent rounds, we check if each player continues to act as per their created strategy as well as whether the taken action is consistent with results from human studies. Proposers are expected to continue making offers similar to the range of the initial offer if the receiver accepts, but if the receiver rejects, proposers are expected to increase their offers slightly
+      </span>
+      <cite class="ltx_cite ltx_citemacro_citep">
+       <span class="ltx_text" id="S3.SS3.SSS1.p3.1.2.1" style="color:#000000;">
+        (
+       </span>
+       <span class="ltx_text" style="color:#000000;">
+        Krawczyk
+       </span>
+       <span class="ltx_text" id="S3.SS3.SSS1.p3.1.3.2.1.1" style="color:#000000;">
+        ,
+       </span>
+       <a class="ltx_ref" href="#bib.bib15" title="">
+        <span class="ltx_text" style="color:#000000;">
+         2018
+        </span>
+       </a>
+       <span class="ltx_text" id="S3.SS3.SSS1.p3.1.4.3" style="color:#000000;">
+        )
+       </span>
+      </cite>
+      <span class="ltx_text" id="S3.SS3.SSS1.p3.1.5" style="color:#000000;">
+       . Receivers are expected to accept offers as per their initial thresholds as well, but if gameplay progresses with no accepted offers, receivers are expected to lower their threshold, and potentially even discard it by the fifth round as there are no future rounds to influence offers of.
+      </span>
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS3.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection" style="color:#000000;">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.3.2.
+     </span>
+     Evaluation of Strategies
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS2.p1">
+     <p class="ltx_p" id="S3.SS3.SSS2.p1.1">
+      <span class="ltx_text" id="S3.SS3.SSS2.p1.1.1" style="color:#000000;">
+       From the information collected from the LLM outputs, we evaluate strategies for three components: (1) the completeness of strategies, (2) the consistency of strategies with the specified personality trait, and (3) the adherence to the strategies in the following gameplay.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS2.p2">
+     <p class="ltx_p" id="S3.SS3.SSS2.p2.1">
+      <span class="ltx_text" id="S3.SS3.SSS2.p2.1.1" style="color:#000000;">
+       Strategies are considered complete if the player has a course of action for all possible states of the game. To be complete, a proposer’s strategy has to include an initial offer plan, and then a course of action for subsequent rounds based on whether the receiver accepts or rejects the previous offer. If the proposer’s strategy is incomplete, there can be issues with the proposer acting inappropriately when the receiver does not take the action for which the rest of the strategy is contingent on. Similarly, to be complete, a receiver’s strategy has to include a course of action for all five rounds for all possible offers between $0.00 to $1.00, typically specified via an acceptance threshold based on which the receiver acts.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS2.p3">
+     <p class="ltx_p" id="S3.SS3.SSS2.p3.1">
+      <span class="ltx_text" id="S3.SS3.SSS2.p3.1.1" style="color:#000000;">
+       For example, an incomplete strategy for a greedy proposer is as follows:
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS2.p4">
+     <blockquote class="ltx_quote" id="S3.SS3.SSS2.p4.1">
+      <p class="ltx_p" id="S3.SS3.SSS2.p4.1.1">
+       <span class="ltx_text" id="S3.SS3.SSS2.p4.1.1.1" style="color:#000000;">
+        ”
+       </span>
+       <span class="ltx_text ltx_font_italic" id="S3.SS3.SSS2.p4.1.1.2" style="color:#000000;">
+        Low-Ball Offers: The greedy proposer would aim to keep as much money as possible for themselves. They might start with a low offer to test the receiver’s limit. Since we’re dealing with $1, the proposer may start by offering $0.10 to the receiver.
+        <br class="ltx_break"/>
+        <br class="ltx_break"/>
+        Incremental Increase: If the offer is rejected, in subsequent rounds, they may increase the offer by a small increment, just enough to tempt the receiver to accept. For example, the proposer might increase the offer by $0.05 each time.
+        <br class="ltx_break"/>
+        <br class="ltx_break"/>
+        Cut-Off Point: The proposer will have a cut-off point where they find it no longer worth to increase the offer because they would rather end up with nothing than give away more.
+       </span>
+       <span class="ltx_text" id="S3.SS3.SSS2.p4.1.1.3" style="color:#000000;">
+        .”
+       </span>
+      </p>
+     </blockquote>
+     <p class="ltx_p" id="S3.SS3.SSS2.p4.2">
+      <span class="ltx_text" id="S3.SS3.SSS2.p4.2.1" style="color:#000000;">
+       The strategy does not account for the receiver accepting the first offer, potentially resulting in problematic gameplay from the proposer if this case is reached.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS2.p5">
+     <p class="ltx_p" id="S3.SS3.SSS2.p5.1">
+      <span class="ltx_text" id="S3.SS3.SSS2.p5.1.1" style="color:#000000;">
+       Strategies are consistent with the specified personality if the offers made (for the proposer) or rejected/accepted (for the receiver) are biased towards the player for greedy players and closer to an equal split for fair players. For example, a greedy proposer’s strategy should be to make low initial offers that are biased in the proposer’s favor, while a fair proposer’s strategy should be to make initial offers that are equal or close to equal. Similarly, a greedy receiver’s strategy should be to only accept initial offers biased in the receiver’s favor, while a fair receiver’s strategy should be to accept initial offers that are equal or close to equal. In subsequent rounds, the strategy should be generally similar, although based on the actions of the other players there may be concessions made by either player to reach agreements, even if they are not biased in the favor of a greedy player, because the strategy should also consider that something is better than nothing.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS2.p6">
+     <p class="ltx_p" id="S3.SS3.SSS2.p6.1">
+      <span class="ltx_text" id="S3.SS3.SSS2.p6.1.1" style="color:#000000;">
+       For example, a strategy inconsistent with personality for a greedy receiver is as follows:
+      </span>
+     </p>
+     <blockquote class="ltx_quote" id="S3.SS3.SSS2.p6.2">
+      <p class="ltx_p" id="S3.SS3.SSS2.p6.2.1">
+       <span class="ltx_text" id="S3.SS3.SSS2.p6.2.1.1" style="color:#000000;">
+        ”
+       </span>
+       <span class="ltx_text ltx_font_italic" id="S3.SS3.SSS2.p6.2.1.2" style="color:#000000;">
+        Reject Low Offers: Initial minimum acceptance threshold is set high with a rejection of any offer below $0.40. Accept all offers above $0.40.
+        <br class="ltx_break"/>
+        <br class="ltx_break"/>
+        Willingness to Adjust: If offers remain low, be willing to gradually lower the acceptance threshold to ensure some gain.
+        <br class="ltx_break"/>
+        <br class="ltx_break"/>
+        Last Round Acceptance: On the final round, accept any non-zero offer, under the assumption that some gain is better than none, adjusting the minimum threshold to $0.15.
+       </span>
+       <span class="ltx_text" id="S3.SS3.SSS2.p6.2.1.3" style="color:#000000;">
+        .”
+       </span>
+      </p>
+     </blockquote>
+     <p class="ltx_p" id="S3.SS3.SSS2.p6.3">
+      <span class="ltx_text" id="S3.SS3.SSS2.p6.3.1" style="color:#000000;">
+       This strategy sets an acceptance threshold of $0.40, which is lower than an equal split, and hence inconsistent with a greedy receiver whom would be expected to prefer offers that are biased in their favor (at least above $0.50).
+      </span>
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section" style="color:#000000;">
+   <span class="ltx_tag ltx_tag_section">
+    4.
+   </span>
+   Results
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    <span class="ltx_text" id="S4.p1.1.1" style="color:#000000;">
+     We analyze the outputs of all 40 simulations of the five-round ultimatum game for 4 conditions:
+    </span>
+   </p>
+   <ul class="ltx_itemize" id="S4.I1">
+    <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i1.p1">
+      <p class="ltx_p" id="S4.I1.i1.p1.1">
+       <span class="ltx_text" id="S4.I1.i1.p1.1.1" style="color:#000000;">
+        multi-agent LLM architecture with GPT 3.5 (abbreviated MultiAgent-3.5)
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i2.p1">
+      <p class="ltx_p" id="S4.I1.i2.p1.1">
+       <span class="ltx_text" id="S4.I1.i2.p1.1.1" style="color:#000000;">
+        multi-agent LLM architecture with GPT 4 (abbreviated MultiAgent-3.5)
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i3.p1">
+      <p class="ltx_p" id="S4.I1.i3.p1.1">
+       <span class="ltx_text" id="S4.I1.i3.p1.1.1" style="color:#000000;">
+        a single LLM with GPT 3.5 (abbreviated SingleLLM-3.5)
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i4.p1">
+      <p class="ltx_p" id="S4.I1.i4.p1.1">
+       <span class="ltx_text" id="S4.I1.i4.p1.1.1" style="color:#000000;">
+        a single LLM with GPT 3.5 (abbreviated SingleLLM-4).
+       </span>
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="S4.p1.2">
+    <span class="ltx_text" id="S4.p1.2.1" style="color:#000000;">
+     We report results for our three research questions.
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <br class="ltx_break"/>
+   <p class="ltx_p" id="S4.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p2.1.1" style="color:#000000;">
+     RQ1. Which LLM architecture more accurately simulates human-like actions in the five-round ultimatum game?
+    </span>
+    <span class="ltx_text" id="S4.p2.1.2" style="color:#000000;">
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    <span class="ltx_text" id="S4.p3.1.1" style="color:#000000;">
+     The experiments show that the multi-agent LLM architecture yields actions consistent with human experimental data significantly more often than the single LLM. The best multi-agent architecture was MultiAgent-4 which resulted in human-like actions in 87.5% of simulations, while the best single LLM (SingleLLM-4) only resulted in human-like actions in 50% of simulations out of 40 total simulations. See Table
+    </span>
+    <a class="ltx_ref" href="#S4.T1" style="color:#000000;" title="Table 1 ‣ 4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p3.1.2" style="color:#000000;">
+     . A chi-square test shows this is statistically significant at the p ¡ .01 level
+    </span>
+    <math alttext="\chi^{2}(1,N=80)=13.091,p=.000297" class="ltx_Math" display="inline" id="S4.p3.1.m1.4">
+     <semantics id="S4.p3.1.m1.4a">
+      <mrow id="S4.p3.1.m1.4.4.2" xref="S4.p3.1.m1.4.4.3.cmml">
+       <mrow id="S4.p3.1.m1.3.3.1.1" xref="S4.p3.1.m1.3.3.1.1.cmml">
+        <mrow id="S4.p3.1.m1.3.3.1.1.1" xref="S4.p3.1.m1.3.3.1.1.1.cmml">
+         <msup id="S4.p3.1.m1.3.3.1.1.1.3" xref="S4.p3.1.m1.3.3.1.1.1.3.cmml">
+          <mi id="S4.p3.1.m1.3.3.1.1.1.3.2" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.1.3.2.cmml">
+           χ
+          </mi>
+          <mn id="S4.p3.1.m1.3.3.1.1.1.3.3" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.1.3.3.cmml">
+           2
+          </mn>
+         </msup>
+         <mo id="S4.p3.1.m1.3.3.1.1.1.2" lspace="0em" rspace="0em" xref="S4.p3.1.m1.3.3.1.1.1.2.cmml">
+          ​
+         </mo>
+         <mrow id="S4.p3.1.m1.3.3.1.1.1.1.1" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.cmml">
+          <mo id="S4.p3.1.m1.3.3.1.1.1.1.1.2" mathcolor="#000000" stretchy="false" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.cmml">
+           (
+          </mo>
+          <mrow id="S4.p3.1.m1.3.3.1.1.1.1.1.1" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.cmml">
+           <mrow id="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.2" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.1.cmml">
+            <mn id="S4.p3.1.m1.1.1" mathcolor="#000000" xref="S4.p3.1.m1.1.1.cmml">
+             1
+            </mn>
+            <mo id="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.2.1" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.1.cmml">
+             ,
+            </mo>
+            <mi id="S4.p3.1.m1.2.2" mathcolor="#000000" xref="S4.p3.1.m1.2.2.cmml">
+             N
+            </mi>
+           </mrow>
+           <mo id="S4.p3.1.m1.3.3.1.1.1.1.1.1.1" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.p3.1.m1.3.3.1.1.1.1.1.1.3" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.3.cmml">
+            80
+           </mn>
+          </mrow>
+          <mo id="S4.p3.1.m1.3.3.1.1.1.1.1.3" mathcolor="#000000" stretchy="false" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <mo id="S4.p3.1.m1.3.3.1.1.2" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.2.cmml">
+         =
+        </mo>
+        <mn id="S4.p3.1.m1.3.3.1.1.3" mathcolor="#000000" xref="S4.p3.1.m1.3.3.1.1.3.cmml">
+         13.091
+        </mn>
+       </mrow>
+       <mo id="S4.p3.1.m1.4.4.2.3" mathcolor="#000000" xref="S4.p3.1.m1.4.4.3a.cmml">
+        ,
+       </mo>
+       <mrow id="S4.p3.1.m1.4.4.2.2" xref="S4.p3.1.m1.4.4.2.2.cmml">
+        <mi id="S4.p3.1.m1.4.4.2.2.2" mathcolor="#000000" xref="S4.p3.1.m1.4.4.2.2.2.cmml">
+         p
+        </mi>
+        <mo id="S4.p3.1.m1.4.4.2.2.1" mathcolor="#000000" xref="S4.p3.1.m1.4.4.2.2.1.cmml">
+         =
+        </mo>
+        <mn id="S4.p3.1.m1.4.4.2.2.3" mathcolor="#000000" xref="S4.p3.1.m1.4.4.2.2.3.cmml">
+         .000297
+        </mn>
+       </mrow>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p3.1.m1.4b">
+       <apply id="S4.p3.1.m1.4.4.3.cmml" xref="S4.p3.1.m1.4.4.2">
+        <csymbol cd="ambiguous" id="S4.p3.1.m1.4.4.3a.cmml" xref="S4.p3.1.m1.4.4.2.3">
+         formulae-sequence
+        </csymbol>
+        <apply id="S4.p3.1.m1.3.3.1.1.cmml" xref="S4.p3.1.m1.3.3.1.1">
+         <eq id="S4.p3.1.m1.3.3.1.1.2.cmml" xref="S4.p3.1.m1.3.3.1.1.2">
+         </eq>
+         <apply id="S4.p3.1.m1.3.3.1.1.1.cmml" xref="S4.p3.1.m1.3.3.1.1.1">
+          <times id="S4.p3.1.m1.3.3.1.1.1.2.cmml" xref="S4.p3.1.m1.3.3.1.1.1.2">
+          </times>
+          <apply id="S4.p3.1.m1.3.3.1.1.1.3.cmml" xref="S4.p3.1.m1.3.3.1.1.1.3">
+           <csymbol cd="ambiguous" id="S4.p3.1.m1.3.3.1.1.1.3.1.cmml" xref="S4.p3.1.m1.3.3.1.1.1.3">
+            superscript
+           </csymbol>
+           <ci id="S4.p3.1.m1.3.3.1.1.1.3.2.cmml" xref="S4.p3.1.m1.3.3.1.1.1.3.2">
+            𝜒
+           </ci>
+           <cn id="S4.p3.1.m1.3.3.1.1.1.3.3.cmml" type="integer" xref="S4.p3.1.m1.3.3.1.1.1.3.3">
+            2
+           </cn>
+          </apply>
+          <apply id="S4.p3.1.m1.3.3.1.1.1.1.1.1.cmml" xref="S4.p3.1.m1.3.3.1.1.1.1.1">
+           <eq id="S4.p3.1.m1.3.3.1.1.1.1.1.1.1.cmml" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.1">
+           </eq>
+           <list id="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.1.cmml" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.2.2">
+            <cn id="S4.p3.1.m1.1.1.cmml" type="integer" xref="S4.p3.1.m1.1.1">
+             1
+            </cn>
+            <ci id="S4.p3.1.m1.2.2.cmml" xref="S4.p3.1.m1.2.2">
+             𝑁
+            </ci>
+           </list>
+           <cn id="S4.p3.1.m1.3.3.1.1.1.1.1.1.3.cmml" type="integer" xref="S4.p3.1.m1.3.3.1.1.1.1.1.1.3">
+            80
+           </cn>
+          </apply>
+         </apply>
+         <cn id="S4.p3.1.m1.3.3.1.1.3.cmml" type="float" xref="S4.p3.1.m1.3.3.1.1.3">
+          13.091
+         </cn>
+        </apply>
+        <apply id="S4.p3.1.m1.4.4.2.2.cmml" xref="S4.p3.1.m1.4.4.2.2">
+         <eq id="S4.p3.1.m1.4.4.2.2.1.cmml" xref="S4.p3.1.m1.4.4.2.2.1">
+         </eq>
+         <ci id="S4.p3.1.m1.4.4.2.2.2.cmml" xref="S4.p3.1.m1.4.4.2.2.2">
+          𝑝
+         </ci>
+         <cn id="S4.p3.1.m1.4.4.2.2.3.cmml" type="float" xref="S4.p3.1.m1.4.4.2.2.3">
+          .000297
+         </cn>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p3.1.m1.4c">
+       \chi^{2}(1,N=80)=13.091,p=.000297
+      </annotation>
+     </semantics>
+    </math>
+    <span class="ltx_text" id="S4.p3.1.3" style="color:#000000;">
+     .
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    <span class="ltx_text" id="S4.p4.1.1" style="color:#000000;">
+     An analysis of the errors shows that strategy creation was a bigger source of errors than gameplay mistakes for both architectures. Table
+    </span>
+    <a class="ltx_ref" href="#S4.T2" style="color:#000000;" title="Table 2 ‣ 4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p4.1.2" style="color:#000000;">
+     shows the percentages of errors due to strategy, gameplay, or both for all four conditions. In both MultiAgent architectures, strategy creation errors accounted for 100% of errors in simulation, with there being no gameplay mistakes. In the SingleLLM-3.5 architecture, 73.9% of errors were in strategy creation, compared to only 39.1% in gameplay (and 13.0% having both). In the SingleLLM-4 architecture, 100% of errors involved an issue with strategy creation, with 25% of errors also including gameplay mistakes. Two-proportion z-tests revealed a statistically significant difference between the number of strategy creation errors and gameplay mistakes for all four conditions at a
+    </span>
+    <math alttext="p&lt;0.05" class="ltx_Math" display="inline" id="S4.p4.1.m1.1">
+     <semantics id="S4.p4.1.m1.1a">
+      <mrow id="S4.p4.1.m1.1.1" xref="S4.p4.1.m1.1.1.cmml">
+       <mi id="S4.p4.1.m1.1.1.2" mathcolor="#000000" xref="S4.p4.1.m1.1.1.2.cmml">
+        p
+       </mi>
+       <mo id="S4.p4.1.m1.1.1.1" mathcolor="#000000" xref="S4.p4.1.m1.1.1.1.cmml">
+        &lt;
+       </mo>
+       <mn id="S4.p4.1.m1.1.1.3" mathcolor="#000000" xref="S4.p4.1.m1.1.1.3.cmml">
+        0.05
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p4.1.m1.1b">
+       <apply id="S4.p4.1.m1.1.1.cmml" xref="S4.p4.1.m1.1.1">
+        <lt id="S4.p4.1.m1.1.1.1.cmml" xref="S4.p4.1.m1.1.1.1">
+        </lt>
+        <ci id="S4.p4.1.m1.1.1.2.cmml" xref="S4.p4.1.m1.1.1.2">
+         𝑝
+        </ci>
+        <cn id="S4.p4.1.m1.1.1.3.cmml" type="float" xref="S4.p4.1.m1.1.1.3">
+         0.05
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p4.1.m1.1c">
+       p&lt;0.05
+      </annotation>
+     </semantics>
+    </math>
+    <span class="ltx_text" id="S4.p4.1.3" style="color:#000000;">
+     level.
+    </span>
+   </p>
+  </div>
+  <figure class="ltx_table ltx_align_center" id="S4.T1">
+   <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T1.1">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S4.T1.1.1.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_ll ltx_border_r ltx_border_t" id="S4.T1.1.1.1.1" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T1.1.1.1.1.1" style="color:#000000;">
+        Architecture
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S4.T1.1.1.1.2" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T1.1.1.1.2.1" style="color:#000000;">
+        Success Rate
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T1.1.2.1">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_tt" id="S4.T1.1.2.1.1">
+       <span class="ltx_text" id="S4.T1.1.2.1.1.1" style="color:#000000;">
+        MultiAgent-3.5
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S4.T1.1.2.1.2">
+       <span class="ltx_text" id="S4.T1.1.2.1.2.1" style="color:#000000;">
+        82.5%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.3.2">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_t" id="S4.T1.1.3.2.1">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.3.2.1.1" style="color:#000000;">
+        MultiAgent-4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T1.1.3.2.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.3.2.2.1" style="color:#000000;">
+        87.5%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.4.3">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_t" id="S4.T1.1.4.3.1">
+       <span class="ltx_text" id="S4.T1.1.4.3.1.1" style="color:#000000;">
+        SingleLLM-3.5
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T1.1.4.3.2">
+       <span class="ltx_text" id="S4.T1.1.4.3.2.1" style="color:#000000;">
+        42.5%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.5.4">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.T1.1.5.4.1">
+       <span class="ltx_text" id="S4.T1.1.5.4.1.1" style="color:#000000;">
+        SingleLLM-4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S4.T1.1.5.4.2">
+       <span class="ltx_text" id="S4.T1.1.5.4.2.1" style="color:#000000;">
+        50.0%
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1.
+    </span>
+    RQ1: Percentage of simulations with human-like actions by architecture.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table ltx_align_center" id="S4.T2">
+   <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T2.4">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S4.T2.4.5.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_ll ltx_border_r ltx_border_t" id="S4.T2.4.5.1.1" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.1.1" style="color:#000000;">
+        Architecture
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.4.5.1.2" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.2.1" style="color:#000000;">
+        Total Errors
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.4.5.1.3" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.3.1" style="color:#000000;">
+        Strategy Errors
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.4.5.1.4" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.4.1" style="color:#000000;">
+        Gameplay Errors
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S4.T2.4.5.1.5" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.5.1" style="color:#000000;">
+        Both Errors
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S4.T2.4.5.1.6" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T2.4.5.1.6.1" style="color:#000000;">
+        z-test
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T2.1.1">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_tt" id="S4.T2.1.1.2">
+       <span class="ltx_text" id="S4.T2.1.1.2.1" style="color:#000000;">
+        MultiAgent-3.5
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T2.1.1.3">
+       <span class="ltx_text" id="S4.T2.1.1.3.1" style="color:#000000;">
+        7
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T2.1.1.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.4.1" style="color:#000000;">
+        100%
+       </span>
+       <span class="ltx_text" id="S4.T2.1.1.4.2" style="color:#000000;">
+        (7/7)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T2.1.1.5">
+       <span class="ltx_text" id="S4.T2.1.1.5.1" style="color:#000000;">
+        0% (0/7)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S4.T2.1.1.6">
+       <span class="ltx_text" id="S4.T2.1.1.6.1" style="color:#000000;">
+        0% (0/7)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S4.T2.1.1.1">
+       <math alttext="z=3.7417,p=.00018" class="ltx_Math" display="inline" id="S4.T2.1.1.1.m1.2">
+        <semantics id="S4.T2.1.1.1.m1.2a">
+         <mrow id="S4.T2.1.1.1.m1.2.2.2" xref="S4.T2.1.1.1.m1.2.2.3.cmml">
+          <mrow id="S4.T2.1.1.1.m1.1.1.1.1" xref="S4.T2.1.1.1.m1.1.1.1.1.cmml">
+           <mi id="S4.T2.1.1.1.m1.1.1.1.1.2" mathcolor="#000000" xref="S4.T2.1.1.1.m1.1.1.1.1.2.cmml">
+            z
+           </mi>
+           <mo id="S4.T2.1.1.1.m1.1.1.1.1.1" mathcolor="#000000" xref="S4.T2.1.1.1.m1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.1.1.1.m1.1.1.1.1.3" mathcolor="#000000" xref="S4.T2.1.1.1.m1.1.1.1.1.3.cmml">
+            3.7417
+           </mn>
+          </mrow>
+          <mo id="S4.T2.1.1.1.m1.2.2.2.3" mathcolor="#000000" xref="S4.T2.1.1.1.m1.2.2.3a.cmml">
+           ,
+          </mo>
+          <mrow id="S4.T2.1.1.1.m1.2.2.2.2" xref="S4.T2.1.1.1.m1.2.2.2.2.cmml">
+           <mi id="S4.T2.1.1.1.m1.2.2.2.2.2" mathcolor="#000000" xref="S4.T2.1.1.1.m1.2.2.2.2.2.cmml">
+            p
+           </mi>
+           <mo id="S4.T2.1.1.1.m1.2.2.2.2.1" mathcolor="#000000" xref="S4.T2.1.1.1.m1.2.2.2.2.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.1.1.1.m1.2.2.2.2.3" mathcolor="#000000" xref="S4.T2.1.1.1.m1.2.2.2.2.3.cmml">
+            .00018
+           </mn>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.1.1.1.m1.2b">
+          <apply id="S4.T2.1.1.1.m1.2.2.3.cmml" xref="S4.T2.1.1.1.m1.2.2.2">
+           <csymbol cd="ambiguous" id="S4.T2.1.1.1.m1.2.2.3a.cmml" xref="S4.T2.1.1.1.m1.2.2.2.3">
+            formulae-sequence
+           </csymbol>
+           <apply id="S4.T2.1.1.1.m1.1.1.1.1.cmml" xref="S4.T2.1.1.1.m1.1.1.1.1">
+            <eq id="S4.T2.1.1.1.m1.1.1.1.1.1.cmml" xref="S4.T2.1.1.1.m1.1.1.1.1.1">
+            </eq>
+            <ci id="S4.T2.1.1.1.m1.1.1.1.1.2.cmml" xref="S4.T2.1.1.1.m1.1.1.1.1.2">
+             𝑧
+            </ci>
+            <cn id="S4.T2.1.1.1.m1.1.1.1.1.3.cmml" type="float" xref="S4.T2.1.1.1.m1.1.1.1.1.3">
+             3.7417
+            </cn>
+           </apply>
+           <apply id="S4.T2.1.1.1.m1.2.2.2.2.cmml" xref="S4.T2.1.1.1.m1.2.2.2.2">
+            <eq id="S4.T2.1.1.1.m1.2.2.2.2.1.cmml" xref="S4.T2.1.1.1.m1.2.2.2.2.1">
+            </eq>
+            <ci id="S4.T2.1.1.1.m1.2.2.2.2.2.cmml" xref="S4.T2.1.1.1.m1.2.2.2.2.2">
+             𝑝
+            </ci>
+            <cn id="S4.T2.1.1.1.m1.2.2.2.2.3.cmml" type="float" xref="S4.T2.1.1.1.m1.2.2.2.2.3">
+             .00018
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.1.1.1.m1.2c">
+          z=3.7417,p=.00018
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.2">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_t" id="S4.T2.2.2.2">
+       <span class="ltx_text" id="S4.T2.2.2.2.1" style="color:#000000;">
+        MultiAgent-4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.2.3">
+       <span class="ltx_text" id="S4.T2.2.2.3.1" style="color:#000000;">
+        5
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.2.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.2.4.1" style="color:#000000;">
+        100%
+       </span>
+       <span class="ltx_text" id="S4.T2.2.2.4.2" style="color:#000000;">
+        (5/5)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.2.5">
+       <span class="ltx_text" id="S4.T2.2.2.5.1" style="color:#000000;">
+        0% (0/5)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T2.2.2.6">
+       <span class="ltx_text" id="S4.T2.2.2.6.1" style="color:#000000;">
+        0% (0/5)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T2.2.2.1">
+       <math alttext="z=3.1632,p=.00158" class="ltx_Math" display="inline" id="S4.T2.2.2.1.m1.2">
+        <semantics id="S4.T2.2.2.1.m1.2a">
+         <mrow id="S4.T2.2.2.1.m1.2.2.2" xref="S4.T2.2.2.1.m1.2.2.3.cmml">
+          <mrow id="S4.T2.2.2.1.m1.1.1.1.1" xref="S4.T2.2.2.1.m1.1.1.1.1.cmml">
+           <mi id="S4.T2.2.2.1.m1.1.1.1.1.2" mathcolor="#000000" xref="S4.T2.2.2.1.m1.1.1.1.1.2.cmml">
+            z
+           </mi>
+           <mo id="S4.T2.2.2.1.m1.1.1.1.1.1" mathcolor="#000000" xref="S4.T2.2.2.1.m1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.2.2.1.m1.1.1.1.1.3" mathcolor="#000000" xref="S4.T2.2.2.1.m1.1.1.1.1.3.cmml">
+            3.1632
+           </mn>
+          </mrow>
+          <mo id="S4.T2.2.2.1.m1.2.2.2.3" mathcolor="#000000" xref="S4.T2.2.2.1.m1.2.2.3a.cmml">
+           ,
+          </mo>
+          <mrow id="S4.T2.2.2.1.m1.2.2.2.2" xref="S4.T2.2.2.1.m1.2.2.2.2.cmml">
+           <mi id="S4.T2.2.2.1.m1.2.2.2.2.2" mathcolor="#000000" xref="S4.T2.2.2.1.m1.2.2.2.2.2.cmml">
+            p
+           </mi>
+           <mo id="S4.T2.2.2.1.m1.2.2.2.2.1" mathcolor="#000000" xref="S4.T2.2.2.1.m1.2.2.2.2.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.2.2.1.m1.2.2.2.2.3" mathcolor="#000000" xref="S4.T2.2.2.1.m1.2.2.2.2.3.cmml">
+            .00158
+           </mn>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.2.2.1.m1.2b">
+          <apply id="S4.T2.2.2.1.m1.2.2.3.cmml" xref="S4.T2.2.2.1.m1.2.2.2">
+           <csymbol cd="ambiguous" id="S4.T2.2.2.1.m1.2.2.3a.cmml" xref="S4.T2.2.2.1.m1.2.2.2.3">
+            formulae-sequence
+           </csymbol>
+           <apply id="S4.T2.2.2.1.m1.1.1.1.1.cmml" xref="S4.T2.2.2.1.m1.1.1.1.1">
+            <eq id="S4.T2.2.2.1.m1.1.1.1.1.1.cmml" xref="S4.T2.2.2.1.m1.1.1.1.1.1">
+            </eq>
+            <ci id="S4.T2.2.2.1.m1.1.1.1.1.2.cmml" xref="S4.T2.2.2.1.m1.1.1.1.1.2">
+             𝑧
+            </ci>
+            <cn id="S4.T2.2.2.1.m1.1.1.1.1.3.cmml" type="float" xref="S4.T2.2.2.1.m1.1.1.1.1.3">
+             3.1632
+            </cn>
+           </apply>
+           <apply id="S4.T2.2.2.1.m1.2.2.2.2.cmml" xref="S4.T2.2.2.1.m1.2.2.2.2">
+            <eq id="S4.T2.2.2.1.m1.2.2.2.2.1.cmml" xref="S4.T2.2.2.1.m1.2.2.2.2.1">
+            </eq>
+            <ci id="S4.T2.2.2.1.m1.2.2.2.2.2.cmml" xref="S4.T2.2.2.1.m1.2.2.2.2.2">
+             𝑝
+            </ci>
+            <cn id="S4.T2.2.2.1.m1.2.2.2.2.3.cmml" type="float" xref="S4.T2.2.2.1.m1.2.2.2.2.3">
+             .00158
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.2.2.1.m1.2c">
+          z=3.1632,p=.00158
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.3.3">
+      <td class="ltx_td ltx_align_center ltx_border_ll ltx_border_r ltx_border_t" id="S4.T2.3.3.2">
+       <span class="ltx_text" id="S4.T2.3.3.2.1" style="color:#000000;">
+        SingleLLM-3.5
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.3.3.3">
+       <span class="ltx_text" id="S4.T2.3.3.3.1" style="color:#000000;">
+        23
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.3.3.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.3.3.4.1" style="color:#000000;">
+        73.9%
+       </span>
+       <span class="ltx_text" id="S4.T2.3.3.4.2" style="color:#000000;">
+        (17/23)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.3.3.5">
+       <span class="ltx_text" id="S4.T2.3.3.5.1" style="color:#000000;">
+        39.1% (9/23)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T2.3.3.6">
+       <span class="ltx_text" id="S4.T2.3.3.6.1" style="color:#000000;">
+        13.0% (3/23)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T2.3.3.1">
+       <math alttext="z=2.379,p=.017" class="ltx_Math" display="inline" id="S4.T2.3.3.1.m1.2">
+        <semantics id="S4.T2.3.3.1.m1.2a">
+         <mrow id="S4.T2.3.3.1.m1.2.2.2" xref="S4.T2.3.3.1.m1.2.2.3.cmml">
+          <mrow id="S4.T2.3.3.1.m1.1.1.1.1" xref="S4.T2.3.3.1.m1.1.1.1.1.cmml">
+           <mi id="S4.T2.3.3.1.m1.1.1.1.1.2" mathcolor="#000000" xref="S4.T2.3.3.1.m1.1.1.1.1.2.cmml">
+            z
+           </mi>
+           <mo id="S4.T2.3.3.1.m1.1.1.1.1.1" mathcolor="#000000" xref="S4.T2.3.3.1.m1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.3.3.1.m1.1.1.1.1.3" mathcolor="#000000" xref="S4.T2.3.3.1.m1.1.1.1.1.3.cmml">
+            2.379
+           </mn>
+          </mrow>
+          <mo id="S4.T2.3.3.1.m1.2.2.2.3" mathcolor="#000000" xref="S4.T2.3.3.1.m1.2.2.3a.cmml">
+           ,
+          </mo>
+          <mrow id="S4.T2.3.3.1.m1.2.2.2.2" xref="S4.T2.3.3.1.m1.2.2.2.2.cmml">
+           <mi id="S4.T2.3.3.1.m1.2.2.2.2.2" mathcolor="#000000" xref="S4.T2.3.3.1.m1.2.2.2.2.2.cmml">
+            p
+           </mi>
+           <mo id="S4.T2.3.3.1.m1.2.2.2.2.1" mathcolor="#000000" xref="S4.T2.3.3.1.m1.2.2.2.2.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.3.3.1.m1.2.2.2.2.3" mathcolor="#000000" xref="S4.T2.3.3.1.m1.2.2.2.2.3.cmml">
+            .017
+           </mn>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.3.3.1.m1.2b">
+          <apply id="S4.T2.3.3.1.m1.2.2.3.cmml" xref="S4.T2.3.3.1.m1.2.2.2">
+           <csymbol cd="ambiguous" id="S4.T2.3.3.1.m1.2.2.3a.cmml" xref="S4.T2.3.3.1.m1.2.2.2.3">
+            formulae-sequence
+           </csymbol>
+           <apply id="S4.T2.3.3.1.m1.1.1.1.1.cmml" xref="S4.T2.3.3.1.m1.1.1.1.1">
+            <eq id="S4.T2.3.3.1.m1.1.1.1.1.1.cmml" xref="S4.T2.3.3.1.m1.1.1.1.1.1">
+            </eq>
+            <ci id="S4.T2.3.3.1.m1.1.1.1.1.2.cmml" xref="S4.T2.3.3.1.m1.1.1.1.1.2">
+             𝑧
+            </ci>
+            <cn id="S4.T2.3.3.1.m1.1.1.1.1.3.cmml" type="float" xref="S4.T2.3.3.1.m1.1.1.1.1.3">
+             2.379
+            </cn>
+           </apply>
+           <apply id="S4.T2.3.3.1.m1.2.2.2.2.cmml" xref="S4.T2.3.3.1.m1.2.2.2.2">
+            <eq id="S4.T2.3.3.1.m1.2.2.2.2.1.cmml" xref="S4.T2.3.3.1.m1.2.2.2.2.1">
+            </eq>
+            <ci id="S4.T2.3.3.1.m1.2.2.2.2.2.cmml" xref="S4.T2.3.3.1.m1.2.2.2.2.2">
+             𝑝
+            </ci>
+            <cn id="S4.T2.3.3.1.m1.2.2.2.2.3.cmml" type="float" xref="S4.T2.3.3.1.m1.2.2.2.2.3">
+             .017
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.3.3.1.m1.2c">
+          z=2.379,p=.017
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.4.4">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.T2.4.4.2">
+       <span class="ltx_text" id="S4.T2.4.4.2.1" style="color:#000000;">
+        SingleLLM-4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T2.4.4.3">
+       <span class="ltx_text" id="S4.T2.4.4.3.1" style="color:#000000;">
+        20
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T2.4.4.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.4.4.4.1" style="color:#000000;">
+        100%
+       </span>
+       <span class="ltx_text" id="S4.T2.4.4.4.2" style="color:#000000;">
+        (20/20)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T2.4.4.5">
+       <span class="ltx_text" id="S4.T2.4.4.5.1" style="color:#000000;">
+        25% (5/20)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S4.T2.4.4.6">
+       <span class="ltx_text" id="S4.T2.4.4.6.1" style="color:#000000;">
+        25% (5/20)
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S4.T2.4.4.1">
+       <math alttext="z=4.899,p&lt;.00001" class="ltx_Math" display="inline" id="S4.T2.4.4.1.m1.2">
+        <semantics id="S4.T2.4.4.1.m1.2a">
+         <mrow id="S4.T2.4.4.1.m1.2.2.2" xref="S4.T2.4.4.1.m1.2.2.3.cmml">
+          <mrow id="S4.T2.4.4.1.m1.1.1.1.1" xref="S4.T2.4.4.1.m1.1.1.1.1.cmml">
+           <mi id="S4.T2.4.4.1.m1.1.1.1.1.2" mathcolor="#000000" xref="S4.T2.4.4.1.m1.1.1.1.1.2.cmml">
+            z
+           </mi>
+           <mo id="S4.T2.4.4.1.m1.1.1.1.1.1" mathcolor="#000000" xref="S4.T2.4.4.1.m1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.T2.4.4.1.m1.1.1.1.1.3" mathcolor="#000000" xref="S4.T2.4.4.1.m1.1.1.1.1.3.cmml">
+            4.899
+           </mn>
+          </mrow>
+          <mo id="S4.T2.4.4.1.m1.2.2.2.3" mathcolor="#000000" xref="S4.T2.4.4.1.m1.2.2.3a.cmml">
+           ,
+          </mo>
+          <mrow id="S4.T2.4.4.1.m1.2.2.2.2" xref="S4.T2.4.4.1.m1.2.2.2.2.cmml">
+           <mi id="S4.T2.4.4.1.m1.2.2.2.2.2" mathcolor="#000000" xref="S4.T2.4.4.1.m1.2.2.2.2.2.cmml">
+            p
+           </mi>
+           <mo id="S4.T2.4.4.1.m1.2.2.2.2.1" mathcolor="#000000" xref="S4.T2.4.4.1.m1.2.2.2.2.1.cmml">
+            &lt;
+           </mo>
+           <mn id="S4.T2.4.4.1.m1.2.2.2.2.3" mathcolor="#000000" xref="S4.T2.4.4.1.m1.2.2.2.2.3.cmml">
+            .00001
+           </mn>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.4.4.1.m1.2b">
+          <apply id="S4.T2.4.4.1.m1.2.2.3.cmml" xref="S4.T2.4.4.1.m1.2.2.2">
+           <csymbol cd="ambiguous" id="S4.T2.4.4.1.m1.2.2.3a.cmml" xref="S4.T2.4.4.1.m1.2.2.2.3">
+            formulae-sequence
+           </csymbol>
+           <apply id="S4.T2.4.4.1.m1.1.1.1.1.cmml" xref="S4.T2.4.4.1.m1.1.1.1.1">
+            <eq id="S4.T2.4.4.1.m1.1.1.1.1.1.cmml" xref="S4.T2.4.4.1.m1.1.1.1.1.1">
+            </eq>
+            <ci id="S4.T2.4.4.1.m1.1.1.1.1.2.cmml" xref="S4.T2.4.4.1.m1.1.1.1.1.2">
+             𝑧
+            </ci>
+            <cn id="S4.T2.4.4.1.m1.1.1.1.1.3.cmml" type="float" xref="S4.T2.4.4.1.m1.1.1.1.1.3">
+             4.899
+            </cn>
+           </apply>
+           <apply id="S4.T2.4.4.1.m1.2.2.2.2.cmml" xref="S4.T2.4.4.1.m1.2.2.2.2">
+            <lt id="S4.T2.4.4.1.m1.2.2.2.2.1.cmml" xref="S4.T2.4.4.1.m1.2.2.2.2.1">
+            </lt>
+            <ci id="S4.T2.4.4.1.m1.2.2.2.2.2.cmml" xref="S4.T2.4.4.1.m1.2.2.2.2.2">
+             𝑝
+            </ci>
+            <cn id="S4.T2.4.4.1.m1.2.2.2.2.3.cmml" type="float" xref="S4.T2.4.4.1.m1.2.2.2.2.3">
+             .00001
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.4.4.1.m1.2c">
+          z=4.899,p&lt;.00001
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2.
+    </span>
+    RQ1: Percentage of errors caused by strategy and gameplay.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S4.p5">
+   <br class="ltx_break"/>
+   <p class="ltx_p" id="S4.p5.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p5.1.1" style="color:#000000;">
+     RQ2. Which LLM architecture more accurately simulates the actions of player personalities?
+    </span>
+    <span class="ltx_text" id="S4.p5.1.2" style="color:#000000;">
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p6">
+   <p class="ltx_p" id="S4.p6.1">
+    <span class="ltx_text" id="S4.p6.1.1" style="color:#000000;">
+     The experiments show that MultiAgent-4 performed best at modeling the two personality types. MultiAgent-4 achieved human-like gameplay for all four personality pairs at least 80% of the time (see Table
+    </span>
+    <a class="ltx_ref" href="#S4.T3" style="color:#000000;" title="Table 3 ‣ 4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p6.1.2" style="color:#000000;">
+     ). In contrast, SingleLLM-4 was inconsistent across personality pairs; it achieved human-like gameplay for 100% of the Fair-Fair simulations, but only 10% of the Greedy-Greedy conditions.
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p7">
+   <p class="ltx_p" id="S4.p7.1">
+    <span class="ltx_text" id="S4.p7.1.1" style="color:#000000;">
+     When analyzing gameplay for each of the personality pairs, we see the errors are not the same across the pairs. Fair-Fair has the best performance with SingleLLM-4, MultiAgent-3.5, and MultiAgent-4 all being 100% consistent with human gameplay.
+The most errors occurred in simulations of the Greedy-Greedy personality pairing, with MultiAgent-4 performing the best with 80% of simulations being consistent with human gameplay. The MultiAgent-3.5, SingleLLM-3.5, and SingleLLM-4 were consistent with human gameplay in 70%, 60%, and 10% of simulations respectively. The Fair-Greedy and Greedy-Fair conditions were somewhere in between: with both SingleLLM’s having middling scores (30-50%).
+    </span>
+   </p>
+  </div>
+  <figure class="ltx_table ltx_align_center" id="S4.T3">
+   <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T3.1">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S4.T3.1.1.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T3.1.1.1.1" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T3.1.1.1.1.1" style="color:#000000;">
+        Architecture
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T3.1.1.1.2" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T3.1.1.1.2.1" style="color:#000000;">
+        Fair-Fair
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T3.1.1.1.3" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T3.1.1.1.3.1" style="color:#000000;">
+        Fair-Greedy
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T3.1.1.1.4" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T3.1.1.1.4.1" style="color:#000000;">
+        Greedy-Fair
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S4.T3.1.1.1.5" style="padding-bottom:2.15277pt;">
+       <span class="ltx_text" id="S4.T3.1.1.1.5.1" style="color:#000000;">
+        Greedy-Greedy
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T3.1.2.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_tt" id="S4.T3.1.2.1.1">
+       <span class="ltx_text" id="S4.T3.1.2.1.1.1" style="color:#000000;">
+        MultiAgent-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.2.1.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.2.1.2.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.2.1.3">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.2.1.3.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.2.1.4">
+       <span class="ltx_text" id="S4.T3.1.2.1.4.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S4.T3.1.2.1.5">
+       <span class="ltx_text" id="S4.T3.1.2.1.5.1" style="color:#000000;">
+        70%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T3.1.3.2">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T3.1.3.2.1">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.2.1.1" style="color:#000000;">
+        MultiAgent-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.3.2.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.2.2.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.3.2.3">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.2.3.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.3.2.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.2.4.1" style="color:#000000;">
+        90%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T3.1.3.2.5">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.3.2.5.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T3.1.4.3">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T3.1.4.3.1">
+       <span class="ltx_text" id="S4.T3.1.4.3.1.1" style="color:#000000;">
+        SingleLLM-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.4.3.2">
+       <span class="ltx_text" id="S4.T3.1.4.3.2.1" style="color:#000000;">
+        30%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.4.3.3">
+       <span class="ltx_text" id="S4.T3.1.4.3.3.1" style="color:#000000;">
+        50%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.4.3.4">
+       <span class="ltx_text" id="S4.T3.1.4.3.4.1" style="color:#000000;">
+        30%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T3.1.4.3.5">
+       <span class="ltx_text" id="S4.T3.1.4.3.5.1" style="color:#000000;">
+        60%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T3.1.5.4">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.T3.1.5.4.1">
+       <span class="ltx_text" id="S4.T3.1.5.4.1.1" style="color:#000000;">
+        SingleLLM-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T3.1.5.4.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T3.1.5.4.2.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T3.1.5.4.3">
+       <span class="ltx_text" id="S4.T3.1.5.4.3.1" style="color:#000000;">
+        40%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T3.1.5.4.4">
+       <span class="ltx_text" id="S4.T3.1.5.4.4.1" style="color:#000000;">
+        50%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S4.T3.1.5.4.5">
+       <span class="ltx_text" id="S4.T3.1.5.4.5.1" style="color:#000000;">
+        10%
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 3.
+    </span>
+    RQ2: Percentage of simulations with human-like gameplay by architecture and personality-pairing.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S4.p8">
+   <br class="ltx_break"/>
+   <p class="ltx_p" id="S4.p8.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p8.1.1" style="color:#000000;">
+     RQ3. Which LLM architecture more often creates robust strategies: both logically complete and consistent with personality?
+    </span>
+    <span class="ltx_text" id="S4.p8.1.2" style="color:#000000;">
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p9">
+   <p class="ltx_p" id="S4.p9.1">
+    <span class="ltx_text" id="S4.p9.1.1" style="color:#000000;">
+     The MultiAgent architectures create robust strategies at a higher rate than SingleLLMs (See Table
+    </span>
+    <a class="ltx_ref" href="#S4.T4" style="color:#000000;" title="Table 4 ‣ 4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p9.1.2" style="color:#000000;">
+     ). MultiAgent-4 creates complete and personality-consistent strategies for both players in 87.5% of simulations. The MultiAgent3.5 architecture performs slightly worse, creating complete and personality-consistent strategies for both players in 80% of simulations. The SingleLLM-3.5 and SingleLLM-4 architectures create complete and personality-consistent strategies in 55% and 47.5% of simulations respectively.
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p10">
+   <p class="ltx_p" id="S4.p10.1">
+    <span class="ltx_text" id="S4.p10.1.1" style="color:#000000;">
+     We find that the MultiAgent-4 architecture performs better in creating complete and personality-consistent strategies than the best-performing SingleLLM architecture (SingleLLM-3.5). A chi-square test shows this is statistically significant at the p ¡ .01 level
+    </span>
+    <math alttext="\chi^{2}(1,N=40)=10.3127,p=.001321" class="ltx_Math" display="inline" id="S4.p10.1.m1.4">
+     <semantics id="S4.p10.1.m1.4a">
+      <mrow id="S4.p10.1.m1.4.4.2" xref="S4.p10.1.m1.4.4.3.cmml">
+       <mrow id="S4.p10.1.m1.3.3.1.1" xref="S4.p10.1.m1.3.3.1.1.cmml">
+        <mrow id="S4.p10.1.m1.3.3.1.1.1" xref="S4.p10.1.m1.3.3.1.1.1.cmml">
+         <msup id="S4.p10.1.m1.3.3.1.1.1.3" xref="S4.p10.1.m1.3.3.1.1.1.3.cmml">
+          <mi id="S4.p10.1.m1.3.3.1.1.1.3.2" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.1.3.2.cmml">
+           χ
+          </mi>
+          <mn id="S4.p10.1.m1.3.3.1.1.1.3.3" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.1.3.3.cmml">
+           2
+          </mn>
+         </msup>
+         <mo id="S4.p10.1.m1.3.3.1.1.1.2" lspace="0em" rspace="0em" xref="S4.p10.1.m1.3.3.1.1.1.2.cmml">
+          ​
+         </mo>
+         <mrow id="S4.p10.1.m1.3.3.1.1.1.1.1" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.cmml">
+          <mo id="S4.p10.1.m1.3.3.1.1.1.1.1.2" mathcolor="#000000" stretchy="false" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.cmml">
+           (
+          </mo>
+          <mrow id="S4.p10.1.m1.3.3.1.1.1.1.1.1" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.cmml">
+           <mrow id="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.2" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.1.cmml">
+            <mn id="S4.p10.1.m1.1.1" mathcolor="#000000" xref="S4.p10.1.m1.1.1.cmml">
+             1
+            </mn>
+            <mo id="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.2.1" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.1.cmml">
+             ,
+            </mo>
+            <mi id="S4.p10.1.m1.2.2" mathcolor="#000000" xref="S4.p10.1.m1.2.2.cmml">
+             N
+            </mi>
+           </mrow>
+           <mo id="S4.p10.1.m1.3.3.1.1.1.1.1.1.1" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S4.p10.1.m1.3.3.1.1.1.1.1.1.3" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.3.cmml">
+            40
+           </mn>
+          </mrow>
+          <mo id="S4.p10.1.m1.3.3.1.1.1.1.1.3" mathcolor="#000000" stretchy="false" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <mo id="S4.p10.1.m1.3.3.1.1.2" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.2.cmml">
+         =
+        </mo>
+        <mn id="S4.p10.1.m1.3.3.1.1.3" mathcolor="#000000" xref="S4.p10.1.m1.3.3.1.1.3.cmml">
+         10.3127
+        </mn>
+       </mrow>
+       <mo id="S4.p10.1.m1.4.4.2.3" mathcolor="#000000" xref="S4.p10.1.m1.4.4.3a.cmml">
+        ,
+       </mo>
+       <mrow id="S4.p10.1.m1.4.4.2.2" xref="S4.p10.1.m1.4.4.2.2.cmml">
+        <mi id="S4.p10.1.m1.4.4.2.2.2" mathcolor="#000000" xref="S4.p10.1.m1.4.4.2.2.2.cmml">
+         p
+        </mi>
+        <mo id="S4.p10.1.m1.4.4.2.2.1" mathcolor="#000000" xref="S4.p10.1.m1.4.4.2.2.1.cmml">
+         =
+        </mo>
+        <mn id="S4.p10.1.m1.4.4.2.2.3" mathcolor="#000000" xref="S4.p10.1.m1.4.4.2.2.3.cmml">
+         .001321
+        </mn>
+       </mrow>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p10.1.m1.4b">
+       <apply id="S4.p10.1.m1.4.4.3.cmml" xref="S4.p10.1.m1.4.4.2">
+        <csymbol cd="ambiguous" id="S4.p10.1.m1.4.4.3a.cmml" xref="S4.p10.1.m1.4.4.2.3">
+         formulae-sequence
+        </csymbol>
+        <apply id="S4.p10.1.m1.3.3.1.1.cmml" xref="S4.p10.1.m1.3.3.1.1">
+         <eq id="S4.p10.1.m1.3.3.1.1.2.cmml" xref="S4.p10.1.m1.3.3.1.1.2">
+         </eq>
+         <apply id="S4.p10.1.m1.3.3.1.1.1.cmml" xref="S4.p10.1.m1.3.3.1.1.1">
+          <times id="S4.p10.1.m1.3.3.1.1.1.2.cmml" xref="S4.p10.1.m1.3.3.1.1.1.2">
+          </times>
+          <apply id="S4.p10.1.m1.3.3.1.1.1.3.cmml" xref="S4.p10.1.m1.3.3.1.1.1.3">
+           <csymbol cd="ambiguous" id="S4.p10.1.m1.3.3.1.1.1.3.1.cmml" xref="S4.p10.1.m1.3.3.1.1.1.3">
+            superscript
+           </csymbol>
+           <ci id="S4.p10.1.m1.3.3.1.1.1.3.2.cmml" xref="S4.p10.1.m1.3.3.1.1.1.3.2">
+            𝜒
+           </ci>
+           <cn id="S4.p10.1.m1.3.3.1.1.1.3.3.cmml" type="integer" xref="S4.p10.1.m1.3.3.1.1.1.3.3">
+            2
+           </cn>
+          </apply>
+          <apply id="S4.p10.1.m1.3.3.1.1.1.1.1.1.cmml" xref="S4.p10.1.m1.3.3.1.1.1.1.1">
+           <eq id="S4.p10.1.m1.3.3.1.1.1.1.1.1.1.cmml" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.1">
+           </eq>
+           <list id="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.1.cmml" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.2.2">
+            <cn id="S4.p10.1.m1.1.1.cmml" type="integer" xref="S4.p10.1.m1.1.1">
+             1
+            </cn>
+            <ci id="S4.p10.1.m1.2.2.cmml" xref="S4.p10.1.m1.2.2">
+             𝑁
+            </ci>
+           </list>
+           <cn id="S4.p10.1.m1.3.3.1.1.1.1.1.1.3.cmml" type="integer" xref="S4.p10.1.m1.3.3.1.1.1.1.1.1.3">
+            40
+           </cn>
+          </apply>
+         </apply>
+         <cn id="S4.p10.1.m1.3.3.1.1.3.cmml" type="float" xref="S4.p10.1.m1.3.3.1.1.3">
+          10.3127
+         </cn>
+        </apply>
+        <apply id="S4.p10.1.m1.4.4.2.2.cmml" xref="S4.p10.1.m1.4.4.2.2">
+         <eq id="S4.p10.1.m1.4.4.2.2.1.cmml" xref="S4.p10.1.m1.4.4.2.2.1">
+         </eq>
+         <ci id="S4.p10.1.m1.4.4.2.2.2.cmml" xref="S4.p10.1.m1.4.4.2.2.2">
+          𝑝
+         </ci>
+         <cn id="S4.p10.1.m1.4.4.2.2.3.cmml" type="float" xref="S4.p10.1.m1.4.4.2.2.3">
+          .001321
+         </cn>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p10.1.m1.4c">
+       \chi^{2}(1,N=40)=10.3127,p=.001321
+      </annotation>
+     </semantics>
+    </math>
+    <span class="ltx_text" id="S4.p10.1.2" style="color:#000000;">
+     .
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p11">
+   <p class="ltx_p" id="S4.p11.1">
+    <span class="ltx_text" id="S4.p11.1.1" style="color:#000000;">
+     To analyze the source of these errors, we analyze the robustness of proposer strategies and receiver strategies separately.
+Table
+    </span>
+    <a class="ltx_ref" href="#S4" style="color:#000000;" title="4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p11.1.2" style="color:#000000;">
+     shows that the problem with proposer strategies is always incompleteness. Proposers have no errors with personality consistency across all four architectures. Conversely, Table
+    </span>
+    <a class="ltx_ref" href="#S4" style="color:#000000;" title="4. Results ‣ Simulating Human Strategic Behavior: Comparing Single and Multi-agent LLMs">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    <span class="ltx_text" id="S4.p11.1.3" style="color:#000000;">
+     shows that the problem with receiver strategies with issues are almost always inconsistent with personality.
+Across all conditions, there was only one incomplete receiver strategy.
+    </span>
+   </p>
+  </div>
+  <figure class="ltx_table ltx_align_center" id="S4.T4">
+   <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T4.1">
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T4.1.1.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T4.1.1.1.1">
+       <span class="ltx_text" id="S4.T4.1.1.1.1.1" style="color:#000000;">
+        Architecture
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_left ltx_border_l ltx_border_t" id="S4.T4.1.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="S4.T4.1.1.1.2.1">
+        <span class="ltx_p" id="S4.T4.1.1.1.2.1.1" style="width:85.4pt;">
+         <span class="ltx_text" id="S4.T4.1.1.1.2.1.1.1" style="color:#000000;">
+          % Strategies Complete
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.1.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="S4.T4.1.1.1.3.1">
+        <span class="ltx_p" id="S4.T4.1.1.1.3.1.1" style="width:85.4pt;">
+         <span class="ltx_text" id="S4.T4.1.1.1.3.1.1.1" style="color:#000000;">
+          % Strategies Consistent with Personality
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_rr ltx_border_t" id="S4.T4.1.1.1.4">
+       <span class="ltx_inline-block ltx_align_top" id="S4.T4.1.1.1.4.1">
+        <span class="ltx_p" id="S4.T4.1.1.1.4.1.1" style="width:85.4pt;">
+         <span class="ltx_text" id="S4.T4.1.1.1.4.1.1.1" style="color:#000000;">
+          % Strategies Complete &amp; Consistent
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T4.1.2.2">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_tt" id="S4.T4.1.2.2.1">
+       <span class="ltx_text" id="S4.T4.1.2.2.1.1" style="color:#000000;">
+        MultiAgent-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T4.1.2.2.2">
+       <span class="ltx_text" id="S4.T4.1.2.2.2.1" style="color:#000000;">
+        90%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T4.1.2.2.3">
+       <span class="ltx_text" id="S4.T4.1.2.2.3.1" style="color:#000000;">
+        85%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S4.T4.1.2.2.4">
+       <span class="ltx_text" id="S4.T4.1.2.2.4.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T4.1.3.3">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T4.1.3.3.1">
+       <span class="ltx_text" id="S4.T4.1.3.3.1.1" style="color:#000000;">
+        MultiAgent-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.3.3.2">
+       <span class="ltx_text" id="S4.T4.1.3.3.2.1" style="color:#000000;">
+        95%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.3.3.3">
+       <span class="ltx_text" id="S4.T4.1.3.3.3.1" style="color:#000000;">
+        87.5%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T4.1.3.3.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T4.1.3.3.4.1" style="color:#000000;">
+        87.5
+       </span>
+       <span class="ltx_text" id="S4.T4.1.3.3.4.2" style="color:#000000;">
+        %
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T4.1.4.4">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.T4.1.4.4.1">
+       <span class="ltx_text" id="S4.T4.1.4.4.1.1" style="color:#000000;">
+        SingleLLM-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.4.4.2">
+       <span class="ltx_text" id="S4.T4.1.4.4.2.1" style="color:#000000;">
+        65%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.4.4.3">
+       <span class="ltx_text" id="S4.T4.1.4.4.3.1" style="color:#000000;">
+        80%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S4.T4.1.4.4.4">
+       <span class="ltx_text" id="S4.T4.1.4.4.4.1" style="color:#000000;">
+        55%
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T4.1.5.5">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.T4.1.5.5.1">
+       <span class="ltx_text" id="S4.T4.1.5.5.1.1" style="color:#000000;">
+        SingleLLM-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T4.1.5.5.2">
+       <span class="ltx_text" id="S4.T4.1.5.5.2.1" style="color:#000000;">
+        55%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T4.1.5.5.3">
+       <span class="ltx_text" id="S4.T4.1.5.5.3.1" style="color:#000000;">
+        60%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S4.T4.1.5.5.4">
+       <span class="ltx_text" id="S4.T4.1.5.5.4.1" style="color:#000000;">
+        47.5%
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 4.
+    </span>
+    RQ3: Percentage of simulations in which both strategies are complete, consistent, and both.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table ltx_align_center" id="S4.1.1">
+   <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="S4.1.1.2">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S4.1.1.2.1.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.2.1.1.1">
+       <span class="ltx_text" id="S4.1.1.2.1.1.1.1" style="color:#000000;">
+        Architecture
+       </span>
+      </th>
+      <th class="ltx_td ltx_nopad_r ltx_align_left ltx_th ltx_th_column ltx_border_l ltx_border_t" id="S4.1.1.2.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="S4.1.1.2.1.1.2.1">
+        <span class="ltx_p" id="S4.1.1.2.1.1.2.1.1" style="width:85.4pt;">
+         <span class="ltx_text" id="S4.1.1.2.1.1.2.1.1.1" style="color:#000000;">
+          Proposer:
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_th ltx_th_column ltx_border_t" id="S4.1.1.2.1.1.3">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_column ltx_border_t" id="S4.1.1.2.1.1.4">
+      </th>
+     </tr>
+     <tr class="ltx_tr" id="S4.1.1.2.2.2">
+      <th class="ltx_td ltx_th ltx_th_column ltx_th_row" id="S4.1.1.2.2.2.1">
+      </th>
+      <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_ll" id="S4.1.1.2.2.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="S4.1.1.2.2.2.2.1">
+        <span class="ltx_p" id="S4.1.1.2.2.2.2.1.1" style="width:85.4pt;">
+         <span class="ltx_text" id="S4.1.1.2.2.2.2.1.1.1" style="color:#000000;">
+          Proposer:
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_th ltx_th_column" id="S4.1.1.2.2.2.3">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_column" id="S4.1.1.2.2.2.4">
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.1.1.2.3.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_tt" id="S4.1.1.2.3.1.1">
+       <span class="ltx_text" id="S4.1.1.2.3.1.1.1" style="color:#000000;">
+        MultiAgent-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.1.1.2.3.1.2">
+       <span class="ltx_text" id="S4.1.1.2.3.1.2.1" style="color:#FF0000;">
+        92.5%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.1.1.2.3.1.3">
+       <span class="ltx_text" id="S4.1.1.2.3.1.3.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_rr ltx_border_tt" id="S4.1.1.2.3.1.4">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.1.1.2.4.2">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.2.4.2.1">
+       <span class="ltx_text" id="S4.1.1.2.4.2.1.1" style="color:#000000;">
+        MultiAgent-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.2.4.2.2">
+       <span class="ltx_text" id="S4.1.1.2.4.2.2.1" style="color:#FF0000;">
+        95%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.2.4.2.3">
+       <span class="ltx_text" id="S4.1.1.2.4.2.3.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_rr ltx_border_t" id="S4.1.1.2.4.2.4">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.1.1.2.5.3">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.2.5.3.1">
+       <span class="ltx_text" id="S4.1.1.2.5.3.1.1" style="color:#000000;">
+        SingleLLM-3.5
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.2.5.3.2">
+       <span class="ltx_text" id="S4.1.1.2.5.3.2.1" style="color:#FF0000;">
+        67.5%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.2.5.3.3">
+       <span class="ltx_text" id="S4.1.1.2.5.3.3.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_rr ltx_border_t" id="S4.1.1.2.5.3.4">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.1.1.2.6.4">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.2.6.4.1">
+       <span class="ltx_text" id="S4.1.1.2.6.4.1.1" style="color:#000000;">
+        SingleLLM-4
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.1.1.2.6.4.2">
+       <span class="ltx_text" id="S4.1.1.2.6.4.2.1" style="color:#FF0000;">
+        52.5%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.1.1.2.6.4.3">
+       <span class="ltx_text" id="S4.1.1.2.6.4.3.1" style="color:#000000;">
+        100%
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_b ltx_border_rr ltx_border_t" id="S4.1.1.2.6.4.4">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption" style="color:#000000;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 5.
+    </span>
+    RQ3: Percentage of proposer strategies that are complete, consistent, and both. Red indicates the presence of errors.
+   </figcaption>
+   <figure class="ltx_table ltx_align_center" id="S4.1.1.1.tab1">
+    <div class="ltx_flex_figure ltx_flex_table">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="S4.1.1.1.tab1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.1.tab1.1.1.1.1">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.1.1.1.1" style="color:#000000;">
+           Architecture
+          </span>
+         </th>
+         <th class="ltx_td ltx_nopad_r ltx_align_left ltx_th ltx_th_column ltx_border_ll ltx_border_t" id="S4.1.1.1.tab1.1.1.1.2">
+          <span class="ltx_inline-block ltx_align_top" id="S4.1.1.1.tab1.1.1.1.2.1">
+           <span class="ltx_p" id="S4.1.1.1.tab1.1.1.1.2.1.1" style="width:85.4pt;">
+            <span class="ltx_text" id="S4.1.1.1.tab1.1.1.1.2.1.1.1" style="color:#000000;">
+             Receiver:
+            </span>
+           </span>
+          </span>
+         </th>
+         <th class="ltx_td ltx_th ltx_th_column ltx_border_t" id="S4.1.1.1.tab1.1.1.1.3">
+         </th>
+         <th class="ltx_td ltx_th ltx_th_column ltx_border_t" id="S4.1.1.1.tab1.1.1.1.4">
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.2.2">
+         <th class="ltx_td ltx_th ltx_th_column ltx_th_row" id="S4.1.1.1.tab1.1.2.2.1">
+         </th>
+         <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_ll" id="S4.1.1.1.tab1.1.2.2.2">
+          <span class="ltx_inline-block ltx_align_top" id="S4.1.1.1.tab1.1.2.2.2.1">
+           <span class="ltx_p" id="S4.1.1.1.tab1.1.2.2.2.1.1" style="width:85.4pt;">
+            <span class="ltx_text" id="S4.1.1.1.tab1.1.2.2.2.1.1.1" style="color:#000000;">
+             Receiver:
+            </span>
+           </span>
+          </span>
+         </th>
+         <th class="ltx_td ltx_th ltx_th_column" id="S4.1.1.1.tab1.1.2.2.3">
+         </th>
+         <th class="ltx_td ltx_th ltx_th_column" id="S4.1.1.1.tab1.1.2.2.4">
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.3.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_tt" id="S4.1.1.1.tab1.1.3.1.1">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.3.1.1.1" style="color:#000000;">
+           MultiAgent-3.5
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.1.1.1.tab1.1.3.1.2">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.3.1.2.1" style="color:#FF0000;">
+           97.5%
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.1.1.1.tab1.1.3.1.3">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.3.1.3.1" style="color:#FF0000;">
+           85%
+          </span>
+         </td>
+         <td class="ltx_td ltx_border_rr ltx_border_tt" id="S4.1.1.1.tab1.1.3.1.4">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.4.2">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.1.tab1.1.4.2.1">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.4.2.1.1" style="color:#000000;">
+           MultiAgent-4
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.1.tab1.1.4.2.2">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.4.2.2.1" style="color:#000000;">
+           100%
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.1.tab1.1.4.2.3">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.4.2.3.1" style="color:#FF0000;">
+           87.5%
+          </span>
+         </td>
+         <td class="ltx_td ltx_border_rr ltx_border_t" id="S4.1.1.1.tab1.1.4.2.4">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.5.3">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.1.tab1.1.5.3.1">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.5.3.1.1" style="color:#000000;">
+           SingleLLM-3.5
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.1.tab1.1.5.3.2">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.5.3.2.1" style="color:#000000;">
+           100%
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.1.1.1.tab1.1.5.3.3">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.5.3.3.1" style="color:#FF0000;">
+           80%
+          </span>
+         </td>
+         <td class="ltx_td ltx_border_rr ltx_border_t" id="S4.1.1.1.tab1.1.5.3.4">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.1.1.1.tab1.1.6.4">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_ll ltx_border_r ltx_border_t" id="S4.1.1.1.tab1.1.6.4.1">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.6.4.1.1" style="color:#000000;">
+           SingleLLM-4
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.1.1.1.tab1.1.6.4.2">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.6.4.2.1" style="color:#000000;">
+           100%
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.1.1.1.tab1.1.6.4.3">
+          <span class="ltx_text" id="S4.1.1.1.tab1.1.6.4.3.1" style="color:#FF0000;">
+           60%
+          </span>
+         </td>
+         <td class="ltx_td ltx_border_b ltx_border_rr ltx_border_t" id="S4.1.1.1.tab1.1.6.4.4">
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <figcaption class="ltx_caption" style="color:#000000;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 6.
+     </span>
+     RQ3: Percentage of receiver strategies that are complete, consistent, and both. Red indicates the presence of errors.
+    </figcaption>
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <section class="ltx_section ltx_figure_panel" id="S5">
+       <h2 class="ltx_title ltx_title_section" style="color:#000000;">
+        <span class="ltx_tag ltx_tag_section">
+         5.
+        </span>
+        Discussion
+       </h2>
+       <section class="ltx_subsection" id="S5.SS1">
+        <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+         <span class="ltx_tag ltx_tag_subsection">
+          5.1.
+         </span>
+         Why are multi-agent structures better at strategic simulation?
+        </h3>
+        <div class="ltx_para" id="S5.SS1.p1">
+         <p class="ltx_p" id="S5.SS1.p1.1">
+          <span class="ltx_text" id="S5.SS1.p1.1.1" style="color:#000000;">
+           We found that multi-agent LLM architectures show great promise for simulating strategic human behavior. They were consistent with human experimental data 80% of the time, simulated all personality pairings well, and were generally able to create complete and consistent strategies and adhere to them in gameplay. In contrast, single agent LLMs were only 43% accurate, with 90% of the errors coming from the strategies.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS1.p2">
+         <p class="ltx_p" id="S5.SS1.p2.1">
+          <span class="ltx_text" id="S5.SS1.p2.1.1" style="color:#000000;">
+           Surprisingly, single LLMs errors were caused by issues in strategy creation. Creating strategies seems like the simplest part of the instructions, and was expected to be similar in performance to the multi-agent LLM. We expected single agent LLMs to have errors caused by gameplay mistakes - as it generated more tokens, the LLM might “forget” earlier information like it’s strategies or results of early rounds. But attention or memory were seemingly not the problem. Perhaps a single LLM created abbreviated (and thus poor) strategies because it was tasked to come up with two strategies, as opposed to just one, as the multi-agent structure was. Doing two things well is often harder than doing one thing well.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS1.p3">
+         <p class="ltx_p" id="S5.SS1.p3.1">
+          <span class="ltx_text" id="S5.SS1.p3.1.1" style="color:#000000;">
+           We ran brief experiments attempting to improve our prompt to guide the LLMs to create strategies. However, no obvious rewording created better results. Explicitly instructing proposer strategies to consider both acceptance and rejection cases still resulted in incomplete strategies. Explicitly defining both of the personality characteristics in the prompt also did not impact the strategies created significantly. Asking both LLM architectures to only create strategies (and not simulate following gameplay) also resulted in similar error types; incomplete proposer strategies were still generated, as were receiver strategies inconsistent with personality.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS1.p4">
+         <p class="ltx_p" id="S5.SS1.p4.1">
+          <span class="ltx_text" id="S5.SS1.p4.1.1" style="color:#000000;">
+           Why are LLMs making errors in strategy creation? Perhaps proposer strategies are difficult to create due to the complexity of specifying plans for both receivers’ actions. Perhaps receiver strategies are difficult to create because they require setting a numeric threshold based on personality, and LLMs are sometimes bad with math. However, this wouldn’t explain why Multi-Agent LLMs do a little better than Single LLMs. Regardless of the reason for the error, if someone wanted to run a simulation, they could put a little effort into checking the agents’ strategies and correcting it before letting the simulation run.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS1.p5">
+         <p class="ltx_p" id="S5.SS1.p5.1">
+          <span class="ltx_text" id="S5.SS1.p5.1.1" style="color:#000000;">
+           Surprisingly, the single LLM didn’t struggle to separate out the knowledge the two players should have. Even though it has full knowledge of both players, it didn’t seem to abuse that knowledge or get confused. However, in a more complex game with more players, this might become a problem. When creating scripts with multiple stories.
+This all argues for using Multi-agent LLMs when approaching simulating problems.
+          </span>
+         </p>
+        </div>
+       </section>
+       <section class="ltx_subsection" id="S5.SS2">
+        <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+         <span class="ltx_tag ltx_tag_subsection">
+          5.2.
+         </span>
+         Potential for LLM-based behavior simulations to help designers
+        </h3>
+        <div class="ltx_para" id="S5.SS2.p1">
+         <p class="ltx_p" id="S5.SS2.p1.1">
+          <span class="ltx_text" id="S5.SS2.p1.1.1" style="color:#000000;">
+           Designers and other creators depend on human feedback to guide their process. Early LLM tools showed that LLM-based writing tools has already shown that LLMs can be use to give the readers’ perspective when the writer is struggling to know if they are understood
+          </span>
+          <cite class="ltx_cite ltx_citemacro_citep">
+           <span class="ltx_text" id="S5.SS2.p1.1.2.1" style="color:#000000;">
+            (
+           </span>
+           <span class="ltx_text" style="color:#000000;">
+            Gero et al
+           </span>
+           <span class="ltx_text" style="color:#000000;">
+            .
+           </span>
+           <span class="ltx_text" id="S5.SS2.p1.1.3.2.1.1" style="color:#000000;">
+            ,
+           </span>
+           <a class="ltx_ref" href="#bib.bib6" title="">
+            <span class="ltx_text" style="color:#000000;">
+             2022
+            </span>
+           </a>
+           <span class="ltx_text" id="S5.SS2.p1.1.4.3" style="color:#000000;">
+            )
+           </span>
+          </cite>
+          <span class="ltx_text" id="S5.SS2.p1.1.5" style="color:#000000;">
+           . Persona-based tools like Smallville showed that LLMs can capture individual differences in thoughts, actions and behavior. Work in the design field has shown that persona-based discussions in the early stages of design can help explore the design space through dialectics
+          </span>
+          <cite class="ltx_cite ltx_citemacro_citep">
+           <span class="ltx_text" id="S5.SS2.p1.1.6.1" style="color:#000000;">
+            (
+           </span>
+           <span class="ltx_text" style="color:#000000;">
+            Cai et al
+           </span>
+           <span class="ltx_text" style="color:#000000;">
+            .
+           </span>
+           <span class="ltx_text" id="S5.SS2.p1.1.7.2.1.1" style="color:#000000;">
+            ,
+           </span>
+           <a class="ltx_ref" href="#bib.bib5" title="">
+            <span class="ltx_text" style="color:#000000;">
+             2024
+            </span>
+           </a>
+           <span class="ltx_text" id="S5.SS2.p1.1.8.3" style="color:#000000;">
+            )
+           </span>
+          </cite>
+          <span class="ltx_text" id="S5.SS2.p1.1.9" style="color:#000000;">
+           - the art of investigating or discussing the truth of opinions. Although these scenarios are relatively simple, as LLMs expand their knowledge, context window, and alignment with human values, we expect they will increase in their ability to simulate complex human behavior.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS2.p2">
+         <p class="ltx_p" id="S5.SS2.p2.1">
+          <span class="ltx_text" id="S5.SS2.p2.1.1" style="color:#000000;">
+           Strategic behavior is especially important to simulate in policy design and security settings. How will malicious, lazy, or new/confused people react? Will they break the system, either intentionally or unintentionally? And for a proposed patch to the system, will it work, and will it negatively impact well-intentioned actors, and expert actors? Consider a mundane example like designing a late policy for homework. Allowing infinite lateness will be advantageous to students who are busy and need flexibility but likely lead students who are prone to procrastinating to fall behind. A strict policy will likely keep procrastinators motivated, but will also not allow flexibility (and will generate millions of complaint emails). As with all design problems, there is no right or wrong answer, but better and worse solutions. Thinking through a problem from the perspective of multiple types of actors is mentally demanding. Although we don’t expect an LLM system to perfectly replicate human behavior in all situations, we think it has the potential to be a great interactive tool to help designers explore a space of action consistent with human behavior and take into account complexities like personality, “irrationality,” and strategic thinking.
+          </span>
+         </p>
+        </div>
+       </section>
+       <section class="ltx_subsection" id="S5.SS3">
+        <h3 class="ltx_title ltx_title_subsection" style="color:#000000;">
+         <span class="ltx_tag ltx_tag_subsection">
+          5.3.
+         </span>
+         Limitations
+        </h3>
+        <div class="ltx_para" id="S5.SS3.p1">
+         <p class="ltx_p" id="S5.SS3.p1.1">
+          <span class="ltx_text" id="S5.SS3.p1.1.1" style="color:#000000;">
+           Although this paper studies human strategic behavior, the ultimatum game
+is a rather small example. In more complex scenarios, LLMs may not perform as well as they do in the ultimatum game.
+Our version of ultimatum uses 5 rounds and two players - each with very simple decisions to make (how much to offer and accept/reject).
+This size does not challenge the LLM’s context window, output constraints or attention mechanism. Further investigations should test hundreds of rounds of games to see if and when it breaks down. Simulations also get harder with more agents. We expect multi-agent architectures to be good at this, as that is what they were designed for. However, this should be tested, perhaps on variants of the ultimatum game such as
+the competitive ultimatum game where multiple proposers make offers and receivers must pick among them.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS3.p2">
+         <p class="ltx_p" id="S5.SS3.p2.1">
+          <span class="ltx_text" id="S5.SS3.p2.1.1" style="color:#000000;">
+           The ultimatum game might be too popular to be used as a test for generalized human behavior.
+LLMs are trained to make predictions based on their large text corpus. GPT may have examples of strategies and gameplay to draw from. Thus, it might not be performing strategic behavior that can be generalized to other scenarios. It could just be recreating examples it has seen. However, this is unlikely because the SingleLLM performs poorly, with only the multi-agent starts to get promising results. If the LLM were purely parroting back past examples, we would expect a SingleLLM to excel. Either way, it is unclear how an LLM would be able to simulate strategic human behavior in novel scenarios.
+It is an open question, but a reason to be optimistic is that LLMs have such a broad knowledge base that very little is truly new to them. Despite not having seen simulations of classroom late policies, they could probably simulate typical student complaints that fill Reddit message boards.
+          </span>
+         </p>
+        </div>
+        <div class="ltx_para" id="S5.SS3.p3">
+         <p class="ltx_p" id="S5.SS3.p3.1">
+          <span class="ltx_text" id="S5.SS3.p3.1.1" style="color:#000000;">
+           It is an addtional challenge to simulate human behavior for tor truly unprecedented events with no history to draw from. This might include pandemics like COVID, or new technologies like AI in the workforce. Without explicit data to draw from, LLMs would have to reason from first principles, or draw inferences from past events like previous emergencies or innovations and adjust them to modern times. It could be possible for an LLM to rely on social science theories of human behavior to base simulations on. LLMs have shown a surprising ability to reason, rather than just recall information. And even if they can’t reason completely about novel events, they can still be useful to designers in covering the less novel aspects of a complex situation as it evolves. However, much more research is necessary and this is a fertile and important area for researchers to explore.
+          </span>
+         </p>
+        </div>
+        <section class="ltx_section" id="S6">
+         <h2 class="ltx_title ltx_title_section" style="color:#000000;">
+          <span class="ltx_tag ltx_tag_section">
+           6.
+          </span>
+          Conclusion
+         </h2>
+         <div class="ltx_para" id="S6.p1">
+          <p class="ltx_p" id="S6.p1.1">
+           <span class="ltx_text" id="S6.p1.1.1" style="color:#000000;">
+            Based on our experiments with Single and Multi-Agent LLMs, we conclude that Multi-Agent LLMs show great potential for simulating strategic behavior consistent with human gameplay. We compare LLMs playing The ultimatum game over 5 rounds and see that Multi-Agent LLMs achieve gameplay consistent with human experimental data in 85% of simulations. While single LLMs achieve gameplay consistent with human data in only 43% of simulations. Surprisingly, when the Single LLMs make errors, they tend to make them in strategy creation (100%) rather than in gameplay (25%).
+Based on the strengths of Multi-agent LLMs to create and execute strategic thinking and behavior, we believe these can become a tool for policy designers to think through the behavior of agents with different personalities, trying to strategically navigate a system to achieve a personal outcome. This type of thinking is immensely difficult for people, and LLM-based simulations can aid this cognitive process.
+           </span>
+          </p>
+         </div>
+         <section class="ltx_bibliography" id="bib">
+          <h2 class="ltx_title ltx_title_bibliography" style="color:#000000;">
+           References
+          </h2>
+          <ul class="ltx_biblist">
+           <li class="ltx_bibitem" id="bib.bib1">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib1.2.2.1" style="color:#000000;">
+              (1)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib1.3.1" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib2">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib2.5.5.1" style="color:#000000;">
+              Aher et al
+             </span>
+             <span class="ltx_text" id="bib.bib2.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib2.7.7.3" style="color:#000000;">
+              (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib2.9.1" style="color:#000000;">
+              Gati Aher, Rosa I. Arriaga, and Adam Tauman Kalai. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib2.10.1" style="color:#000000;">
+              Using Large Language Models to Simulate Multiple Humans and Replicate Human Subject Studies.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib2.11.1" style="color:#000000;">
+              arXiv:2208.10264 [cs.CL]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib3">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib3.4.4.1" style="color:#000000;">
+              Alvard (2004)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib3.6.1" style="color:#000000;">
+              Michael Alvard. 2004.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib3.7.1" style="color:#000000;">
+              The Ultimatum Game, Fairness, and Cooperation among Big Game Hunters
+             </em>
+             <span class="ltx_text" id="bib.bib3.8.2" style="color:#000000;">
+              .
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib3.9.1" style="color:#000000;">
+              413–435.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib3.10.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1093/0199262055.003.0014" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1093/0199262055.003.0014
+             </a>
+             <span class="ltx_text" id="bib.bib3.11.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib4">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib4.4.4.1" style="color:#000000;">
+              Ariely (2008)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib4.6.1" style="color:#000000;">
+              Dan Ariely. 2008.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib4.7.1" style="color:#000000;">
+              Predictably Irrational: The Hidden Forces That Shape Our Decisions
+             </em>
+             <span class="ltx_text" id="bib.bib4.8.2" style="color:#000000;">
+              .
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib4.9.1" style="color:#000000;">
+              Harper, New York, NY.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib5">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib5.5.5.1" style="color:#000000;">
+              Cai et al
+             </span>
+             <span class="ltx_text" id="bib.bib5.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib5.7.7.3" style="color:#000000;">
+              (2024)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib5.9.1" style="color:#000000;">
+              Alice Cai, Shiyan Zhang, Celine Janssen, and Jeffrey Nickerson. 2024.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib5.10.1" style="color:#000000;">
+              Upside Down Dialectics: Exploring design conversations with synthetic humans. In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib5.11.2" style="color:#000000;">
+              under review at DESRIST 2024
+             </em>
+             <span class="ltx_text" id="bib.bib5.12.3" style="color:#000000;">
+              .
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib6">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib6.5.5.1" style="color:#000000;">
+              Gero et al
+             </span>
+             <span class="ltx_text" id="bib.bib6.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib6.7.7.3" style="color:#000000;">
+              (2022)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib6.9.1" style="color:#000000;">
+              Katy Ilonka Gero, Vivian Liu, and Lydia Chilton. 2022.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib6.10.1" style="color:#000000;">
+              Sparks: Inspiration for Science Writing using Language Models. In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib6.11.2" style="color:#000000;">
+              Proceedings of the 2022 ACM Designing Interactive Systems Conference
+             </em>
+             <span class="ltx_text" id="bib.bib6.12.3" style="color:#000000;">
+              (¡conf-loc¿, ¡city¿Virtual Event¡/city¿, ¡country¿Australia¡/country¿, ¡/conf-loc¿)
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib6.13.4" style="color:#000000;">
+              (DIS ’22)
+             </em>
+             <span class="ltx_text" id="bib.bib6.14.5" style="color:#000000;">
+              . Association for Computing Machinery, New York, NY, USA, 1002–1019.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib6.15.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1145/3532106.3533533" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1145/3532106.3533533
+             </a>
+             <span class="ltx_text" id="bib.bib6.16.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib7">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib7.4.4.1" style="color:#000000;">
+              Guo (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib7.6.1" style="color:#000000;">
+              Fulin Guo. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib7.7.1" style="color:#000000;">
+              GPT in Game Theory Experiments.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib7.8.1" style="color:#000000;">
+              arXiv:2305.05516 [econ.GN]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib8">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib8.4.4.1" style="color:#000000;">
+              Hamilton (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib8.6.1" style="color:#000000;">
+              Sil Hamilton. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib8.7.1" style="color:#000000;">
+              Blind Judgement: Agent-Based Supreme Court Modelling With GPT.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib8.8.1" style="color:#000000;">
+              arXiv:2301.05327 [cs.CL]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib9">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib9.4.4.1" style="color:#000000;">
+              Henrich (2000)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib9.6.1" style="color:#000000;">
+              Joseph Henrich. 2000.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib9.7.1" style="color:#000000;">
+              Does Culture Matter in Economic Behavior? Ultimatum Game Bargaining among the Machiguenga of the Peruvian Amazon.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib9.8.1" style="color:#000000;">
+              American Economic Review
+             </em>
+             <span class="ltx_text" id="bib.bib9.9.2" style="color:#000000;">
+              90, 4 (September 2000), 973–979.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib9.10.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1257/aer.90.4.973" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1257/aer.90.4.973
+             </a>
+             <span class="ltx_text" id="bib.bib9.11.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib10">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib10.5.5.1" style="color:#000000;">
+              Herbrich et al
+             </span>
+             <span class="ltx_text" id="bib.bib10.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib10.7.7.3" style="color:#000000;">
+              (2006)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib10.9.1" style="color:#000000;">
+              Ralf Herbrich, Tom Minka, and Thore Graepel. 2006.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib10.10.1" style="color:#000000;">
+              TrueSkill™: A Bayesian Skill Rating System. In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib10.11.2" style="color:#000000;">
+              Advances in Neural Information Processing Systems
+             </em>
+             <span class="ltx_text" id="bib.bib10.12.3" style="color:#000000;">
+              , B. Schölkopf, J. Platt, and T. Hoffman (Eds.), Vol. 19. MIT Press.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib10.13.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://proceedings.neurips.cc/paper_files/paper/2006/file/f44ee263952e65b3610b8ba51229d1f9-Paper.pdf" style="color:#000000;" target="_blank" title="">
+              https://proceedings.neurips.cc/paper_files/paper/2006/file/f44ee263952e65b3610b8ba51229d1f9-Paper.pdf
+             </a>
+             <span class="ltx_text" id="bib.bib10.14.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib11">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib11.4.4.1" style="color:#000000;">
+              Horton (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib11.6.1" style="color:#000000;">
+              John J. Horton. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib11.7.1" style="color:#000000;">
+              Large Language Models as Simulated Economic Agents: What Can We Learn from Homo Silicus?
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib11.8.1" style="color:#000000;">
+              arXiv:2301.07543 [econ.GN]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib12">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib12.4.4.1" style="color:#000000;">
+              Houser and McCabe (2014)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib12.6.1" style="color:#000000;">
+              Daniel Houser and Kevin McCabe. 2014.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib12.7.1" style="color:#000000;">
+              Chapter 2 - Experimental Economics and Experimental Game Theory.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib12.8.1" style="color:#000000;">
+              In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib12.9.2" style="color:#000000;">
+              Neuroeconomics (Second Edition)
+             </em>
+             <span class="ltx_text" id="bib.bib12.10.3" style="color:#000000;">
+              (second edition ed.), Paul W. Glimcher and Ernst Fehr (Eds.). Academic Press, San Diego, 19–34.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib12.11.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1016/B978-0-12-416008-8.00002-4" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1016/B978-0-12-416008-8.00002-4
+             </a>
+             <span class="ltx_text" id="bib.bib12.12.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib13">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib13.4.4.1" style="color:#000000;">
+              Kahneman (2012)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib13.6.1" style="color:#000000;">
+              Daniel Kahneman. 2012.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib13.7.1" style="color:#000000;">
+              Thinking, fast and slow
+             </em>
+             <span class="ltx_text" id="bib.bib13.8.2" style="color:#000000;">
+              .
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib13.9.1" style="color:#000000;">
+              Penguin, London.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib13.10.1" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib14">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib14.5.5.1" style="color:#000000;">
+              Kidd et al
+             </span>
+             <span class="ltx_text" id="bib.bib14.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib14.7.7.3" style="color:#000000;">
+              (2013)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib14.9.1" style="color:#000000;">
+              Celeste Kidd, Holly Palmeri, and Richard N. Aslin. 2013.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib14.10.1" style="color:#000000;">
+              Rational snacking: Young children’s decision-making on the marshmallow task is moderated by beliefs about environmental reliability.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib14.11.1" style="color:#000000;">
+              Cognition
+             </em>
+             <span class="ltx_text" id="bib.bib14.12.2" style="color:#000000;">
+              126, 1 (2013), 109–114.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib14.13.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1016/j.cognition.2012.08.004" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1016/j.cognition.2012.08.004
+             </a>
+             <span class="ltx_text" id="bib.bib14.14.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib15">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib15.4.4.1" style="color:#000000;">
+              Krawczyk (2018)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib15.6.1" style="color:#000000;">
+              Daniel C. Krawczyk. 2018.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib15.7.1" style="color:#000000;">
+              Chapter 12 - Social Cognition: Reasoning With Others.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib15.8.1" style="color:#000000;">
+              In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib15.9.2" style="color:#000000;">
+              Reasoning
+             </em>
+             <span class="ltx_text" id="bib.bib15.10.3" style="color:#000000;">
+              , Daniel C. Krawczyk (Ed.). Academic Press, 283–311.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib15.11.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1016/B978-0-12-809285-9.00012-0" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1016/B978-0-12-809285-9.00012-0
+             </a>
+             <span class="ltx_text" id="bib.bib15.12.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib16">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib16.4.4.1" style="color:#000000;">
+              Königstein (2001)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib16.6.1" style="color:#000000;">
+              Manfred Königstein. 2001.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib16.7.1" style="color:#000000;">
+              Personality influences on Ultimatum Game bargaining decisions.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib16.8.1" style="color:#000000;">
+              European Journal of Personality
+             </em>
+             <span class="ltx_text" id="bib.bib16.9.2" style="color:#000000;">
+              15 (10 2001), S53 – S70.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib16.10.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1002/per.424" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.1002/per.424
+             </a>
+             <span class="ltx_text" id="bib.bib16.11.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib17">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib17.4.4.1" style="color:#000000;">
+              McCrae and Costa (2008)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib17.6.1" style="color:#000000;">
+              Robert R McCrae and Paul T Jr Costa. 2008.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib17.7.1" style="color:#000000;">
+              The five-factor theory of personality.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib17.8.1" style="color:#000000;">
+              In
+             </span>
+             <em class="ltx_emph ltx_font_italic" id="bib.bib17.9.2" style="color:#000000;">
+              Handbook of personality: Theory and research
+             </em>
+             <span class="ltx_text" id="bib.bib17.10.3" style="color:#000000;">
+              (3 ed.), Oliver P John, Richard W Robins, and Lawrence A Pervin (Eds.). The Guilford Press, 159–181.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib18">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib18.4.4.1" style="color:#000000;">
+              Mullainathan and Shafir (2013)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib18.6.1" style="color:#000000;">
+              Sendhil Mullainathan and Eldar Shafir. 2013.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib18.7.1" style="color:#000000;">
+              Scarcity: Why having too little means so much
+             </em>
+             <span class="ltx_text" id="bib.bib18.8.2" style="color:#000000;">
+              .
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib18.9.1" style="color:#000000;">
+              Times Books/Henry Holt and Co.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib19">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib19.5.5.1" style="color:#000000;">
+              OpenAI et al
+             </span>
+             <span class="ltx_text" id="bib.bib19.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib19.7.7.3" style="color:#000000;">
+              (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib19.9.1" style="color:#000000;">
+              OpenAI, :, Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, Red Avila, Igor Babuschkin, Suchir Balaji, Valerie Balcom, Paul Baltescu, Haiming Bao, Mo Bavarian, Jeff Belgum, Irwan Bello, Jake Berdine, Gabriel Bernadett-Shapiro, Christopher Berner, Lenny Bogdonoff, Oleg Boiko, Madelaine Boyd, Anna-Luisa Brakman, Greg Brockman, Tim Brooks,
+Miles Brundage, Kevin Button, Trevor Cai, Rosie Campbell, Andrew Cann, Brittany Carey, Chelsea Carlson, Rory Carmichael, Brooke Chan, Che Chang, Fotis Chantzis, Derek Chen, Sully Chen, Ruby Chen, Jason Chen, Mark Chen, Ben Chess, Chester Cho, Casey Chu, Hyung Won Chung, Dave Cummings, Jeremiah Currier, Yunxing Dai, Cory Decareaux, Thomas Degry, Noah Deutsch, Damien Deville, Arka Dhar, David Dohan, Steve Dowling, Sheila Dunning, Adrien
+Ecoffet, Atty Eleti, Tyna Eloundou, David Farhi, Liam Fedus, Niko Felix, Simón Posada Fishman, Juston Forte, Isabella Fulford, Leo Gao, Elie Georges, Christian Gibson, Vik Goel, Tarun Gogineni, Gabriel Goh, Rapha Gontijo-Lopes, Jonathan Gordon, Morgan Grafstein, Scott Gray, Ryan Greene, Joshua Gross, Shixiang Shane Gu, Yufei Guo, Chris Hallacy, Jesse Han, Jeff Harris, Yuchen He, Mike Heaton, Johannes Heidecke, Chris Hesse, Alan Hickey, Wade Hickey,
+Peter Hoeschele, Brandon Houghton, Kenny Hsu, Shengli Hu, Xin Hu, Joost Huizinga, Shantanu Jain, Shawn Jain, Joanne Jang, Angela Jiang, Roger Jiang, Haozhun Jin, Denny Jin, Shino Jomoto, Billie Jonn, Heewoo Jun, Tomer Kaftan, Łukasz Kaiser, Ali Kamali, Ingmar Kanitscheider, Nitish Shirish Keskar, Tabarak Khan, Logan Kilpatrick, Jong Wook Kim, Christina Kim, Yongjik Kim, Hendrik Kirchner, Jamie Kiros, Matt Knight, Daniel Kokotajlo, Łukasz Kondraciuk,
+Andrew Kondrich, Aris Konstantinidis, Kyle Kosic, Gretchen Krueger, Vishal Kuo, Michael Lampe, Ikai Lan, Teddy Lee, Jan Leike, Jade Leung, Daniel Levy, Chak Ming Li, Rachel Lim, Molly Lin, Stephanie Lin, Mateusz Litwin, Theresa Lopez, Ryan Lowe, Patricia Lue, Anna Makanju, Kim Malfacini, Sam Manning, Todor Markov, Yaniv Markovski, Bianca Martin, Katie Mayer, Andrew Mayne, Bob McGrew, Scott Mayer McKinney, Christine McLeavey, Paul McMillan,
+Jake McNeil, David Medina, Aalok Mehta, Jacob Menick, Luke Metz, Andrey Mishchenko, Pamela Mishkin, Vinnie Monaco, Evan Morikawa, Daniel Mossing, Tong Mu, Mira Murati, Oleg Murk, David Mély, Ashvin Nair, Reiichiro Nakano, Rajeev Nayak, Arvind Neelakantan, Richard Ngo, Hyeonwoo Noh, Long Ouyang, Cullen O’Keefe, Jakub Pachocki, Alex Paino, Joe Palermo, Ashley Pantuliano, Giambattista Parascandolo, Joel Parish, Emy Parparita, Alex Passos, Mikhail Pavlov,
+Andrew Peng, Adam Perelman, Filipe de Avila Belbute Peres, Michael Petrov, Henrique Ponde de Oliveira Pinto, Michael, Pokorny, Michelle Pokrass, Vitchyr Pong, Tolly Powell, Alethea Power, Boris Power, Elizabeth Proehl, Raul Puri, Alec Radford, Jack Rae, Aditya Ramesh, Cameron Raymond, Francis Real, Kendra Rimbach, Carl Ross, Bob Rotsted, Henri Roussez, Nick Ryder, Mario Saltarelli, Ted Sanders, Shibani Santurkar, Girish Sastry, Heather Schmidt, David Schnurr,
+John Schulman, Daniel Selsam, Kyla Sheppard, Toki Sherbakov, Jessica Shieh, Sarah Shoker, Pranav Shyam, Szymon Sidor, Eric Sigler, Maddie Simens, Jordan Sitkin, Katarina Slama, Ian Sohl, Benjamin Sokolowsky, Yang Song, Natalie Staudacher, Felipe Petroski Such, Natalie Summers, Ilya Sutskever, Jie Tang, Nikolas Tezak, Madeleine Thompson, Phil Tillet, Amin Tootoonchian, Elizabeth Tseng, Preston Tuggle, Nick Turley, Jerry Tworek, Juan Felipe Cerón Uribe, Andrea Vallone,
+Arun Vijayvergiya, Chelsea Voss, Carroll Wainwright, Justin Jay Wang, Alvin Wang, Ben Wang, Jonathan Ward, Jason Wei, CJ Weinmann, Akila Welihinda, Peter Welinder, Jiayi Weng, Lilian Weng, Matt Wiethoff, Dave Willner, Clemens Winter, Samuel Wolrich, Hannah Wong, Lauren Workman, Sherwin Wu, Jeff Wu, Michael Wu, Kai Xiao, Tao Xu, Sarah Yoo, Kevin Yu, Qiming Yuan, Wojciech Zaremba, Rowan Zellers, Chong Zhang, Marvin Zhang, Shengjia Zhao,
+Tianhao Zheng, Juntang Zhuang, William Zhuk, and Barret Zoph. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib19.10.1" style="color:#000000;">
+              GPT-4 Technical Report.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib19.11.1" style="color:#000000;">
+              arXiv:2303.08774 [cs.CL]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib20">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib20.5.5.1" style="color:#000000;">
+              Park et al
+             </span>
+             <span class="ltx_text" id="bib.bib20.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib20.7.7.3" style="color:#000000;">
+              (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib20.9.1" style="color:#000000;">
+              Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib20.10.1" style="color:#000000;">
+              Generative Agents: Interactive Simulacra of Human Behavior.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib20.11.1" style="color:#000000;">
+              arXiv:2304.03442 [cs.HC]
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib21">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib21.5.5.1" style="color:#000000;">
+              Vavra et al
+             </span>
+             <span class="ltx_text" id="bib.bib21.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib21.7.7.3" style="color:#000000;">
+              (2018)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib21.9.1" style="color:#000000;">
+              Peter Vavra, Luke J. Chang, and Alan G. Sanfey. 2018.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib21.10.1" style="color:#000000;">
+              Expectations in the Ultimatum Game: Distinct Effects of Mean and Variance of Expected Offers.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib21.11.1" style="color:#000000;">
+              Frontiers in Psychology
+             </em>
+             <span class="ltx_text" id="bib.bib21.12.2" style="color:#000000;">
+              9 (2018).
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib21.13.1" style="color:#000000;">
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.3389/fpsyg.2018.00992" style="color:#000000;" target="_blank" title="">
+              https://doi.org/10.3389/fpsyg.2018.00992
+             </a>
+             <span class="ltx_text" id="bib.bib21.14.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib22">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib22.5.5.1" style="color:#000000;">
+              Wei et al
+             </span>
+             <span class="ltx_text" id="bib.bib22.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib22.7.7.3" style="color:#000000;">
+              (2022)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib22.9.1" style="color:#000000;">
+              Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Ed H. Chi, Quoc Le, and Denny Zhou. 2022.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib22.10.1" style="color:#000000;">
+              Chain of Thought Prompting Elicits Reasoning in Large Language Models.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <em class="ltx_emph ltx_font_italic" id="bib.bib22.11.1" style="color:#000000;">
+              CoRR
+             </em>
+             <span class="ltx_text" id="bib.bib22.12.2" style="color:#000000;">
+              abs/2201.11903 (2022).
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib22.13.1" style="color:#000000;">
+              arXiv:2201.11903
+             </span>
+             <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2201.11903" style="color:#000000;" target="_blank" title="">
+              https://arxiv.org/abs/2201.11903
+             </a>
+             <span class="ltx_text" id="bib.bib22.14.2" style="color:#000000;">
+             </span>
+            </span>
+           </li>
+           <li class="ltx_bibitem" id="bib.bib23">
+            <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+             <span class="ltx_text" id="bib.bib23.5.5.1" style="color:#000000;">
+              Zheng et al
+             </span>
+             <span class="ltx_text" id="bib.bib23.6.6.2" style="color:#000000;">
+              .
+             </span>
+             <span class="ltx_text" id="bib.bib23.7.7.3" style="color:#000000;">
+              (2023)
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib23.9.1" style="color:#000000;">
+              Chuanyang Zheng, Zhengying Liu, Enze Xie, Zhenguo Li, and Yu Li. 2023.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib23.10.1" style="color:#000000;">
+              Progressive-Hint Prompting Improves Reasoning in Large Language Models.
+             </span>
+            </span>
+            <span class="ltx_bibblock">
+            </span>
+            <span class="ltx_bibblock">
+             <span class="ltx_text" id="bib.bib23.11.1" style="color:#000000;">
+              arXiv:2304.09797 [cs.CL]
+             </span>
+            </span>
+           </li>
+          </ul>
+         </section>
+        </section>
+       </section>
+      </section>
+     </div>
+    </div>
+   </figure>
+  </figure>
+ </section>
+</article>

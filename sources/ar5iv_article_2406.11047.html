@@ -1,0 +1,3598 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Enhancing Supermarket Robot Interaction: A Multi-Level LLM Conversational Interface for Handling Diverse Customer Intents
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Chandran Nandkumar
+    <br class="ltx_break"/>
+    Department of Cognitive Robotics
+    <br class="ltx_break"/>
+    Delft University of Technology
+    <br class="ltx_break"/>
+    Delft 2628 CD
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     chandran0303.cn@gmail.com
+    </span>
+    <br class="ltx_break"/>
+    Luka Peternel
+    <br class="ltx_break"/>
+    Department of Cognitive Robotics
+    <br class="ltx_break"/>
+    Delft University of Technology
+    <br class="ltx_break"/>
+    Delft 2628 CD
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id2">
+     l.peternel@tudelft.nl
+    </span>
+    <br class="ltx_break"/>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id3.id1">
+   This paper presents the design and evaluation of a novel multi-level LLM interface for supermarket robots to assist customers. The proposed interface allows customers to convey their needs through both generic and specific queries. While state-of-the-art systems like OpenAI’s GPTs are highly adaptable and easy to build and deploy, they still face challenges such as increased response times and limitations in strategic control of the underlying model for tailored use-case and cost optimisation. Driven by the goal of developing faster and more efficient conversational agents, this paper advocates for using multiple smaller, specialised LLMs fine-tuned to handle different user queries based on their specificity and user intent. We compare this approach to a specialised GPT model powered by GPT-4 Turbo, using the Artificial Social Agent Questionnaire (ASAQ) and qualitative participant feedback in a counterbalanced within-subjects experiment. Our findings show that our multi-LLM chatbot architecture outperformed the benchmarked GPT model across all 13 measured criteria, with statistically significant improvements in four key areas: performance, user satisfaction, user-agent partnership, and self-image enhancement. The paper also presents a method for supermarket robot navigation by mapping the final chatbot response to correct shelf numbers, enabling the robot to sequentially navigate towards the respective products, after which lower-level robot perception, control, and planning can be used for automated object retrieval. We hope this work encourages more efforts into using multiple, specialised smaller models instead of relying on a single powerful, but more expensive and slower, model.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In recent times, the presence of robots in our daily lives has increased drastically and they are now capable of working side-by-side with humans to achieve a given objective. The paper in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bloss (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2016
+     </a>
+     )
+    </cite>
+    explains how collaborative robots improve task efficiency, reduce training times for operators and promise greater safety than their autonomous robot counterparts. Since collaborative robots are a vast and growing field in robotics
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Goldberg (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2019
+     </a>
+     )
+    </cite>
+    , multiple works address the need for different approaches to provide efficient, immersive and aware control. The study in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Villani et al. (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2018
+     </a>
+     )
+    </cite>
+    makes a strong argument for the need to implement intuitive user interfaces, which help reduce operation time and operator errors whilst maintaining situational awareness and user engagement.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    There are multiple options available to interact with collaborative robots. To furnish some examples,
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Anjum et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    ,
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Kragic et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2018
+     </a>
+     )
+    </cite>
+    , and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Takarics et al. (
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2008
+     </a>
+     )
+    </cite>
+    show different implementations of robot collaboration using vision for a variety of applications like pick-and-place to welding;
+    <cite class="ltx_cite ltx_citemacro_cite">
+     García et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Senft et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2021
+     </a>
+     )
+    </cite>
+    presents the implementation of Augmented Reality for human-robot collaborative surface treatment and task-level authoring respectively whilst
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liu et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2019
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Solanes et al. (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2022
+     </a>
+     )
+    </cite>
+    present the use case of Virtual Reality for the control of robotic manipulators and mobile robots. There are various other means of controlling a robot like eye tracking, pose determination, haptics, facial expressions and more. Furthermore, it is also possible to use multiple such interfaces simultaneously to get more precise and accurate results as seen in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shaif et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bai et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    With the advancements made in Large Language Models that are capable of processing natural language statements and requests in different languages and complexities in a robust manner, we can now implement interfaces that are capable of accepting and understanding a users exact intentions and needs to provide highly specific and effective results. Furthermore, by connecting with an Automatic Speech Recognition and a Text-to-Speech system we can enable voice-based control that offers other benefits such as being hands-free and highly intuitive. However, the variability in the types of requests in terms of complexity and degree of language processing required implies that a supermarket chatbot must be robust enough to handle both straightforward queries such as asking a specific item’s availability, position and price to significantly more open-ended and broader queries regarding high-level intents such as recommendations for a specific dinner or items required for a party. Chatbots built by LLMs are also prone to significant hallucinations and mistakes which influence the degree of trust users can place in these systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Ma et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Furthermore, the latency of such systems is often extremely high, affecting their degree of usability. This presents an opportunity to invent a new approach capable of resolving as many problems as possible from above.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Currently, LLMs can be used as interfaces for specific purposes using OpenAI’s GPTs powered by the state-of-the-art GPT4 Turbo model
+    <cite class="ltx_cite ltx_citemacro_cite">
+     OpenAI (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Although GPTs are easy to create and deploy, they suffer from a number of demerits such as high latency, non-flexibility in training models for specific use cases and performance issues of the underlying model. The main contribution of this work lies in trying to improve upon the limitations of this current state-of-the-art. To achieve this, we propose a novel multi-LLM hierarchical conversational agent capable of responding to all kinds of user queries in a friendly manner. This system is evaluated against a custom-made GPT created with the same data and information provided to our approach using the Artificial Social Agent Questionnaire (ASAQ) across 13 parameters
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Fitrianie et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2022
+     </a>
+     )
+    </cite>
+    in a counterbalanced within-subjects experiment.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Thus this paper aims to answer the following research question: How does our novel multi-LLM conversational agent fare on the Artificial Social Agent Questionnaire (ASAQ) and qualitative evaluation against a custom-built state-of-the-art GPT in a human-factors experiment?
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    The paper is structured as follows. Section 2 covers the design of the multi-LLM conversational agent along with specific details about the various components of our proposed chatbot. Section 3 presents the experimental methodology. Section 4 presents the results of the evaluation of our proposed system against the state-of-the-art GPT using the ASAQ and qualitative questions. Section 5 discusses the main findings and implications of our study along with the link to robotics. Lastly, Section 6 serves as the conclusion.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="328" id="S1.F1.g1" src="/html/2406.11047/assets/images/speech_flow.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Proposed architecture for handling different queries. Once the query has been transcribed by the speech recognition system, it is classified by the distilBERT system (1). If the query is classified as a high-level query the high-level LLM asks further questions and prepares a rough list of items. These items are sent to the information retrieval system and the relevant items are sent to the medium-level LLM that prepares the correct list of items (2). Otherwise, the query is directly converted to an embedding and searched by the IR system to provide the necessary list of items to the user (3). The relevant response (4) is then shown to the user for further modifications or approval.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Design of the Multi-LLM conversational agent
+  </h2>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="337" id="S2.F2.g1" src="/html/2406.11047/assets/images/bake_cake.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    A visual depiction of the responses of the 3 different LLMs. A high-level query takes a request and based on the user’s input and user profile, creates a basic list of items. The medium-level LLM takes these items, the chatlog and retrieved items to craft a tailored response for the user. Lastly, all specific queries, modifications and other requests are passed to the low-level query capable of retrieving items and making changes to the original list.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    We will begin by covering the main requirements, design strategies and specific details of how we build our supermarket agent. The main requirements of a supermarket chatbot are that it must be able to retrieve relevant information from the database and answer user queries in a friendly and natural manner whilst ensuring it can handle a variety of queries from simple requests asking details about a specific product to complex high-level queries. This requires the conversational agent to not only be capable of basic functions such as natural language understanding, dialogue management and natural language generation but also advanced reasoning and information retrieval.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    To address the problems of latency, information retrieval, reasoning window and price, we propose a novel multi-LLM conversational agent where many smaller LLMs, specialised for certain tasks and query types work together to give better results. The architecture we employ is shown in Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Enhancing Supermarket Robot Interaction: A Multi-Level LLM Conversational Interface for Handling Diverse Customer Intents">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_table" id="S2.T1">
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S2.T1.1">
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S2.T1.1.1.1">
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_tt" id="S2.T1.1.1.1.1">
+       Metric
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.2">
+       Accuracy
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.3">
+       Precision
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.4">
+       Recall
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.5">
+       F1 Score
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.1.2.2">
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_t" id="S2.T1.1.2.2.1">
+       Value
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S2.T1.1.2.2.2">
+       0.8679
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S2.T1.1.2.2.3">
+       0.8839
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S2.T1.1.2.2.4">
+       0.8679
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S2.T1.1.2.2.5">
+       0.8651
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Performance Metrics for Set for query classification by DistilBERT
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Query Classifier
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The first step in our conversational agent is to take the input text obtained from the speech recognition system and classify it based on whether the query is high-level, low-level, modification or miscellaneous. High-level queries are those that need to be broken down and analysed with the help of the user to ascertain their preferences, the particular occasion and other restrictions which can enable us to make more informed decisions. A low-level query is a specific request of a particular product or class of products such as finding the location, price or alternatives to an option. A modification query is one where the customer wishes to make amendments to a previously displayed list. Lastly, a miscellaneous statement comprises of everything else such as conversational statements like ’Yes, please’ and ’Thank you’.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     We need a powerful natural language classifier that can be fine-tuned for the given task. We used distilBERT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Sanh et al. (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2020
+      </a>
+      )
+     </cite>
+     as it can be fine-tuned for our specific classification task and can be run locally on systems without dedicated GPUs. The model is freely available and is easy to train and deploy. The query classifier is trained on over 150 examples primarily augmented by GPT4 by providing a few representational examples to the model. For our fine-tuning purposes, we were able to use anonymous logs of chatbot interactions collected in previous experiments along with GPT4 augmented data. In total, we had 106 English statements, manually labelled from the previous chatlogs and 250 English queries were augmented by GPT4. The data augmentation was done on the ChatGPT interface to allow for better control of the diversity and nature of resultant statements. After shuffling the data, we split the final 356 queries into 250 training, 53 validation, and 53 test sets. Before training the queries were converted to lower case and punctuation marks were removed since we are using a cased distilBERT model.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     The hyperparameters used are as follows -
+    </p>
+    <ol class="ltx_enumerate" id="S2.I1">
+     <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1.
+      </span>
+      <div class="ltx_para" id="S2.I1.i1.p1">
+       <p class="ltx_p" id="S2.I1.i1.p1.1">
+        Learning rate : 5e-5,
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2.
+      </span>
+      <div class="ltx_para" id="S2.I1.i2.p1">
+       <p class="ltx_p" id="S2.I1.i2.p1.1">
+        Number of epochs : 8,
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       3.
+      </span>
+      <div class="ltx_para" id="S2.I1.i3.p1">
+       <p class="ltx_p" id="S2.I1.i3.p1.1">
+        Optimiser : AdamW,
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       4.
+      </span>
+      <div class="ltx_para" id="S2.I1.i4.p1">
+       <p class="ltx_p" id="S2.I1.i4.p1.1">
+        Warmup steps : 10% of total steps
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     The final validation loss was 0.58324 and the final validation accuracy was 0.8302 at the 8th epoch and was unchanged from the 7th epoch results. Table summarises the accuracy, recall, precision and F1 scores of the classifier after fine-tuning. The fine-tuned DistilBERT classifier demonstrates a robust performance in classifying queries into four distinct classes: high, low, modify, and miscellaneous, with an accuracy score of 0.8679. The precision score achieved was 0.8839 with a recall score of 0.8679. The F1 Score, which balances precision and recall was found to be 0.8651. It is important to note that the mistakes made in classification are sometimes permissible. For example, the classifier mislabeled ’Sure, add that to my cart.’ as ’modify’ instead of the ground truth label assigned of ’miscellaneous’ which is a completely valid classification for the given query. Likewise, ’I need to replace my usual breakfast cereal with a high fiber option, which one?’ was misclassified as a high-level query when the ground truth label assigned was low - which is once again a permissible misclassification since there are multiple options for a high fibre breakfast (high level) but it can also be a low-level query (retrieve the high fibre cereal options).
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    High-level LLM
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     If the query is classified as high-level, a high-level LLM is called to interact with the user in order to get more information and break down the query into a list of items the user may need. At this step, user preferences and choices are taken into account along with ascertaining what items the user would need versus that which they already possess or can be substituted. This is best explained with an example. Say the user wishes to bake a cake. There are a number of ingredients needed such as milk, eggs, flour, baking powder, baking soda, vanilla essence, sugar etc. However, the user may possess a lot of these items already at home. Additionally there are other ways to make a cake such as using a cake mix, buying a premade cake or deciding exactly what flavour and nutrition profile you wish to base it on. The high-level LLM is tasked with ascertaining what kind of cake the user wants, if they have any preferences/allergies or other customisations needed along with understanding the exact list of ingredients needed. The high-level LLM is fine-tuned on multi-turn conversations based on prior anonymous chatlogs and few-shot LLM-augmented interactions between a customer and the chatbot.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Medium-level LLM
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Once the user is satisfied with this selection of items, the list of user-selected products, the chatlog of the user and the chatbot and the retrieved items are sent to a medium-level LLM that is tasked with creating a tailored list of items from the context with the exact name, brand, price, location and reasoning behind the selection of the items. The medium-level LLM never interacts directly with the user. Based on the response of the medium-level LLM, the user can fine-tune their list of items by making any final changes to the products using the low-level LLM.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     The medium-level LLM is also finetuned with various examples of conversations derived from prior anonymous chatlogs and conversations augmented by GPT4. The fine-tuning of this model draws inspiration from Retrieval Augmented Fine Tuning (RAFT)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Zhang et al. (
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       2024
+      </a>
+      )
+     </cite>
+     . RAFT provides a simple approach to derive the best of both Retrieval Augmented Generation (RAG) and fine-tuning. An example of its implementation for our application is if 5 different types of flour are retrieved and used as context by the LLM, we specifically use Chain-Of-Thought reasoning to select the whole wheat flour if the user profile indicates that the customer is health conscious. This way, we are not only able to fine-tune our model to present the results in the right format but also can teach it to reason and select the most relevant items from a larger pool of options.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.4
+    </span>
+    Low-level LLM
+   </h3>
+   <div class="ltx_para" id="S2.SS4.p1">
+    <p class="ltx_p" id="S2.SS4.p1.1">
+     Should the user ask for a low-level, modify or miscellaneous query or remark, we call a low-level LLM capable of retrieving the information from the database and giving the output to the user whilst also editing the bill based on the specific request. The process continues until the user is happy with their list and no further edits or changes are necessary. The low-level LLM receives 20 products from the information retrieval system after converting the original query to an embedding and finding the closest neighbours via cosine similarity.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS4.p2">
+    <p class="ltx_p" id="S2.SS4.p2.1">
+     Similar to the strategy employed in the medium-level LLM, we use RAFT to provide chain-of-thought reasoning during fine-tuning to ensure the correct and most relevant items are picked from the larger pool. Once again the model is trained on both prior anonymous chatlogs and GPT4 augmented conversations to improve its performance for the specific application.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiment Methodology
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Now that we have provided the justification and explanation for our multi-LLM system, we will evaluate our approach against the state-of-the-art GPTs. To do this, we perform a within-subjects experimental study where participants are split into two groups based on the order in which they try both chatbots and are asked to fill our the ASA Questionnaire and provide answers to 3 qualitative questions.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Participant Demographics
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Overall, 16 participants were recruited for the study (9 male and 7 female) between the ages of 23 to 30 (Mean - 24.3125 and SD - 1.8874). In terms of frequency of usage and familiarity with LLM chatbots like ChatGPT, Gemini and Claude, 6 participants responded that they interact with such tools over 5 times a week, 3 responded between 4-5 times a week, 2 responded 3-4 times a week, 4 responded 1-2 times a week and 1 participant responded less than once a week.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Experiment Design
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     All participants were first shown the informed consent form to ensure that no personally identifiable information will be collected. The only data stored are their responses to the questionnaire, answers to the qualitative questions and chatlogs for further analysis of factors such as hallucinations. We began by collecting demographic details and asking for a brief insight into their shopping intentions such as what they look for and prioritise when they are shopping in the supermarket. Participants were then asked to interact with either the GPT or the custom multi-LLM chatbot we created. The order in which participants tried both chatbots were routinely cycled to ensure half the participants started by interacting with the GPT and the other half with our solution. Participants were not informed of the nature of the agents and were asked to interact with them in a manner they felt best expressed their supermarket intents and goals.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     For the evaluation of our conversational agent, we use the Artificial Social Agent Questionnaire (ASAQ)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Fitrianie et al. (
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       2022
+      </a>
+      )
+     </cite>
+     . The questionnaire was developed based on the need to create a validated, standardised measurement instrument dedicated to assessing human interaction with Artificial Social Agents (ASA). The ASAQ is the result of extensive collaboration over multiple years involving over one hundred ASA researchers globally and ensures a robust framework for evaluating interactions between humans and ASAs. The long version of the ASAQ provides an in-depth analysis of human-ASA interactions, catering to comprehensive evaluation needs. Conversely, the short version offers a swift means to analyse and summarise these interactions, facilitating quick insights into the user experience. Additionally, the instrument is complemented by an ASA chart, which serves as a visual tool for reporting results from the questionnaire and provides an overview of the agent’s profile. Due to its breadth and comprehensiveness, the ASAQ measures 19 parameters - some of which are not relevant to our study. Thus, 13 relevant parameters were selected which was measured using the short version of the ASAQ.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     After interacting with the first chatbot, participants were asked to fill in the 13 relevant questions from the ASAQ followed by the following qualitative questions -
+    </p>
+    <ol class="ltx_enumerate" id="S3.I1">
+     <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1.
+      </span>
+      <div class="ltx_para" id="S3.I1.i1.p1">
+       <p class="ltx_p" id="S3.I1.i1.p1.1">
+        Tell us in detail, what do you find most helpful and unhelpful from this result.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2.
+      </span>
+      <div class="ltx_para" id="S3.I1.i2.p1">
+       <p class="ltx_p" id="S3.I1.i2.p1.1">
+        If at all, how much does this system make you feel more or less confident about your shopping needs and decisions in a supermarket?
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       3.
+      </span>
+      <div class="ltx_para" id="S3.I1.i3.p1">
+       <p class="ltx_p" id="S3.I1.i3.p1.1">
+        Is there anything that you would like to comment about this task?
+       </p>
+      </div>
+     </li>
+    </ol>
+    <p class="ltx_p" id="S3.SS2.p3.2">
+     After this, they were asked to repeat the same procedure but with the other chatbot. The overall experiment took roughly 40 minutes to complete.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p4">
+    <p class="ltx_p" id="S3.SS2.p4.1">
+     Since order is the between-subjects factor and the chatbot is the within-subjects factor, we perform the Mann-Whitney U-test and the Wilcoxon Signed rank test respectively. We use these non-parametric tests since the Shapiro-Wilks test of all the criteria was not normally distributed. This is to be expected given that we were using ordinal data as opposed to continuous values.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results
+  </h2>
+  <figure class="ltx_table" id="S4.T2">
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T2.2">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S4.T2.2.2">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_tt" id="S4.T2.2.2.3">
+       Sl. No
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt" id="S4.T2.2.2.4">
+       Criterion
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" colspan="4" id="S4.T2.2.2.2">
+       Group Scores (
+       <math alttext="\mu" class="ltx_Math" display="inline" id="S4.T2.1.1.1.m1.1">
+        <semantics id="S4.T2.1.1.1.m1.1a">
+         <mi id="S4.T2.1.1.1.m1.1.1" xref="S4.T2.1.1.1.m1.1.1.cmml">
+          μ
+         </mi>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.1.1.1.m1.1b">
+          <ci id="S4.T2.1.1.1.m1.1.1.cmml" xref="S4.T2.1.1.1.m1.1.1">
+           𝜇
+          </ci>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.1.1.1.m1.1c">
+          \mu
+         </annotation>
+        </semantics>
+       </math>
+       and
+       <math alttext="\sigma" class="ltx_Math" display="inline" id="S4.T2.2.2.2.m2.1">
+        <semantics id="S4.T2.2.2.2.m2.1a">
+         <mi id="S4.T2.2.2.2.m2.1.1" xref="S4.T2.2.2.2.m2.1.1.cmml">
+          σ
+         </mi>
+         <annotation-xml encoding="MathML-Content" id="S4.T2.2.2.2.m2.1b">
+          <ci id="S4.T2.2.2.2.m2.1.1.cmml" xref="S4.T2.2.2.2.m2.1.1">
+           𝜎
+          </ci>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S4.T2.2.2.2.m2.1c">
+          \sigma
+         </annotation>
+        </semantics>
+       </math>
+       )
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" colspan="3" id="S4.T2.2.2.5">
+       Statistical Tests
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T2.2.3.1">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.3.1.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_column ltx_th_row" id="S4.T2.2.3.1.2">
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.3">
+       GG
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.4">
+       GC
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.5">
+       CG
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.6">
+       CC
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.7">
+       Wilcoxon
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T2.2.3.1.8">
+       Mann-Whitney
+      </th>
+      <td class="ltx_td" id="S4.T2.2.3.1.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.4.2">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" id="S4.T2.2.4.2.1">
+       1
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" id="S4.T2.2.4.2.2">
+       Agent’s Usability
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.3">
+       2
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.4">
+       1.87
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.5">
+       1.25
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.6">
+       2.12
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.7">
+       p = 0.19
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.2.4.2.8">
+       p = 0.50
+      </td>
+      <td class="ltx_td ltx_border_t" id="S4.T2.2.4.2.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.5.3">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.5.3.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.5.3.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.3">
+       0.76
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.4">
+       0.64
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.5">
+       1.04
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.6">
+       0.35
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.7">
+       W = 12.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.5.3.8">
+       U = 144.5
+      </td>
+      <td class="ltx_td" id="S4.T2.2.5.3.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.6.4">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.6.4.1">
+       2
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.6.4.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.6.4.2.1">
+        Agent’s Performance
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.3">
+       1.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.5">
+       1
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.6">
+       2.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.7">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.6.4.7.1">
+        0.048
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.6.4.8">
+       p = 1.00
+      </td>
+      <td class="ltx_td" id="S4.T2.2.6.4.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.7.5">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.7.5.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.7.5.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.3">
+       1.2
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.4">
+       0.89
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.5">
+       1.07
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.6">
+       0.46
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.7">
+       W = 15.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.7.5.8">
+       U = 128.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.7.5.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.8.6">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.8.6.1">
+       3
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.8.6.2">
+       Agent’s Likeability
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.3">
+       1.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.5">
+       1.12
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.6">
+       1.88
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.7">
+       p = 0.299
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.8.6.8">
+       p = 0.814
+      </td>
+      <td class="ltx_td" id="S4.T2.2.8.6.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.9.7">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.9.7.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.9.7.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.3">
+       1.41
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.4">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.5">
+       1.46
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.6">
+       1.13
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.7">
+       W = 36.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.9.7.8">
+       U = 134.5
+      </td>
+      <td class="ltx_td" id="S4.T2.2.9.7.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.10.8">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.10.8.1">
+       4
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.10.8.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.10.8.2.1">
+        User Acceptance
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.3">
+       1.12
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.5">
+       0.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.6">
+       2
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.7">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.10.8.7.1">
+        0.022
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.10.8.8">
+       p = 1.00
+      </td>
+      <td class="ltx_td" id="S4.T2.2.10.8.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.11.9">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.11.9.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.11.9.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.3">
+       1.13
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.4">
+       1.04
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.5">
+       1.85
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.6">
+       1.31
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.7">
+       W = 13.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.11.9.8">
+       U = 127.5
+      </td>
+      <td class="ltx_td" id="S4.T2.2.11.9.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.12.10">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.12.10.1">
+       5
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.12.10.2">
+       Agent’s Enjoyability
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.3">
+       0.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.4">
+       1.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.5">
+       0.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.6">
+       1.38
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.7">
+       p = 0.091
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.12.10.8">
+       p = 1.00
+      </td>
+      <td class="ltx_td" id="S4.T2.2.12.10.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.13.11">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.13.11.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.13.11.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.3">
+       2.05
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.4">
+       1.83
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.5">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.6">
+       1.51
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.7">
+       W = 26.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.13.11.8">
+       U = 127.5
+      </td>
+      <td class="ltx_td" id="S4.T2.2.13.11.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.14.12">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.14.12.1">
+       6
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.14.12.2">
+       User’s Engagement
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.3">
+       1
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.5">
+       0.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.6">
+       0.88
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.7">
+       p = 0.095
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.14.12.8">
+       p = 0.082
+      </td>
+      <td class="ltx_td" id="S4.T2.2.14.12.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.15.13">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.15.13.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.15.13.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.3">
+       1.19
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.4">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.5">
+       0.89
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.6">
+       1.89
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.7">
+       W = 26.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.15.13.8">
+       U = 173.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.15.13.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.16.14">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.16.14.1">
+       7
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.16.14.2">
+       User’s Trust
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.3">
+       1
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.4">
+       1.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.5">
+       0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.6">
+       1.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.7">
+       p = 0.104
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.16.14.8">
+       p = 0.63
+      </td>
+      <td class="ltx_td" id="S4.T2.2.16.14.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.17.15">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.17.15.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.17.15.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.3">
+       1.31
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.4">
+       1.04
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.5">
+       1.51
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.6">
+       1.77
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.7">
+       W = 22.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.17.15.8">
+       U = 173.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.17.15.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.18.16">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.18.16.1">
+       8
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.18.16.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.18.16.2.1">
+        User-Agent Alliance
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.3">
+       0.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.4">
+       1.13
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.5">
+       -0.38
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.6">
+       0.88
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.7">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.18.16.7.1">
+        0.027
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.18.16.8">
+       p = 0.065
+      </td>
+      <td class="ltx_td" id="S4.T2.2.18.16.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.19.17">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.19.17.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.19.17.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.3">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.4">
+       0.83
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.5">
+       0.92
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.6">
+       1.73
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.7">
+       W = 0.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.19.17.8">
+       U = 0.065
+      </td>
+      <td class="ltx_td" id="S4.T2.2.19.17.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.20.18">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.20.18.1">
+       9
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.20.18.2">
+       Agent’s Attentiveness
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.3">
+       1.62
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.5">
+       1.62
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.6">
+       2
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.7">
+       p = 0.484
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.20.18.8">
+       p = 0.633
+      </td>
+      <td class="ltx_td" id="S4.T2.2.20.18.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.21.19">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.21.19.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.21.19.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.3">
+       1.19
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.4">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.5">
+       1.06
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.6">
+       0.53
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.7">
+       W = 30.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.21.19.8">
+       U = 115.5
+      </td>
+      <td class="ltx_td" id="S4.T2.2.21.19.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.22.20">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.22.20.1">
+       10
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.22.20.2">
+       Agent’s coherence
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.3">
+       2
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.4">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.5">
+       0.63
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.6">
+       2.12
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.7">
+       p = 0.108
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.22.20.8">
+       p = 0.292
+      </td>
+      <td class="ltx_td" id="S4.T2.2.22.20.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.23.21">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.23.21.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.23.21.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.3">
+       0.76
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.4">
+       1.16
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.5">
+       1.41
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.6">
+       0.83
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.7">
+       W = 19.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.23.21.8">
+       U = 155.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.23.21.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.24.22">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.24.22.1">
+       11
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.24.22.2">
+       Agent’s intentionality
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.3">
+       2.12
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.4">
+       2.12
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.5">
+       1.38
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.6">
+       2.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.7">
+       p = 0.087
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.24.22.8">
+       p = 0.732
+      </td>
+      <td class="ltx_td" id="S4.T2.2.24.22.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.25.23">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.25.23.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.25.23.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.3">
+       0.64
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.4">
+       0.99
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.5">
+       1.06
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.6">
+       0.76
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.7">
+       W = 6.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.25.23.8">
+       U = 137.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.25.23.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.26.24">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.26.24.1">
+       12
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.26.24.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.26.24.2.1">
+        Agent’s attitude
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.3">
+       1.62
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.4">
+       2.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.5">
+       0.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.6">
+       1.75
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.7">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.26.24.7.1">
+        0.022
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.26.24.8">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.26.24.8.1">
+        0.048
+       </span>
+      </td>
+      <td class="ltx_td" id="S4.T2.2.26.24.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.27.25">
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.27.25.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row" id="S4.T2.2.27.25.2">
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.3">
+       0.92
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.4">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.5">
+       1.60
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.6">
+       0.71
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.7">
+       W = 8.0
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.27.25.8">
+       U = 178.0
+      </td>
+      <td class="ltx_td" id="S4.T2.2.27.25.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.28.26">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T2.2.28.26.1">
+       13
+      </th>
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row" id="S4.T2.2.28.26.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.28.26.2.1">
+        Interaction Impact
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.3">
+       0.88
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.4">
+       1.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.5">
+       0.25
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.6">
+       1.5
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.7">
+       p =
+       <span class="ltx_text ltx_font_bold" id="S4.T2.2.28.26.7.1">
+        0.017
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T2.2.28.26.8">
+       p = 0.694
+      </td>
+      <td class="ltx_td" id="S4.T2.2.28.26.9">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.2.29.27">
+      <th class="ltx_td ltx_th ltx_th_row ltx_border_bb" id="S4.T2.2.29.27.1">
+      </th>
+      <th class="ltx_td ltx_th ltx_th_row ltx_border_bb" id="S4.T2.2.29.27.2">
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.3">
+       0.83
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.4">
+       1.07
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.5">
+       1.58
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.6">
+       0.92
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.7">
+       W = 10.0
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.2.29.27.8">
+       U = 138.5
+      </td>
+      <td class="ltx_td ltx_border_bb" id="S4.T2.2.29.27.9">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2:
+    </span>
+    Summary of Statistical Analysis of the Artificial Social Agent Questionnaire. The 4 groups mentioned are an order model pair and stand for: GG - GPT first GPT scores, GC - GPT first Custom chatbot scores, CG - Custom chatbot first GPT scores and CC - Custom chatbot first custom chatbot scores. All 13 criteria fail the Shapiro Wilks test for normality and thus the Wilcoxon Signed Rank test is done to evaluate the performance between models with p-value and Wilcoxon statistic represented as W and Mann-Whitney U-test is performed to test the effect of order with p-value and Mann Whitney statistic represented as U are presented below.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    As seen in Figure
+    <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ 4 Results ‣ Enhancing Supermarket Robot Interaction: A Multi-Level LLM Conversational Interface for Handling Diverse Customer Intents">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    we observe that our solution performs better than the GPT on all 13 tested parameters of the ASAQ. We continue by performing statistical tests on all 13 parameters to find out which parameters are significantly better in our model compared to the state-of-the-art. Table
+    <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4 Results ‣ Enhancing Supermarket Robot Interaction: A Multi-Level LLM Conversational Interface for Handling Diverse Customer Intents">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    lists all the 13 parameters. Overall we observe that in terms of agent performance, user acceptance of the agent, user-agent alliance, agent attitude and interaction impact on self-image, the p-value is lesser than 0.05. The Mann-Whitney U-test shows that order is not statistically significant for all criteria except the agent’s attitude. Thus we cannot rule out the agent’s attitude as being statistically better since order could have influenced the results.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S4.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="383" id="S4.F3.g1" src="/html/2406.11047/assets/images/newplot.png" width="479"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 3:
+    </span>
+    Comparison of the GPT with our custom multi-LLM solution on the provided ASA chart. The scores range from -3 to +3 of the Likert scale on which the ASAQ is built. Our multi-LLM approach performs better than the GPT on all 13 parameters.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    As mentioned in the experiment design, participants were also asked 3 qualitative questions to try and understand their overall experience better. Participants overall agreed that the state-of-the-art GPT model was simple to use and interact with. Participant #5 commented on its usefulness as a brainstorming tool to help make decisions of what to purchase and what to try out. Participant #7 found the responses of the GPT to be more cohesive and in line with their expectations when inquiring about meal preparation strategies for the entire week. Furthermore, participant #15 found that the responses to complex questions were quite well handled whilst ensuring the conversational tone and language were simple to understand. Whilst none of the participants were overly enthusiastic about the responses and strength of this system, they were content with the answers and recommendations provided by it. However, participants #2 and #3 were concerned about hallucinations and mentioned that this affected the degree of trust they could place in the system. P#2 found some items which did not exist in the database in the responses which were misleading (hallucination) whilst P#3 was not able to get information about a screwdriver despite the item being present in the database (omission). Participant #6 had issues substituting organic spinach with regular spinach despite a number of attempts. Participants #4 and #8 found the number of options provided by the GPT was limited which made them feel more restricted in terms of choices. Participant #9 observed that despite mentioning their dietary preferences as being a vegetarian in the user profile, the agent recommended options which did not conform with that. Participant #14 found that the chatbot was also not able to justify its choices clearly when making recommendations. Multiple participants also commented on the inability of the GPT to provide complete information in its response. For instance, when recommending product names it often forgot to mention the price and location which had to be requested for separately.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    Moving on to the custom multi-LLM agent proposed in this paper, participants overall agreed that the proposed chatbot was direct and efficient. Multiple participants commented on the preciseness of the answers which they found made the chatbot very helpful. Although participants were asked to only evaluate the chatbot based on the responses, participants were also impressed with the speed of the chatbot. Participant #4 commented on how the chatbot reminded them of certain ingredients for their dish that they had forgotten which was very useful. Participant #5 mentioned that they found the ability to ask questions to narrow down the options to be a helpful feature in the agent. Participant #7 commented about the reliability and trustworthiness of the agent on account of both the format and reasoning provided by the chatbot. Participant #11 also mentioned how this chatbot could be useful for people who tend to be more socially anxious and wary of approaching the workers in the supermarket for help and recommendations.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    However, participants felt that the chatbot’s ability to provide detailed recipes, ideas or plans outside the scope of product recommendation was fairly limited. Participant #2 stated that they felt the chatbot was more coercive and ’pushy’ by trying to force them towards specific products. Participants #3 and #5 found that the chatbot made errors when summarising the final list or maintaining track of the conversation. Participant #8 found that when the LLM was asked to provide the total price of all products, the answer was incorrect. Participant #13 also commented on how the tool may lead to them purchasing more than they initially sought out.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Discussion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    Overall, we observe that the multi-LLM approach offers multiple benefits over using the most powerful LLM like the state-of-the-art GPT such as reduced costs, reduced latency, increased control over specialised tasks, easier ablation and comparative studies and better task performance. While the GPT solution is indeed the quickest and easiest in terms of deployability, the performance of knowledge retrieval is rather inadequate. By utilising multiple smaller LLMs capable of interacting with one another and maintaining a common conversation log helps in providing context to each separate model as well. The presence of a classifier enables us to directly route queries to the correct model instead of following a common approach for all questions. By fine-tuning with GPT4 augmented data we are also able to leverage the formatting and style of the responses to be extremely well structured and easy to understand.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Furthermore, the modular nature of our solution enables easy substitution of models with alternatives as they become available making the solution extremely flexible to adapt to future developments in the field. One can also fine-tune and use open-source models to ensure reliability and address concerns regarding data privacy and security. Furthermore, by increasing or optimising the number of classes the classifier can select items into, other roles can also be unlocked such as bill management, asking for assistance from supermarket workers or providing feedback. The approach is also not limited to supermarket scenarios and can easily applied to other domains which could benefit from utilising natural language interfaces. By selecting the type of LLMs and queries, the approach can be optimised based on the specific task.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S5.F4">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="218" id="S5.F4.g1" src="/html/2406.11047/assets/images/destination_shelf.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 4:
+    </span>
+    The robot in a large simulated supermarket. Figure a. shows the render on Gazebo while Figure b shows the path (in green line) and the robot navigating to the correct shelf in RViz. The simulation and demonstration have been done on ROS Noetic.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    While this chatbot can be applied as a standalone application on a mobile phone or in kiosks at the entry of the supermarket, we are also interested in exploring how these chatbots can be effectively integrated into high-level robot planning to guide a supermarket robot to go to the necessary locations after which the required low-level perception, motion planning of a manipulator and control can be applied for automated object retrieval and collection. This feature is useful as it can allow a customer to interact with the chatbot and have a robot autonomously pick up the necessary items and bring them to the user. While the low-level functionality such as perception and manipulation are beyond the scope of our work, we demonstrate with a simple example how our robot can navigate to the necessary shelves after receiving an appropriate request from the customer.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p4">
+   <p class="ltx_p" id="S5.p4.1">
+    The key assumption made in this work is that the position of all shelves remains the same over time. This is a reasonable assumption to make since most path-planning algorithms require a pre-recorded map to facilitate path planning from a given start point to a destination. If the supermarket is to change its overall configuration, a new map would have to be generated by using SLAM or other similar mapping techniques. To connect the chatbot with the robot, we use an LLM to process the final conversational agent message which has a list of all the products the customer has indicated a willingness to purchase and retrieve a list of shelf numbers for each object. We then define this as a set, removing any duplicates in case multiple items are in the same shelf. The shelves can then be arranged in order to optimise the total distance covered by the robot. We then look up the specific shelf numbers’ position from a pre-configured YAML file consisting of the X-Y coordinates of the shelves to retrieve the destination and end pose of the robot. We iterate over all the shelves one after the other until the robot has visited all the necessary items.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p5">
+   <p class="ltx_p" id="S5.p5.1">
+    However, the current approach is not without its share of limitations. Incorrectly classified queries can lead to the query being handled by a model that is not specialised for the given task. This could potentially lead to a loss of context and confusing results to users. Since the classifier is built atop a multilingual BERT classifier the responses are highly sensitive to changes in spellings and the manner in which the customer expresses themselves. We believe replacing the mdistilBERT classifier with a small fine-tuned LLM tasked with query classification and rewriting to add any necessary context could be a viable solution to address these limitations and add context to a query to improve retrieval.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    This paper presents the development of a novel multi-LLM agent and evaluates its performance against the state-of-the-art GPT. Our multi-LLM agent surpassed the state-of-the-art in 4 of 13 parameters and demonstrated better performance across all 13 measured ASAQ criteria. The successful integration of LLMs into robot path planning for shelf-directed item retrieval exemplifies the practical application of these interfaces in real-world settings. This study hopes to encourage greater efforts into using multiple specialised LLMs for a required task instead of always relying on a single powerful model to derive benefits in terms of costs, speed and overall task performance.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Acknowledgements
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    The authors would like to thank AIRLab Delft for providing access to the necessary simulation environment and ROS packages to try out the proposed approach. The authors would also like to thank Dr. Chris Pek and Dr. Corrado Pezzato for their insightful feedback on the current limitations and challenges within the field and assistance respectively.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Anjum et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Muhammad Umar Anjum, Umar Shabaz Khan, Waqar Shahid Qureshi, Ameer Hamza, and Wajih Ahmed Khan.
+    </span>
+    <span class="ltx_bibblock">
+     Vision-based hybrid detection for pick and place application in robotic manipulators.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      2023 International Conference on Robotics and Automation in Industry (ICRAI)
+     </em>
+     , pages 1–5, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1109/ICRAI57502.2023.10089602
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bai et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Yang Bai, Irtaza Shahid, Harshvardhan Takawale, and Nirupam Roy.
+    </span>
+    <span class="ltx_bibblock">
+     Whisperwand: Simultaneous voice and gesture tracking interface, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bloss [2016]
+    </span>
+    <span class="ltx_bibblock">
+     Richard Bloss.
+    </span>
+    <span class="ltx_bibblock">
+     Collaborative robots are rapidly providing major improvements in productivity, safety, programing ease, portability and cost while addressing many new applications.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Industrial Robot: An International Journal
+     </em>
+     , 43:463–468, 08 2016.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1108/IR-05-2016-0148
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Fitrianie et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Siska Fitrianie, Merijn Bruijnes, Fengxiang Li, Amal Abdulrahman, and Willem-Paul Brinkman.
+    </span>
+    <span class="ltx_bibblock">
+     The artificial-social-agent questionnaire: establishing the long and short questionnaire versions.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Proceedings of the 22nd ACM International Conference on Intelligent Virtual Agents
+     </em>
+     , IVA ’22, New York, NY, USA, 2022. Association for Computing Machinery.
+    </span>
+    <span class="ltx_bibblock">
+     ISBN 9781450392488.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1145/3514197.3549612
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1145/3514197.3549612" target="_blank" title="">
+      https://doi.org/10.1145/3514197.3549612
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     García et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Alberto García, J. Ernesto Solanes, Adolfo Muñoz, Luis Gracia, and Josep Tornero.
+    </span>
+    <span class="ltx_bibblock">
+     Augmented reality-based interface for bimanual robot teleoperation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Applied Sciences
+     </em>
+     , 12(9), 2022.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 2076-3417.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.3390/app12094379
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.mdpi.com/2076-3417/12/9/4379" target="_blank" title="">
+      https://www.mdpi.com/2076-3417/12/9/4379
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Goldberg [2019]
+    </span>
+    <span class="ltx_bibblock">
+     Ken Goldberg.
+    </span>
+    <span class="ltx_bibblock">
+     Robots and the return to collaborative intelligence.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Nature Machine Intelligence
+     </em>
+     , 1(1):2–4, 2019.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 2522-5839.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1038/s42256-018-0008-x
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1038/s42256-018-0008-x" target="_blank" title="">
+      https://doi.org/10.1038/s42256-018-0008-x
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kragic et al. [2018]
+    </span>
+    <span class="ltx_bibblock">
+     Danica Kragic, Joakim Gustafson, Hakan Karaoğuz, Patric Jensfelt, and Robert Krug.
+    </span>
+    <span class="ltx_bibblock">
+     Interactive, collaborative robots: Challenges and opportunities.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      International Joint Conference on Artificial Intelligence
+     </em>
+     , 2018.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://api.semanticscholar.org/CorpusID:51605383" target="_blank" title="">
+      https://api.semanticscholar.org/CorpusID:51605383
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2019]
+    </span>
+    <span class="ltx_bibblock">
+     Naijun Liu, Tao Lu, Yinghao Cai, Jinyan Lu, Huaixu Gao, Boyao Li, and Shuo Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Design of virtual reality teleoperation system for robot complex manipulation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      2019 Chinese Automation Congress (CAC)
+     </em>
+     , pages 1789–1793, 2019.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1109/CAC48633.2019.8997211
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ma et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Xiao Ma, Swaroop Mishra, Ariel Liu, Sophie Su, Jilin Chen, Chinmay Kulkarni, Heng-Tze Cheng, Quoc V Le, and E. Chi.
+    </span>
+    <span class="ltx_bibblock">
+     Beyond chatbots: Explorellm for structured thoughts and personalized model responses.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      ArXiv
+     </em>
+     , abs/2312.00763, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.48550/arXiv.2312.00763
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI [2023]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Introducing gpts.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openai.com/blog/introducing-gpts" target="_blank" title="">
+      https://openai.com/blog/introducing-gpts
+     </a>
+     , 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Accessed: 2024-04-09.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sanh et al. [2020]
+    </span>
+    <span class="ltx_bibblock">
+     Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf.
+    </span>
+    <span class="ltx_bibblock">
+     Distilbert, a distilled version of bert: smaller, faster, cheaper and lighter, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Senft et al. [2021]
+    </span>
+    <span class="ltx_bibblock">
+     Emmanuel Senft, Michael Hagenow, Kevin Welsh, Robert Radwin, Michael Zinn, Michael Gleicher, and Bilge Mutlu.
+    </span>
+    <span class="ltx_bibblock">
+     Task-level authoring for remote robot teleoperation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Frontiers in Robotics and AI
+     </em>
+     , 8, 2021.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 2296-9144.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.3389/frobt.2021.707149
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.frontiersin.org/articles/10.3389/frobt.2021.707149" target="_blank" title="">
+      https://www.frontiersin.org/articles/10.3389/frobt.2021.707149
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shaif et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Abdullah Shaif, Suresh Gobee, and Vickneswari Durairajah.
+    </span>
+    <span class="ltx_bibblock">
+     Vision and voice-based human-robot interactive interface for humanoid robot.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      AIP Conference Proceedings
+     </em>
+     , volume 2788. AIP Publishing, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Solanes et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     J. Ernesto Solanes, Adolfo Muñoz, Luis Gracia, and Josep Tornero.
+    </span>
+    <span class="ltx_bibblock">
+     Virtual reality-based interface for advanced assisted mobile robot teleoperation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Applied Sciences
+     </em>
+     , 12(12), 2022.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 2076-3417.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.3390/app12126071
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.mdpi.com/2076-3417/12/12/6071" target="_blank" title="">
+      https://www.mdpi.com/2076-3417/12/12/6071
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Takarics et al. [2008]
+    </span>
+    <span class="ltx_bibblock">
+     Bela Takarics, Peter T Szemes, Gyula Németh, and Peter Korondi.
+    </span>
+    <span class="ltx_bibblock">
+     Welding trajectory reconstruction based on the intelligent space concept.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      2008 Conference on Human System Interactions
+     </em>
+     , pages 791–796. IEEE, 2008.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Villani et al. [2018]
+    </span>
+    <span class="ltx_bibblock">
+     Valeria Villani, Fabio Pini, Francesco Leali, and Cristian Secchi.
+    </span>
+    <span class="ltx_bibblock">
+     Survey on human–robot collaboration in industrial settings: Safety, intuitive interfaces and applications.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      Mechatronics
+     </em>
+     , 55:248–266, 2018.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 0957-4158.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      https://doi.org/10.1016/j.mechatronics.2018.02.009
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.sciencedirect.com/science/article/pii/S0957415818300321" target="_blank" title="">
+      https://www.sciencedirect.com/science/article/pii/S0957415818300321
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Tianjun Zhang, Shishir G. Patil, Naman Jain, Sheng Shen, Matei Zaharia, Ion Stoica, and Joseph E. Gonzalez.
+    </span>
+    <span class="ltx_bibblock">
+     Raft: Adapting language model to domain specific rag, 2024.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Appendix / supplemental material
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    Participant Instructions
+   </h3>
+   <div class="ltx_para" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     Participants were welcomed and thanked for participating in the study after which the informed consent form and other details about the experiment and data privacy were communicated. Participants were placed into 2 groups based on the order in which they interacted with the GPT/multi-LLM chatbots. The order was cycled for each subsequent participant. Participants were only informed that they would be interacting with 2 chatbots - one after the other. The overall experiment took roughly 40 minutes per participant.
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p2">
+    <p class="ltx_p" id="A1.SS1.p2.1">
+     Before they began, required demographic information was collected such as age, gender, familiarity and frequency of usage of LLMs to ensure that all participants had interacted with such agents to prevent any learning effects from interfering with the study. Next participants were asked to reflect on what their general intentions during a supermarket visit tend to be. The specific instructions provided here were -
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p3">
+    <p class="ltx_p" id="A1.SS1.p3.1">
+     <em class="ltx_emph ltx_font_italic" id="A1.SS1.p3.1.1">
+      Please describe, in around 100 words, any objectives or inquiries you might have while visiting a supermarket. This could range from searching for particular items, seeking advice or recommendations, to any general queries you often find yourself pondering amidst the aisles. Feel free to reflect on your personal needs, preferences, or a specific list of items you aim to purchase.
+     </em>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p4">
+    <p class="ltx_p" id="A1.SS1.p4.1">
+     <em class="ltx_emph ltx_font_italic" id="A1.SS1.p4.1.1">
+      A useful way to approach this is to think about the types of products or goods that usually draw your interest, or those you suddenly remember you need once you’re there. Your input can draw upon both past shopping experiences or current needs.
+     </em>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p5">
+    <p class="ltx_p" id="A1.SS1.p5.1">
+     This question was asked to help participants mentally prepare themselves by thinking of what they would potentially look for in a supermarket so that they could interact with the chatbot more naturally. After this, they were provided with the first chatbot and asked to interact with it until they felt satisfied with the results or enough to make an assessment. They were then asked to fill out the relevant questions in the ASAQ questionnaire. Following this, 3 qualitative questions were provided to which the participants could write their views in whatever depth they deemed necessary. The same process was then repeated for the other chatbot.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.2
+    </span>
+    Remaining Appendices
+   </h3>
+   <div class="ltx_para" id="A1.SS2.p1">
+    <p class="ltx_p" id="A1.SS2.p1.1">
+     All the remaining appendices have been attached as a separate pdf on the next page from A to E.
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS2.p2">
+    <p class="ltx_p" id="A1.SS2.p2.1">
+     See pages - of
+     <a class="ltx_ref" href="Appendix.pdf" title="">
+      Appendix.pdf
+     </a>
+    </p>
+   </div>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="Ax1">
+  <h2 class="ltx_title ltx_title_appendix">
+   NeurIPS Paper Checklist
+  </h2>
+  <div class="ltx_para" id="Ax1.p1">
+   <ol class="ltx_enumerate" id="Ax1.I1">
+    <li class="ltx_item" id="Ax1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i1.p1">
+      <p class="ltx_p" id="Ax1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i1.p1.1.1">
+        Claims
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix1.p1">
+      <p class="ltx_p" id="Ax1.I1.ix1.p1.1">
+       Question: Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix2.p1">
+      <p class="ltx_p" id="Ax1.I1.ix2.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix2.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix3.p1">
+      <p class="ltx_p" id="Ax1.I1.ix3.p1.1">
+       Justification: The paper aims to build and evaluate a novel multiLLM chatbot that is reflected in the abstract and introduction.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix4.p1">
+      <p class="ltx_p" id="Ax1.I1.ix4.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix4.I1">
+       <li class="ltx_item" id="Ax1.I1.ix4.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix4.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix4.I1.i1.p1.1">
+          The answer NA means that the abstract and introduction do not include the claims made in the paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix4.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix4.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix4.I1.i2.p1.1">
+          The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix4.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix4.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix4.I1.i3.p1.1">
+          The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix4.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix4.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix4.I1.i4.p1.1">
+          It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i2.p1">
+      <p class="ltx_p" id="Ax1.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i2.p1.1.1">
+        Limitations
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix5.p1">
+      <p class="ltx_p" id="Ax1.I1.ix5.p1.1">
+       Question: Does the paper discuss the limitations of the work performed by the authors?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix6" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix6.p1">
+      <p class="ltx_p" id="Ax1.I1.ix6.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix6.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix7" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix7.p1">
+      <p class="ltx_p" id="Ax1.I1.ix7.p1.1">
+       Justification: The limitations are provided in the last paragraph of the discussions section (Section 5).
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix8" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix8.p1">
+      <p class="ltx_p" id="Ax1.I1.ix8.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix8.I1">
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i1.p1.1">
+          The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i2.p1.1">
+          The authors are encouraged to create a separate "Limitations" section in their paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i3.p1.1">
+          The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (e.g., independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i4.p1.1">
+          The authors should reflect on the scope of the claims made, e.g., if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i5.p1.1">
+          The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i6.p1.1">
+          The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i7" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i7.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i7.p1.1">
+          If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix8.I1.i8" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix8.I1.i8.p1">
+         <p class="ltx_p" id="Ax1.I1.ix8.I1.i8.p1.1">
+          While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren’t acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an important role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i3.p1">
+      <p class="ltx_p" id="Ax1.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i3.p1.1.1">
+        Theory Assumptions and Proofs
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix9" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix9.p1">
+      <p class="ltx_p" id="Ax1.I1.ix9.p1.1">
+       Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix10" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix10.p1">
+      <p class="ltx_p" id="Ax1.I1.ix10.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix10.p1.1.1" style="color:#808080;">
+        [N/A]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix11" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix11.p1">
+      <p class="ltx_p" id="Ax1.I1.ix11.p1.1">
+       Justification: The paper focuses on the design and evaluation of a multi LLM agent and its practical application with no new theoretical proposal. Thus there are no formal proofs in the paper.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix12" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix12.p1">
+      <p class="ltx_p" id="Ax1.I1.ix12.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix12.I1">
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i1.p1.1">
+          The answer NA means that the paper does not include theoretical results.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i2.p1.1">
+          All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i3.p1.1">
+          All assumptions should be clearly stated or referenced in the statement of any theorems.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i4.p1.1">
+          The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i5.p1.1">
+          Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix12.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix12.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix12.I1.i6.p1.1">
+          Theorems and Lemmas that the proof relies upon should be properly referenced.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i4.p1">
+      <p class="ltx_p" id="Ax1.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i4.p1.1.1">
+        Experimental Result Reproducibility
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix13" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix13.p1">
+      <p class="ltx_p" id="Ax1.I1.ix13.p1.1">
+       Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix14" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix14.p1">
+      <p class="ltx_p" id="Ax1.I1.ix14.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix14.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix15" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix15.p1">
+      <p class="ltx_p" id="Ax1.I1.ix15.p1.1">
+       Justification: The full architecture of the approach is provided, the participant demographic information, experiment methodology, evaluation questionnaire and criterion shared and hyperparameters for the classifier are provided. In the Appendix you can also find access to the link for the globally available custom built GPT that can be tested by everyone.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix16" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix16.p1">
+      <p class="ltx_p" id="Ax1.I1.ix16.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix16.I1">
+       <li class="ltx_item" id="Ax1.I1.ix16.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix16.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix16.I1.i1.p1.1">
+          The answer NA means that the paper does not include experiments.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix16.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix16.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix16.I1.i2.p1.1">
+          If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix16.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix16.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix16.I1.i3.p1.1">
+          If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix16.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix16.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix16.I1.i4.p1.1">
+          Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (e.g., in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix16.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix16.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix16.I1.i5.p1.1">
+          While NeurIPS does not require releasing code, the conference does require all submissions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example
+         </p>
+         <ol class="ltx_enumerate" id="Ax1.I1.ix16.I1.i5.I1">
+          <li class="ltx_item" id="Ax1.I1.ix16.I1.i5.I1.i1" style="list-style-type:none;">
+           <span class="ltx_tag ltx_tag_item">
+            (a)
+           </span>
+           <div class="ltx_para" id="Ax1.I1.ix16.I1.i5.I1.i1.p1">
+            <p class="ltx_p" id="Ax1.I1.ix16.I1.i5.I1.i1.p1.1">
+             If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm.
+            </p>
+           </div>
+          </li>
+          <li class="ltx_item" id="Ax1.I1.ix16.I1.i5.I1.i2" style="list-style-type:none;">
+           <span class="ltx_tag ltx_tag_item">
+            (b)
+           </span>
+           <div class="ltx_para" id="Ax1.I1.ix16.I1.i5.I1.i2.p1">
+            <p class="ltx_p" id="Ax1.I1.ix16.I1.i5.I1.i2.p1.1">
+             If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully.
+            </p>
+           </div>
+          </li>
+          <li class="ltx_item" id="Ax1.I1.ix16.I1.i5.I1.i3" style="list-style-type:none;">
+           <span class="ltx_tag ltx_tag_item">
+            (c)
+           </span>
+           <div class="ltx_para" id="Ax1.I1.ix16.I1.i5.I1.i3.p1">
+            <p class="ltx_p" id="Ax1.I1.ix16.I1.i5.I1.i3.p1.1">
+             If the contribution is a new model (e.g., a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (e.g., with an open-source dataset or instructions for how to construct the dataset).
+            </p>
+           </div>
+          </li>
+          <li class="ltx_item" id="Ax1.I1.ix16.I1.i5.I1.i4" style="list-style-type:none;">
+           <span class="ltx_tag ltx_tag_item">
+            (d)
+           </span>
+           <div class="ltx_para" id="Ax1.I1.ix16.I1.i5.I1.i4.p1">
+            <p class="ltx_p" id="Ax1.I1.ix16.I1.i5.I1.i4.p1.1">
+             We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (e.g., to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results.
+            </p>
+           </div>
+          </li>
+         </ol>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      5.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i5.p1">
+      <p class="ltx_p" id="Ax1.I1.i5.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i5.p1.1.1">
+        Open access to data and code
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix17" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix17.p1">
+      <p class="ltx_p" id="Ax1.I1.ix17.p1.1">
+       Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix18" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix18.p1">
+      <p class="ltx_p" id="Ax1.I1.ix18.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix18.p1.1.1" style="color:#FF8000;">
+        [No]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix19" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix19.p1">
+      <p class="ltx_p" id="Ax1.I1.ix19.p1.1">
+       Justification: The code has not been shared as it requires access to some robot design files, robotic worlds and datasets of different products along with their prices for complete execution. This information is sensitive and has been granted as a part of some collaborations with the university and cannot be provided freely.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix20" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix20.p1">
+      <p class="ltx_p" id="Ax1.I1.ix20.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix20.I1">
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i1.p1.1">
+          The answer NA means that paper does not include experiments requiring code.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i2.p1.1">
+          Please see the NeurIPS code and data submission guidelines (
+          <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://nips.cc/public/guides/CodeSubmissionPolicy" target="_blank" title="">
+           https://nips.cc/public/guides/CodeSubmissionPolicy
+          </a>
+          ) for more details.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i3.p1.1">
+          While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (e.g., for a new open-source benchmark).
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i4.p1.1">
+          The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines (
+          <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://nips.cc/public/guides/CodeSubmissionPolicy" target="_blank" title="">
+           https://nips.cc/public/guides/CodeSubmissionPolicy
+          </a>
+          ) for more details.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i5.p1.1">
+          The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i6.p1.1">
+          The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i7" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i7.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i7.p1.1">
+          At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable).
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix20.I1.i8" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix20.I1.i8.p1">
+         <p class="ltx_p" id="Ax1.I1.ix20.I1.i8.p1.1">
+          Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i6" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      6.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i6.p1">
+      <p class="ltx_p" id="Ax1.I1.i6.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i6.p1.1.1">
+        Experimental Setting/Details
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix21" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix21.p1">
+      <p class="ltx_p" id="Ax1.I1.ix21.p1.1">
+       Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer, etc.) necessary to understand the results?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix22" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix22.p1">
+      <p class="ltx_p" id="Ax1.I1.ix22.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix22.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix23" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix23.p1">
+      <p class="ltx_p" id="Ax1.I1.ix23.p1.1">
+       Justification: The hyperparameters for the query classifier are shared in Section 2, the prompts for each model and state-of-the-art are shared in the Appendix.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix24" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix24.p1">
+      <p class="ltx_p" id="Ax1.I1.ix24.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix24.I1">
+       <li class="ltx_item" id="Ax1.I1.ix24.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix24.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix24.I1.i1.p1.1">
+          The answer NA means that the paper does not include experiments.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix24.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix24.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix24.I1.i2.p1.1">
+          The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix24.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix24.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix24.I1.i3.p1.1">
+          The full details can be provided either with the code, in appendix, or as supplemental material.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i7" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      7.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i7.p1">
+      <p class="ltx_p" id="Ax1.I1.i7.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i7.p1.1.1">
+        Experiment Statistical Significance
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix25" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix25.p1">
+      <p class="ltx_p" id="Ax1.I1.ix25.p1.1">
+       Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix26" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix26.p1">
+      <p class="ltx_p" id="Ax1.I1.ix26.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix26.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix27" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix27.p1">
+      <p class="ltx_p" id="Ax1.I1.ix27.p1.1">
+       Justification: The standard deviation, mean and statistical test results by both the Mann-Whitney U-test and Wilcoxon signed rank test have been provided.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix28" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix28.p1">
+      <p class="ltx_p" id="Ax1.I1.ix28.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix28.I1">
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i1.p1.1">
+          The answer NA means that the paper does not include experiments.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i2.p1.1">
+          The authors should answer "Yes" if the results are accompanied by error bars, confidence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i3.p1.1">
+          The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions).
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i4.p1.1">
+          The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.)
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i5.p1.1">
+          The assumptions made should be given (e.g., Normally distributed errors).
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i6.p1.1">
+          It should be clear whether the error bar is the standard deviation or the standard error of the mean.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i7" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i7.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i7.p1.1">
+          It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis of Normality of errors is not verified.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i8" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i8.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i8.p1.1">
+          For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates).
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix28.I1.i9" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix28.I1.i9.p1">
+         <p class="ltx_p" id="Ax1.I1.ix28.I1.i9.p1.1">
+          If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i8" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      8.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i8.p1">
+      <p class="ltx_p" id="Ax1.I1.i8.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i8.p1.1.1">
+        Experiments Compute Resources
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix29" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix29.p1">
+      <p class="ltx_p" id="Ax1.I1.ix29.p1.1">
+       Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix30" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix30.p1">
+      <p class="ltx_p" id="Ax1.I1.ix30.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix30.p1.1.1" style="color:#FF8000;">
+        [No]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix31" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix31.p1">
+      <p class="ltx_p" id="Ax1.I1.ix31.p1.1">
+       Justification: While specific compute information is not shared, in section 2.1, query classifier we mention how all the experiemnts are done on distilBERT so that it can be run on a system without dedicated graphics card.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix32" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix32.p1">
+      <p class="ltx_p" id="Ax1.I1.ix32.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix32.I1">
+       <li class="ltx_item" id="Ax1.I1.ix32.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix32.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix32.I1.i1.p1.1">
+          The answer NA means that the paper does not include experiments.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix32.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix32.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix32.I1.i2.p1.1">
+          The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix32.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix32.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix32.I1.i3.p1.1">
+          The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix32.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix32.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix32.I1.i4.p1.1">
+          The paper should disclose whether the full research project required more compute than the experiments reported in the paper (e.g., preliminary or failed experiments that didn’t make it into the paper).
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i9" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      9.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i9.p1">
+      <p class="ltx_p" id="Ax1.I1.i9.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i9.p1.1.1">
+        Code Of Ethics
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix33" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix33.p1">
+      <p class="ltx_p" id="Ax1.I1.ix33.p1.1">
+       Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://neurips.cc/public/EthicsGuidelines" target="_blank" title="">
+        https://neurips.cc/public/EthicsGuidelines
+       </a>
+       ?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix34" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix34.p1">
+      <p class="ltx_p" id="Ax1.I1.ix34.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix34.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix35" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix35.p1">
+      <p class="ltx_p" id="Ax1.I1.ix35.p1.1">
+       Justification: The informed consent of all participants was obtained as well in line with ensuring the protection of their rights. The informed consent is also provided in the Appendix.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix36" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix36.p1">
+      <p class="ltx_p" id="Ax1.I1.ix36.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix36.I1">
+       <li class="ltx_item" id="Ax1.I1.ix36.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix36.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix36.I1.i1.p1.1">
+          The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix36.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix36.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix36.I1.i2.p1.1">
+          If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix36.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix36.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix36.I1.i3.p1.1">
+          The authors should make sure to preserve anonymity (e.g., if there is a special consideration due to laws or regulations in their jurisdiction).
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i10" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      10.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i10.p1">
+      <p class="ltx_p" id="Ax1.I1.i10.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i10.p1.1.1">
+        Broader Impacts
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix37" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix37.p1">
+      <p class="ltx_p" id="Ax1.I1.ix37.p1.1">
+       Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix38" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix38.p1">
+      <p class="ltx_p" id="Ax1.I1.ix38.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix38.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix39" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix39.p1">
+      <p class="ltx_p" id="Ax1.I1.ix39.p1.1">
+       Justification: In discussion section we explain how our work can be used alongside robots and how the multiLLM approach can be extended to other applications as well.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix40" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix40.p1">
+      <p class="ltx_p" id="Ax1.I1.ix40.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix40.I1">
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i1.p1.1">
+          The answer NA means that there is no societal impact of the work performed.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i2.p1.1">
+          If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i3.p1.1">
+          Examples of negative societal impacts include potential malicious or unintended uses (e.g., disinformation, generating fake profiles, surveillance), fairness considerations (e.g., deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i4.p1.1">
+          The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i5.p1.1">
+          The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix40.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix40.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix40.I1.i6.p1.1">
+          If there are negative societal impacts, the authors could also discuss possible mitigation strategies (e.g., gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML).
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i11" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      11.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i11.p1">
+      <p class="ltx_p" id="Ax1.I1.i11.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i11.p1.1.1">
+        Safeguards
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix41" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix41.p1">
+      <p class="ltx_p" id="Ax1.I1.ix41.p1.1">
+       Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pretrained language models, image generators, or scraped datasets)?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix42" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix42.p1">
+      <p class="ltx_p" id="Ax1.I1.ix42.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix42.p1.1.1" style="color:#FF8000;">
+        [No]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix43" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix43.p1">
+      <p class="ltx_p" id="Ax1.I1.ix43.p1.1">
+       Justification: Given the highly specific nature of the models and that they are fine-tuned GPT3.5s necessary safeguards were not established. Furthermore, the work does not present any new model but a chat finetuned model finetuned once more for a specific application.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix44" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix44.p1">
+      <p class="ltx_p" id="Ax1.I1.ix44.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix44.I1">
+       <li class="ltx_item" id="Ax1.I1.ix44.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix44.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix44.I1.i1.p1.1">
+          The answer NA means that the paper poses no such risks.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix44.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix44.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix44.I1.i2.p1.1">
+          Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix44.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix44.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix44.I1.i3.p1.1">
+          Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix44.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix44.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix44.I1.i4.p1.1">
+          We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i12" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      12.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i12.p1">
+      <p class="ltx_p" id="Ax1.I1.i12.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i12.p1.1.1">
+        Licenses for existing assets
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix45" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix45.p1">
+      <p class="ltx_p" id="Ax1.I1.ix45.p1.1">
+       Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix46" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix46.p1">
+      <p class="ltx_p" id="Ax1.I1.ix46.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix46.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix47" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix47.p1">
+      <p class="ltx_p" id="Ax1.I1.ix47.p1.1">
+       Justification: The GPTs by OpenAI are properly cited and other models used are addressed as well. The acknowledgements are provided in the Appendix.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix48" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix48.p1">
+      <p class="ltx_p" id="Ax1.I1.ix48.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix48.I1">
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i1.p1.1">
+          The answer NA means that the paper does not use existing assets.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i2.p1.1">
+          The authors should cite the original paper that produced the code package or dataset.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i3.p1.1">
+          The authors should state which version of the asset is used and, if possible, include a URL.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i4.p1.1">
+          The name of the license (e.g., CC-BY 4.0) should be included for each asset.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i5" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i5.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i5.p1.1">
+          For scraped data from a particular source (e.g., website), the copyright and terms of service of that source should be provided.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i6" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i6.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i6.p1.1">
+          If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets,
+          <a class="ltx_ref ltx_url ltx_font_typewriter" href="paperswithcode.com/datasets" title="">
+           paperswithcode.com/datasets
+          </a>
+          has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i7" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i7.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i7.p1.1">
+          For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix48.I1.i8" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix48.I1.i8.p1">
+         <p class="ltx_p" id="Ax1.I1.ix48.I1.i8.p1.1">
+          If this information is not available online, the authors are encouraged to reach out to the asset’s creators.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i13" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      13.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i13.p1">
+      <p class="ltx_p" id="Ax1.I1.i13.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i13.p1.1.1">
+        New Assets
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix49" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix49.p1">
+      <p class="ltx_p" id="Ax1.I1.ix49.p1.1">
+       Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix50" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix50.p1">
+      <p class="ltx_p" id="Ax1.I1.ix50.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix50.p1.1.1" style="color:#808080;">
+        [N/A]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix51" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix51.p1">
+      <p class="ltx_p" id="Ax1.I1.ix51.p1.1">
+       Justification: No new assets are released by the paper.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix52" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix52.p1">
+      <p class="ltx_p" id="Ax1.I1.ix52.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix52.I1">
+       <li class="ltx_item" id="Ax1.I1.ix52.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix52.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix52.I1.i1.p1.1">
+          The answer NA means that the paper does not release new assets.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix52.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix52.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix52.I1.i2.p1.1">
+          Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix52.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix52.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix52.I1.i3.p1.1">
+          The paper should discuss whether and how consent was obtained from people whose asset is used.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix52.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix52.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix52.I1.i4.p1.1">
+          At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i14" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      14.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i14.p1">
+      <p class="ltx_p" id="Ax1.I1.i14.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i14.p1.1.1">
+        Crowdsourcing and Research with Human Subjects
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix53" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix53.p1">
+      <p class="ltx_p" id="Ax1.I1.ix53.p1.1">
+       Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix54" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix54.p1">
+      <p class="ltx_p" id="Ax1.I1.ix54.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix54.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix55" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix55.p1">
+      <p class="ltx_p" id="Ax1.I1.ix55.p1.1">
+       Justification: The participant instruction and infored consent form are provided in the Appendix.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix56" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix56.p1">
+      <p class="ltx_p" id="Ax1.I1.ix56.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix56.I1">
+       <li class="ltx_item" id="Ax1.I1.ix56.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix56.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix56.I1.i1.p1.1">
+          The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix56.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix56.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix56.I1.i2.p1.1">
+          Including this information in the supplemental material is fine, but if the main contribution of the paper involves human subjects, then as much detail as possible should be included in the main paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix56.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix56.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix56.I1.i3.p1.1">
+          According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.i15" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      15.
+     </span>
+     <div class="ltx_para" id="Ax1.I1.i15.p1">
+      <p class="ltx_p" id="Ax1.I1.i15.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Ax1.I1.i15.p1.1.1">
+        Institutional Review Board (IRB) Approvals or Equivalent for Research with Human Subjects
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix57" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix57.p1">
+      <p class="ltx_p" id="Ax1.I1.ix57.p1.1">
+       Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix58" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix58.p1">
+      <p class="ltx_p" id="Ax1.I1.ix58.p1.1">
+       Answer:
+       <span class="ltx_text" id="Ax1.I1.ix58.p1.1.1" style="color:#0000FF;">
+        [Yes]
+       </span>
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix59" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix59.p1">
+      <p class="ltx_p" id="Ax1.I1.ix59.p1.1">
+       Justification: The participant instruction and infored consent form are provided in the Appendix which has information about the risks of the experiment.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Ax1.I1.ix60" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+     </span>
+     <div class="ltx_para" id="Ax1.I1.ix60.p1">
+      <p class="ltx_p" id="Ax1.I1.ix60.p1.1">
+       Guidelines:
+      </p>
+      <ul class="ltx_itemize" id="Ax1.I1.ix60.I1">
+       <li class="ltx_item" id="Ax1.I1.ix60.I1.i1" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix60.I1.i1.p1">
+         <p class="ltx_p" id="Ax1.I1.ix60.I1.i1.p1.1">
+          The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix60.I1.i2" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix60.I1.i2.p1">
+         <p class="ltx_p" id="Ax1.I1.ix60.I1.i2.p1.1">
+          Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix60.I1.i3" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix60.I1.i3.p1">
+         <p class="ltx_p" id="Ax1.I1.ix60.I1.i3.p1.1">
+          We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution.
+         </p>
+        </div>
+       </li>
+       <li class="ltx_item" id="Ax1.I1.ix60.I1.i4" style="list-style-type:none;">
+        <span class="ltx_tag ltx_tag_item">
+         •
+        </span>
+        <div class="ltx_para" id="Ax1.I1.ix60.I1.i4.p1">
+         <p class="ltx_p" id="Ax1.I1.ix60.I1.i4.p1.1">
+          For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review.
+         </p>
+        </div>
+       </li>
+      </ul>
+     </div>
+    </li>
+   </ol>
+  </div>
+ </section>
+</article>

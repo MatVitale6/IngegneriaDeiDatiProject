@@ -1,0 +1,4147 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Himanshu Pandey
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     himanshu@risalabs.ai
+    </span>
+    <br class="ltx_break"/>
+    &amp;Akhil Amod
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id2">
+     akhil@risalabs.ai
+    </span>
+    <br class="ltx_break"/>
+    &amp;Shivang
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id3.3.id3">
+     shivang@risalabs.ai
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id4.id1">
+   This paper explores the application of Swarm-Structured Multi-Agent Systems (MAS) to establish medical necessity, a process that involves a systematic review of patient-specific medical structured and unstructured data against clinical guidelines. We addressed this complex task by decomposing it into smaller, more manageable sub-tasks. Each sub-task is handled by a specialized AI agent. We conduct a systematic study of the impact of various prompting strategies on these agents and benchmark different Large Language Models (LLMs) to determine their accuracy in completing these tasks. Additionally, we investigate how these agents can provide explainability, thereby enhancing trust and transparency within the system.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In US healthcare, management of administrative workflows represents a pivotal yet formidable challenge. Physicians, nurses, and administrative personnel frequently allocate a substantial portion of their working hours to these procedural tasks, detracting from their primary focus on patient care. Establishing or verifying
+    <span class="ltx_text ltx_font_italic" id="S1.p1.1.1">
+     medical necessity
+    </span>
+    for Prior Authorization is a process that forms a part of several administrative tasks of US Healthcare, necessitates considerable time and resource investment, impacting the overall efficiency of healthcare delivery.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Prior authorization (PA) is a healthcare management process used by insurance entities to determine whether a proposed treatment or service, including but not limited to medications, imaging, and procedures, is covered under a patient’s plan before it is approved to be carried out.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Madhusoodanan et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Evaluating a PA application involves assessing medical necessity of patient-specific health records against prevailing coverage guidelines.
+A major part of these coverage guidelines are clinical guidelines which are systematically developed statements designed to help practitioners make decisions about appropriate health care for specific clinical circumstances. Insurance companies review these clinical guidelines to to justify medical necessity of a procedure
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chambers et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2016
+     </a>
+     )
+    </cite>
+    . A majority of PAs filed today are created manually by healthcare professionals extensively collecting evidences that can justify these medical necessity guidelines. In this paper we explore the application of multi-agent systems in automating the process of determining medical necessity by comparing clinical guidelines with the Electronic Health Records (EHR) of a patient.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="320" id="S1.F1.g1" src="/html/2404.17977/assets/candidates.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Leaf-Level Judgement Prediction
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    The introduction of Large Language Models (LLMs) has catalyzed a transformative shift in the capabilities of artificial intelligence, enabling the resolution of complex challenges previously inaccessible to conventional AI methods. LLMs excel in interpreting and synthesizing large volumes of unstructured data, enhancing tasks such as natural language understanding, sentiment analysis, and automated content creation. Building on this foundation,
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.1">
+     Swarm Intelligence architecture
+    </span>
+    , which employs a collective of AI-powered agents, represents an even further advancement
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li and Clerc (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2019
+     </a>
+     )
+    </cite>
+    . This approach decomposes a singular complex task into multiple, manageable sub-tasks and distributes them across multiple agents, each specialized through training for a sub-task. Following this methodology essentially infuses a microservice architecture into the traditional monolithic AI framework, enabling more modular, scalable, and robust AI systems. By integrating the depth and adaptability of LLMs with the collaborative and dynamic nature of Swarm Intelligence architecture, AI systems can achieve unprecedented levels of performance and versatility across various complex problems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    In this paper, we investigate the application of multi-agent systems for determining medical necessity. We break down the entire process into several sub-tasks, each handled by a different Large Language Model (LLM) agent. We explore a variety of prompting strategies for each agent and examine the effects of the specific LLM used on these agents, particularly focusing on the trade-off between accuracy and latency.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Problem Statement
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.2">
+    As mentioned above, the evaluation of medical necessity is conducted through a meticulous comparison between patient medical records and established coverage guidelines. These medical records are systematically structured , usually in HL7 or FHIR format, within Electronic Health Record (EHR) systems, categorized into discrete sections such as diagnoses, treatment histories, laboratory results, and patient demographics. We define a set of EHR documents as
+    <math alttext="\mathcal{D}=\{d\}_{i=1}^{N_{D}}" class="ltx_Math" display="inline" id="S2.p1.1.m1.1">
+     <semantics id="S2.p1.1.m1.1a">
+      <mrow id="S2.p1.1.m1.1.2" xref="S2.p1.1.m1.1.2.cmml">
+       <mi class="ltx_font_mathcaligraphic" id="S2.p1.1.m1.1.2.2" xref="S2.p1.1.m1.1.2.2.cmml">
+        𝒟
+       </mi>
+       <mo id="S2.p1.1.m1.1.2.1" xref="S2.p1.1.m1.1.2.1.cmml">
+        =
+       </mo>
+       <msubsup id="S2.p1.1.m1.1.2.3" xref="S2.p1.1.m1.1.2.3.cmml">
+        <mrow id="S2.p1.1.m1.1.2.3.2.2.2" xref="S2.p1.1.m1.1.2.3.2.2.1.cmml">
+         <mo id="S2.p1.1.m1.1.2.3.2.2.2.1" stretchy="false" xref="S2.p1.1.m1.1.2.3.2.2.1.cmml">
+          {
+         </mo>
+         <mi id="S2.p1.1.m1.1.1" xref="S2.p1.1.m1.1.1.cmml">
+          d
+         </mi>
+         <mo id="S2.p1.1.m1.1.2.3.2.2.2.2" stretchy="false" xref="S2.p1.1.m1.1.2.3.2.2.1.cmml">
+          }
+         </mo>
+        </mrow>
+        <mrow id="S2.p1.1.m1.1.2.3.2.3" xref="S2.p1.1.m1.1.2.3.2.3.cmml">
+         <mi id="S2.p1.1.m1.1.2.3.2.3.2" xref="S2.p1.1.m1.1.2.3.2.3.2.cmml">
+          i
+         </mi>
+         <mo id="S2.p1.1.m1.1.2.3.2.3.1" xref="S2.p1.1.m1.1.2.3.2.3.1.cmml">
+          =
+         </mo>
+         <mn id="S2.p1.1.m1.1.2.3.2.3.3" xref="S2.p1.1.m1.1.2.3.2.3.3.cmml">
+          1
+         </mn>
+        </mrow>
+        <msub id="S2.p1.1.m1.1.2.3.3" xref="S2.p1.1.m1.1.2.3.3.cmml">
+         <mi id="S2.p1.1.m1.1.2.3.3.2" xref="S2.p1.1.m1.1.2.3.3.2.cmml">
+          N
+         </mi>
+         <mi id="S2.p1.1.m1.1.2.3.3.3" xref="S2.p1.1.m1.1.2.3.3.3.cmml">
+          D
+         </mi>
+        </msub>
+       </msubsup>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.1.m1.1b">
+       <apply id="S2.p1.1.m1.1.2.cmml" xref="S2.p1.1.m1.1.2">
+        <eq id="S2.p1.1.m1.1.2.1.cmml" xref="S2.p1.1.m1.1.2.1">
+        </eq>
+        <ci id="S2.p1.1.m1.1.2.2.cmml" xref="S2.p1.1.m1.1.2.2">
+         𝒟
+        </ci>
+        <apply id="S2.p1.1.m1.1.2.3.cmml" xref="S2.p1.1.m1.1.2.3">
+         <csymbol cd="ambiguous" id="S2.p1.1.m1.1.2.3.1.cmml" xref="S2.p1.1.m1.1.2.3">
+          superscript
+         </csymbol>
+         <apply id="S2.p1.1.m1.1.2.3.2.cmml" xref="S2.p1.1.m1.1.2.3">
+          <csymbol cd="ambiguous" id="S2.p1.1.m1.1.2.3.2.1.cmml" xref="S2.p1.1.m1.1.2.3">
+           subscript
+          </csymbol>
+          <set id="S2.p1.1.m1.1.2.3.2.2.1.cmml" xref="S2.p1.1.m1.1.2.3.2.2.2">
+           <ci id="S2.p1.1.m1.1.1.cmml" xref="S2.p1.1.m1.1.1">
+            𝑑
+           </ci>
+          </set>
+          <apply id="S2.p1.1.m1.1.2.3.2.3.cmml" xref="S2.p1.1.m1.1.2.3.2.3">
+           <eq id="S2.p1.1.m1.1.2.3.2.3.1.cmml" xref="S2.p1.1.m1.1.2.3.2.3.1">
+           </eq>
+           <ci id="S2.p1.1.m1.1.2.3.2.3.2.cmml" xref="S2.p1.1.m1.1.2.3.2.3.2">
+            𝑖
+           </ci>
+           <cn id="S2.p1.1.m1.1.2.3.2.3.3.cmml" type="integer" xref="S2.p1.1.m1.1.2.3.2.3.3">
+            1
+           </cn>
+          </apply>
+         </apply>
+         <apply id="S2.p1.1.m1.1.2.3.3.cmml" xref="S2.p1.1.m1.1.2.3.3">
+          <csymbol cd="ambiguous" id="S2.p1.1.m1.1.2.3.3.1.cmml" xref="S2.p1.1.m1.1.2.3.3">
+           subscript
+          </csymbol>
+          <ci id="S2.p1.1.m1.1.2.3.3.2.cmml" xref="S2.p1.1.m1.1.2.3.3.2">
+           𝑁
+          </ci>
+          <ci id="S2.p1.1.m1.1.2.3.3.3.cmml" xref="S2.p1.1.m1.1.2.3.3.3">
+           𝐷
+          </ci>
+         </apply>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.1.m1.1c">
+       \mathcal{D}=\{d\}_{i=1}^{N_{D}}
+      </annotation>
+     </semantics>
+    </math>
+    of size
+    <math alttext="N_{D}" class="ltx_Math" display="inline" id="S2.p1.2.m2.1">
+     <semantics id="S2.p1.2.m2.1a">
+      <msub id="S2.p1.2.m2.1.1" xref="S2.p1.2.m2.1.1.cmml">
+       <mi id="S2.p1.2.m2.1.1.2" xref="S2.p1.2.m2.1.1.2.cmml">
+        N
+       </mi>
+       <mi id="S2.p1.2.m2.1.1.3" xref="S2.p1.2.m2.1.1.3.cmml">
+        D
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.2.m2.1b">
+       <apply id="S2.p1.2.m2.1.1.cmml" xref="S2.p1.2.m2.1.1">
+        <csymbol cd="ambiguous" id="S2.p1.2.m2.1.1.1.cmml" xref="S2.p1.2.m2.1.1">
+         subscript
+        </csymbol>
+        <ci id="S2.p1.2.m2.1.1.2.cmml" xref="S2.p1.2.m2.1.1.2">
+         𝑁
+        </ci>
+        <ci id="S2.p1.2.m2.1.1.3.cmml" xref="S2.p1.2.m2.1.1.3">
+         𝐷
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.2.m2.1c">
+       N_{D}
+      </annotation>
+     </semantics>
+    </math>
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="300" id="S2.F2.g1" src="/html/2404.17977/assets/child.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Bottom-Up Judgement Propagation
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.2">
+    Further, coverage guidelines are formatted in a hierarchical, tree-like structure (referred as
+    <span class="ltx_text ltx_font_italic" id="S2.p2.2.1">
+     checklist
+    </span>
+    in this paper), where each guideline statement (
+    <span class="ltx_text ltx_font_italic" id="S2.p2.2.2">
+     parent node
+    </span>
+    ) can encompass an arbitrary number of subordinate statements (
+    <span class="ltx_text ltx_font_italic" id="S2.p2.2.3">
+     sub-checklist or leaf node
+    </span>
+    ) nested within it as shown in Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 Problem Statement ‣ Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    . Thus, we define a coverage guideline or checklist as
+    <math alttext="\mathcal{C}=\{c\}_{j=1}^{N_{C}}" class="ltx_Math" display="inline" id="S2.p2.1.m1.1">
+     <semantics id="S2.p2.1.m1.1a">
+      <mrow id="S2.p2.1.m1.1.2" xref="S2.p2.1.m1.1.2.cmml">
+       <mi class="ltx_font_mathcaligraphic" id="S2.p2.1.m1.1.2.2" xref="S2.p2.1.m1.1.2.2.cmml">
+        𝒞
+       </mi>
+       <mo id="S2.p2.1.m1.1.2.1" xref="S2.p2.1.m1.1.2.1.cmml">
+        =
+       </mo>
+       <msubsup id="S2.p2.1.m1.1.2.3" xref="S2.p2.1.m1.1.2.3.cmml">
+        <mrow id="S2.p2.1.m1.1.2.3.2.2.2" xref="S2.p2.1.m1.1.2.3.2.2.1.cmml">
+         <mo id="S2.p2.1.m1.1.2.3.2.2.2.1" stretchy="false" xref="S2.p2.1.m1.1.2.3.2.2.1.cmml">
+          {
+         </mo>
+         <mi id="S2.p2.1.m1.1.1" xref="S2.p2.1.m1.1.1.cmml">
+          c
+         </mi>
+         <mo id="S2.p2.1.m1.1.2.3.2.2.2.2" stretchy="false" xref="S2.p2.1.m1.1.2.3.2.2.1.cmml">
+          }
+         </mo>
+        </mrow>
+        <mrow id="S2.p2.1.m1.1.2.3.2.3" xref="S2.p2.1.m1.1.2.3.2.3.cmml">
+         <mi id="S2.p2.1.m1.1.2.3.2.3.2" xref="S2.p2.1.m1.1.2.3.2.3.2.cmml">
+          j
+         </mi>
+         <mo id="S2.p2.1.m1.1.2.3.2.3.1" xref="S2.p2.1.m1.1.2.3.2.3.1.cmml">
+          =
+         </mo>
+         <mn id="S2.p2.1.m1.1.2.3.2.3.3" xref="S2.p2.1.m1.1.2.3.2.3.3.cmml">
+          1
+         </mn>
+        </mrow>
+        <msub id="S2.p2.1.m1.1.2.3.3" xref="S2.p2.1.m1.1.2.3.3.cmml">
+         <mi id="S2.p2.1.m1.1.2.3.3.2" xref="S2.p2.1.m1.1.2.3.3.2.cmml">
+          N
+         </mi>
+         <mi id="S2.p2.1.m1.1.2.3.3.3" xref="S2.p2.1.m1.1.2.3.3.3.cmml">
+          C
+         </mi>
+        </msub>
+       </msubsup>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p2.1.m1.1b">
+       <apply id="S2.p2.1.m1.1.2.cmml" xref="S2.p2.1.m1.1.2">
+        <eq id="S2.p2.1.m1.1.2.1.cmml" xref="S2.p2.1.m1.1.2.1">
+        </eq>
+        <ci id="S2.p2.1.m1.1.2.2.cmml" xref="S2.p2.1.m1.1.2.2">
+         𝒞
+        </ci>
+        <apply id="S2.p2.1.m1.1.2.3.cmml" xref="S2.p2.1.m1.1.2.3">
+         <csymbol cd="ambiguous" id="S2.p2.1.m1.1.2.3.1.cmml" xref="S2.p2.1.m1.1.2.3">
+          superscript
+         </csymbol>
+         <apply id="S2.p2.1.m1.1.2.3.2.cmml" xref="S2.p2.1.m1.1.2.3">
+          <csymbol cd="ambiguous" id="S2.p2.1.m1.1.2.3.2.1.cmml" xref="S2.p2.1.m1.1.2.3">
+           subscript
+          </csymbol>
+          <set id="S2.p2.1.m1.1.2.3.2.2.1.cmml" xref="S2.p2.1.m1.1.2.3.2.2.2">
+           <ci id="S2.p2.1.m1.1.1.cmml" xref="S2.p2.1.m1.1.1">
+            𝑐
+           </ci>
+          </set>
+          <apply id="S2.p2.1.m1.1.2.3.2.3.cmml" xref="S2.p2.1.m1.1.2.3.2.3">
+           <eq id="S2.p2.1.m1.1.2.3.2.3.1.cmml" xref="S2.p2.1.m1.1.2.3.2.3.1">
+           </eq>
+           <ci id="S2.p2.1.m1.1.2.3.2.3.2.cmml" xref="S2.p2.1.m1.1.2.3.2.3.2">
+            𝑗
+           </ci>
+           <cn id="S2.p2.1.m1.1.2.3.2.3.3.cmml" type="integer" xref="S2.p2.1.m1.1.2.3.2.3.3">
+            1
+           </cn>
+          </apply>
+         </apply>
+         <apply id="S2.p2.1.m1.1.2.3.3.cmml" xref="S2.p2.1.m1.1.2.3.3">
+          <csymbol cd="ambiguous" id="S2.p2.1.m1.1.2.3.3.1.cmml" xref="S2.p2.1.m1.1.2.3.3">
+           subscript
+          </csymbol>
+          <ci id="S2.p2.1.m1.1.2.3.3.2.cmml" xref="S2.p2.1.m1.1.2.3.3.2">
+           𝑁
+          </ci>
+          <ci id="S2.p2.1.m1.1.2.3.3.3.cmml" xref="S2.p2.1.m1.1.2.3.3.3">
+           𝐶
+          </ci>
+         </apply>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p2.1.m1.1c">
+       \mathcal{C}=\{c\}_{j=1}^{N_{C}}
+      </annotation>
+     </semantics>
+    </math>
+    , where
+    <math alttext="c" class="ltx_Math" display="inline" id="S2.p2.2.m2.1">
+     <semantics id="S2.p2.2.m2.1a">
+      <mi id="S2.p2.2.m2.1.1" xref="S2.p2.2.m2.1.1.cmml">
+       c
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p2.2.m2.1b">
+       <ci id="S2.p2.2.m2.1.1.cmml" xref="S2.p2.2.m2.1.1">
+        𝑐
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p2.2.m2.1c">
+       c
+      </annotation>
+     </semantics>
+    </math>
+    is a checklist item.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    Eventually, the task is to automatically determine the medical necessity
+    <math alttext="y_{p}\in\{-1,0,1\}" class="ltx_Math" display="inline" id="S2.p3.1.m1.3">
+     <semantics id="S2.p3.1.m1.3a">
+      <mrow id="S2.p3.1.m1.3.3" xref="S2.p3.1.m1.3.3.cmml">
+       <msub id="S2.p3.1.m1.3.3.3" xref="S2.p3.1.m1.3.3.3.cmml">
+        <mi id="S2.p3.1.m1.3.3.3.2" xref="S2.p3.1.m1.3.3.3.2.cmml">
+         y
+        </mi>
+        <mi id="S2.p3.1.m1.3.3.3.3" xref="S2.p3.1.m1.3.3.3.3.cmml">
+         p
+        </mi>
+       </msub>
+       <mo id="S2.p3.1.m1.3.3.2" xref="S2.p3.1.m1.3.3.2.cmml">
+        ∈
+       </mo>
+       <mrow id="S2.p3.1.m1.3.3.1.1" xref="S2.p3.1.m1.3.3.1.2.cmml">
+        <mo id="S2.p3.1.m1.3.3.1.1.2" stretchy="false" xref="S2.p3.1.m1.3.3.1.2.cmml">
+         {
+        </mo>
+        <mrow id="S2.p3.1.m1.3.3.1.1.1" xref="S2.p3.1.m1.3.3.1.1.1.cmml">
+         <mo id="S2.p3.1.m1.3.3.1.1.1a" xref="S2.p3.1.m1.3.3.1.1.1.cmml">
+          −
+         </mo>
+         <mn id="S2.p3.1.m1.3.3.1.1.1.2" xref="S2.p3.1.m1.3.3.1.1.1.2.cmml">
+          1
+         </mn>
+        </mrow>
+        <mo id="S2.p3.1.m1.3.3.1.1.3" xref="S2.p3.1.m1.3.3.1.2.cmml">
+         ,
+        </mo>
+        <mn id="S2.p3.1.m1.1.1" xref="S2.p3.1.m1.1.1.cmml">
+         0
+        </mn>
+        <mo id="S2.p3.1.m1.3.3.1.1.4" xref="S2.p3.1.m1.3.3.1.2.cmml">
+         ,
+        </mo>
+        <mn id="S2.p3.1.m1.2.2" xref="S2.p3.1.m1.2.2.cmml">
+         1
+        </mn>
+        <mo id="S2.p3.1.m1.3.3.1.1.5" stretchy="false" xref="S2.p3.1.m1.3.3.1.2.cmml">
+         }
+        </mo>
+       </mrow>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p3.1.m1.3b">
+       <apply id="S2.p3.1.m1.3.3.cmml" xref="S2.p3.1.m1.3.3">
+        <in id="S2.p3.1.m1.3.3.2.cmml" xref="S2.p3.1.m1.3.3.2">
+        </in>
+        <apply id="S2.p3.1.m1.3.3.3.cmml" xref="S2.p3.1.m1.3.3.3">
+         <csymbol cd="ambiguous" id="S2.p3.1.m1.3.3.3.1.cmml" xref="S2.p3.1.m1.3.3.3">
+          subscript
+         </csymbol>
+         <ci id="S2.p3.1.m1.3.3.3.2.cmml" xref="S2.p3.1.m1.3.3.3.2">
+          𝑦
+         </ci>
+         <ci id="S2.p3.1.m1.3.3.3.3.cmml" xref="S2.p3.1.m1.3.3.3.3">
+          𝑝
+         </ci>
+        </apply>
+        <set id="S2.p3.1.m1.3.3.1.2.cmml" xref="S2.p3.1.m1.3.3.1.1">
+         <apply id="S2.p3.1.m1.3.3.1.1.1.cmml" xref="S2.p3.1.m1.3.3.1.1.1">
+          <minus id="S2.p3.1.m1.3.3.1.1.1.1.cmml" xref="S2.p3.1.m1.3.3.1.1.1">
+          </minus>
+          <cn id="S2.p3.1.m1.3.3.1.1.1.2.cmml" type="integer" xref="S2.p3.1.m1.3.3.1.1.1.2">
+           1
+          </cn>
+         </apply>
+         <cn id="S2.p3.1.m1.1.1.cmml" type="integer" xref="S2.p3.1.m1.1.1">
+          0
+         </cn>
+         <cn id="S2.p3.1.m1.2.2.cmml" type="integer" xref="S2.p3.1.m1.2.2">
+          1
+         </cn>
+        </set>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p3.1.m1.3c">
+       y_{p}\in\{-1,0,1\}
+      </annotation>
+     </semantics>
+    </math>
+    where -1 means the medical necessity is not justified, 1 means it is justified and 0 means there is a lack of sufficient evidence to justify the criteria.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p4">
+   <p class="ltx_p" id="S2.p4.1">
+    Recognizing the importance of transparency in the task, we also aim to provide evidence
+    <math alttext="\mathcal{E}_{c}=\{e_{c_{k}}\}_{k=1}^{N_{c}}" class="ltx_Math" display="inline" id="S2.p4.1.m1.1">
+     <semantics id="S2.p4.1.m1.1a">
+      <mrow id="S2.p4.1.m1.1.1" xref="S2.p4.1.m1.1.1.cmml">
+       <msub id="S2.p4.1.m1.1.1.3" xref="S2.p4.1.m1.1.1.3.cmml">
+        <mi class="ltx_font_mathcaligraphic" id="S2.p4.1.m1.1.1.3.2" xref="S2.p4.1.m1.1.1.3.2.cmml">
+         ℰ
+        </mi>
+        <mi id="S2.p4.1.m1.1.1.3.3" xref="S2.p4.1.m1.1.1.3.3.cmml">
+         c
+        </mi>
+       </msub>
+       <mo id="S2.p4.1.m1.1.1.2" xref="S2.p4.1.m1.1.1.2.cmml">
+        =
+       </mo>
+       <msubsup id="S2.p4.1.m1.1.1.1" xref="S2.p4.1.m1.1.1.1.cmml">
+        <mrow id="S2.p4.1.m1.1.1.1.1.1.1" xref="S2.p4.1.m1.1.1.1.1.1.2.cmml">
+         <mo id="S2.p4.1.m1.1.1.1.1.1.1.2" stretchy="false" xref="S2.p4.1.m1.1.1.1.1.1.2.cmml">
+          {
+         </mo>
+         <msub id="S2.p4.1.m1.1.1.1.1.1.1.1" xref="S2.p4.1.m1.1.1.1.1.1.1.1.cmml">
+          <mi id="S2.p4.1.m1.1.1.1.1.1.1.1.2" xref="S2.p4.1.m1.1.1.1.1.1.1.1.2.cmml">
+           e
+          </mi>
+          <msub id="S2.p4.1.m1.1.1.1.1.1.1.1.3" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3.cmml">
+           <mi id="S2.p4.1.m1.1.1.1.1.1.1.1.3.2" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3.2.cmml">
+            c
+           </mi>
+           <mi id="S2.p4.1.m1.1.1.1.1.1.1.1.3.3" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3.3.cmml">
+            k
+           </mi>
+          </msub>
+         </msub>
+         <mo id="S2.p4.1.m1.1.1.1.1.1.1.3" stretchy="false" xref="S2.p4.1.m1.1.1.1.1.1.2.cmml">
+          }
+         </mo>
+        </mrow>
+        <mrow id="S2.p4.1.m1.1.1.1.1.3" xref="S2.p4.1.m1.1.1.1.1.3.cmml">
+         <mi id="S2.p4.1.m1.1.1.1.1.3.2" xref="S2.p4.1.m1.1.1.1.1.3.2.cmml">
+          k
+         </mi>
+         <mo id="S2.p4.1.m1.1.1.1.1.3.1" xref="S2.p4.1.m1.1.1.1.1.3.1.cmml">
+          =
+         </mo>
+         <mn id="S2.p4.1.m1.1.1.1.1.3.3" xref="S2.p4.1.m1.1.1.1.1.3.3.cmml">
+          1
+         </mn>
+        </mrow>
+        <msub id="S2.p4.1.m1.1.1.1.3" xref="S2.p4.1.m1.1.1.1.3.cmml">
+         <mi id="S2.p4.1.m1.1.1.1.3.2" xref="S2.p4.1.m1.1.1.1.3.2.cmml">
+          N
+         </mi>
+         <mi id="S2.p4.1.m1.1.1.1.3.3" xref="S2.p4.1.m1.1.1.1.3.3.cmml">
+          c
+         </mi>
+        </msub>
+       </msubsup>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p4.1.m1.1b">
+       <apply id="S2.p4.1.m1.1.1.cmml" xref="S2.p4.1.m1.1.1">
+        <eq id="S2.p4.1.m1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.2">
+        </eq>
+        <apply id="S2.p4.1.m1.1.1.3.cmml" xref="S2.p4.1.m1.1.1.3">
+         <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.3.1.cmml" xref="S2.p4.1.m1.1.1.3">
+          subscript
+         </csymbol>
+         <ci id="S2.p4.1.m1.1.1.3.2.cmml" xref="S2.p4.1.m1.1.1.3.2">
+          ℰ
+         </ci>
+         <ci id="S2.p4.1.m1.1.1.3.3.cmml" xref="S2.p4.1.m1.1.1.3.3">
+          𝑐
+         </ci>
+        </apply>
+        <apply id="S2.p4.1.m1.1.1.1.cmml" xref="S2.p4.1.m1.1.1.1">
+         <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.1">
+          superscript
+         </csymbol>
+         <apply id="S2.p4.1.m1.1.1.1.1.cmml" xref="S2.p4.1.m1.1.1.1">
+          <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.1">
+           subscript
+          </csymbol>
+          <set id="S2.p4.1.m1.1.1.1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1">
+           <apply id="S2.p4.1.m1.1.1.1.1.1.1.1.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1">
+            <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.1.1.1.1.1.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.p4.1.m1.1.1.1.1.1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1.2">
+             𝑒
+            </ci>
+            <apply id="S2.p4.1.m1.1.1.1.1.1.1.1.3.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3">
+             <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.1.1.1.1.3.1.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3">
+              subscript
+             </csymbol>
+             <ci id="S2.p4.1.m1.1.1.1.1.1.1.1.3.2.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3.2">
+              𝑐
+             </ci>
+             <ci id="S2.p4.1.m1.1.1.1.1.1.1.1.3.3.cmml" xref="S2.p4.1.m1.1.1.1.1.1.1.1.3.3">
+              𝑘
+             </ci>
+            </apply>
+           </apply>
+          </set>
+          <apply id="S2.p4.1.m1.1.1.1.1.3.cmml" xref="S2.p4.1.m1.1.1.1.1.3">
+           <eq id="S2.p4.1.m1.1.1.1.1.3.1.cmml" xref="S2.p4.1.m1.1.1.1.1.3.1">
+           </eq>
+           <ci id="S2.p4.1.m1.1.1.1.1.3.2.cmml" xref="S2.p4.1.m1.1.1.1.1.3.2">
+            𝑘
+           </ci>
+           <cn id="S2.p4.1.m1.1.1.1.1.3.3.cmml" type="integer" xref="S2.p4.1.m1.1.1.1.1.3.3">
+            1
+           </cn>
+          </apply>
+         </apply>
+         <apply id="S2.p4.1.m1.1.1.1.3.cmml" xref="S2.p4.1.m1.1.1.1.3">
+          <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.3.1.cmml" xref="S2.p4.1.m1.1.1.1.3">
+           subscript
+          </csymbol>
+          <ci id="S2.p4.1.m1.1.1.1.3.2.cmml" xref="S2.p4.1.m1.1.1.1.3.2">
+           𝑁
+          </ci>
+          <ci id="S2.p4.1.m1.1.1.1.3.3.cmml" xref="S2.p4.1.m1.1.1.1.3.3">
+           𝑐
+          </ci>
+         </apply>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p4.1.m1.1c">
+       \mathcal{E}_{c}=\{e_{c_{k}}\}_{k=1}^{N_{c}}
+      </annotation>
+     </semantics>
+    </math>
+    . These evidences can be used downstream to cross-reference medical documents used to establish medical necessity for the procedure.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p5">
+   <p class="ltx_p" id="S2.p5.1">
+    We aim to construct a machine learning model
+    <math alttext="\mathcal{M}" class="ltx_Math" display="inline" id="S2.p5.1.m1.1">
+     <semantics id="S2.p5.1.m1.1a">
+      <mi class="ltx_font_mathcaligraphic" id="S2.p5.1.m1.1.1" xref="S2.p5.1.m1.1.1.cmml">
+       ℳ
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p5.1.m1.1b">
+       <ci id="S2.p5.1.m1.1.1.cmml" xref="S2.p5.1.m1.1.1">
+        ℳ
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p5.1.m1.1c">
+       \mathcal{M}
+      </annotation>
+     </semantics>
+    </math>
+    such that:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S2.E1">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="\mathcal{M}(\mathcal{D},\mathcal{C})=\{y_{p},\{\mathcal{E}_{c}\}\}\ \forall c\in\mathcal{C}" class="ltx_Math" display="block" id="S2.E1.m1.4">
+        <semantics id="S2.E1.m1.4a">
+         <mrow id="S2.E1.m1.4.4" xref="S2.E1.m1.4.4.cmml">
+          <mrow id="S2.E1.m1.4.4.4" xref="S2.E1.m1.4.4.4.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.E1.m1.4.4.4.2" xref="S2.E1.m1.4.4.4.2.cmml">
+            ℳ
+           </mi>
+           <mo id="S2.E1.m1.4.4.4.1" lspace="0em" rspace="0em" xref="S2.E1.m1.4.4.4.1.cmml">
+            ​
+           </mo>
+           <mrow id="S2.E1.m1.4.4.4.3.2" xref="S2.E1.m1.4.4.4.3.1.cmml">
+            <mo id="S2.E1.m1.4.4.4.3.2.1" stretchy="false" xref="S2.E1.m1.4.4.4.3.1.cmml">
+             (
+            </mo>
+            <mi class="ltx_font_mathcaligraphic" id="S2.E1.m1.1.1" xref="S2.E1.m1.1.1.cmml">
+             𝒟
+            </mi>
+            <mo id="S2.E1.m1.4.4.4.3.2.2" xref="S2.E1.m1.4.4.4.3.1.cmml">
+             ,
+            </mo>
+            <mi class="ltx_font_mathcaligraphic" id="S2.E1.m1.2.2" xref="S2.E1.m1.2.2.cmml">
+             𝒞
+            </mi>
+            <mo id="S2.E1.m1.4.4.4.3.2.3" stretchy="false" xref="S2.E1.m1.4.4.4.3.1.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+          <mo id="S2.E1.m1.4.4.5" xref="S2.E1.m1.4.4.5.cmml">
+           =
+          </mo>
+          <mrow id="S2.E1.m1.4.4.2" xref="S2.E1.m1.4.4.2.cmml">
+           <mrow id="S2.E1.m1.4.4.2.2.2" xref="S2.E1.m1.4.4.2.2.3.cmml">
+            <mo id="S2.E1.m1.4.4.2.2.2.3" stretchy="false" xref="S2.E1.m1.4.4.2.2.3.cmml">
+             {
+            </mo>
+            <msub id="S2.E1.m1.3.3.1.1.1.1" xref="S2.E1.m1.3.3.1.1.1.1.cmml">
+             <mi id="S2.E1.m1.3.3.1.1.1.1.2" xref="S2.E1.m1.3.3.1.1.1.1.2.cmml">
+              y
+             </mi>
+             <mi id="S2.E1.m1.3.3.1.1.1.1.3" xref="S2.E1.m1.3.3.1.1.1.1.3.cmml">
+              p
+             </mi>
+            </msub>
+            <mo id="S2.E1.m1.4.4.2.2.2.4" xref="S2.E1.m1.4.4.2.2.3.cmml">
+             ,
+            </mo>
+            <mrow id="S2.E1.m1.4.4.2.2.2.2.1" xref="S2.E1.m1.4.4.2.2.2.2.2.cmml">
+             <mo id="S2.E1.m1.4.4.2.2.2.2.1.2" stretchy="false" xref="S2.E1.m1.4.4.2.2.2.2.2.cmml">
+              {
+             </mo>
+             <msub id="S2.E1.m1.4.4.2.2.2.2.1.1" xref="S2.E1.m1.4.4.2.2.2.2.1.1.cmml">
+              <mi class="ltx_font_mathcaligraphic" id="S2.E1.m1.4.4.2.2.2.2.1.1.2" xref="S2.E1.m1.4.4.2.2.2.2.1.1.2.cmml">
+               ℰ
+              </mi>
+              <mi id="S2.E1.m1.4.4.2.2.2.2.1.1.3" xref="S2.E1.m1.4.4.2.2.2.2.1.1.3.cmml">
+               c
+              </mi>
+             </msub>
+             <mo id="S2.E1.m1.4.4.2.2.2.2.1.3" stretchy="false" xref="S2.E1.m1.4.4.2.2.2.2.2.cmml">
+              }
+             </mo>
+            </mrow>
+            <mo id="S2.E1.m1.4.4.2.2.2.5" stretchy="false" xref="S2.E1.m1.4.4.2.2.3.cmml">
+             }
+            </mo>
+           </mrow>
+           <mo id="S2.E1.m1.4.4.2.3" lspace="0.667em" rspace="0em" xref="S2.E1.m1.4.4.2.3.cmml">
+            ​
+           </mo>
+           <mrow id="S2.E1.m1.4.4.2.4" xref="S2.E1.m1.4.4.2.4.cmml">
+            <mo id="S2.E1.m1.4.4.2.4.1" rspace="0.167em" xref="S2.E1.m1.4.4.2.4.1.cmml">
+             ∀
+            </mo>
+            <mi id="S2.E1.m1.4.4.2.4.2" xref="S2.E1.m1.4.4.2.4.2.cmml">
+             c
+            </mi>
+           </mrow>
+          </mrow>
+          <mo id="S2.E1.m1.4.4.6" xref="S2.E1.m1.4.4.6.cmml">
+           ∈
+          </mo>
+          <mi class="ltx_font_mathcaligraphic" id="S2.E1.m1.4.4.7" xref="S2.E1.m1.4.4.7.cmml">
+           𝒞
+          </mi>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S2.E1.m1.4b">
+          <apply id="S2.E1.m1.4.4.cmml" xref="S2.E1.m1.4.4">
+           <and id="S2.E1.m1.4.4a.cmml" xref="S2.E1.m1.4.4">
+           </and>
+           <apply id="S2.E1.m1.4.4b.cmml" xref="S2.E1.m1.4.4">
+            <eq id="S2.E1.m1.4.4.5.cmml" xref="S2.E1.m1.4.4.5">
+            </eq>
+            <apply id="S2.E1.m1.4.4.4.cmml" xref="S2.E1.m1.4.4.4">
+             <times id="S2.E1.m1.4.4.4.1.cmml" xref="S2.E1.m1.4.4.4.1">
+             </times>
+             <ci id="S2.E1.m1.4.4.4.2.cmml" xref="S2.E1.m1.4.4.4.2">
+              ℳ
+             </ci>
+             <interval closure="open" id="S2.E1.m1.4.4.4.3.1.cmml" xref="S2.E1.m1.4.4.4.3.2">
+              <ci id="S2.E1.m1.1.1.cmml" xref="S2.E1.m1.1.1">
+               𝒟
+              </ci>
+              <ci id="S2.E1.m1.2.2.cmml" xref="S2.E1.m1.2.2">
+               𝒞
+              </ci>
+             </interval>
+            </apply>
+            <apply id="S2.E1.m1.4.4.2.cmml" xref="S2.E1.m1.4.4.2">
+             <times id="S2.E1.m1.4.4.2.3.cmml" xref="S2.E1.m1.4.4.2.3">
+             </times>
+             <set id="S2.E1.m1.4.4.2.2.3.cmml" xref="S2.E1.m1.4.4.2.2.2">
+              <apply id="S2.E1.m1.3.3.1.1.1.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1">
+               <csymbol cd="ambiguous" id="S2.E1.m1.3.3.1.1.1.1.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1">
+                subscript
+               </csymbol>
+               <ci id="S2.E1.m1.3.3.1.1.1.1.2.cmml" xref="S2.E1.m1.3.3.1.1.1.1.2">
+                𝑦
+               </ci>
+               <ci id="S2.E1.m1.3.3.1.1.1.1.3.cmml" xref="S2.E1.m1.3.3.1.1.1.1.3">
+                𝑝
+               </ci>
+              </apply>
+              <set id="S2.E1.m1.4.4.2.2.2.2.2.cmml" xref="S2.E1.m1.4.4.2.2.2.2.1">
+               <apply id="S2.E1.m1.4.4.2.2.2.2.1.1.cmml" xref="S2.E1.m1.4.4.2.2.2.2.1.1">
+                <csymbol cd="ambiguous" id="S2.E1.m1.4.4.2.2.2.2.1.1.1.cmml" xref="S2.E1.m1.4.4.2.2.2.2.1.1">
+                 subscript
+                </csymbol>
+                <ci id="S2.E1.m1.4.4.2.2.2.2.1.1.2.cmml" xref="S2.E1.m1.4.4.2.2.2.2.1.1.2">
+                 ℰ
+                </ci>
+                <ci id="S2.E1.m1.4.4.2.2.2.2.1.1.3.cmml" xref="S2.E1.m1.4.4.2.2.2.2.1.1.3">
+                 𝑐
+                </ci>
+               </apply>
+              </set>
+             </set>
+             <apply id="S2.E1.m1.4.4.2.4.cmml" xref="S2.E1.m1.4.4.2.4">
+              <csymbol cd="latexml" id="S2.E1.m1.4.4.2.4.1.cmml" xref="S2.E1.m1.4.4.2.4.1">
+               for-all
+              </csymbol>
+              <ci id="S2.E1.m1.4.4.2.4.2.cmml" xref="S2.E1.m1.4.4.2.4.2">
+               𝑐
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+           <apply id="S2.E1.m1.4.4c.cmml" xref="S2.E1.m1.4.4">
+            <in id="S2.E1.m1.4.4.6.cmml" xref="S2.E1.m1.4.4.6">
+            </in>
+            <share href="#S2.E1.m1.4.4.2.cmml" id="S2.E1.m1.4.4d.cmml" xref="S2.E1.m1.4.4">
+            </share>
+            <ci id="S2.E1.m1.4.4.7.cmml" xref="S2.E1.m1.4.4.7">
+             𝒞
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S2.E1.m1.4c">
+          \mathcal{M}(\mathcal{D},\mathcal{C})=\{y_{p},\{\mathcal{E}_{c}\}\}\ \forall c\in\mathcal{C}
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+       <span class="ltx_tag ltx_tag_equation ltx_align_right">
+        (1)
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Methodology
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Recently Large Language Models have shown great performance improvements by breaking down complex tasks into simpler sub-problems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Khot et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . Motivated by this observation, we propose a two step solution for our problem statement. First we determine the judgement of each of the leaf node checklist items. Subsequently, we propagate the solution for parent nodes bottom-up using Depth First Search.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Leaf-Node Judgement Prediction
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Given the vast set of documents with thousands of statements in each EHR document, we propose a Retrieval-Augmented Generation (
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.1">
+      RAG-styled
+     </span>
+     ) approach
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Gao et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2024
+      </a>
+      )
+     </cite>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Ram et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . This method initially narrows down the document pool to a set of plausible evidences (
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.2">
+      top-k evidences
+     </span>
+     ). Subsequently, a
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.3">
+      Retrieval Agent
+     </span>
+     is employed to acquire the relevant set of evidences for the current checklist item, facilitating targeted and efficient data extraction.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T1">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Comparison of model performance
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S3.T1.1" style="width:433.6pt;height:65.5pt;vertical-align:-0.7pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-84.2pt,12.6pt) scale(0.720331220775228,0.720331220775228) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S3.T1.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S3.T1.1.1.1.1">
+         <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r" id="S3.T1.1.1.1.1.1">
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" colspan="2" id="S3.T1.1.1.1.1.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.2.1">
+           Mixtral-8X7B
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" colspan="2" id="S3.T1.1.1.1.1.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.3.1">
+           GPT-4
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" colspan="2" id="S3.T1.1.1.1.1.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.4.1">
+           GPT-3.5
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" colspan="2" id="S3.T1.1.1.1.1.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.5.1">
+           Claude 2.1
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column" colspan="2" id="S3.T1.1.1.1.1.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.6.1">
+           Opus
+          </span>
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.2.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r" id="S3.T1.1.1.2.2.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.1.1">
+           Metric
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.2.1">
+           ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r" id="S3.T1.1.1.2.2.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.3.1">
+           CoT + ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.4.1">
+           ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r" id="S3.T1.1.1.2.2.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.5.1">
+           CoT + ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.6.1">
+           ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r" id="S3.T1.1.1.2.2.7">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.7.1">
+           CoT + ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.8">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.8.1">
+           ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r" id="S3.T1.1.1.2.2.9">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.9.1">
+           CoT + ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.10">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.10.1">
+           ICL
+          </span>
+         </th>
+         <th class="ltx_td ltx_nopad_r ltx_align_left ltx_th ltx_th_column" id="S3.T1.1.1.2.2.11">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.2.2.11.1">
+           CoT + ICL
+          </span>
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S3.T1.1.1.3.1">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.1.1.3.1.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.3.1.1.1">
+           Response Accuracy (%)
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.2">
+          75.82
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.1.1.3.1.3">
+          87.17
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.4">
+          87.17
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.1.1.3.1.5">
+          95.60
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.6">
+          78.75
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.1.1.3.1.7">
+          91.20
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.8">
+          82.05
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.1.1.3.1.9">
+          85.71
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.10">
+          85.34
+         </td>
+         <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S3.T1.1.1.3.1.11">
+          95.24
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.4.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S3.T1.1.1.4.2.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.4.2.1.1">
+           Score Accuracy (%)
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2.2">
+          47.61
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.4.2.3">
+          79.12
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2.4">
+          78.35
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.4.2.5">
+          93.04
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2.6">
+          48.35
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.4.2.7">
+          85.34
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2.8">
+          53.66
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.4.2.9">
+          81.31
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2.10">
+          79.12
+         </td>
+         <td class="ltx_td ltx_nopad_r ltx_align_left" id="S3.T1.1.1.4.2.11">
+          94.50
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.5.3">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S3.T1.1.1.5.3.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.5.3.1.1">
+           Time per Example (s)
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3.2">
+          1.76
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.5.3.3">
+          5.75
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3.4">
+          2.31
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.5.3.5">
+          8.90
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3.6">
+          1.20
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.5.3.7">
+          3.19
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3.8">
+          3.32
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.1.1.5.3.9">
+          7.51
+         </td>
+         <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3.10">
+          4.11
+         </td>
+         <td class="ltx_td ltx_nopad_r ltx_align_left" id="S3.T1.1.1.5.3.11">
+          12.49
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.1
+     </span>
+     Top-k Evidence Selection
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS1.p1.11">
+      Given the set of documents
+      <math alttext="\mathcal{D}" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.1.m1.1">
+       <semantics id="S3.SS1.SSS1.p1.1.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S3.SS1.SSS1.p1.1.m1.1.1" xref="S3.SS1.SSS1.p1.1.m1.1.1.cmml">
+         𝒟
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.1.m1.1b">
+         <ci id="S3.SS1.SSS1.p1.1.m1.1.1.cmml" xref="S3.SS1.SSS1.p1.1.m1.1.1">
+          𝒟
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.1.m1.1c">
+         \mathcal{D}
+        </annotation>
+       </semantics>
+      </math>
+      , we decompose each document into its constituent sentences and subsequently aggregate these into a comprehensive set of sentences derived from the EHR data. In order to filter-down sentences that are redundant towards the judgment, we first obtain top
+      <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.2.m2.1">
+       <semantics id="S3.SS1.SSS1.p1.2.m2.1a">
+        <mi id="S3.SS1.SSS1.p1.2.m2.1.1" xref="S3.SS1.SSS1.p1.2.m2.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.2.m2.1b">
+         <ci id="S3.SS1.SSS1.p1.2.m2.1.1.cmml" xref="S3.SS1.SSS1.p1.2.m2.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.2.m2.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      candidate matches for the checklist item
+      <math alttext="c" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.3.m3.1">
+       <semantics id="S3.SS1.SSS1.p1.3.m3.1a">
+        <mi id="S3.SS1.SSS1.p1.3.m3.1.1" xref="S3.SS1.SSS1.p1.3.m3.1.1.cmml">
+         c
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.3.m3.1b">
+         <ci id="S3.SS1.SSS1.p1.3.m3.1.1.cmml" xref="S3.SS1.SSS1.p1.3.m3.1.1">
+          𝑐
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.3.m3.1c">
+         c
+        </annotation>
+       </semantics>
+      </math>
+      from
+      <math alttext="D" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.4.m4.1">
+       <semantics id="S3.SS1.SSS1.p1.4.m4.1a">
+        <mi id="S3.SS1.SSS1.p1.4.m4.1.1" xref="S3.SS1.SSS1.p1.4.m4.1.1.cmml">
+         D
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.4.m4.1b">
+         <ci id="S3.SS1.SSS1.p1.4.m4.1.1.cmml" xref="S3.SS1.SSS1.p1.4.m4.1.1">
+          𝐷
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.4.m4.1c">
+         D
+        </annotation>
+       </semantics>
+      </math>
+      . To achieve this, we propose to use a text encoder
+      <math alttext="\mathcal{S}" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.5.m5.1">
+       <semantics id="S3.SS1.SSS1.p1.5.m5.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S3.SS1.SSS1.p1.5.m5.1.1" xref="S3.SS1.SSS1.p1.5.m5.1.1.cmml">
+         𝒮
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.5.m5.1b">
+         <ci id="S3.SS1.SSS1.p1.5.m5.1.1.cmml" xref="S3.SS1.SSS1.p1.5.m5.1.1">
+          𝒮
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.5.m5.1c">
+         \mathcal{S}
+        </annotation>
+       </semantics>
+      </math>
+      to derive semantic representations for each checklist item
+      <math alttext="c" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.6.m6.1">
+       <semantics id="S3.SS1.SSS1.p1.6.m6.1a">
+        <mi id="S3.SS1.SSS1.p1.6.m6.1.1" xref="S3.SS1.SSS1.p1.6.m6.1.1.cmml">
+         c
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.6.m6.1b">
+         <ci id="S3.SS1.SSS1.p1.6.m6.1.1.cmml" xref="S3.SS1.SSS1.p1.6.m6.1.1">
+          𝑐
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.6.m6.1c">
+         c
+        </annotation>
+       </semantics>
+      </math>
+      and for each sentence in the EHR data. This method allows us to map both the checklist items and the sentences into a shared semantic space, facilitating more effective matching based on relevance. Subsequently, we employ a semantic similarity metric to calculate the similarity score between each sentence
+      <math alttext="s_{i}" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.7.m7.1">
+       <semantics id="S3.SS1.SSS1.p1.7.m7.1a">
+        <msub id="S3.SS1.SSS1.p1.7.m7.1.1" xref="S3.SS1.SSS1.p1.7.m7.1.1.cmml">
+         <mi id="S3.SS1.SSS1.p1.7.m7.1.1.2" xref="S3.SS1.SSS1.p1.7.m7.1.1.2.cmml">
+          s
+         </mi>
+         <mi id="S3.SS1.SSS1.p1.7.m7.1.1.3" xref="S3.SS1.SSS1.p1.7.m7.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.7.m7.1b">
+         <apply id="S3.SS1.SSS1.p1.7.m7.1.1.cmml" xref="S3.SS1.SSS1.p1.7.m7.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS1.p1.7.m7.1.1.1.cmml" xref="S3.SS1.SSS1.p1.7.m7.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS1.p1.7.m7.1.1.2.cmml" xref="S3.SS1.SSS1.p1.7.m7.1.1.2">
+           𝑠
+          </ci>
+          <ci id="S3.SS1.SSS1.p1.7.m7.1.1.3.cmml" xref="S3.SS1.SSS1.p1.7.m7.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.7.m7.1c">
+         s_{i}
+        </annotation>
+       </semantics>
+      </math>
+      and the checklist item
+      <math alttext="c" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.8.m8.1">
+       <semantics id="S3.SS1.SSS1.p1.8.m8.1a">
+        <mi id="S3.SS1.SSS1.p1.8.m8.1.1" xref="S3.SS1.SSS1.p1.8.m8.1.1.cmml">
+         c
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.8.m8.1b">
+         <ci id="S3.SS1.SSS1.p1.8.m8.1.1.cmml" xref="S3.SS1.SSS1.p1.8.m8.1.1">
+          𝑐
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.8.m8.1c">
+         c
+        </annotation>
+       </semantics>
+      </math>
+      . Based on the similarity metric, we obtain top-
+      <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.9.m9.1">
+       <semantics id="S3.SS1.SSS1.p1.9.m9.1a">
+        <mi id="S3.SS1.SSS1.p1.9.m9.1.1" xref="S3.SS1.SSS1.p1.9.m9.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.9.m9.1b">
+         <ci id="S3.SS1.SSS1.p1.9.m9.1.1.cmml" xref="S3.SS1.SSS1.p1.9.m9.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.9.m9.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      closest matched sentences with the checklist item
+      <math alttext="c" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.10.m10.1">
+       <semantics id="S3.SS1.SSS1.p1.10.m10.1a">
+        <mi id="S3.SS1.SSS1.p1.10.m10.1.1" xref="S3.SS1.SSS1.p1.10.m10.1.1.cmml">
+         c
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.10.m10.1b">
+         <ci id="S3.SS1.SSS1.p1.10.m10.1.1.cmml" xref="S3.SS1.SSS1.p1.10.m10.1.1">
+          𝑐
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.10.m10.1c">
+         c
+        </annotation>
+       </semantics>
+      </math>
+      . Note that due to cost involved in using LLMs for this task, we keep
+      <span class="ltx_note ltx_role_footnote" id="footnote1">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          1
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          1
+         </span>
+         In our experiments section, we show how the performance of our approach varies with
+         <math alttext="k" class="ltx_Math" display="inline" id="footnote1.m1.1">
+          <semantics id="footnote1.m1.1b">
+           <mi id="footnote1.m1.1.1" xref="footnote1.m1.1.1.cmml">
+            k
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="footnote1.m1.1c">
+            <ci id="footnote1.m1.1.1.cmml" xref="footnote1.m1.1.1">
+             𝑘
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="footnote1.m1.1d">
+            k
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </span>
+      <math alttext="k&lt;100" class="ltx_Math" display="inline" id="S3.SS1.SSS1.p1.11.m11.1">
+       <semantics id="S3.SS1.SSS1.p1.11.m11.1a">
+        <mrow id="S3.SS1.SSS1.p1.11.m11.1.1" xref="S3.SS1.SSS1.p1.11.m11.1.1.cmml">
+         <mi id="S3.SS1.SSS1.p1.11.m11.1.1.2" xref="S3.SS1.SSS1.p1.11.m11.1.1.2.cmml">
+          k
+         </mi>
+         <mo id="S3.SS1.SSS1.p1.11.m11.1.1.1" xref="S3.SS1.SSS1.p1.11.m11.1.1.1.cmml">
+          &lt;
+         </mo>
+         <mn id="S3.SS1.SSS1.p1.11.m11.1.1.3" xref="S3.SS1.SSS1.p1.11.m11.1.1.3.cmml">
+          100
+         </mn>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS1.p1.11.m11.1b">
+         <apply id="S3.SS1.SSS1.p1.11.m11.1.1.cmml" xref="S3.SS1.SSS1.p1.11.m11.1.1">
+          <lt id="S3.SS1.SSS1.p1.11.m11.1.1.1.cmml" xref="S3.SS1.SSS1.p1.11.m11.1.1.1">
+          </lt>
+          <ci id="S3.SS1.SSS1.p1.11.m11.1.1.2.cmml" xref="S3.SS1.SSS1.p1.11.m11.1.1.2">
+           𝑘
+          </ci>
+          <cn id="S3.SS1.SSS1.p1.11.m11.1.1.3.cmml" type="integer" xref="S3.SS1.SSS1.p1.11.m11.1.1.3">
+           100
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS1.p1.11.m11.1c">
+         k&lt;100
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS1.SSS1.p2">
+     <table class="ltx_equation ltx_eqn_table" id="S3.E2">
+      <tbody>
+       <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+        <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+        </td>
+        <td class="ltx_eqn_cell ltx_align_center">
+         <math alttext="\mathcal{S}(\{d_{j}\}|_{j=1}^{N_{D}},c)=\{s_{i}\}|_{i=1}^{k}\ \forall c\in\mathcal{C}" class="ltx_Math" display="block" id="S3.E2.m1.7">
+          <semantics id="S3.E2.m1.7a">
+           <mrow id="S3.E2.m1.7.7" xref="S3.E2.m1.7.7.cmml">
+            <mrow id="S3.E2.m1.6.6.1" xref="S3.E2.m1.6.6.1.cmml">
+             <mi class="ltx_font_mathcaligraphic" id="S3.E2.m1.6.6.1.3" xref="S3.E2.m1.6.6.1.3.cmml">
+              𝒮
+             </mi>
+             <mo id="S3.E2.m1.6.6.1.2" lspace="0em" rspace="0em" xref="S3.E2.m1.6.6.1.2.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E2.m1.6.6.1.1.1" xref="S3.E2.m1.6.6.1.1.2.cmml">
+              <mo id="S3.E2.m1.6.6.1.1.1.2" stretchy="false" xref="S3.E2.m1.6.6.1.1.2.cmml">
+               (
+              </mo>
+              <msubsup id="S3.E2.m1.6.6.1.1.1.1.1" xref="S3.E2.m1.6.6.1.1.1.1.2.cmml">
+               <mrow id="S3.E2.m1.6.6.1.1.1.1.1.1.1" xref="S3.E2.m1.6.6.1.1.1.1.2.cmml">
+                <mrow id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                 <mo id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                  {
+                 </mo>
+                 <msub id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.cmml">
+                  <mi id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                   d
+                  </mi>
+                  <mi id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                   j
+                  </mi>
+                 </msub>
+                 <mo id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.3" stretchy="false" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E2.m1.6.6.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E2.m1.6.6.1.1.1.1.2.1.cmml">
+                 |
+                </mo>
+               </mrow>
+               <mrow id="S3.E2.m1.1.1.1" xref="S3.E2.m1.1.1.1.cmml">
+                <mi id="S3.E2.m1.1.1.1.2" xref="S3.E2.m1.1.1.1.2.cmml">
+                 j
+                </mi>
+                <mo id="S3.E2.m1.1.1.1.1" xref="S3.E2.m1.1.1.1.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E2.m1.1.1.1.3" xref="S3.E2.m1.1.1.1.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <msub id="S3.E2.m1.2.2.1" xref="S3.E2.m1.2.2.1.cmml">
+                <mi id="S3.E2.m1.2.2.1.2" xref="S3.E2.m1.2.2.1.2.cmml">
+                 N
+                </mi>
+                <mi id="S3.E2.m1.2.2.1.3" xref="S3.E2.m1.2.2.1.3.cmml">
+                 D
+                </mi>
+               </msub>
+              </msubsup>
+              <mo id="S3.E2.m1.6.6.1.1.1.3" xref="S3.E2.m1.6.6.1.1.2.cmml">
+               ,
+              </mo>
+              <mi id="S3.E2.m1.3.3" xref="S3.E2.m1.3.3.cmml">
+               c
+              </mi>
+              <mo id="S3.E2.m1.6.6.1.1.1.4" stretchy="false" xref="S3.E2.m1.6.6.1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <mo id="S3.E2.m1.7.7.4" xref="S3.E2.m1.7.7.4.cmml">
+             =
+            </mo>
+            <mrow id="S3.E2.m1.7.7.2" xref="S3.E2.m1.7.7.2.cmml">
+             <msubsup id="S3.E2.m1.7.7.2.1.1" xref="S3.E2.m1.7.7.2.1.2.cmml">
+              <mrow id="S3.E2.m1.7.7.2.1.1.1.1" xref="S3.E2.m1.7.7.2.1.2.cmml">
+               <mrow id="S3.E2.m1.7.7.2.1.1.1.1.1.1" xref="S3.E2.m1.7.7.2.1.1.1.1.1.2.cmml">
+                <mo id="S3.E2.m1.7.7.2.1.1.1.1.1.1.2" stretchy="false" xref="S3.E2.m1.7.7.2.1.1.1.1.1.2.cmml">
+                 {
+                </mo>
+                <msub id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.cmml">
+                 <mi id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.2" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.2.cmml">
+                  s
+                 </mi>
+                 <mi id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.3" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.3.cmml">
+                  i
+                 </mi>
+                </msub>
+                <mo id="S3.E2.m1.7.7.2.1.1.1.1.1.1.3" stretchy="false" xref="S3.E2.m1.7.7.2.1.1.1.1.1.2.cmml">
+                 }
+                </mo>
+               </mrow>
+               <mo id="S3.E2.m1.7.7.2.1.1.1.1.2" stretchy="false" xref="S3.E2.m1.7.7.2.1.2.1.cmml">
+                |
+               </mo>
+              </mrow>
+              <mrow id="S3.E2.m1.4.4.1" xref="S3.E2.m1.4.4.1.cmml">
+               <mi id="S3.E2.m1.4.4.1.2" xref="S3.E2.m1.4.4.1.2.cmml">
+                i
+               </mi>
+               <mo id="S3.E2.m1.4.4.1.1" xref="S3.E2.m1.4.4.1.1.cmml">
+                =
+               </mo>
+               <mn id="S3.E2.m1.4.4.1.3" xref="S3.E2.m1.4.4.1.3.cmml">
+                1
+               </mn>
+              </mrow>
+              <mi id="S3.E2.m1.5.5.1" xref="S3.E2.m1.5.5.1.cmml">
+               k
+              </mi>
+             </msubsup>
+             <mo id="S3.E2.m1.7.7.2.2" lspace="0.167em" rspace="0em" xref="S3.E2.m1.7.7.2.2.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E2.m1.7.7.2.3" xref="S3.E2.m1.7.7.2.3.cmml">
+              <mo id="S3.E2.m1.7.7.2.3.1" rspace="0.167em" xref="S3.E2.m1.7.7.2.3.1.cmml">
+               ∀
+              </mo>
+              <mi id="S3.E2.m1.7.7.2.3.2" xref="S3.E2.m1.7.7.2.3.2.cmml">
+               c
+              </mi>
+             </mrow>
+            </mrow>
+            <mo id="S3.E2.m1.7.7.5" xref="S3.E2.m1.7.7.5.cmml">
+             ∈
+            </mo>
+            <mi class="ltx_font_mathcaligraphic" id="S3.E2.m1.7.7.6" xref="S3.E2.m1.7.7.6.cmml">
+             𝒞
+            </mi>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S3.E2.m1.7b">
+            <apply id="S3.E2.m1.7.7.cmml" xref="S3.E2.m1.7.7">
+             <and id="S3.E2.m1.7.7a.cmml" xref="S3.E2.m1.7.7">
+             </and>
+             <apply id="S3.E2.m1.7.7b.cmml" xref="S3.E2.m1.7.7">
+              <eq id="S3.E2.m1.7.7.4.cmml" xref="S3.E2.m1.7.7.4">
+              </eq>
+              <apply id="S3.E2.m1.6.6.1.cmml" xref="S3.E2.m1.6.6.1">
+               <times id="S3.E2.m1.6.6.1.2.cmml" xref="S3.E2.m1.6.6.1.2">
+               </times>
+               <ci id="S3.E2.m1.6.6.1.3.cmml" xref="S3.E2.m1.6.6.1.3">
+                𝒮
+               </ci>
+               <interval closure="open" id="S3.E2.m1.6.6.1.1.2.cmml" xref="S3.E2.m1.6.6.1.1.1">
+                <apply id="S3.E2.m1.6.6.1.1.1.1.2.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1">
+                 <csymbol cd="latexml" id="S3.E2.m1.6.6.1.1.1.1.2.1.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.2">
+                  evaluated-at
+                 </csymbol>
+                 <set id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1">
+                  <apply id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1">
+                   <csymbol cd="ambiguous" id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1">
+                    subscript
+                   </csymbol>
+                   <ci id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.2">
+                    𝑑
+                   </ci>
+                   <ci id="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E2.m1.6.6.1.1.1.1.1.1.1.1.1.1.3">
+                    𝑗
+                   </ci>
+                  </apply>
+                 </set>
+                 <apply id="S3.E2.m1.1.1.1.cmml" xref="S3.E2.m1.1.1.1">
+                  <eq id="S3.E2.m1.1.1.1.1.cmml" xref="S3.E2.m1.1.1.1.1">
+                  </eq>
+                  <ci id="S3.E2.m1.1.1.1.2.cmml" xref="S3.E2.m1.1.1.1.2">
+                   𝑗
+                  </ci>
+                  <cn id="S3.E2.m1.1.1.1.3.cmml" type="integer" xref="S3.E2.m1.1.1.1.3">
+                   1
+                  </cn>
+                 </apply>
+                 <apply id="S3.E2.m1.2.2.1.cmml" xref="S3.E2.m1.2.2.1">
+                  <csymbol cd="ambiguous" id="S3.E2.m1.2.2.1.1.cmml" xref="S3.E2.m1.2.2.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E2.m1.2.2.1.2.cmml" xref="S3.E2.m1.2.2.1.2">
+                   𝑁
+                  </ci>
+                  <ci id="S3.E2.m1.2.2.1.3.cmml" xref="S3.E2.m1.2.2.1.3">
+                   𝐷
+                  </ci>
+                 </apply>
+                </apply>
+                <ci id="S3.E2.m1.3.3.cmml" xref="S3.E2.m1.3.3">
+                 𝑐
+                </ci>
+               </interval>
+              </apply>
+              <apply id="S3.E2.m1.7.7.2.cmml" xref="S3.E2.m1.7.7.2">
+               <times id="S3.E2.m1.7.7.2.2.cmml" xref="S3.E2.m1.7.7.2.2">
+               </times>
+               <apply id="S3.E2.m1.7.7.2.1.2.cmml" xref="S3.E2.m1.7.7.2.1.1">
+                <csymbol cd="latexml" id="S3.E2.m1.7.7.2.1.2.1.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.2">
+                 evaluated-at
+                </csymbol>
+                <set id="S3.E2.m1.7.7.2.1.1.1.1.1.2.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1">
+                 <apply id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1">
+                  <csymbol cd="ambiguous" id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.1.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.2.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.2">
+                   𝑠
+                  </ci>
+                  <ci id="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.3.cmml" xref="S3.E2.m1.7.7.2.1.1.1.1.1.1.1.3">
+                   𝑖
+                  </ci>
+                 </apply>
+                </set>
+                <apply id="S3.E2.m1.4.4.1.cmml" xref="S3.E2.m1.4.4.1">
+                 <eq id="S3.E2.m1.4.4.1.1.cmml" xref="S3.E2.m1.4.4.1.1">
+                 </eq>
+                 <ci id="S3.E2.m1.4.4.1.2.cmml" xref="S3.E2.m1.4.4.1.2">
+                  𝑖
+                 </ci>
+                 <cn id="S3.E2.m1.4.4.1.3.cmml" type="integer" xref="S3.E2.m1.4.4.1.3">
+                  1
+                 </cn>
+                </apply>
+                <ci id="S3.E2.m1.5.5.1.cmml" xref="S3.E2.m1.5.5.1">
+                 𝑘
+                </ci>
+               </apply>
+               <apply id="S3.E2.m1.7.7.2.3.cmml" xref="S3.E2.m1.7.7.2.3">
+                <csymbol cd="latexml" id="S3.E2.m1.7.7.2.3.1.cmml" xref="S3.E2.m1.7.7.2.3.1">
+                 for-all
+                </csymbol>
+                <ci id="S3.E2.m1.7.7.2.3.2.cmml" xref="S3.E2.m1.7.7.2.3.2">
+                 𝑐
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+             <apply id="S3.E2.m1.7.7c.cmml" xref="S3.E2.m1.7.7">
+              <in id="S3.E2.m1.7.7.5.cmml" xref="S3.E2.m1.7.7.5">
+              </in>
+              <share href="#S3.E2.m1.7.7.2.cmml" id="S3.E2.m1.7.7d.cmml" xref="S3.E2.m1.7.7">
+              </share>
+              <ci id="S3.E2.m1.7.7.6.cmml" xref="S3.E2.m1.7.7.6">
+               𝒞
+              </ci>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S3.E2.m1.7c">
+            \mathcal{S}(\{d_{j}\}|_{j=1}^{N_{D}},c)=\{s_{i}\}|_{i=1}^{k}\ \forall c\in\mathcal{C}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_center_padright">
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+         <span class="ltx_tag ltx_tag_equation ltx_align_right">
+          (2)
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.2
+     </span>
+     Evidence Retrieval and Prediction
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS2.p1.9">
+      Our proposed
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS2.p1.9.1">
+       Evidence Classification Agent
+      </span>
+      <math alttext="\mathcal{M}_{e}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.1.m1.1">
+       <semantics id="S3.SS1.SSS2.p1.1.m1.1a">
+        <msub id="S3.SS1.SSS2.p1.1.m1.1.1" xref="S3.SS1.SSS2.p1.1.m1.1.1.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S3.SS1.SSS2.p1.1.m1.1.1.2" xref="S3.SS1.SSS2.p1.1.m1.1.1.2.cmml">
+          ℳ
+         </mi>
+         <mi id="S3.SS1.SSS2.p1.1.m1.1.1.3" xref="S3.SS1.SSS2.p1.1.m1.1.1.3.cmml">
+          e
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.1.m1.1b">
+         <apply id="S3.SS1.SSS2.p1.1.m1.1.1.cmml" xref="S3.SS1.SSS2.p1.1.m1.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p1.1.m1.1.1.1.cmml" xref="S3.SS1.SSS2.p1.1.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p1.1.m1.1.1.2.cmml" xref="S3.SS1.SSS2.p1.1.m1.1.1.2">
+           ℳ
+          </ci>
+          <ci id="S3.SS1.SSS2.p1.1.m1.1.1.3.cmml" xref="S3.SS1.SSS2.p1.1.m1.1.1.3">
+           𝑒
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.1.m1.1c">
+         \mathcal{M}_{e}
+        </annotation>
+       </semantics>
+      </math>
+      , first looks at each sentence
+      <math alttext="s_{i}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.2.m2.1">
+       <semantics id="S3.SS1.SSS2.p1.2.m2.1a">
+        <msub id="S3.SS1.SSS2.p1.2.m2.1.1" xref="S3.SS1.SSS2.p1.2.m2.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p1.2.m2.1.1.2" xref="S3.SS1.SSS2.p1.2.m2.1.1.2.cmml">
+          s
+         </mi>
+         <mi id="S3.SS1.SSS2.p1.2.m2.1.1.3" xref="S3.SS1.SSS2.p1.2.m2.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.2.m2.1b">
+         <apply id="S3.SS1.SSS2.p1.2.m2.1.1.cmml" xref="S3.SS1.SSS2.p1.2.m2.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p1.2.m2.1.1.1.cmml" xref="S3.SS1.SSS2.p1.2.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p1.2.m2.1.1.2.cmml" xref="S3.SS1.SSS2.p1.2.m2.1.1.2">
+           𝑠
+          </ci>
+          <ci id="S3.SS1.SSS2.p1.2.m2.1.1.3.cmml" xref="S3.SS1.SSS2.p1.2.m2.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.2.m2.1c">
+         s_{i}
+        </annotation>
+       </semantics>
+      </math>
+      in top-
+      <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.3.m3.1">
+       <semantics id="S3.SS1.SSS2.p1.3.m3.1a">
+        <mi id="S3.SS1.SSS2.p1.3.m3.1.1" xref="S3.SS1.SSS2.p1.3.m3.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.3.m3.1b">
+         <ci id="S3.SS1.SSS2.p1.3.m3.1.1.cmml" xref="S3.SS1.SSS2.p1.3.m3.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.3.m3.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      sentences retrieved along with the checklist item
+      <math alttext="c" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.4.m4.1">
+       <semantics id="S3.SS1.SSS2.p1.4.m4.1a">
+        <mi id="S3.SS1.SSS2.p1.4.m4.1.1" xref="S3.SS1.SSS2.p1.4.m4.1.1.cmml">
+         c
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.4.m4.1b">
+         <ci id="S3.SS1.SSS2.p1.4.m4.1.1.cmml" xref="S3.SS1.SSS2.p1.4.m4.1.1">
+          𝑐
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.4.m4.1c">
+         c
+        </annotation>
+       </semantics>
+      </math>
+      and gives a verdict
+      <math alttext="v_{i}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.5.m5.1">
+       <semantics id="S3.SS1.SSS2.p1.5.m5.1a">
+        <msub id="S3.SS1.SSS2.p1.5.m5.1.1" xref="S3.SS1.SSS2.p1.5.m5.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p1.5.m5.1.1.2" xref="S3.SS1.SSS2.p1.5.m5.1.1.2.cmml">
+          v
+         </mi>
+         <mi id="S3.SS1.SSS2.p1.5.m5.1.1.3" xref="S3.SS1.SSS2.p1.5.m5.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.5.m5.1b">
+         <apply id="S3.SS1.SSS2.p1.5.m5.1.1.cmml" xref="S3.SS1.SSS2.p1.5.m5.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p1.5.m5.1.1.1.cmml" xref="S3.SS1.SSS2.p1.5.m5.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p1.5.m5.1.1.2.cmml" xref="S3.SS1.SSS2.p1.5.m5.1.1.2">
+           𝑣
+          </ci>
+          <ci id="S3.SS1.SSS2.p1.5.m5.1.1.3.cmml" xref="S3.SS1.SSS2.p1.5.m5.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.5.m5.1c">
+         v_{i}
+        </annotation>
+       </semantics>
+      </math>
+      , whether the sentence
+      <math alttext="s_{i}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.6.m6.1">
+       <semantics id="S3.SS1.SSS2.p1.6.m6.1a">
+        <msub id="S3.SS1.SSS2.p1.6.m6.1.1" xref="S3.SS1.SSS2.p1.6.m6.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p1.6.m6.1.1.2" xref="S3.SS1.SSS2.p1.6.m6.1.1.2.cmml">
+          s
+         </mi>
+         <mi id="S3.SS1.SSS2.p1.6.m6.1.1.3" xref="S3.SS1.SSS2.p1.6.m6.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.6.m6.1b">
+         <apply id="S3.SS1.SSS2.p1.6.m6.1.1.cmml" xref="S3.SS1.SSS2.p1.6.m6.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p1.6.m6.1.1.1.cmml" xref="S3.SS1.SSS2.p1.6.m6.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p1.6.m6.1.1.2.cmml" xref="S3.SS1.SSS2.p1.6.m6.1.1.2">
+           𝑠
+          </ci>
+          <ci id="S3.SS1.SSS2.p1.6.m6.1.1.3.cmml" xref="S3.SS1.SSS2.p1.6.m6.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.6.m6.1c">
+         s_{i}
+        </annotation>
+       </semantics>
+      </math>
+      is a supporting evidence, a contradictory evidence or it does not affect the judgment
+      <math alttext="y_{c}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.7.m7.1">
+       <semantics id="S3.SS1.SSS2.p1.7.m7.1a">
+        <msub id="S3.SS1.SSS2.p1.7.m7.1.1" xref="S3.SS1.SSS2.p1.7.m7.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p1.7.m7.1.1.2" xref="S3.SS1.SSS2.p1.7.m7.1.1.2.cmml">
+          y
+         </mi>
+         <mi id="S3.SS1.SSS2.p1.7.m7.1.1.3" xref="S3.SS1.SSS2.p1.7.m7.1.1.3.cmml">
+          c
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.7.m7.1b">
+         <apply id="S3.SS1.SSS2.p1.7.m7.1.1.cmml" xref="S3.SS1.SSS2.p1.7.m7.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p1.7.m7.1.1.1.cmml" xref="S3.SS1.SSS2.p1.7.m7.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p1.7.m7.1.1.2.cmml" xref="S3.SS1.SSS2.p1.7.m7.1.1.2">
+           𝑦
+          </ci>
+          <ci id="S3.SS1.SSS2.p1.7.m7.1.1.3.cmml" xref="S3.SS1.SSS2.p1.7.m7.1.1.3">
+           𝑐
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.7.m7.1c">
+         y_{c}
+        </annotation>
+       </semantics>
+      </math>
+      . Note that this agent is executed
+      <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.8.m8.1">
+       <semantics id="S3.SS1.SSS2.p1.8.m8.1a">
+        <mi id="S3.SS1.SSS2.p1.8.m8.1.1" xref="S3.SS1.SSS2.p1.8.m8.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.8.m8.1b">
+         <ci id="S3.SS1.SSS2.p1.8.m8.1.1.cmml" xref="S3.SS1.SSS2.p1.8.m8.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.8.m8.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      times since there are
+      <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p1.9.m9.1">
+       <semantics id="S3.SS1.SSS2.p1.9.m9.1a">
+        <mi id="S3.SS1.SSS2.p1.9.m9.1.1" xref="S3.SS1.SSS2.p1.9.m9.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p1.9.m9.1b">
+         <ci id="S3.SS1.SSS2.p1.9.m9.1.1.cmml" xref="S3.SS1.SSS2.p1.9.m9.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p1.9.m9.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      retrieved sentences.
+     </p>
+     <table class="ltx_equation ltx_eqn_table" id="S3.E3">
+      <tbody>
+       <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+        <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+        </td>
+        <td class="ltx_eqn_cell ltx_align_center">
+         <math alttext="\mathcal{M}_{e}(\{s_{i},c\}|_{i=1}^{k})=\{v_{i}\}|_{i=1}^{k}\ \forall c\in\mathcal{C}" class="ltx_Math" display="block" id="S3.E3.m1.7">
+          <semantics id="S3.E3.m1.7a">
+           <mrow id="S3.E3.m1.7.7" xref="S3.E3.m1.7.7.cmml">
+            <mrow id="S3.E3.m1.6.6.1" xref="S3.E3.m1.6.6.1.cmml">
+             <msub id="S3.E3.m1.6.6.1.3" xref="S3.E3.m1.6.6.1.3.cmml">
+              <mi class="ltx_font_mathcaligraphic" id="S3.E3.m1.6.6.1.3.2" xref="S3.E3.m1.6.6.1.3.2.cmml">
+               ℳ
+              </mi>
+              <mi id="S3.E3.m1.6.6.1.3.3" xref="S3.E3.m1.6.6.1.3.3.cmml">
+               e
+              </mi>
+             </msub>
+             <mo id="S3.E3.m1.6.6.1.2" lspace="0em" rspace="0em" xref="S3.E3.m1.6.6.1.2.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E3.m1.6.6.1.1.1" xref="S3.E3.m1.6.6.1.cmml">
+              <mo id="S3.E3.m1.6.6.1.1.1.2" stretchy="false" xref="S3.E3.m1.6.6.1.cmml">
+               (
+              </mo>
+              <msubsup id="S3.E3.m1.6.6.1.1.1.1.1" xref="S3.E3.m1.6.6.1.1.1.1.2.cmml">
+               <mrow id="S3.E3.m1.6.6.1.1.1.1.1.1.1" xref="S3.E3.m1.6.6.1.1.1.1.2.cmml">
+                <mrow id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                 <mo id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                  {
+                 </mo>
+                 <msub id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.cmml">
+                  <mi id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                   s
+                  </mi>
+                  <mi id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                   i
+                  </mi>
+                 </msub>
+                 <mo id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.3" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                  ,
+                 </mo>
+                 <mi id="S3.E3.m1.1.1" xref="S3.E3.m1.1.1.cmml">
+                  c
+                 </mi>
+                 <mo id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.4" stretchy="false" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.2.cmml">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E3.m1.6.6.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E3.m1.6.6.1.1.1.1.2.1.cmml">
+                 |
+                </mo>
+               </mrow>
+               <mrow id="S3.E3.m1.2.2.1" xref="S3.E3.m1.2.2.1.cmml">
+                <mi id="S3.E3.m1.2.2.1.2" xref="S3.E3.m1.2.2.1.2.cmml">
+                 i
+                </mi>
+                <mo id="S3.E3.m1.2.2.1.1" xref="S3.E3.m1.2.2.1.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E3.m1.2.2.1.3" xref="S3.E3.m1.2.2.1.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <mi id="S3.E3.m1.3.3.1" xref="S3.E3.m1.3.3.1.cmml">
+                k
+               </mi>
+              </msubsup>
+              <mo id="S3.E3.m1.6.6.1.1.1.3" stretchy="false" xref="S3.E3.m1.6.6.1.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <mo id="S3.E3.m1.7.7.4" xref="S3.E3.m1.7.7.4.cmml">
+             =
+            </mo>
+            <mrow id="S3.E3.m1.7.7.2" xref="S3.E3.m1.7.7.2.cmml">
+             <msubsup id="S3.E3.m1.7.7.2.1.1" xref="S3.E3.m1.7.7.2.1.2.cmml">
+              <mrow id="S3.E3.m1.7.7.2.1.1.1.1" xref="S3.E3.m1.7.7.2.1.2.cmml">
+               <mrow id="S3.E3.m1.7.7.2.1.1.1.1.1.1" xref="S3.E3.m1.7.7.2.1.1.1.1.1.2.cmml">
+                <mo id="S3.E3.m1.7.7.2.1.1.1.1.1.1.2" stretchy="false" xref="S3.E3.m1.7.7.2.1.1.1.1.1.2.cmml">
+                 {
+                </mo>
+                <msub id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.cmml">
+                 <mi id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.2" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.2.cmml">
+                  v
+                 </mi>
+                 <mi id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.3" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.3.cmml">
+                  i
+                 </mi>
+                </msub>
+                <mo id="S3.E3.m1.7.7.2.1.1.1.1.1.1.3" stretchy="false" xref="S3.E3.m1.7.7.2.1.1.1.1.1.2.cmml">
+                 }
+                </mo>
+               </mrow>
+               <mo id="S3.E3.m1.7.7.2.1.1.1.1.2" stretchy="false" xref="S3.E3.m1.7.7.2.1.2.1.cmml">
+                |
+               </mo>
+              </mrow>
+              <mrow id="S3.E3.m1.4.4.1" xref="S3.E3.m1.4.4.1.cmml">
+               <mi id="S3.E3.m1.4.4.1.2" xref="S3.E3.m1.4.4.1.2.cmml">
+                i
+               </mi>
+               <mo id="S3.E3.m1.4.4.1.1" xref="S3.E3.m1.4.4.1.1.cmml">
+                =
+               </mo>
+               <mn id="S3.E3.m1.4.4.1.3" xref="S3.E3.m1.4.4.1.3.cmml">
+                1
+               </mn>
+              </mrow>
+              <mi id="S3.E3.m1.5.5.1" xref="S3.E3.m1.5.5.1.cmml">
+               k
+              </mi>
+             </msubsup>
+             <mo id="S3.E3.m1.7.7.2.2" lspace="0.167em" rspace="0em" xref="S3.E3.m1.7.7.2.2.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E3.m1.7.7.2.3" xref="S3.E3.m1.7.7.2.3.cmml">
+              <mo id="S3.E3.m1.7.7.2.3.1" rspace="0.167em" xref="S3.E3.m1.7.7.2.3.1.cmml">
+               ∀
+              </mo>
+              <mi id="S3.E3.m1.7.7.2.3.2" xref="S3.E3.m1.7.7.2.3.2.cmml">
+               c
+              </mi>
+             </mrow>
+            </mrow>
+            <mo id="S3.E3.m1.7.7.5" xref="S3.E3.m1.7.7.5.cmml">
+             ∈
+            </mo>
+            <mi class="ltx_font_mathcaligraphic" id="S3.E3.m1.7.7.6" xref="S3.E3.m1.7.7.6.cmml">
+             𝒞
+            </mi>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S3.E3.m1.7b">
+            <apply id="S3.E3.m1.7.7.cmml" xref="S3.E3.m1.7.7">
+             <and id="S3.E3.m1.7.7a.cmml" xref="S3.E3.m1.7.7">
+             </and>
+             <apply id="S3.E3.m1.7.7b.cmml" xref="S3.E3.m1.7.7">
+              <eq id="S3.E3.m1.7.7.4.cmml" xref="S3.E3.m1.7.7.4">
+              </eq>
+              <apply id="S3.E3.m1.6.6.1.cmml" xref="S3.E3.m1.6.6.1">
+               <times id="S3.E3.m1.6.6.1.2.cmml" xref="S3.E3.m1.6.6.1.2">
+               </times>
+               <apply id="S3.E3.m1.6.6.1.3.cmml" xref="S3.E3.m1.6.6.1.3">
+                <csymbol cd="ambiguous" id="S3.E3.m1.6.6.1.3.1.cmml" xref="S3.E3.m1.6.6.1.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E3.m1.6.6.1.3.2.cmml" xref="S3.E3.m1.6.6.1.3.2">
+                 ℳ
+                </ci>
+                <ci id="S3.E3.m1.6.6.1.3.3.cmml" xref="S3.E3.m1.6.6.1.3.3">
+                 𝑒
+                </ci>
+               </apply>
+               <apply id="S3.E3.m1.6.6.1.1.1.1.2.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1">
+                <csymbol cd="latexml" id="S3.E3.m1.6.6.1.1.1.1.2.1.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.2">
+                 evaluated-at
+                </csymbol>
+                <set id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1">
+                 <apply id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1">
+                  <csymbol cd="ambiguous" id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.2">
+                   𝑠
+                  </ci>
+                  <ci id="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E3.m1.6.6.1.1.1.1.1.1.1.1.1.1.3">
+                   𝑖
+                  </ci>
+                 </apply>
+                 <ci id="S3.E3.m1.1.1.cmml" xref="S3.E3.m1.1.1">
+                  𝑐
+                 </ci>
+                </set>
+                <apply id="S3.E3.m1.2.2.1.cmml" xref="S3.E3.m1.2.2.1">
+                 <eq id="S3.E3.m1.2.2.1.1.cmml" xref="S3.E3.m1.2.2.1.1">
+                 </eq>
+                 <ci id="S3.E3.m1.2.2.1.2.cmml" xref="S3.E3.m1.2.2.1.2">
+                  𝑖
+                 </ci>
+                 <cn id="S3.E3.m1.2.2.1.3.cmml" type="integer" xref="S3.E3.m1.2.2.1.3">
+                  1
+                 </cn>
+                </apply>
+                <ci id="S3.E3.m1.3.3.1.cmml" xref="S3.E3.m1.3.3.1">
+                 𝑘
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S3.E3.m1.7.7.2.cmml" xref="S3.E3.m1.7.7.2">
+               <times id="S3.E3.m1.7.7.2.2.cmml" xref="S3.E3.m1.7.7.2.2">
+               </times>
+               <apply id="S3.E3.m1.7.7.2.1.2.cmml" xref="S3.E3.m1.7.7.2.1.1">
+                <csymbol cd="latexml" id="S3.E3.m1.7.7.2.1.2.1.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.2">
+                 evaluated-at
+                </csymbol>
+                <set id="S3.E3.m1.7.7.2.1.1.1.1.1.2.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1">
+                 <apply id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1">
+                  <csymbol cd="ambiguous" id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.1.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.2.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.2">
+                   𝑣
+                  </ci>
+                  <ci id="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.3.cmml" xref="S3.E3.m1.7.7.2.1.1.1.1.1.1.1.3">
+                   𝑖
+                  </ci>
+                 </apply>
+                </set>
+                <apply id="S3.E3.m1.4.4.1.cmml" xref="S3.E3.m1.4.4.1">
+                 <eq id="S3.E3.m1.4.4.1.1.cmml" xref="S3.E3.m1.4.4.1.1">
+                 </eq>
+                 <ci id="S3.E3.m1.4.4.1.2.cmml" xref="S3.E3.m1.4.4.1.2">
+                  𝑖
+                 </ci>
+                 <cn id="S3.E3.m1.4.4.1.3.cmml" type="integer" xref="S3.E3.m1.4.4.1.3">
+                  1
+                 </cn>
+                </apply>
+                <ci id="S3.E3.m1.5.5.1.cmml" xref="S3.E3.m1.5.5.1">
+                 𝑘
+                </ci>
+               </apply>
+               <apply id="S3.E3.m1.7.7.2.3.cmml" xref="S3.E3.m1.7.7.2.3">
+                <csymbol cd="latexml" id="S3.E3.m1.7.7.2.3.1.cmml" xref="S3.E3.m1.7.7.2.3.1">
+                 for-all
+                </csymbol>
+                <ci id="S3.E3.m1.7.7.2.3.2.cmml" xref="S3.E3.m1.7.7.2.3.2">
+                 𝑐
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+             <apply id="S3.E3.m1.7.7c.cmml" xref="S3.E3.m1.7.7">
+              <in id="S3.E3.m1.7.7.5.cmml" xref="S3.E3.m1.7.7.5">
+              </in>
+              <share href="#S3.E3.m1.7.7.2.cmml" id="S3.E3.m1.7.7d.cmml" xref="S3.E3.m1.7.7">
+              </share>
+              <ci id="S3.E3.m1.7.7.6.cmml" xref="S3.E3.m1.7.7.6">
+               𝒞
+              </ci>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S3.E3.m1.7c">
+            \mathcal{M}_{e}(\{s_{i},c\}|_{i=1}^{k})=\{v_{i}\}|_{i=1}^{k}\ \forall c\in\mathcal{C}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_center_padright">
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+         <span class="ltx_tag ltx_tag_equation ltx_align_right">
+          (3)
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_para" id="S3.SS1.SSS2.p2">
+     <p class="ltx_p" id="S3.SS1.SSS2.p2.9">
+      Then our
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS2.p2.9.1">
+       Jury Agent
+      </span>
+      <math alttext="\mathcal{M}_{j}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.1.m1.1">
+       <semantics id="S3.SS1.SSS2.p2.1.m1.1a">
+        <msub id="S3.SS1.SSS2.p2.1.m1.1.1" xref="S3.SS1.SSS2.p2.1.m1.1.1.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S3.SS1.SSS2.p2.1.m1.1.1.2" xref="S3.SS1.SSS2.p2.1.m1.1.1.2.cmml">
+          ℳ
+         </mi>
+         <mi id="S3.SS1.SSS2.p2.1.m1.1.1.3" xref="S3.SS1.SSS2.p2.1.m1.1.1.3.cmml">
+          j
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.1.m1.1b">
+         <apply id="S3.SS1.SSS2.p2.1.m1.1.1.cmml" xref="S3.SS1.SSS2.p2.1.m1.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.1.m1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.1.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p2.1.m1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.1.m1.1.1.2">
+           ℳ
+          </ci>
+          <ci id="S3.SS1.SSS2.p2.1.m1.1.1.3.cmml" xref="S3.SS1.SSS2.p2.1.m1.1.1.3">
+           𝑗
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.1.m1.1c">
+         \mathcal{M}_{j}
+        </annotation>
+       </semantics>
+      </math>
+      picks up the complete set of sentences
+      <math alttext="s_{i}|_{i=1}^{k}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.2.m2.3">
+       <semantics id="S3.SS1.SSS2.p2.2.m2.3a">
+        <msubsup id="S3.SS1.SSS2.p2.2.m2.3.3.1" xref="S3.SS1.SSS2.p2.2.m2.3.3.2.cmml">
+         <mrow id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1" xref="S3.SS1.SSS2.p2.2.m2.3.3.2.cmml">
+          <msub id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.cmml">
+           <mi id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.2" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.2.cmml">
+            s
+           </mi>
+           <mi id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.3" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.3.cmml">
+            i
+           </mi>
+          </msub>
+          <mo id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.2" stretchy="false" xref="S3.SS1.SSS2.p2.2.m2.3.3.2.1.cmml">
+           |
+          </mo>
+         </mrow>
+         <mrow id="S3.SS1.SSS2.p2.2.m2.1.1.1" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.cmml">
+          <mi id="S3.SS1.SSS2.p2.2.m2.1.1.1.2" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.2.cmml">
+           i
+          </mi>
+          <mo id="S3.SS1.SSS2.p2.2.m2.1.1.1.1" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.1.cmml">
+           =
+          </mo>
+          <mn id="S3.SS1.SSS2.p2.2.m2.1.1.1.3" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.3.cmml">
+           1
+          </mn>
+         </mrow>
+         <mi id="S3.SS1.SSS2.p2.2.m2.2.2.1" xref="S3.SS1.SSS2.p2.2.m2.2.2.1.cmml">
+          k
+         </mi>
+        </msubsup>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.2.m2.3b">
+         <apply id="S3.SS1.SSS2.p2.2.m2.3.3.2.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1">
+          <csymbol cd="latexml" id="S3.SS1.SSS2.p2.2.m2.3.3.2.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.2">
+           evaluated-at
+          </csymbol>
+          <apply id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1">
+           <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.2">
+            𝑠
+           </ci>
+           <ci id="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.3.cmml" xref="S3.SS1.SSS2.p2.2.m2.3.3.1.1.1.1.3">
+            𝑖
+           </ci>
+          </apply>
+          <apply id="S3.SS1.SSS2.p2.2.m2.1.1.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.1.1.1">
+           <eq id="S3.SS1.SSS2.p2.2.m2.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.1">
+           </eq>
+           <ci id="S3.SS1.SSS2.p2.2.m2.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.2">
+            𝑖
+           </ci>
+           <cn id="S3.SS1.SSS2.p2.2.m2.1.1.1.3.cmml" type="integer" xref="S3.SS1.SSS2.p2.2.m2.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <ci id="S3.SS1.SSS2.p2.2.m2.2.2.1.cmml" xref="S3.SS1.SSS2.p2.2.m2.2.2.1">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.2.m2.3c">
+         s_{i}|_{i=1}^{k}
+        </annotation>
+       </semantics>
+      </math>
+      along with their verdicts
+      <math alttext="v_{i}|_{i=1}^{k}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.3.m3.3">
+       <semantics id="S3.SS1.SSS2.p2.3.m3.3a">
+        <msubsup id="S3.SS1.SSS2.p2.3.m3.3.3.1" xref="S3.SS1.SSS2.p2.3.m3.3.3.2.cmml">
+         <mrow id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1" xref="S3.SS1.SSS2.p2.3.m3.3.3.2.cmml">
+          <msub id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.cmml">
+           <mi id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.2" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.2.cmml">
+            v
+           </mi>
+           <mi id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.3" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.3.cmml">
+            i
+           </mi>
+          </msub>
+          <mo id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.2" stretchy="false" xref="S3.SS1.SSS2.p2.3.m3.3.3.2.1.cmml">
+           |
+          </mo>
+         </mrow>
+         <mrow id="S3.SS1.SSS2.p2.3.m3.1.1.1" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.cmml">
+          <mi id="S3.SS1.SSS2.p2.3.m3.1.1.1.2" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.2.cmml">
+           i
+          </mi>
+          <mo id="S3.SS1.SSS2.p2.3.m3.1.1.1.1" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.1.cmml">
+           =
+          </mo>
+          <mn id="S3.SS1.SSS2.p2.3.m3.1.1.1.3" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.3.cmml">
+           1
+          </mn>
+         </mrow>
+         <mi id="S3.SS1.SSS2.p2.3.m3.2.2.1" xref="S3.SS1.SSS2.p2.3.m3.2.2.1.cmml">
+          k
+         </mi>
+        </msubsup>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.3.m3.3b">
+         <apply id="S3.SS1.SSS2.p2.3.m3.3.3.2.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1">
+          <csymbol cd="latexml" id="S3.SS1.SSS2.p2.3.m3.3.3.2.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.2">
+           evaluated-at
+          </csymbol>
+          <apply id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1">
+           <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.2">
+            𝑣
+           </ci>
+           <ci id="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.3.cmml" xref="S3.SS1.SSS2.p2.3.m3.3.3.1.1.1.1.3">
+            𝑖
+           </ci>
+          </apply>
+          <apply id="S3.SS1.SSS2.p2.3.m3.1.1.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.1.1.1">
+           <eq id="S3.SS1.SSS2.p2.3.m3.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.1">
+           </eq>
+           <ci id="S3.SS1.SSS2.p2.3.m3.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.2">
+            𝑖
+           </ci>
+           <cn id="S3.SS1.SSS2.p2.3.m3.1.1.1.3.cmml" type="integer" xref="S3.SS1.SSS2.p2.3.m3.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <ci id="S3.SS1.SSS2.p2.3.m3.2.2.1.cmml" xref="S3.SS1.SSS2.p2.3.m3.2.2.1">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.3.m3.3c">
+         v_{i}|_{i=1}^{k}
+        </annotation>
+       </semantics>
+      </math>
+      and predicts the leaf-level checklist item judgment
+      <math alttext="y_{c}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.4.m4.1">
+       <semantics id="S3.SS1.SSS2.p2.4.m4.1a">
+        <msub id="S3.SS1.SSS2.p2.4.m4.1.1" xref="S3.SS1.SSS2.p2.4.m4.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p2.4.m4.1.1.2" xref="S3.SS1.SSS2.p2.4.m4.1.1.2.cmml">
+          y
+         </mi>
+         <mi id="S3.SS1.SSS2.p2.4.m4.1.1.3" xref="S3.SS1.SSS2.p2.4.m4.1.1.3.cmml">
+          c
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.4.m4.1b">
+         <apply id="S3.SS1.SSS2.p2.4.m4.1.1.cmml" xref="S3.SS1.SSS2.p2.4.m4.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.4.m4.1.1.1.cmml" xref="S3.SS1.SSS2.p2.4.m4.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p2.4.m4.1.1.2.cmml" xref="S3.SS1.SSS2.p2.4.m4.1.1.2">
+           𝑦
+          </ci>
+          <ci id="S3.SS1.SSS2.p2.4.m4.1.1.3.cmml" xref="S3.SS1.SSS2.p2.4.m4.1.1.3">
+           𝑐
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.4.m4.1c">
+         y_{c}
+        </annotation>
+       </semantics>
+      </math>
+      along with evidences
+      <math alttext="\mathcal{E}_{c}\subset s_{i}|_{i=1}^{k}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.5.m5.3">
+       <semantics id="S3.SS1.SSS2.p2.5.m5.3a">
+        <mrow id="S3.SS1.SSS2.p2.5.m5.3.3" xref="S3.SS1.SSS2.p2.5.m5.3.3.cmml">
+         <msub id="S3.SS1.SSS2.p2.5.m5.3.3.3" xref="S3.SS1.SSS2.p2.5.m5.3.3.3.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S3.SS1.SSS2.p2.5.m5.3.3.3.2" xref="S3.SS1.SSS2.p2.5.m5.3.3.3.2.cmml">
+           ℰ
+          </mi>
+          <mi id="S3.SS1.SSS2.p2.5.m5.3.3.3.3" xref="S3.SS1.SSS2.p2.5.m5.3.3.3.3.cmml">
+           c
+          </mi>
+         </msub>
+         <mo id="S3.SS1.SSS2.p2.5.m5.3.3.2" xref="S3.SS1.SSS2.p2.5.m5.3.3.2.cmml">
+          ⊂
+         </mo>
+         <msubsup id="S3.SS1.SSS2.p2.5.m5.3.3.1.1" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.2.cmml">
+          <mrow id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.2.cmml">
+           <msub id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.cmml">
+            <mi id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.2" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.2.cmml">
+             s
+            </mi>
+            <mi id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.3" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.3.cmml">
+             i
+            </mi>
+           </msub>
+           <mo id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.2" stretchy="false" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.2.1.cmml">
+            |
+           </mo>
+          </mrow>
+          <mrow id="S3.SS1.SSS2.p2.5.m5.1.1.1" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.cmml">
+           <mi id="S3.SS1.SSS2.p2.5.m5.1.1.1.2" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.2.cmml">
+            i
+           </mi>
+           <mo id="S3.SS1.SSS2.p2.5.m5.1.1.1.1" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.1.cmml">
+            =
+           </mo>
+           <mn id="S3.SS1.SSS2.p2.5.m5.1.1.1.3" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.3.cmml">
+            1
+           </mn>
+          </mrow>
+          <mi id="S3.SS1.SSS2.p2.5.m5.2.2.1" xref="S3.SS1.SSS2.p2.5.m5.2.2.1.cmml">
+           k
+          </mi>
+         </msubsup>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.5.m5.3b">
+         <apply id="S3.SS1.SSS2.p2.5.m5.3.3.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3">
+          <subset id="S3.SS1.SSS2.p2.5.m5.3.3.2.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.2">
+          </subset>
+          <apply id="S3.SS1.SSS2.p2.5.m5.3.3.3.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.3">
+           <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.5.m5.3.3.3.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.3">
+            subscript
+           </csymbol>
+           <ci id="S3.SS1.SSS2.p2.5.m5.3.3.3.2.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.3.2">
+            ℰ
+           </ci>
+           <ci id="S3.SS1.SSS2.p2.5.m5.3.3.3.3.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.3.3">
+            𝑐
+           </ci>
+          </apply>
+          <apply id="S3.SS1.SSS2.p2.5.m5.3.3.1.2.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1">
+           <csymbol cd="latexml" id="S3.SS1.SSS2.p2.5.m5.3.3.1.2.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.2">
+            evaluated-at
+           </csymbol>
+           <apply id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1">
+            <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.2">
+             𝑠
+            </ci>
+            <ci id="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.3.cmml" xref="S3.SS1.SSS2.p2.5.m5.3.3.1.1.1.1.1.3">
+             𝑖
+            </ci>
+           </apply>
+           <apply id="S3.SS1.SSS2.p2.5.m5.1.1.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.1.1.1">
+            <eq id="S3.SS1.SSS2.p2.5.m5.1.1.1.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.1">
+            </eq>
+            <ci id="S3.SS1.SSS2.p2.5.m5.1.1.1.2.cmml" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.2">
+             𝑖
+            </ci>
+            <cn id="S3.SS1.SSS2.p2.5.m5.1.1.1.3.cmml" type="integer" xref="S3.SS1.SSS2.p2.5.m5.1.1.1.3">
+             1
+            </cn>
+           </apply>
+           <ci id="S3.SS1.SSS2.p2.5.m5.2.2.1.cmml" xref="S3.SS1.SSS2.p2.5.m5.2.2.1">
+            𝑘
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.5.m5.3c">
+         \mathcal{E}_{c}\subset s_{i}|_{i=1}^{k}
+        </annotation>
+       </semantics>
+      </math>
+      that acted in favour of the judgement
+      <math alttext="y_{c}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.6.m6.1">
+       <semantics id="S3.SS1.SSS2.p2.6.m6.1a">
+        <msub id="S3.SS1.SSS2.p2.6.m6.1.1" xref="S3.SS1.SSS2.p2.6.m6.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p2.6.m6.1.1.2" xref="S3.SS1.SSS2.p2.6.m6.1.1.2.cmml">
+          y
+         </mi>
+         <mi id="S3.SS1.SSS2.p2.6.m6.1.1.3" xref="S3.SS1.SSS2.p2.6.m6.1.1.3.cmml">
+          c
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.6.m6.1b">
+         <apply id="S3.SS1.SSS2.p2.6.m6.1.1.cmml" xref="S3.SS1.SSS2.p2.6.m6.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.6.m6.1.1.1.cmml" xref="S3.SS1.SSS2.p2.6.m6.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p2.6.m6.1.1.2.cmml" xref="S3.SS1.SSS2.p2.6.m6.1.1.2">
+           𝑦
+          </ci>
+          <ci id="S3.SS1.SSS2.p2.6.m6.1.1.3.cmml" xref="S3.SS1.SSS2.p2.6.m6.1.1.3">
+           𝑐
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.6.m6.1c">
+         y_{c}
+        </annotation>
+       </semantics>
+      </math>
+      . We run this jury agent multiple times (
+      <math alttext="n" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.7.m7.1">
+       <semantics id="S3.SS1.SSS2.p2.7.m7.1a">
+        <mi id="S3.SS1.SSS2.p2.7.m7.1.1" xref="S3.SS1.SSS2.p2.7.m7.1.1.cmml">
+         n
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.7.m7.1b">
+         <ci id="S3.SS1.SSS2.p2.7.m7.1.1.cmml" xref="S3.SS1.SSS2.p2.7.m7.1.1">
+          𝑛
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.7.m7.1c">
+         n
+        </annotation>
+       </semantics>
+      </math>
+      =10) and take vote of all predictions to determine the final judgement
+      <math alttext="y_{c}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.8.m8.1">
+       <semantics id="S3.SS1.SSS2.p2.8.m8.1a">
+        <msub id="S3.SS1.SSS2.p2.8.m8.1.1" xref="S3.SS1.SSS2.p2.8.m8.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p2.8.m8.1.1.2" xref="S3.SS1.SSS2.p2.8.m8.1.1.2.cmml">
+          y
+         </mi>
+         <mi id="S3.SS1.SSS2.p2.8.m8.1.1.3" xref="S3.SS1.SSS2.p2.8.m8.1.1.3.cmml">
+          c
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.8.m8.1b">
+         <apply id="S3.SS1.SSS2.p2.8.m8.1.1.cmml" xref="S3.SS1.SSS2.p2.8.m8.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.8.m8.1.1.1.cmml" xref="S3.SS1.SSS2.p2.8.m8.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p2.8.m8.1.1.2.cmml" xref="S3.SS1.SSS2.p2.8.m8.1.1.2">
+           𝑦
+          </ci>
+          <ci id="S3.SS1.SSS2.p2.8.m8.1.1.3.cmml" xref="S3.SS1.SSS2.p2.8.m8.1.1.3">
+           𝑐
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.8.m8.1c">
+         y_{c}
+        </annotation>
+       </semantics>
+      </math>
+      and a confidence score
+      <math alttext="f_{c}" class="ltx_Math" display="inline" id="S3.SS1.SSS2.p2.9.m9.1">
+       <semantics id="S3.SS1.SSS2.p2.9.m9.1a">
+        <msub id="S3.SS1.SSS2.p2.9.m9.1.1" xref="S3.SS1.SSS2.p2.9.m9.1.1.cmml">
+         <mi id="S3.SS1.SSS2.p2.9.m9.1.1.2" xref="S3.SS1.SSS2.p2.9.m9.1.1.2.cmml">
+          f
+         </mi>
+         <mi id="S3.SS1.SSS2.p2.9.m9.1.1.3" xref="S3.SS1.SSS2.p2.9.m9.1.1.3.cmml">
+          c
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS2.p2.9.m9.1b">
+         <apply id="S3.SS1.SSS2.p2.9.m9.1.1.cmml" xref="S3.SS1.SSS2.p2.9.m9.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.SSS2.p2.9.m9.1.1.1.cmml" xref="S3.SS1.SSS2.p2.9.m9.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.SSS2.p2.9.m9.1.1.2.cmml" xref="S3.SS1.SSS2.p2.9.m9.1.1.2">
+           𝑓
+          </ci>
+          <ci id="S3.SS1.SSS2.p2.9.m9.1.1.3.cmml" xref="S3.SS1.SSS2.p2.9.m9.1.1.3">
+           𝑐
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS2.p2.9.m9.1c">
+         f_{c}
+        </annotation>
+       </semantics>
+      </math>
+      pertaining to the judgement.
+     </p>
+     <table class="ltx_equation ltx_eqn_table" id="S3.E4">
+      <tbody>
+       <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+        <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+        </td>
+        <td class="ltx_eqn_cell ltx_align_center">
+         <math alttext="\mathcal{M}_{j}(\{s_{i},v_{i}\}|_{i=1}^{k},\ c)=\{y_{c},f_{c},\{\mathcal{E}_{c}\}\}\ \forall c\in\mathcal{C}" class="ltx_Math" display="block" id="S3.E4.m1.7">
+          <semantics id="S3.E4.m1.7a">
+           <mrow id="S3.E4.m1.7.7" xref="S3.E4.m1.7.7.cmml">
+            <mrow id="S3.E4.m1.4.4.1" xref="S3.E4.m1.4.4.1.cmml">
+             <msub id="S3.E4.m1.4.4.1.3" xref="S3.E4.m1.4.4.1.3.cmml">
+              <mi class="ltx_font_mathcaligraphic" id="S3.E4.m1.4.4.1.3.2" xref="S3.E4.m1.4.4.1.3.2.cmml">
+               ℳ
+              </mi>
+              <mi id="S3.E4.m1.4.4.1.3.3" xref="S3.E4.m1.4.4.1.3.3.cmml">
+               j
+              </mi>
+             </msub>
+             <mo id="S3.E4.m1.4.4.1.2" lspace="0em" rspace="0em" xref="S3.E4.m1.4.4.1.2.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E4.m1.4.4.1.1.1" xref="S3.E4.m1.4.4.1.1.2.cmml">
+              <mo id="S3.E4.m1.4.4.1.1.1.2" stretchy="false" xref="S3.E4.m1.4.4.1.1.2.cmml">
+               (
+              </mo>
+              <msubsup id="S3.E4.m1.4.4.1.1.1.1.1" xref="S3.E4.m1.4.4.1.1.1.1.2.cmml">
+               <mrow id="S3.E4.m1.4.4.1.1.1.1.1.1.1" xref="S3.E4.m1.4.4.1.1.1.1.2.cmml">
+                <mrow id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.3.cmml">
+                 <mo id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.3" stretchy="false" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.3.cmml">
+                  {
+                 </mo>
+                 <msub id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.cmml">
+                  <mi id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                   s
+                  </mi>
+                  <mi id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                   i
+                  </mi>
+                 </msub>
+                 <mo id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.4" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.3.cmml">
+                  ,
+                 </mo>
+                 <msub id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.cmml">
+                  <mi id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.2" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.2.cmml">
+                   v
+                  </mi>
+                  <mi id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.3" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.3.cmml">
+                   i
+                  </mi>
+                 </msub>
+                 <mo id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.5" stretchy="false" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.3.cmml">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E4.m1.4.4.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E4.m1.4.4.1.1.1.1.2.1.cmml">
+                 |
+                </mo>
+               </mrow>
+               <mrow id="S3.E4.m1.1.1.1" xref="S3.E4.m1.1.1.1.cmml">
+                <mi id="S3.E4.m1.1.1.1.2" xref="S3.E4.m1.1.1.1.2.cmml">
+                 i
+                </mi>
+                <mo id="S3.E4.m1.1.1.1.1" xref="S3.E4.m1.1.1.1.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E4.m1.1.1.1.3" xref="S3.E4.m1.1.1.1.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <mi id="S3.E4.m1.2.2.1" xref="S3.E4.m1.2.2.1.cmml">
+                k
+               </mi>
+              </msubsup>
+              <mo id="S3.E4.m1.4.4.1.1.1.3" rspace="0.667em" xref="S3.E4.m1.4.4.1.1.2.cmml">
+               ,
+              </mo>
+              <mi id="S3.E4.m1.3.3" xref="S3.E4.m1.3.3.cmml">
+               c
+              </mi>
+              <mo id="S3.E4.m1.4.4.1.1.1.4" stretchy="false" xref="S3.E4.m1.4.4.1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <mo id="S3.E4.m1.7.7.6" xref="S3.E4.m1.7.7.6.cmml">
+             =
+            </mo>
+            <mrow id="S3.E4.m1.7.7.4" xref="S3.E4.m1.7.7.4.cmml">
+             <mrow id="S3.E4.m1.7.7.4.3.3" xref="S3.E4.m1.7.7.4.3.4.cmml">
+              <mo id="S3.E4.m1.7.7.4.3.3.4" stretchy="false" xref="S3.E4.m1.7.7.4.3.4.cmml">
+               {
+              </mo>
+              <msub id="S3.E4.m1.5.5.2.1.1.1" xref="S3.E4.m1.5.5.2.1.1.1.cmml">
+               <mi id="S3.E4.m1.5.5.2.1.1.1.2" xref="S3.E4.m1.5.5.2.1.1.1.2.cmml">
+                y
+               </mi>
+               <mi id="S3.E4.m1.5.5.2.1.1.1.3" xref="S3.E4.m1.5.5.2.1.1.1.3.cmml">
+                c
+               </mi>
+              </msub>
+              <mo id="S3.E4.m1.7.7.4.3.3.5" xref="S3.E4.m1.7.7.4.3.4.cmml">
+               ,
+              </mo>
+              <msub id="S3.E4.m1.6.6.3.2.2.2" xref="S3.E4.m1.6.6.3.2.2.2.cmml">
+               <mi id="S3.E4.m1.6.6.3.2.2.2.2" xref="S3.E4.m1.6.6.3.2.2.2.2.cmml">
+                f
+               </mi>
+               <mi id="S3.E4.m1.6.6.3.2.2.2.3" xref="S3.E4.m1.6.6.3.2.2.2.3.cmml">
+                c
+               </mi>
+              </msub>
+              <mo id="S3.E4.m1.7.7.4.3.3.6" xref="S3.E4.m1.7.7.4.3.4.cmml">
+               ,
+              </mo>
+              <mrow id="S3.E4.m1.7.7.4.3.3.3.1" xref="S3.E4.m1.7.7.4.3.3.3.2.cmml">
+               <mo id="S3.E4.m1.7.7.4.3.3.3.1.2" stretchy="false" xref="S3.E4.m1.7.7.4.3.3.3.2.cmml">
+                {
+               </mo>
+               <msub id="S3.E4.m1.7.7.4.3.3.3.1.1" xref="S3.E4.m1.7.7.4.3.3.3.1.1.cmml">
+                <mi class="ltx_font_mathcaligraphic" id="S3.E4.m1.7.7.4.3.3.3.1.1.2" xref="S3.E4.m1.7.7.4.3.3.3.1.1.2.cmml">
+                 ℰ
+                </mi>
+                <mi id="S3.E4.m1.7.7.4.3.3.3.1.1.3" xref="S3.E4.m1.7.7.4.3.3.3.1.1.3.cmml">
+                 c
+                </mi>
+               </msub>
+               <mo id="S3.E4.m1.7.7.4.3.3.3.1.3" stretchy="false" xref="S3.E4.m1.7.7.4.3.3.3.2.cmml">
+                }
+               </mo>
+              </mrow>
+              <mo id="S3.E4.m1.7.7.4.3.3.7" stretchy="false" xref="S3.E4.m1.7.7.4.3.4.cmml">
+               }
+              </mo>
+             </mrow>
+             <mo id="S3.E4.m1.7.7.4.4" lspace="0.667em" rspace="0em" xref="S3.E4.m1.7.7.4.4.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E4.m1.7.7.4.5" xref="S3.E4.m1.7.7.4.5.cmml">
+              <mo id="S3.E4.m1.7.7.4.5.1" rspace="0.167em" xref="S3.E4.m1.7.7.4.5.1.cmml">
+               ∀
+              </mo>
+              <mi id="S3.E4.m1.7.7.4.5.2" xref="S3.E4.m1.7.7.4.5.2.cmml">
+               c
+              </mi>
+             </mrow>
+            </mrow>
+            <mo id="S3.E4.m1.7.7.7" xref="S3.E4.m1.7.7.7.cmml">
+             ∈
+            </mo>
+            <mi class="ltx_font_mathcaligraphic" id="S3.E4.m1.7.7.8" xref="S3.E4.m1.7.7.8.cmml">
+             𝒞
+            </mi>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S3.E4.m1.7b">
+            <apply id="S3.E4.m1.7.7.cmml" xref="S3.E4.m1.7.7">
+             <and id="S3.E4.m1.7.7a.cmml" xref="S3.E4.m1.7.7">
+             </and>
+             <apply id="S3.E4.m1.7.7b.cmml" xref="S3.E4.m1.7.7">
+              <eq id="S3.E4.m1.7.7.6.cmml" xref="S3.E4.m1.7.7.6">
+              </eq>
+              <apply id="S3.E4.m1.4.4.1.cmml" xref="S3.E4.m1.4.4.1">
+               <times id="S3.E4.m1.4.4.1.2.cmml" xref="S3.E4.m1.4.4.1.2">
+               </times>
+               <apply id="S3.E4.m1.4.4.1.3.cmml" xref="S3.E4.m1.4.4.1.3">
+                <csymbol cd="ambiguous" id="S3.E4.m1.4.4.1.3.1.cmml" xref="S3.E4.m1.4.4.1.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E4.m1.4.4.1.3.2.cmml" xref="S3.E4.m1.4.4.1.3.2">
+                 ℳ
+                </ci>
+                <ci id="S3.E4.m1.4.4.1.3.3.cmml" xref="S3.E4.m1.4.4.1.3.3">
+                 𝑗
+                </ci>
+               </apply>
+               <interval closure="open" id="S3.E4.m1.4.4.1.1.2.cmml" xref="S3.E4.m1.4.4.1.1.1">
+                <apply id="S3.E4.m1.4.4.1.1.1.1.2.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1">
+                 <csymbol cd="latexml" id="S3.E4.m1.4.4.1.1.1.1.2.1.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.2">
+                  evaluated-at
+                 </csymbol>
+                 <set id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2">
+                  <apply id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1">
+                   <csymbol cd="ambiguous" id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1">
+                    subscript
+                   </csymbol>
+                   <ci id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.2">
+                    𝑠
+                   </ci>
+                   <ci id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.1.1.3">
+                    𝑖
+                   </ci>
+                  </apply>
+                  <apply id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2">
+                   <csymbol cd="ambiguous" id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.1.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2">
+                    subscript
+                   </csymbol>
+                   <ci id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.2.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.2">
+                    𝑣
+                   </ci>
+                   <ci id="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.3.cmml" xref="S3.E4.m1.4.4.1.1.1.1.1.1.1.1.2.2.3">
+                    𝑖
+                   </ci>
+                  </apply>
+                 </set>
+                 <apply id="S3.E4.m1.1.1.1.cmml" xref="S3.E4.m1.1.1.1">
+                  <eq id="S3.E4.m1.1.1.1.1.cmml" xref="S3.E4.m1.1.1.1.1">
+                  </eq>
+                  <ci id="S3.E4.m1.1.1.1.2.cmml" xref="S3.E4.m1.1.1.1.2">
+                   𝑖
+                  </ci>
+                  <cn id="S3.E4.m1.1.1.1.3.cmml" type="integer" xref="S3.E4.m1.1.1.1.3">
+                   1
+                  </cn>
+                 </apply>
+                 <ci id="S3.E4.m1.2.2.1.cmml" xref="S3.E4.m1.2.2.1">
+                  𝑘
+                 </ci>
+                </apply>
+                <ci id="S3.E4.m1.3.3.cmml" xref="S3.E4.m1.3.3">
+                 𝑐
+                </ci>
+               </interval>
+              </apply>
+              <apply id="S3.E4.m1.7.7.4.cmml" xref="S3.E4.m1.7.7.4">
+               <times id="S3.E4.m1.7.7.4.4.cmml" xref="S3.E4.m1.7.7.4.4">
+               </times>
+               <set id="S3.E4.m1.7.7.4.3.4.cmml" xref="S3.E4.m1.7.7.4.3.3">
+                <apply id="S3.E4.m1.5.5.2.1.1.1.cmml" xref="S3.E4.m1.5.5.2.1.1.1">
+                 <csymbol cd="ambiguous" id="S3.E4.m1.5.5.2.1.1.1.1.cmml" xref="S3.E4.m1.5.5.2.1.1.1">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E4.m1.5.5.2.1.1.1.2.cmml" xref="S3.E4.m1.5.5.2.1.1.1.2">
+                  𝑦
+                 </ci>
+                 <ci id="S3.E4.m1.5.5.2.1.1.1.3.cmml" xref="S3.E4.m1.5.5.2.1.1.1.3">
+                  𝑐
+                 </ci>
+                </apply>
+                <apply id="S3.E4.m1.6.6.3.2.2.2.cmml" xref="S3.E4.m1.6.6.3.2.2.2">
+                 <csymbol cd="ambiguous" id="S3.E4.m1.6.6.3.2.2.2.1.cmml" xref="S3.E4.m1.6.6.3.2.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E4.m1.6.6.3.2.2.2.2.cmml" xref="S3.E4.m1.6.6.3.2.2.2.2">
+                  𝑓
+                 </ci>
+                 <ci id="S3.E4.m1.6.6.3.2.2.2.3.cmml" xref="S3.E4.m1.6.6.3.2.2.2.3">
+                  𝑐
+                 </ci>
+                </apply>
+                <set id="S3.E4.m1.7.7.4.3.3.3.2.cmml" xref="S3.E4.m1.7.7.4.3.3.3.1">
+                 <apply id="S3.E4.m1.7.7.4.3.3.3.1.1.cmml" xref="S3.E4.m1.7.7.4.3.3.3.1.1">
+                  <csymbol cd="ambiguous" id="S3.E4.m1.7.7.4.3.3.3.1.1.1.cmml" xref="S3.E4.m1.7.7.4.3.3.3.1.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E4.m1.7.7.4.3.3.3.1.1.2.cmml" xref="S3.E4.m1.7.7.4.3.3.3.1.1.2">
+                   ℰ
+                  </ci>
+                  <ci id="S3.E4.m1.7.7.4.3.3.3.1.1.3.cmml" xref="S3.E4.m1.7.7.4.3.3.3.1.1.3">
+                   𝑐
+                  </ci>
+                 </apply>
+                </set>
+               </set>
+               <apply id="S3.E4.m1.7.7.4.5.cmml" xref="S3.E4.m1.7.7.4.5">
+                <csymbol cd="latexml" id="S3.E4.m1.7.7.4.5.1.cmml" xref="S3.E4.m1.7.7.4.5.1">
+                 for-all
+                </csymbol>
+                <ci id="S3.E4.m1.7.7.4.5.2.cmml" xref="S3.E4.m1.7.7.4.5.2">
+                 𝑐
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+             <apply id="S3.E4.m1.7.7c.cmml" xref="S3.E4.m1.7.7">
+              <in id="S3.E4.m1.7.7.7.cmml" xref="S3.E4.m1.7.7.7">
+              </in>
+              <share href="#S3.E4.m1.7.7.4.cmml" id="S3.E4.m1.7.7d.cmml" xref="S3.E4.m1.7.7">
+              </share>
+              <ci id="S3.E4.m1.7.7.8.cmml" xref="S3.E4.m1.7.7.8">
+               𝒞
+              </ci>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S3.E4.m1.7c">
+            \mathcal{M}_{j}(\{s_{i},v_{i}\}|_{i=1}^{k},\ c)=\{y_{c},f_{c},\{\mathcal{E}_{c}\}\}\ \forall c\in\mathcal{C}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_center_padright">
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+         <span class="ltx_tag ltx_tag_equation ltx_align_right">
+          (4)
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Parent-Node Judgement Prediction
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     The value of a parent node is contingent upon the values of its nested child nodes. Hence, we determine parent node’s value by aggregating children node’s value using bottom-up judgment propagation approach.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1
+     </span>
+     Bottom-Up Judgement Propagation
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS1.p1.2">
+      In order to obtain the decision over the complete checklist
+      <math alttext="\mathcal{C}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p1.1.m1.1">
+       <semantics id="S3.SS2.SSS1.p1.1.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S3.SS2.SSS1.p1.1.m1.1.1" xref="S3.SS2.SSS1.p1.1.m1.1.1.cmml">
+         𝒞
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p1.1.m1.1b">
+         <ci id="S3.SS2.SSS1.p1.1.m1.1.1.cmml" xref="S3.SS2.SSS1.p1.1.m1.1.1">
+          𝒞
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p1.1.m1.1c">
+         \mathcal{C}
+        </annotation>
+       </semantics>
+      </math>
+      , we propose to use an iterative bottom-up approach. In another words, we start from the leaf nodes and keep obtaining the judgment of their parent nodes. The iterations are terminated when we obtain the judgment and scores of the root node in the checklist
+      <math alttext="\mathcal{C}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p1.2.m2.1">
+       <semantics id="S3.SS2.SSS1.p1.2.m2.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S3.SS2.SSS1.p1.2.m2.1.1" xref="S3.SS2.SSS1.p1.2.m2.1.1.cmml">
+         𝒞
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p1.2.m2.1b">
+         <ci id="S3.SS2.SSS1.p1.2.m2.1.1.cmml" xref="S3.SS2.SSS1.p1.2.m2.1.1">
+          𝒞
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p1.2.m2.1c">
+         \mathcal{C}
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS1.p2">
+     <p class="ltx_p" id="S3.SS2.SSS1.p2.7">
+      Mathematically, at every iteration
+      <math alttext="i" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.1.m1.1">
+       <semantics id="S3.SS2.SSS1.p2.1.m1.1a">
+        <mi id="S3.SS2.SSS1.p2.1.m1.1.1" xref="S3.SS2.SSS1.p2.1.m1.1.1.cmml">
+         i
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.1.m1.1b">
+         <ci id="S3.SS2.SSS1.p2.1.m1.1.1.cmml" xref="S3.SS2.SSS1.p2.1.m1.1.1">
+          𝑖
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.1.m1.1c">
+         i
+        </annotation>
+       </semantics>
+      </math>
+      , we choose a set of leaf node checklist items
+      <math alttext="c_{j}|_{j=1}^{N_{par}}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.2.m2.3">
+       <semantics id="S3.SS2.SSS1.p2.2.m2.3a">
+        <msubsup id="S3.SS2.SSS1.p2.2.m2.3.3.1" xref="S3.SS2.SSS1.p2.2.m2.3.3.2.cmml">
+         <mrow id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1" xref="S3.SS2.SSS1.p2.2.m2.3.3.2.cmml">
+          <msub id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.cmml">
+           <mi id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.2" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.2.cmml">
+            c
+           </mi>
+           <mi id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.3" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.3.cmml">
+            j
+           </mi>
+          </msub>
+          <mo id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.2" stretchy="false" xref="S3.SS2.SSS1.p2.2.m2.3.3.2.1.cmml">
+           |
+          </mo>
+         </mrow>
+         <mrow id="S3.SS2.SSS1.p2.2.m2.1.1.1" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.2.m2.1.1.1.2" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.2.cmml">
+           j
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.2.m2.1.1.1.1" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.1.cmml">
+           =
+          </mo>
+          <mn id="S3.SS2.SSS1.p2.2.m2.1.1.1.3" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.3.cmml">
+           1
+          </mn>
+         </mrow>
+         <msub id="S3.SS2.SSS1.p2.2.m2.2.2.1" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.2.m2.2.2.1.2" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.2.cmml">
+           N
+          </mi>
+          <mrow id="S3.SS2.SSS1.p2.2.m2.2.2.1.3" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.cmml">
+           <mi id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.2" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.2.cmml">
+            p
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.3" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.3.cmml">
+            a
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.4" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.4.cmml">
+            r
+           </mi>
+          </mrow>
+         </msub>
+        </msubsup>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.2.m2.3b">
+         <apply id="S3.SS2.SSS1.p2.2.m2.3.3.2.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1">
+          <csymbol cd="latexml" id="S3.SS2.SSS1.p2.2.m2.3.3.2.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.2">
+           evaluated-at
+          </csymbol>
+          <apply id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.2">
+            𝑐
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.3.cmml" xref="S3.SS2.SSS1.p2.2.m2.3.3.1.1.1.1.3">
+            𝑗
+           </ci>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.2.m2.1.1.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.1.1.1">
+           <eq id="S3.SS2.SSS1.p2.2.m2.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.1">
+           </eq>
+           <ci id="S3.SS2.SSS1.p2.2.m2.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.2">
+            𝑗
+           </ci>
+           <cn id="S3.SS2.SSS1.p2.2.m2.1.1.1.3.cmml" type="integer" xref="S3.SS2.SSS1.p2.2.m2.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.2.m2.2.2.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.2.m2.2.2.1.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.2.m2.2.2.1.2.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.2">
+            𝑁
+           </ci>
+           <apply id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3">
+            <times id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.1">
+            </times>
+            <ci id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.2.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.2">
+             𝑝
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.3.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.3">
+             𝑎
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.2.m2.2.2.1.3.4.cmml" xref="S3.SS2.SSS1.p2.2.m2.2.2.1.3.4">
+             𝑟
+            </ci>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.2.m2.3c">
+         c_{j}|_{j=1}^{N_{par}}
+        </annotation>
+       </semantics>
+      </math>
+      having a common parent checklist item
+      <math alttext="c_{par}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.3.m3.1">
+       <semantics id="S3.SS2.SSS1.p2.3.m3.1a">
+        <msub id="S3.SS2.SSS1.p2.3.m3.1.1" xref="S3.SS2.SSS1.p2.3.m3.1.1.cmml">
+         <mi id="S3.SS2.SSS1.p2.3.m3.1.1.2" xref="S3.SS2.SSS1.p2.3.m3.1.1.2.cmml">
+          c
+         </mi>
+         <mrow id="S3.SS2.SSS1.p2.3.m3.1.1.3" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.cmml">
+          <mi id="S3.SS2.SSS1.p2.3.m3.1.1.3.2" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.2.cmml">
+           p
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.3.m3.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.3.m3.1.1.3.3" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.3.cmml">
+           a
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.3.m3.1.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.3.m3.1.1.3.4" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.4.cmml">
+           r
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.3.m3.1b">
+         <apply id="S3.SS2.SSS1.p2.3.m3.1.1.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.3.m3.1.1.1.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.SSS1.p2.3.m3.1.1.2.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.2">
+           𝑐
+          </ci>
+          <apply id="S3.SS2.SSS1.p2.3.m3.1.1.3.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.3">
+           <times id="S3.SS2.SSS1.p2.3.m3.1.1.3.1.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.1">
+           </times>
+           <ci id="S3.SS2.SSS1.p2.3.m3.1.1.3.2.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.2">
+            𝑝
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.3.m3.1.1.3.3.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.3">
+            𝑎
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.3.m3.1.1.3.4.cmml" xref="S3.SS2.SSS1.p2.3.m3.1.1.3.4">
+            𝑟
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.3.m3.1c">
+         c_{par}
+        </annotation>
+       </semantics>
+      </math>
+      , having judgements
+      <math alttext="y_{j}|_{j=1}^{N_{par}}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.4.m4.3">
+       <semantics id="S3.SS2.SSS1.p2.4.m4.3a">
+        <msubsup id="S3.SS2.SSS1.p2.4.m4.3.3.1" xref="S3.SS2.SSS1.p2.4.m4.3.3.2.cmml">
+         <mrow id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1" xref="S3.SS2.SSS1.p2.4.m4.3.3.2.cmml">
+          <msub id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.cmml">
+           <mi id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.2" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.2.cmml">
+            y
+           </mi>
+           <mi id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.3" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.3.cmml">
+            j
+           </mi>
+          </msub>
+          <mo id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.2" stretchy="false" xref="S3.SS2.SSS1.p2.4.m4.3.3.2.1.cmml">
+           |
+          </mo>
+         </mrow>
+         <mrow id="S3.SS2.SSS1.p2.4.m4.1.1.1" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.4.m4.1.1.1.2" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.2.cmml">
+           j
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.4.m4.1.1.1.1" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.1.cmml">
+           =
+          </mo>
+          <mn id="S3.SS2.SSS1.p2.4.m4.1.1.1.3" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.3.cmml">
+           1
+          </mn>
+         </mrow>
+         <msub id="S3.SS2.SSS1.p2.4.m4.2.2.1" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.4.m4.2.2.1.2" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.2.cmml">
+           N
+          </mi>
+          <mrow id="S3.SS2.SSS1.p2.4.m4.2.2.1.3" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.cmml">
+           <mi id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.2" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.2.cmml">
+            p
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.3" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.3.cmml">
+            a
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.4" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.4.cmml">
+            r
+           </mi>
+          </mrow>
+         </msub>
+        </msubsup>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.4.m4.3b">
+         <apply id="S3.SS2.SSS1.p2.4.m4.3.3.2.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1">
+          <csymbol cd="latexml" id="S3.SS2.SSS1.p2.4.m4.3.3.2.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.2">
+           evaluated-at
+          </csymbol>
+          <apply id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.2">
+            𝑦
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.3.cmml" xref="S3.SS2.SSS1.p2.4.m4.3.3.1.1.1.1.3">
+            𝑗
+           </ci>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.4.m4.1.1.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.1.1.1">
+           <eq id="S3.SS2.SSS1.p2.4.m4.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.1">
+           </eq>
+           <ci id="S3.SS2.SSS1.p2.4.m4.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.2">
+            𝑗
+           </ci>
+           <cn id="S3.SS2.SSS1.p2.4.m4.1.1.1.3.cmml" type="integer" xref="S3.SS2.SSS1.p2.4.m4.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.4.m4.2.2.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.4.m4.2.2.1.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.4.m4.2.2.1.2.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.2">
+            𝑁
+           </ci>
+           <apply id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3">
+            <times id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.1">
+            </times>
+            <ci id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.2.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.2">
+             𝑝
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.3.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.3">
+             𝑎
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.4.m4.2.2.1.3.4.cmml" xref="S3.SS2.SSS1.p2.4.m4.2.2.1.3.4">
+             𝑟
+            </ci>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.4.m4.3c">
+         y_{j}|_{j=1}^{N_{par}}
+        </annotation>
+       </semantics>
+      </math>
+      and confidence scores
+      <math alttext="f_{j}|_{j=1}^{N_{par}}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.5.m5.3">
+       <semantics id="S3.SS2.SSS1.p2.5.m5.3a">
+        <msubsup id="S3.SS2.SSS1.p2.5.m5.3.3.1" xref="S3.SS2.SSS1.p2.5.m5.3.3.2.cmml">
+         <mrow id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1" xref="S3.SS2.SSS1.p2.5.m5.3.3.2.cmml">
+          <msub id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.cmml">
+           <mi id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.2" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.2.cmml">
+            f
+           </mi>
+           <mi id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.3" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.3.cmml">
+            j
+           </mi>
+          </msub>
+          <mo id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.2" stretchy="false" xref="S3.SS2.SSS1.p2.5.m5.3.3.2.1.cmml">
+           |
+          </mo>
+         </mrow>
+         <mrow id="S3.SS2.SSS1.p2.5.m5.1.1.1" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.5.m5.1.1.1.2" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.2.cmml">
+           j
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.5.m5.1.1.1.1" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.1.cmml">
+           =
+          </mo>
+          <mn id="S3.SS2.SSS1.p2.5.m5.1.1.1.3" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.3.cmml">
+           1
+          </mn>
+         </mrow>
+         <msub id="S3.SS2.SSS1.p2.5.m5.2.2.1" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.cmml">
+          <mi id="S3.SS2.SSS1.p2.5.m5.2.2.1.2" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.2.cmml">
+           N
+          </mi>
+          <mrow id="S3.SS2.SSS1.p2.5.m5.2.2.1.3" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.cmml">
+           <mi id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.2" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.2.cmml">
+            p
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.3" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.3.cmml">
+            a
+           </mi>
+           <mo id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.4" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.4.cmml">
+            r
+           </mi>
+          </mrow>
+         </msub>
+        </msubsup>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.5.m5.3b">
+         <apply id="S3.SS2.SSS1.p2.5.m5.3.3.2.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1">
+          <csymbol cd="latexml" id="S3.SS2.SSS1.p2.5.m5.3.3.2.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.2">
+           evaluated-at
+          </csymbol>
+          <apply id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.2">
+            𝑓
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.3.cmml" xref="S3.SS2.SSS1.p2.5.m5.3.3.1.1.1.1.3">
+            𝑗
+           </ci>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.5.m5.1.1.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.1.1.1">
+           <eq id="S3.SS2.SSS1.p2.5.m5.1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.1">
+           </eq>
+           <ci id="S3.SS2.SSS1.p2.5.m5.1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.2">
+            𝑗
+           </ci>
+           <cn id="S3.SS2.SSS1.p2.5.m5.1.1.1.3.cmml" type="integer" xref="S3.SS2.SSS1.p2.5.m5.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <apply id="S3.SS2.SSS1.p2.5.m5.2.2.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1">
+           <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.5.m5.2.2.1.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1">
+            subscript
+           </csymbol>
+           <ci id="S3.SS2.SSS1.p2.5.m5.2.2.1.2.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.2">
+            𝑁
+           </ci>
+           <apply id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3">
+            <times id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.1">
+            </times>
+            <ci id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.2.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.2">
+             𝑝
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.3.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.3">
+             𝑎
+            </ci>
+            <ci id="S3.SS2.SSS1.p2.5.m5.2.2.1.3.4.cmml" xref="S3.SS2.SSS1.p2.5.m5.2.2.1.3.4">
+             𝑟
+            </ci>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.5.m5.3c">
+         f_{j}|_{j=1}^{N_{par}}
+        </annotation>
+       </semantics>
+      </math>
+      . We then calculate the judgement
+      <math alttext="y_{par}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.6.m6.1">
+       <semantics id="S3.SS2.SSS1.p2.6.m6.1a">
+        <msub id="S3.SS2.SSS1.p2.6.m6.1.1" xref="S3.SS2.SSS1.p2.6.m6.1.1.cmml">
+         <mi id="S3.SS2.SSS1.p2.6.m6.1.1.2" xref="S3.SS2.SSS1.p2.6.m6.1.1.2.cmml">
+          y
+         </mi>
+         <mrow id="S3.SS2.SSS1.p2.6.m6.1.1.3" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.cmml">
+          <mi id="S3.SS2.SSS1.p2.6.m6.1.1.3.2" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.2.cmml">
+           p
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.6.m6.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.6.m6.1.1.3.3" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.3.cmml">
+           a
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.6.m6.1.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.6.m6.1.1.3.4" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.4.cmml">
+           r
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.6.m6.1b">
+         <apply id="S3.SS2.SSS1.p2.6.m6.1.1.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.6.m6.1.1.1.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.SSS1.p2.6.m6.1.1.2.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.2">
+           𝑦
+          </ci>
+          <apply id="S3.SS2.SSS1.p2.6.m6.1.1.3.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.3">
+           <times id="S3.SS2.SSS1.p2.6.m6.1.1.3.1.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.1">
+           </times>
+           <ci id="S3.SS2.SSS1.p2.6.m6.1.1.3.2.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.2">
+            𝑝
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.6.m6.1.1.3.3.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.3">
+            𝑎
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.6.m6.1.1.3.4.cmml" xref="S3.SS2.SSS1.p2.6.m6.1.1.3.4">
+            𝑟
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.6.m6.1c">
+         y_{par}
+        </annotation>
+       </semantics>
+      </math>
+      and confidence score
+      <math alttext="f_{par}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.7.m7.1">
+       <semantics id="S3.SS2.SSS1.p2.7.m7.1a">
+        <msub id="S3.SS2.SSS1.p2.7.m7.1.1" xref="S3.SS2.SSS1.p2.7.m7.1.1.cmml">
+         <mi id="S3.SS2.SSS1.p2.7.m7.1.1.2" xref="S3.SS2.SSS1.p2.7.m7.1.1.2.cmml">
+          f
+         </mi>
+         <mrow id="S3.SS2.SSS1.p2.7.m7.1.1.3" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.cmml">
+          <mi id="S3.SS2.SSS1.p2.7.m7.1.1.3.2" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.2.cmml">
+           p
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.7.m7.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.7.m7.1.1.3.3" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.3.cmml">
+           a
+          </mi>
+          <mo id="S3.SS2.SSS1.p2.7.m7.1.1.3.1a" lspace="0em" rspace="0em" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S3.SS2.SSS1.p2.7.m7.1.1.3.4" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.4.cmml">
+           r
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.7.m7.1b">
+         <apply id="S3.SS2.SSS1.p2.7.m7.1.1.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.7.m7.1.1.1.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.SSS1.p2.7.m7.1.1.2.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.2">
+           𝑓
+          </ci>
+          <apply id="S3.SS2.SSS1.p2.7.m7.1.1.3.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.3">
+           <times id="S3.SS2.SSS1.p2.7.m7.1.1.3.1.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.1">
+           </times>
+           <ci id="S3.SS2.SSS1.p2.7.m7.1.1.3.2.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.2">
+            𝑝
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.7.m7.1.1.3.3.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.3">
+            𝑎
+           </ci>
+           <ci id="S3.SS2.SSS1.p2.7.m7.1.1.3.4.cmml" xref="S3.SS2.SSS1.p2.7.m7.1.1.3.4">
+            𝑟
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.7.m7.1c">
+         f_{par}
+        </annotation>
+       </semantics>
+      </math>
+      of parent node as:
+     </p>
+     <table class="ltx_equation ltx_eqn_table" id="S3.E5">
+      <tbody>
+       <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+        <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+        </td>
+        <td class="ltx_eqn_cell ltx_align_center">
+         <math alttext="\mathcal{M}_{p}(c_{par},\{c_{j},y_{j},f_{j}\}|_{j=1}^{N_{par}})=\{y_{par},f_{par}\}" class="ltx_Math" display="block" id="S3.E5.m1.6">
+          <semantics id="S3.E5.m1.6a">
+           <mrow id="S3.E5.m1.6.6" xref="S3.E5.m1.6.6.cmml">
+            <mrow id="S3.E5.m1.4.4.2" xref="S3.E5.m1.4.4.2.cmml">
+             <msub id="S3.E5.m1.4.4.2.4" xref="S3.E5.m1.4.4.2.4.cmml">
+              <mi class="ltx_font_mathcaligraphic" id="S3.E5.m1.4.4.2.4.2" xref="S3.E5.m1.4.4.2.4.2.cmml">
+               ℳ
+              </mi>
+              <mi id="S3.E5.m1.4.4.2.4.3" xref="S3.E5.m1.4.4.2.4.3.cmml">
+               p
+              </mi>
+             </msub>
+             <mo id="S3.E5.m1.4.4.2.3" lspace="0em" rspace="0em" xref="S3.E5.m1.4.4.2.3.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E5.m1.4.4.2.2.2" xref="S3.E5.m1.4.4.2.2.3.cmml">
+              <mo id="S3.E5.m1.4.4.2.2.2.3" stretchy="false" xref="S3.E5.m1.4.4.2.2.3.cmml">
+               (
+              </mo>
+              <msub id="S3.E5.m1.3.3.1.1.1.1" xref="S3.E5.m1.3.3.1.1.1.1.cmml">
+               <mi id="S3.E5.m1.3.3.1.1.1.1.2" xref="S3.E5.m1.3.3.1.1.1.1.2.cmml">
+                c
+               </mi>
+               <mrow id="S3.E5.m1.3.3.1.1.1.1.3" xref="S3.E5.m1.3.3.1.1.1.1.3.cmml">
+                <mi id="S3.E5.m1.3.3.1.1.1.1.3.2" xref="S3.E5.m1.3.3.1.1.1.1.3.2.cmml">
+                 p
+                </mi>
+                <mo id="S3.E5.m1.3.3.1.1.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E5.m1.3.3.1.1.1.1.3.1.cmml">
+                 ​
+                </mo>
+                <mi id="S3.E5.m1.3.3.1.1.1.1.3.3" xref="S3.E5.m1.3.3.1.1.1.1.3.3.cmml">
+                 a
+                </mi>
+                <mo id="S3.E5.m1.3.3.1.1.1.1.3.1a" lspace="0em" rspace="0em" xref="S3.E5.m1.3.3.1.1.1.1.3.1.cmml">
+                 ​
+                </mo>
+                <mi id="S3.E5.m1.3.3.1.1.1.1.3.4" xref="S3.E5.m1.3.3.1.1.1.1.3.4.cmml">
+                 r
+                </mi>
+               </mrow>
+              </msub>
+              <mo id="S3.E5.m1.4.4.2.2.2.4" xref="S3.E5.m1.4.4.2.2.3.cmml">
+               ,
+              </mo>
+              <msubsup id="S3.E5.m1.4.4.2.2.2.2.1" xref="S3.E5.m1.4.4.2.2.2.2.2.cmml">
+               <mrow id="S3.E5.m1.4.4.2.2.2.2.1.1.1" xref="S3.E5.m1.4.4.2.2.2.2.2.cmml">
+                <mrow id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml">
+                 <mo id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.4" stretchy="false" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml">
+                  {
+                 </mo>
+                 <msub id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.cmml">
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.2" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.2.cmml">
+                   c
+                  </mi>
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.3" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.3.cmml">
+                   j
+                  </mi>
+                 </msub>
+                 <mo id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.5" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml">
+                  ,
+                 </mo>
+                 <msub id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.cmml">
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.2" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.2.cmml">
+                   y
+                  </mi>
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.3" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.3.cmml">
+                   j
+                  </mi>
+                 </msub>
+                 <mo id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.6" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml">
+                  ,
+                 </mo>
+                 <msub id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.cmml">
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.2" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.2.cmml">
+                   f
+                  </mi>
+                  <mi id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.3" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.3.cmml">
+                   j
+                  </mi>
+                 </msub>
+                 <mo id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.7" stretchy="false" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E5.m1.4.4.2.2.2.2.1.1.1.2" stretchy="false" xref="S3.E5.m1.4.4.2.2.2.2.2.1.cmml">
+                 |
+                </mo>
+               </mrow>
+               <mrow id="S3.E5.m1.1.1.1" xref="S3.E5.m1.1.1.1.cmml">
+                <mi id="S3.E5.m1.1.1.1.2" xref="S3.E5.m1.1.1.1.2.cmml">
+                 j
+                </mi>
+                <mo id="S3.E5.m1.1.1.1.1" xref="S3.E5.m1.1.1.1.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E5.m1.1.1.1.3" xref="S3.E5.m1.1.1.1.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <msub id="S3.E5.m1.2.2.1" xref="S3.E5.m1.2.2.1.cmml">
+                <mi id="S3.E5.m1.2.2.1.2" xref="S3.E5.m1.2.2.1.2.cmml">
+                 N
+                </mi>
+                <mrow id="S3.E5.m1.2.2.1.3" xref="S3.E5.m1.2.2.1.3.cmml">
+                 <mi id="S3.E5.m1.2.2.1.3.2" xref="S3.E5.m1.2.2.1.3.2.cmml">
+                  p
+                 </mi>
+                 <mo id="S3.E5.m1.2.2.1.3.1" lspace="0em" rspace="0em" xref="S3.E5.m1.2.2.1.3.1.cmml">
+                  ​
+                 </mo>
+                 <mi id="S3.E5.m1.2.2.1.3.3" xref="S3.E5.m1.2.2.1.3.3.cmml">
+                  a
+                 </mi>
+                 <mo id="S3.E5.m1.2.2.1.3.1a" lspace="0em" rspace="0em" xref="S3.E5.m1.2.2.1.3.1.cmml">
+                  ​
+                 </mo>
+                 <mi id="S3.E5.m1.2.2.1.3.4" xref="S3.E5.m1.2.2.1.3.4.cmml">
+                  r
+                 </mi>
+                </mrow>
+               </msub>
+              </msubsup>
+              <mo id="S3.E5.m1.4.4.2.2.2.5" stretchy="false" xref="S3.E5.m1.4.4.2.2.3.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <mo id="S3.E5.m1.6.6.5" xref="S3.E5.m1.6.6.5.cmml">
+             =
+            </mo>
+            <mrow id="S3.E5.m1.6.6.4.2" xref="S3.E5.m1.6.6.4.3.cmml">
+             <mo id="S3.E5.m1.6.6.4.2.3" stretchy="false" xref="S3.E5.m1.6.6.4.3.cmml">
+              {
+             </mo>
+             <msub id="S3.E5.m1.5.5.3.1.1" xref="S3.E5.m1.5.5.3.1.1.cmml">
+              <mi id="S3.E5.m1.5.5.3.1.1.2" xref="S3.E5.m1.5.5.3.1.1.2.cmml">
+               y
+              </mi>
+              <mrow id="S3.E5.m1.5.5.3.1.1.3" xref="S3.E5.m1.5.5.3.1.1.3.cmml">
+               <mi id="S3.E5.m1.5.5.3.1.1.3.2" xref="S3.E5.m1.5.5.3.1.1.3.2.cmml">
+                p
+               </mi>
+               <mo id="S3.E5.m1.5.5.3.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E5.m1.5.5.3.1.1.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.E5.m1.5.5.3.1.1.3.3" xref="S3.E5.m1.5.5.3.1.1.3.3.cmml">
+                a
+               </mi>
+               <mo id="S3.E5.m1.5.5.3.1.1.3.1a" lspace="0em" rspace="0em" xref="S3.E5.m1.5.5.3.1.1.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.E5.m1.5.5.3.1.1.3.4" xref="S3.E5.m1.5.5.3.1.1.3.4.cmml">
+                r
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S3.E5.m1.6.6.4.2.4" xref="S3.E5.m1.6.6.4.3.cmml">
+              ,
+             </mo>
+             <msub id="S3.E5.m1.6.6.4.2.2" xref="S3.E5.m1.6.6.4.2.2.cmml">
+              <mi id="S3.E5.m1.6.6.4.2.2.2" xref="S3.E5.m1.6.6.4.2.2.2.cmml">
+               f
+              </mi>
+              <mrow id="S3.E5.m1.6.6.4.2.2.3" xref="S3.E5.m1.6.6.4.2.2.3.cmml">
+               <mi id="S3.E5.m1.6.6.4.2.2.3.2" xref="S3.E5.m1.6.6.4.2.2.3.2.cmml">
+                p
+               </mi>
+               <mo id="S3.E5.m1.6.6.4.2.2.3.1" lspace="0em" rspace="0em" xref="S3.E5.m1.6.6.4.2.2.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.E5.m1.6.6.4.2.2.3.3" xref="S3.E5.m1.6.6.4.2.2.3.3.cmml">
+                a
+               </mi>
+               <mo id="S3.E5.m1.6.6.4.2.2.3.1a" lspace="0em" rspace="0em" xref="S3.E5.m1.6.6.4.2.2.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.E5.m1.6.6.4.2.2.3.4" xref="S3.E5.m1.6.6.4.2.2.3.4.cmml">
+                r
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S3.E5.m1.6.6.4.2.5" stretchy="false" xref="S3.E5.m1.6.6.4.3.cmml">
+              }
+             </mo>
+            </mrow>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S3.E5.m1.6b">
+            <apply id="S3.E5.m1.6.6.cmml" xref="S3.E5.m1.6.6">
+             <eq id="S3.E5.m1.6.6.5.cmml" xref="S3.E5.m1.6.6.5">
+             </eq>
+             <apply id="S3.E5.m1.4.4.2.cmml" xref="S3.E5.m1.4.4.2">
+              <times id="S3.E5.m1.4.4.2.3.cmml" xref="S3.E5.m1.4.4.2.3">
+              </times>
+              <apply id="S3.E5.m1.4.4.2.4.cmml" xref="S3.E5.m1.4.4.2.4">
+               <csymbol cd="ambiguous" id="S3.E5.m1.4.4.2.4.1.cmml" xref="S3.E5.m1.4.4.2.4">
+                subscript
+               </csymbol>
+               <ci id="S3.E5.m1.4.4.2.4.2.cmml" xref="S3.E5.m1.4.4.2.4.2">
+                ℳ
+               </ci>
+               <ci id="S3.E5.m1.4.4.2.4.3.cmml" xref="S3.E5.m1.4.4.2.4.3">
+                𝑝
+               </ci>
+              </apply>
+              <interval closure="open" id="S3.E5.m1.4.4.2.2.3.cmml" xref="S3.E5.m1.4.4.2.2.2">
+               <apply id="S3.E5.m1.3.3.1.1.1.1.cmml" xref="S3.E5.m1.3.3.1.1.1.1">
+                <csymbol cd="ambiguous" id="S3.E5.m1.3.3.1.1.1.1.1.cmml" xref="S3.E5.m1.3.3.1.1.1.1">
+                 subscript
+                </csymbol>
+                <ci id="S3.E5.m1.3.3.1.1.1.1.2.cmml" xref="S3.E5.m1.3.3.1.1.1.1.2">
+                 𝑐
+                </ci>
+                <apply id="S3.E5.m1.3.3.1.1.1.1.3.cmml" xref="S3.E5.m1.3.3.1.1.1.1.3">
+                 <times id="S3.E5.m1.3.3.1.1.1.1.3.1.cmml" xref="S3.E5.m1.3.3.1.1.1.1.3.1">
+                 </times>
+                 <ci id="S3.E5.m1.3.3.1.1.1.1.3.2.cmml" xref="S3.E5.m1.3.3.1.1.1.1.3.2">
+                  𝑝
+                 </ci>
+                 <ci id="S3.E5.m1.3.3.1.1.1.1.3.3.cmml" xref="S3.E5.m1.3.3.1.1.1.1.3.3">
+                  𝑎
+                 </ci>
+                 <ci id="S3.E5.m1.3.3.1.1.1.1.3.4.cmml" xref="S3.E5.m1.3.3.1.1.1.1.3.4">
+                  𝑟
+                 </ci>
+                </apply>
+               </apply>
+               <apply id="S3.E5.m1.4.4.2.2.2.2.2.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1">
+                <csymbol cd="latexml" id="S3.E5.m1.4.4.2.2.2.2.2.1.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.2">
+                 evaluated-at
+                </csymbol>
+                <set id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.4.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3">
+                 <apply id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1">
+                  <csymbol cd="ambiguous" id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.1.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.2.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.2">
+                   𝑐
+                  </ci>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.3.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.1.1.3">
+                   𝑗
+                  </ci>
+                 </apply>
+                 <apply id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2">
+                  <csymbol cd="ambiguous" id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.1.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.2.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.2">
+                   𝑦
+                  </ci>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.3.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.2.2.3">
+                   𝑗
+                  </ci>
+                 </apply>
+                 <apply id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3">
+                  <csymbol cd="ambiguous" id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.1.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.2.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.2">
+                   𝑓
+                  </ci>
+                  <ci id="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.3.cmml" xref="S3.E5.m1.4.4.2.2.2.2.1.1.1.1.3.3.3">
+                   𝑗
+                  </ci>
+                 </apply>
+                </set>
+                <apply id="S3.E5.m1.1.1.1.cmml" xref="S3.E5.m1.1.1.1">
+                 <eq id="S3.E5.m1.1.1.1.1.cmml" xref="S3.E5.m1.1.1.1.1">
+                 </eq>
+                 <ci id="S3.E5.m1.1.1.1.2.cmml" xref="S3.E5.m1.1.1.1.2">
+                  𝑗
+                 </ci>
+                 <cn id="S3.E5.m1.1.1.1.3.cmml" type="integer" xref="S3.E5.m1.1.1.1.3">
+                  1
+                 </cn>
+                </apply>
+                <apply id="S3.E5.m1.2.2.1.cmml" xref="S3.E5.m1.2.2.1">
+                 <csymbol cd="ambiguous" id="S3.E5.m1.2.2.1.1.cmml" xref="S3.E5.m1.2.2.1">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E5.m1.2.2.1.2.cmml" xref="S3.E5.m1.2.2.1.2">
+                  𝑁
+                 </ci>
+                 <apply id="S3.E5.m1.2.2.1.3.cmml" xref="S3.E5.m1.2.2.1.3">
+                  <times id="S3.E5.m1.2.2.1.3.1.cmml" xref="S3.E5.m1.2.2.1.3.1">
+                  </times>
+                  <ci id="S3.E5.m1.2.2.1.3.2.cmml" xref="S3.E5.m1.2.2.1.3.2">
+                   𝑝
+                  </ci>
+                  <ci id="S3.E5.m1.2.2.1.3.3.cmml" xref="S3.E5.m1.2.2.1.3.3">
+                   𝑎
+                  </ci>
+                  <ci id="S3.E5.m1.2.2.1.3.4.cmml" xref="S3.E5.m1.2.2.1.3.4">
+                   𝑟
+                  </ci>
+                 </apply>
+                </apply>
+               </apply>
+              </interval>
+             </apply>
+             <set id="S3.E5.m1.6.6.4.3.cmml" xref="S3.E5.m1.6.6.4.2">
+              <apply id="S3.E5.m1.5.5.3.1.1.cmml" xref="S3.E5.m1.5.5.3.1.1">
+               <csymbol cd="ambiguous" id="S3.E5.m1.5.5.3.1.1.1.cmml" xref="S3.E5.m1.5.5.3.1.1">
+                subscript
+               </csymbol>
+               <ci id="S3.E5.m1.5.5.3.1.1.2.cmml" xref="S3.E5.m1.5.5.3.1.1.2">
+                𝑦
+               </ci>
+               <apply id="S3.E5.m1.5.5.3.1.1.3.cmml" xref="S3.E5.m1.5.5.3.1.1.3">
+                <times id="S3.E5.m1.5.5.3.1.1.3.1.cmml" xref="S3.E5.m1.5.5.3.1.1.3.1">
+                </times>
+                <ci id="S3.E5.m1.5.5.3.1.1.3.2.cmml" xref="S3.E5.m1.5.5.3.1.1.3.2">
+                 𝑝
+                </ci>
+                <ci id="S3.E5.m1.5.5.3.1.1.3.3.cmml" xref="S3.E5.m1.5.5.3.1.1.3.3">
+                 𝑎
+                </ci>
+                <ci id="S3.E5.m1.5.5.3.1.1.3.4.cmml" xref="S3.E5.m1.5.5.3.1.1.3.4">
+                 𝑟
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S3.E5.m1.6.6.4.2.2.cmml" xref="S3.E5.m1.6.6.4.2.2">
+               <csymbol cd="ambiguous" id="S3.E5.m1.6.6.4.2.2.1.cmml" xref="S3.E5.m1.6.6.4.2.2">
+                subscript
+               </csymbol>
+               <ci id="S3.E5.m1.6.6.4.2.2.2.cmml" xref="S3.E5.m1.6.6.4.2.2.2">
+                𝑓
+               </ci>
+               <apply id="S3.E5.m1.6.6.4.2.2.3.cmml" xref="S3.E5.m1.6.6.4.2.2.3">
+                <times id="S3.E5.m1.6.6.4.2.2.3.1.cmml" xref="S3.E5.m1.6.6.4.2.2.3.1">
+                </times>
+                <ci id="S3.E5.m1.6.6.4.2.2.3.2.cmml" xref="S3.E5.m1.6.6.4.2.2.3.2">
+                 𝑝
+                </ci>
+                <ci id="S3.E5.m1.6.6.4.2.2.3.3.cmml" xref="S3.E5.m1.6.6.4.2.2.3.3">
+                 𝑎
+                </ci>
+                <ci id="S3.E5.m1.6.6.4.2.2.3.4.cmml" xref="S3.E5.m1.6.6.4.2.2.3.4">
+                 𝑟
+                </ci>
+               </apply>
+              </apply>
+             </set>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S3.E5.m1.6c">
+            \mathcal{M}_{p}(c_{par},\{c_{j},y_{j},f_{j}\}|_{j=1}^{N_{par}})=\{y_{par},f_{par}\}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_center_padright">
+        </td>
+        <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+         <span class="ltx_tag ltx_tag_equation ltx_align_right">
+          (5)
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <p class="ltx_p" id="S3.SS2.SSS1.p2.8">
+      where
+      <math alttext="\mathcal{M}_{p}" class="ltx_Math" display="inline" id="S3.SS2.SSS1.p2.8.m1.1">
+       <semantics id="S3.SS2.SSS1.p2.8.m1.1a">
+        <msub id="S3.SS2.SSS1.p2.8.m1.1.1" xref="S3.SS2.SSS1.p2.8.m1.1.1.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S3.SS2.SSS1.p2.8.m1.1.1.2" xref="S3.SS2.SSS1.p2.8.m1.1.1.2.cmml">
+          ℳ
+         </mi>
+         <mi id="S3.SS2.SSS1.p2.8.m1.1.1.3" xref="S3.SS2.SSS1.p2.8.m1.1.1.3.cmml">
+          p
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S3.SS2.SSS1.p2.8.m1.1b">
+         <apply id="S3.SS2.SSS1.p2.8.m1.1.1.cmml" xref="S3.SS2.SSS1.p2.8.m1.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.SSS1.p2.8.m1.1.1.1.cmml" xref="S3.SS2.SSS1.p2.8.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.SSS1.p2.8.m1.1.1.2.cmml" xref="S3.SS2.SSS1.p2.8.m1.1.1.2">
+           ℳ
+          </ci>
+          <ci id="S3.SS2.SSS1.p2.8.m1.1.1.3.cmml" xref="S3.SS2.SSS1.p2.8.m1.1.1.3">
+           𝑝
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS2.SSS1.p2.8.m1.1c">
+         \mathcal{M}_{p}
+        </annotation>
+       </semantics>
+      </math>
+      is our
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS1.p2.8.1">
+       Propagator Agent
+      </span>
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiments and Results
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    We have conducted preliminary tests for the Leaf-Node Judgment Prediction task on a limited set of examples, and a broader evaluation on a more extensive dataset is currently underway. Updates to the paper will follow upon completion of the study.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    For the Bottom-Up Judgment Propagation task, we have prepared approximately 300 sub-checklists, where each sub-checklist includes a parent node and its associated child nodes. To evaluate our
+    <span class="ltx_text ltx_font_italic" id="S4.p2.1.1">
+     Propagator Agent
+    </span>
+    , we intentionally apply the judgments from the Leaf-Node Judgment Prediction task to each leaf node in the checklist. This method of synthetic assignment is advantageous as it introduces a range of less likely or extraordinary judgment combinations, thereby challenging our
+    <span class="ltx_text ltx_font_italic" id="S4.p2.1.2">
+     Propagator Agent
+    </span>
+    to maximize its robustness.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    Our
+    <span class="ltx_text ltx_font_italic" id="S4.p3.1.1">
+     Propagator Agent
+    </span>
+    is an LLM-powered Agent, which takes up a parent node and its corresponding leaf nodes (along with their judgments and confidence scores) to obtain the judgment and confidence score of the parent node. Due to proprietary constraints, the specific prompt utilized for this agent is not disclosed; however, we evaluate the performance of the
+    <span class="ltx_text ltx_font_italic" id="S4.p3.1.2">
+     Propagator Agent
+    </span>
+    across various dimensions. The outcomes of this analysis are presented in Table
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.1 Leaf-Node Judgement Prediction ‣ 3 Methodology ‣ Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Effect of Prompting Strategy
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     We performed two sets of experiments. The first involved providing
+     <span class="ltx_text ltx_font_italic" id="S4.SS1.p1.1.1">
+      In-Context Learning
+     </span>
+     (ICL) examples
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Min et al. (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2022
+      </a>
+      )
+     </cite>
+     and measuring accuracy, as illustrated in Figure
+     <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ 4.1 Effect of Prompting Strategy ‣ 4 Experiments and Results ‣ Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     . Larger models such as GPT-4 and Opus yielded strong results, whereas smaller models like Mixtral-8X7B and GPT-3.5 exhibited suboptimal performance when relying solely on ICL prompts. However, in the second experiment, when supplemented with
+     <span class="ltx_text ltx_font_italic" id="S4.SS1.p1.1.2">
+      Chain of Thought
+     </span>
+     (CoT) prompting
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wei et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , the performance of these smaller models markedly improved, demonstrating how the step-by-step reasoning process aids in decomposing the complex task of propagation into manageable segments.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     However, the use of Chain of Thought (CoT) prompting substantially increases response times for larger models due to its generation of an increased number of tokens compared to ICL-only prompting. In contrast, the enhancements in performance observed with GPT-3.5 are achieved without a marked increase in latency, particularly when compared to larger models such as Opus and GPT-4 under similar conditions.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="447" id="S4.F3.g1" src="/html/2404.17977/assets/score.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Effectiveness of ICL vs. CoT Strategies Across Multiple LLMs
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Effect of LLM Choice
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     We conducted an evaluation of the
+     <span class="ltx_text ltx_font_italic" id="S4.SS2.p1.1.1">
+      Propagator Agent
+     </span>
+     utilizing various LLMs, with a particular emphasis on metrics such as accuracy and latency. Opus and GPT-4 emerged as the top performers, achieving approximately 94% accuracy when CoT prompting was combined with ICL examples, as illustrated in Figure
+     <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ 4.1 Effect of Prompting Strategy ‣ 4 Experiments and Results ‣ Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     GPT-3.5 is ranked second in terms of accuracy but presents significant benefits in reduced latency compared to GPT-4 and Opus, as depicted in Figure
+     <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ 4.2 Effect of LLM Choice ‣ 4 Experiments and Results ‣ Advancing Healthcare Automation: Multi-Agent Systems for Medical Necessity Justification">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     . Additionally, the operational costs associated with GPT-3.5 are substantially lower. Although selecting the optimal model involves a trade-off, GPT-3.5 stands out as the preferred option when considering a balance among cost, latency, and accuracy. Nonetheless, for scenarios where maximum accuracy is crucial, the larger models such as GPT-4 and Opus are more appropriate.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="359" id="S4.F4.g1" src="/html/2404.17977/assets/time.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Latency Analysis of LLMs Under ICL and CoT
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.4">
+    We have demonstrated that decomposing a large, complex problem into a series of smaller, specialized tasks handled by different agents can help us automate even sophisticated tasks that until now was extremely difficult. This approach also enables us to illustrate the transition from a monolithic AI solution (
+    <math alttext="\mathcal{M}" class="ltx_Math" display="inline" id="S5.p1.1.m1.1">
+     <semantics id="S5.p1.1.m1.1a">
+      <mi class="ltx_font_mathcaligraphic" id="S5.p1.1.m1.1.1" xref="S5.p1.1.m1.1.1.cmml">
+       ℳ
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S5.p1.1.m1.1b">
+       <ci id="S5.p1.1.m1.1.1.cmml" xref="S5.p1.1.m1.1.1">
+        ℳ
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.p1.1.m1.1c">
+       \mathcal{M}
+      </annotation>
+     </semantics>
+    </math>
+    ) to a more micro-service architecture driven solution (
+    <math alttext="\mathcal{M}_{r}" class="ltx_Math" display="inline" id="S5.p1.2.m2.1">
+     <semantics id="S5.p1.2.m2.1a">
+      <msub id="S5.p1.2.m2.1.1" xref="S5.p1.2.m2.1.1.cmml">
+       <mi class="ltx_font_mathcaligraphic" id="S5.p1.2.m2.1.1.2" xref="S5.p1.2.m2.1.1.2.cmml">
+        ℳ
+       </mi>
+       <mi id="S5.p1.2.m2.1.1.3" xref="S5.p1.2.m2.1.1.3.cmml">
+        r
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S5.p1.2.m2.1b">
+       <apply id="S5.p1.2.m2.1.1.cmml" xref="S5.p1.2.m2.1.1">
+        <csymbol cd="ambiguous" id="S5.p1.2.m2.1.1.1.cmml" xref="S5.p1.2.m2.1.1">
+         subscript
+        </csymbol>
+        <ci id="S5.p1.2.m2.1.1.2.cmml" xref="S5.p1.2.m2.1.1.2">
+         ℳ
+        </ci>
+        <ci id="S5.p1.2.m2.1.1.3.cmml" xref="S5.p1.2.m2.1.1.3">
+         𝑟
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.p1.2.m2.1c">
+       \mathcal{M}_{r}
+      </annotation>
+     </semantics>
+    </math>
+    ,
+    <math alttext="\mathcal{M}_{j}" class="ltx_Math" display="inline" id="S5.p1.3.m3.1">
+     <semantics id="S5.p1.3.m3.1a">
+      <msub id="S5.p1.3.m3.1.1" xref="S5.p1.3.m3.1.1.cmml">
+       <mi class="ltx_font_mathcaligraphic" id="S5.p1.3.m3.1.1.2" xref="S5.p1.3.m3.1.1.2.cmml">
+        ℳ
+       </mi>
+       <mi id="S5.p1.3.m3.1.1.3" xref="S5.p1.3.m3.1.1.3.cmml">
+        j
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S5.p1.3.m3.1b">
+       <apply id="S5.p1.3.m3.1.1.cmml" xref="S5.p1.3.m3.1.1">
+        <csymbol cd="ambiguous" id="S5.p1.3.m3.1.1.1.cmml" xref="S5.p1.3.m3.1.1">
+         subscript
+        </csymbol>
+        <ci id="S5.p1.3.m3.1.1.2.cmml" xref="S5.p1.3.m3.1.1.2">
+         ℳ
+        </ci>
+        <ci id="S5.p1.3.m3.1.1.3.cmml" xref="S5.p1.3.m3.1.1.3">
+         𝑗
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.p1.3.m3.1c">
+       \mathcal{M}_{j}
+      </annotation>
+     </semantics>
+    </math>
+    and
+    <math alttext="\mathcal{M}_{p}" class="ltx_Math" display="inline" id="S5.p1.4.m4.1">
+     <semantics id="S5.p1.4.m4.1a">
+      <msub id="S5.p1.4.m4.1.1" xref="S5.p1.4.m4.1.1.cmml">
+       <mi class="ltx_font_mathcaligraphic" id="S5.p1.4.m4.1.1.2" xref="S5.p1.4.m4.1.1.2.cmml">
+        ℳ
+       </mi>
+       <mi id="S5.p1.4.m4.1.1.3" xref="S5.p1.4.m4.1.1.3.cmml">
+        p
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S5.p1.4.m4.1b">
+       <apply id="S5.p1.4.m4.1.1.cmml" xref="S5.p1.4.m4.1.1">
+        <csymbol cd="ambiguous" id="S5.p1.4.m4.1.1.1.cmml" xref="S5.p1.4.m4.1.1">
+         subscript
+        </csymbol>
+        <ci id="S5.p1.4.m4.1.1.2.cmml" xref="S5.p1.4.m4.1.1.2">
+         ℳ
+        </ci>
+        <ci id="S5.p1.4.m4.1.1.3.cmml" xref="S5.p1.4.m4.1.1.3">
+         𝑝
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.p1.4.m4.1c">
+       \mathcal{M}_{p}
+      </annotation>
+     </semantics>
+    </math>
+    ). At present, our methodology utilizes a constrained workflow; however, there is potential to develop a system incorporating loosely coupled agents. These agents would be more dynamic and agile, enhancing their capacity for problem-solving.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    A fully developed implementation of this approach would essentially adopt an organizational-like structure, where the entire architecture is composed of several pods. Each pod contains worker agents, each specialized in different facets of the given problem, along with checker agents that reassess and validates worker agent’s output, prompting a rerun if the outputs appear to be incorrect. Overseeing these pods would be a super-orchestrator agent, analogous to a CEO at the organizational level, who coordinates and directs the activities across the architecture. This architectural design significantly addresses the issue of hallucinations, a common challenge in existing LLMs.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    Moreover, given our work’s focus on the healthcare industry, there is a substantial emphasis on the explainability of the outputs generated by these LLM agents. The logs produced through Chain of Thought (CoT) prompting provide valuable insights into the decision-making processes of these agents, addressing, to some extent, the challenges of transparency associated with employing AI models in healthcare workflows.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chambers et al. (2016)
+    </span>
+    <span class="ltx_bibblock">
+     James Chambers, Matthew Chenoweth, and Peter Neumann. 2016.
+    </span>
+    <span class="ltx_bibblock">
+     Mapping us commercial payers’ coverage policies for medical interventions.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      The American journal of managed care
+     </em>
+     , 22:e323–e328.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gao et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2312.10997" target="_blank" title="">
+      Retrieval-augmented generation for large language models: A survey
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Khot et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Tushar Khot, Kyle Richardson, Daniel Khashabi, and Ashish Sabharwal. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2110.08542" target="_blank" title="">
+      Hey ai, can you solve complex tasks by talking to agents?
+     </a>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li and Clerc (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Xiaodong Li and Maurice Clerc. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1007/978-3-319-91086-4_11" target="_blank" title="">
+      <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1.1">
+       Swarm Intelligence
+      </em>
+     </a>
+     , pages 353–384. Springer International Publishing, Cham.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madhusoodanan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     V Madhusoodanan, L Ramos, IJ Zucker, A Sathe, and R Ramasamy. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1016/j.nurpra.2022.10.008" target="_blank" title="">
+      Is time spent on prior authorizations associated with approval?
+     </a>
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      J Nurse Pract
+     </em>
+     , 19(2):104479.
+    </span>
+    <span class="ltx_bibblock">
+     Epub 2022 Nov 10.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Min et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Sewon Min, Xinxi Lyu, Ari Holtzman, Mikel Artetxe, Mike Lewis, Hannaneh Hajishirzi, and Luke Zettlemoyer. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2202.12837" target="_blank" title="">
+      Rethinking the role of demonstrations: What makes in-context learning work?
+     </a>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ram et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Ori Ram, Yoav Levine, Itay Dalmedigos, Dor Muhlgay, Amnon Shashua, Kevin Leyton-Brown, and Yoav Shoham. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1162/tacl_a_00605" target="_blank" title="">
+      In-Context Retrieval-Augmented Language Models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Transactions of the Association for Computational Linguistics
+     </em>
+     , 11:1316–1331.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, brian ichter, Fei Xia, Ed Chi, Quoc V Le, and Denny Zhou. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper_files/paper/2022/file/9d5609613524ecf4f15af0f7b31abca4-Paper-Conference.pdf" target="_blank" title="">
+      Chain-of-thought prompting elicits reasoning in large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 35, pages 24824–24837. Curran Associates, Inc.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

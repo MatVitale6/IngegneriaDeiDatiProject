@@ -1,0 +1,3048 @@
+<article class="ltx_document" lang="en">
+ <h1 class="ltx_title ltx_title_document">
+  TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Long Cheng, Qihao Shao
+    <span class="ltx_note ltx_role_footnotemark" id="footnotex1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_note_type">
+        footnotemark:
+       </span>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+      </span>
+     </span>
+    </span>
+    , Christine Zhao, Sheng Bi, Gina-Anne Levow
+    <br class="ltx_break"/>
+    Department of Linguistics
+    <br class="ltx_break"/>
+    University of Washington
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     {lcheng97, qihaos, czhao028, shengbi, levow}@uw.edu
+    </span>
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    These authors contributed equally to this work.Corresponding author
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   <span class="ltx_text" id="id2.id1.1">
+    Cross-lingual emotion detection allows us to analyze global trends, public opinion, and social phenomena at scale. We participated in the Explainability of Cross-lingual Emotion Detection (EXALT) shared task, achieving an F1-score of 0.6046 on the evaluation set for the emotion detection sub-task. Our system outperformed the baseline by more than 0.16 F1-score absolute, and ranked second amongst competing systems. We conducted experiments using fine-tuning, zero-shot learning, and few-shot learning for Large Language Model (LLM)-based models as well as embedding-based BiLSTM and KNN for non-LLM-based techniques. Additionally, we introduced two novel methods: the Multi-Iteration Agentic Workflow and the Multi-Binary-Classifier Agentic Workflow. We found that LLM-based approaches provided good performance on multilingual emotion detection. Furthermore, ensembles combining all our experimented models yielded higher F1-scores than any single approach alone.
+   </span>
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.1">
+   <p class="ltx_p" id="p1.1.1">
+    <span class="ltx_text ltx_font_bold" id="p1.1.1.1">
+     TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.1.2" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.1.2.1" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.2.1.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.1.2.1.1.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.1.2.1.1.1.1.1.1">
+          Long Cheng
+          <span class="ltx_note ltx_role_thanks" id="p1.1.2.1.1.1.1.1.1.1">
+           <sup class="ltx_note_mark">
+            †
+           </sup>
+           <span class="ltx_note_outer">
+            <span class="ltx_note_content">
+             <sup class="ltx_note_mark">
+              †
+             </sup>
+             <span class="ltx_note_type">
+              thanks:
+             </span>
+             These authors contributed equally to this work.
+            </span>
+           </span>
+          </span>
+          , Qihao Shao
+          <span class="ltx_note ltx_role_footnotemark" id="footnotex2">
+           <sup class="ltx_note_mark">
+            1
+           </sup>
+           <span class="ltx_note_outer">
+            <span class="ltx_note_content">
+             <sup class="ltx_note_mark">
+              1
+             </sup>
+             <span class="ltx_note_type">
+              footnotemark:
+             </span>
+             <span class="ltx_tag ltx_tag_note">
+              <span class="ltx_text ltx_font_medium" id="footnotex2.1.1.1">
+               1
+              </span>
+             </span>
+            </span>
+           </span>
+          </span>
+          , Christine Zhao, Sheng Bi, Gina-Anne Levow
+          <span class="ltx_note ltx_role_thanks" id="p1.1.2.1.1.1.1.1.1.2">
+           <sup class="ltx_note_mark">
+            †
+           </sup>
+           <span class="ltx_note_outer">
+            <span class="ltx_note_content">
+             <sup class="ltx_note_mark">
+              †
+             </sup>
+             <span class="ltx_note_type">
+              thanks:
+             </span>
+             Corresponding author
+            </span>
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.1.2.1.1.2.2">
+        <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.2.2.1">
+         Department of Linguistics
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.1.2.1.1.3.3">
+        <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.3.3.1">
+         University of Washington
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.1.2.1.1.4.4">
+        <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.4.4.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.1.2.1.1.4.4.1.1">
+          {lcheng97, qihaos, czhao028, shengbi, levow}@uw.edu
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In this study, we focused on tackling the cross-lingual emotion detection task for Tweets, which is a sub-task in EXALT@WASSA 2024
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Maladry et al.,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . This task is interesting for its global application in understanding emotions across languages. It is also challenging due to linguistic diversity and cultural differences in emotional expression. To tackle the multilingual challenge, we conducted experiments using multilingual LLM-based models as well as classical machine learning models that used multilingual embeddings. A unique innovation developed within these experiments is the creation of an Agentic Workflow approach that leverages the strengths of multiple LLMs for the emotion detection task. All code will be released on GitHub
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       <a class="ltx_ref ltx_href" href="https://github.com/cl-victor1/EXALT_2024_BCSZ" target="_blank" title="">
+        https://github.com/cl-victor1/EXALT_2024
+       </a>
+      </span>
+     </span>
+    </span>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Previously, research like that of
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Hassan et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2022
+     </a>
+     )
+    </cite>
+    explored classification using classical models such as BERT and SVMs, trained with various linguistic features. More recently,
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Thakkar et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2024
+     </a>
+     )
+    </cite>
+    investigated sentiment recognition in tweets using both multimodal and multilingual approaches.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    ChatDev by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Qian et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , Gorilla by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Patil et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , HuggingGPT by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Shen et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , and the Reflexion framework by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Shinn et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     )
+    </cite>
+    highlighted the potential of multi-LLM-agent collaboration, termed Agentic Workflow, in solving complex tasks and its application to tool use, code generation, and similar activities. A related approach is AutoGen
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wu et al.,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , where natural language and computer code are integrated to tackle complex tasks that are challenging for a single prompt or one LLM. We believe this broad methodology can be applied to the emotion detection task in a multilingual setting. In this work, we introduce Agentic Workflow
+using a multi-agent approach to enhance the performance of individual LLMs in detecting emotions in tweets.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="142" id="S2.F1.g1" src="/html/2405.17129/assets/architecture.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    System architecture of the final ensemble model that combines both individual models and other ensemble models with fewer individual models.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   System Description
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    We explored three broad classes of models for the EXALT cross-lingual emotion recognition tasks. One approach trained several KNN models and a BiLSTM model with multilingual embeddings to encode EXALT’s cross-linguistic Tweet data directly (detailed in Appendix
+    <a class="ltx_ref" href="#A1" title="Appendix A Embedding-based Models ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      A
+     </span>
+    </a>
+    ). Another group of experiments employed LLM-based models weakly or not directly trained for EXALT, through prompting. For the third class of approaches, we developed two Agentic Workflow methods, using multiple agents: Multi-Iteration Agentic Workflow and Multi-Binary-Classifier Agentic Workflow. Finally, we applied ensemble methods to aggregate across approaches. The system architecture we used for the final evaluation is illustrated in Figure
+    <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 Related Work ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Prompt Based Classification with LLMs
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     With the advancement of LLMs, formulating natural language processing problems into text completion problems via prompting has shown promising results. We explored fine-tuning OpenAI’s GPT3.5, a zero-shot setting using OpenAI’s GPT4
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        gpt-4-turbo-2024-04-09 and gpt-4o-2024-05-13
+       </span>
+      </span>
+     </span>
+     and Anthropic’s Claude3
+     <span class="ltx_note ltx_role_footnote" id="footnote3">
+      <sup class="ltx_note_mark">
+       3
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         3
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         3
+        </span>
+        claude-3-opus-20240229
+       </span>
+      </span>
+     </span>
+     , and a few-shot setting using OpenAI’s GPT4. Additionally, leveraging the Chain-of-Thought
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wei et al.,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2023
+      </a>
+      )
+     </cite>
+     approach, we designed two more methods built upon the zero-shot model by explicitly asking for explanation from LLMs in their outputs. All detailed prompts that we used for different models can be found in Appendix
+     <a class="ltx_ref" href="#A3" title="Appendix C Prompts ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+      <span class="ltx_text ltx_ref_tag">
+       C
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Fine-tuning GPT3.5 (FineTuneGPT)
+    </h5>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p1.1">
+      We partitioned the training dataset into a training dataset and a validation dataset, comprising 4000 and 1000 instances respectively, and used the datasets to create a fine-tuned GPT3.5 model. For inference, the system prompt remained consistent with that utilized during the fine-tuning process.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Zero-Shot (ZeroShot)
+    </h5>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px2.p1.1">
+      Under the zero-shot setting, we set the system prompt to align with our task goal and then directly asked LLMs to output a label among the six emotion labels given a certain tweet.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px3">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Zero-Shot with Explanation (ZSE) and Correction (ZSEC)
+    </h5>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px3.p1.1">
+      Building upon the zero-shot setting, we asked LLMs to provide an explanation before assigning emotion labels during inference (ZSE). Taking the Chain-of-Thought idea one step further, we introduced a second LLM in the same inference process, and used the output label from the first LLM as part of the input to the second LLM (ZSEC). More specifically, we asked the first LLM to explain and output the emotion label, and then we asked the second LLM to check whether it agreed with the label output by the first LLM. If the second LLM agreed with the first LLM, it would output the same label; otherwise, it would output an alternative label. In either case, the second LLM would also provide explanation before outputting the emotion label. With this approach, we take the output from the second LLM as the final output.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px4">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Few-Shot (FewShot)
+    </h5>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px4.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px4.p1.1">
+      We set the system prompt similar to that of the zero-shot setting and provided a few example tweets with their associated emotion labels before asking LLMs to output a label for a certain tweet. We employed both random sampling and embedding-based KNN (with
+      <math alttext="k=6" class="ltx_Math" display="inline" id="S3.SS1.SSS0.Px4.p1.1.m1.1">
+       <semantics id="S3.SS1.SSS0.Px4.p1.1.m1.1a">
+        <mrow id="S3.SS1.SSS0.Px4.p1.1.m1.1.1" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.cmml">
+         <mi id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.2" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.2.cmml">
+          k
+         </mi>
+         <mo id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.1" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.1.cmml">
+          =
+         </mo>
+         <mn id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.3" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.3.cmml">
+          6
+         </mn>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS0.Px4.p1.1.m1.1b">
+         <apply id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.cmml" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1">
+          <eq id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.1.cmml" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.1">
+          </eq>
+          <ci id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.2.cmml" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.2">
+           𝑘
+          </ci>
+          <cn id="S3.SS1.SSS0.Px4.p1.1.m1.1.1.3.cmml" type="integer" xref="S3.SS1.SSS0.Px4.p1.1.m1.1.1.3">
+           6
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS0.Px4.p1.1.m1.1c">
+         k=6
+        </annotation>
+       </semantics>
+      </math>
+      ) to pick example tweets from the training dataset.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Agentic Workflow (AWF)
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Drawing inspiration again from the concept of Chain-of-Thought
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wei et al.,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2023
+      </a>
+      )
+     </cite>
+     and the multi-agent conversation framework outlined in
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wu et al.,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , we developed two Agentic Workflow methods to enhance the performance of LLMs.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Multi-Iteration Agentic Workflow (MIAWF)
+    </h5>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px1.p1.1">
+      This approach involves using one or more LLM agents to adjudicate between the outputs of prior models. First, we identify the two top-performing models (agent 1 and agent 2) based on their respective F1-scores on dev data. Following this selection, an additional LLM is introduced as Agent 3. We prompted agent 3 to assess the outputs of Agents 1 and 2 and select the optimal label. In this manner, the classification decision is reduced to binary from multi-class, and leverages the output of strong models.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px1.p2">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px1.p2.1">
+      After obtaining the results for agent 3, another LLM could be introduced as agent 4. The system prompt for agent 4 would remain the same as that for agent 3. However, this time, the source models for agent 4 are agent 3 and the better of agent 1 and agent 2. It is observed that agent 4 often outperforms agent 3 slightly on the dev set. In theory, this iteration could be repeated multiple times, but as the source models gradually become more similar to each other, the performance improvement may diminish. One iteration of MIAWF is presented in Figure
+      <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ Multi-Iteration Agentic Workflow (MIAWF) ‣ 3.2 Agentic Workflow (AWF) ‣ 3 System Description ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="225" id="S3.F2.g1" src="/html/2405.17129/assets/AW_graph.png" width="135"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 2:
+      </span>
+      One iteration of Multi-Iteration Agentic Workflow. (This figure has been designed using images from Flaticon.com)
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Multi-Binary-Classifier Agentic Workflow (MBCAWF)
+    </h5>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p1.1">
+      This approach is inspired by both the idea of ensemble learning and the previous Agentic Workflow approach. First of all, we hypothesized that LLMs would have better performance on binary classification than on multi-class classification. Since there were six different emotions in Task 1, we made five binary classifiers, one for each of the emotions except for the emotion "Neutral". Secondly, we observed that LLMs had performed well in selecting the preferred output above. We thus extended the Agentic Workflow further and combined it with the binary classifiers.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px2.p2">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p2.1">
+      Multi-Binary-Classifier Agentic workflow works as follows for inference on each instance:
+     </p>
+     <ol class="ltx_enumerate" id="S3.I1">
+      <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        1.
+       </span>
+       <div class="ltx_para" id="S3.I1.i1.p1">
+        <p class="ltx_p" id="S3.I1.i1.p1.1">
+         Ask the LLM whether the tweet has each of the non-neutral emotions (Binary Classifiers).
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        2.
+       </span>
+       <div class="ltx_para" id="S3.I1.i2.p1">
+        <p class="ltx_p" id="S3.I1.i2.p1.1">
+         If only one of the emotions is predicted positive, use that emotion as the predicted emotion.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        3.
+       </span>
+       <div class="ltx_para" id="S3.I1.i3.p1">
+        <p class="ltx_p" id="S3.I1.i3.p1.1">
+         If multiple emotions are predicted positive, ask the LLM to pick one among the positive ones as the predicted emotion.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        4.
+       </span>
+       <div class="ltx_para" id="S3.I1.i4.p1">
+        <p class="ltx_p" id="S3.I1.i4.p1.1">
+         If there is no emotion detected (all emotions predicted negative), tell the LLM that others think the tweet is of "Neutral" emotion and ask it to double check that classification. If so, output "Neutral" as the predicted emotion; otherwise, pick one among the other five emotions as the predicted emotion.
+        </p>
+       </div>
+      </li>
+     </ol>
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p2.2">
+      With this approach, we expect that both precision and recall are going to be improved, especially for non-neutral emotions.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Ensembles
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     Due to noticeable variations in outputs from our base models, primarily LLMs, we hypothesized that consolidating predictions through an ensemble mechanism would yield beneficial results. Consequently, during the development phase, we evaluated each model architecture at various hyperparameters to choose the highest dev-set F1-score version to include in our ensembles. Comparative analyses of these methods are provided in Table
+     <a class="ltx_ref" href="#A2.T2" title="Table 2 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     in Appendix
+     <a class="ltx_ref" href="#A2" title="Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+      <span class="ltx_text ltx_ref_tag">
+       B
+      </span>
+     </a>
+     . Since the unweighted voting ensemble demonstrated the best performance on the dev set, we opted to use it for the official runs, leveraging our established models. The ensembles using this straightforward unweighted voting approach, combining embedding-based, prompting, and Agentic Workflow models, outperformed all individual models.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    LLM Selection
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     In our experiments during the model development phase, we observed that, in general, GPT4 performed better on the dev dataset than Claude3 did. Claude3 tended to be too insensitive to non-neutral emotions despite having higher precision on them. Based on this observation, we decided to use GPT4 as the main LLM for our models in the final evaluation on the test dataset while keeping using Claude3 as the second LLM that performed double check on the "Neutral" emotion in the Zero-Shot with Explanation and Correction model.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In terms of individual models, the Zero-Shot (gpt4o) with Explanation and Correction model (ZSEC-gpt4o) achieved the best performance, achieving an F1-score of 0.5726. Other models, such as ZSEC-gpt4turbo and Multi-Binary-Classifier Agentic Workflow (MBCAWF), also perform competitively, with F1-scores exceeding 0.55. The overall system performance further improved through the use of Agentic Workflow and ensemble methods. Notably, the Ensemble-19 model achieves the highest F1-score of 0.6046 on the test dataset, outperforming the EXALT baseline by approximately 0.17 F1-score, ranking second. Results for all submitted single models, Agentic Workflow models, and ensembles for the emotion detection task are presented in Table
+    <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4 Results ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , with baseline results provided by the EXALT organizers.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Emotion prediction often differs substantially across emotion labels, and that variation is reflected in our systems as well. Per-emotion F1-scores achieved by our top-performing model, Ensemble-19, illustrate a difference of up to 0.26 F-score, between the highest scoring emotions ( 0.73 for "Anger" and 0.72 for "Neutral") and the lowest scoring emotions - only 0.47 for "Love" and 0.53 for "Fear". This discrepancy underscores the uneven performance of classification across emotion categories and the continuing challenges of this task. The per-emotion F1-scores achieved by Ensemble-19 are shown in Appendix
+    <a class="ltx_ref" href="#A6" title="Appendix F Per-emotion F1-scores Achieved by Ensemble-19 ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      F
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_table" id="S4.T1">
+   <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T1.1">
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S4.T1.1.1.1">
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.1.1">
+        Models
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.2.1">
+        F1-score
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.3.1">
+        Precision
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.1.1.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.4.1">
+        Recall
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.2.2">
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.2.1">
+       EXALT Baseline
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.2.2">
+       0.43
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.2.3">
+       0.43
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.2.4">
+       0.44
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.3.3">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.3.3.1">
+       ZSEC-gpt4turbo
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.3.3.2">
+       0.55
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.3.3.3">
+       0.55
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.3.3.4">
+       0.58
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.4.4">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.4.4.1">
+       ZSEC-gpt4o
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.4.4.2">
+       0.57
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.4.4.3">
+       0.56
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.4.4.4">
+       0.60
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.5.5">
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.5.5.1">
+       MBCAWF
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.5.5.2">
+       0.56
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.5.5.3">
+       0.56
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.5.5.4">
+       0.59
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.6.6">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.6.6.1">
+       MIAWF-3
+       <span class="ltx_note ltx_role_footnote" id="footnote4">
+        <sup class="ltx_note_mark">
+         4
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           4
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           4
+          </span>
+          built on ZSEC-gpt4o and Ensemble-9
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.6.6.2">
+       0.59
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.6.6.3">
+       0.59
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.6.6.4">
+       0.61
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.7.7">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.7.7.1">
+       MIAWF-5
+       <span class="ltx_note ltx_role_footnote" id="footnote5">
+        <sup class="ltx_note_mark">
+         5
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           5
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           5
+          </span>
+          built on MIAWF-4 (which is built on MIAWF-3 and Ensemble-8) and Ensemble-8
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.7.7.2">
+       0.60
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.7.7.3">
+       0.59
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.7.7.4">
+       0.62
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.8.8">
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.8.8.1">
+       Ensemble-9
+       <span class="ltx_note ltx_role_footnote" id="footnote6">
+        <sup class="ltx_note_mark">
+         6
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           6
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           6
+          </span>
+          Ensemble of 9 models (see Table
+          <a class="ltx_ref" href="#A2.T3" title="Table 3 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            3
+           </span>
+          </a>
+          in Appendix
+          <a class="ltx_ref" href="#A2" title="Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            B
+           </span>
+          </a>
+          )
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.8.8.2">
+       0.59
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.8.8.3">
+       0.59
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T1.1.8.8.4">
+       0.61
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.9.9">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.9.9.1">
+       Ensemble-8
+       <span class="ltx_note ltx_role_footnote" id="footnote7">
+        <sup class="ltx_note_mark">
+         7
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           7
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           7
+          </span>
+          Ensemble of 8 models (see Table
+          <a class="ltx_ref" href="#A2.T3" title="Table 3 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            3
+           </span>
+          </a>
+          in Appendix
+          <a class="ltx_ref" href="#A2" title="Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            B
+           </span>
+          </a>
+          )
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.9.9.2">
+       0.60
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.9.9.3">
+       0.60
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.9.9.4">
+       0.62
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.10.10">
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.10.10.1">
+       Ensemble-17
+       <span class="ltx_note ltx_role_footnote" id="footnote8">
+        <sup class="ltx_note_mark">
+         8
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           8
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           8
+          </span>
+          Ensemble of 17 models (see Table
+          <a class="ltx_ref" href="#A2.T3" title="Table 3 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            3
+           </span>
+          </a>
+          in Appendix
+          <a class="ltx_ref" href="#A2" title="Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            B
+           </span>
+          </a>
+          )
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.10.10.2">
+       0.60
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.10.10.3">
+       0.60
+      </td>
+      <td class="ltx_td ltx_align_left" id="S4.T1.1.10.10.4">
+       0.62
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.1.11.11">
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T1.1.11.11.1">
+       Ensemble-19
+       <span class="ltx_note ltx_role_footnote" id="footnote9">
+        <sup class="ltx_note_mark">
+         9
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           9
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           9
+          </span>
+          Ensemble of 19 models (see Table
+          <a class="ltx_ref" href="#A2.T3" title="Table 3 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            3
+           </span>
+          </a>
+          in Appendix
+          <a class="ltx_ref" href="#A2" title="Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+           <span class="ltx_text ltx_ref_tag">
+            B
+           </span>
+          </a>
+          )
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T1.1.11.11.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.11.11.2.1">
+        0.60
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T1.1.11.11.3">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.11.11.3.1">
+        0.60
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T1.1.11.11.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T1.1.11.11.4.1">
+        0.62
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    F1-score, precision and recall on the test dataset including the EXALT baseline results.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Discussion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    There are a few findings that we would like to share. First of all, the effectiveness of explanation and correction over simpler prompting which was found on the dev dataset was replicated on the test dataset. These improvements are detailed in the experiments in Appendix
+    <a class="ltx_ref" href="#A7" title="Appendix G Effectiveness of Explanation and Correction ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      G
+     </span>
+    </a>
+    . Secondly, our manual error analysis (Appendix
+    <a class="ltx_ref" href="#A4" title="Appendix D Empirical Error Analysis for Zero-Shot with Explanation ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      D
+     </span>
+    </a>
+    ) highlighted
+the subjective nature of the emotion recognition task. Humans may
+disagree, and the explanation provided by the models may also be reasonable, even in some cases where they do not match the gold standard.
+Thirdly, the justification provided by LLMs could potentially aid the explainability of the outputs. Inspection of automatically generated explanations often showed partial translations, which could be helpful in the cross-lingual setting (Appendix
+    <a class="ltx_ref" href="#A5" title="Appendix E Zero-Shot with Explanation on Non-English Data ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      E
+     </span>
+    </a>
+    ).
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Additionally, the tweet data employed in this study are drawn from six high-resource languages. Consequently, it is uncertain whether the models would produce comparable results for lower-resource languages. Further exploration is needed by applying the same methodology to tweets in diverse low-resource languages.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    In this study, we have highlighted the potential of the Agentic Workflow method to enhance emotion detection performance of LLMs on multilingual tweets. Moreover, explicitly prompting LLMs to provide explanations for their decisions not only improves decision-making accuracy but also can aid human comprehension of their decisions. We firmly believe that explainability plays a crucial role in real-world applications by providing insight into the operations of these complex systems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    At the same time, we should be cautious about the risk associated with using LLMs in subjective tasks, since they may be incorrect but appear confident. Looking ahead, we envision exploring the application of Agentic Workflows across a broader spectrum of fields within sentiment analysis and the wider NLP domain.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Limitations
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    The OpenAI and Anthropic models used in this work are closed-source and may continue undergoing reinforcement learning from human feedback (RLHF). Given this situation and the inherent non-deterministic nature of LLMs, reproducing the exact inference results may be challenging. A second issue of using LLMs was that occasionally outputs would be nonsensical, making manual post-processing almost unavoidable. In such case, we simply replaced the problematic outputs, of which the format was not "explanation + emotion label", with "Neutral" labels. Thirdly, due to cost and time constraints, we were unable to perform formal significance tests. Therefore, the results and findings presented in this paper are based on empirical observations from the experiments we conducted. Finally, the model latency of LLMs was quite high for inference on each instance, especially when the raw output contained more text. During the evaluation phase, we broke down the test dataset into multiple parts and parallelized the inference to speed up the process.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Amadi et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Christian Amadi, Juliet Odii, Ofoegbu Christopher, and Chidimma Okpalla. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Emotion detection using a bidirectional long-short term memory (bilstm) neural network.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      International Journal of Current Pharmaceutical Review and Research
+     </em>
+     , Vol 4, no 11:1718–1732.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hassan et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Sabit Hassan, Shaden Shaar, and Kareem Darwish. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2022.lrec-1.751" target="_blank" title="">
+      Cross-lingual emotion detection
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the Thirteenth Language Resources and Evaluation Conference
+     </em>
+     , pages 6948–6958, Marseille, France. European Language Resources Association.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Maladry et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Aaron Maladry, Pranaydeep Singh, and Els Lefever. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Findings of the wassa 2024 exalt shared task on explainability for cross-lingual emotion in tweets.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Proceedings of the 14th Workshop of on Computational Approaches to Subjectivity, Sentiment &amp; Social Media Analysis@ACL 2024
+     </em>
+     , Bangkok, Thailand.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Patil et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shishir G. Patil, Tianjun Zhang, Xin Wang, and Joseph E. Gonzalez. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2305.15334" target="_blank" title="">
+      Gorilla: Large language model connected with massive apis
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Preprint
+     </em>
+     , arXiv:2305.15334.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qian et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Chen Qian, Xin Cong, Wei Liu, Cheng Yang, Weize Chen, Yusheng Su, Yufan Dang, Jiahao Li, Juyuan Xu, Dahai Li, Zhiyuan Liu, and Maosong Sun. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2307.07924" target="_blank" title="">
+      Communicative agents for software development
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Preprint
+     </em>
+     , arXiv:2307.07924.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting Zhuang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2303.17580" target="_blank" title="">
+      Hugginggpt: Solving ai tasks with chatgpt and its friends in hugging face
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Preprint
+     </em>
+     , arXiv:2303.17580.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Federico Cassano, Edward Berman, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2303.11366" target="_blank" title="">
+      Reflexion: Language agents with verbal reinforcement learning
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Preprint
+     </em>
+     , arXiv:2303.11366.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Thakkar et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Gaurish Thakkar, Sherzod Hakimov, and Marko Tadić. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2024.lrec-main.946" target="_blank" title="">
+      M2SA: Multimodal and multilingual model for sentiment analysis of tweets
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024)
+     </em>
+     , pages 10833–10845, Torino, Italia. ELRA and ICCL.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2201.11903" target="_blank" title="">
+      Chain-of-thought prompting elicits reasoning in large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Preprint
+     </em>
+     , arXiv:2201.11903.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, Ahmed Hassan Awadallah, Ryen W White, Doug Burger, and Chi Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2308.08155" target="_blank" title="">
+      Autogen: Enabling next-gen llm applications via multi-agent conversation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Preprint
+     </em>
+     , arXiv:2308.08155.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yin and Shang (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Wenbiao Yin and Lin Shang. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.emnlp-main.312" target="_blank" title="">
+      Efficient nearest neighbor emotion classification with BERT-whitening
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 4738–4745, Abu Dhabi, United Arab Emirates. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou and Wu (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Qimin Zhou and Hao Wu. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/W18-6226" target="_blank" title="">
+      NLP at IEST 2018: BiLSTM-attention and LSTM-attention via soft voting in emotion classification
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Proceedings of the 9th Workshop on Computational Approaches to Subjectivity, Sentiment and Social Media Analysis
+     </em>
+     , pages 189–194, Brussels, Belgium. Association for Computational Linguistics.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Embedding-based Models
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    K-Nearest Neighbors (KNN)
+   </h3>
+   <div class="ltx_para" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     We explored KNN in the emotion detection sub-task chosing high-dimensional sentence embeddings as our classification input for our categorical emotion label output. We were motivated by the findings in
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Yin and Shang (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2022
+      </a>
+      )
+     </cite>
+     which, although only calculated on English datasets, yielded high-efficiency, high-performing results even when only KNN was used for emotion classification. In our study, we compared KNN performance on OpenAI &amp; TwHIN-BERT embeddings and found TwHIN-BERT outperformed OpenAI in dev-set F-1 score.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="A1.SS1.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      A.1.1
+     </span>
+     OpenAI KNN Parameters
+    </h4>
+    <div class="ltx_para" id="A1.SS1.SSS1.p1">
+     <p class="ltx_p" id="A1.SS1.SSS1.p1.4">
+      We ran experiments on the dev dataset with different
+      <math alttext="k" class="ltx_Math" display="inline" id="A1.SS1.SSS1.p1.1.m1.1">
+       <semantics id="A1.SS1.SSS1.p1.1.m1.1a">
+        <mi id="A1.SS1.SSS1.p1.1.m1.1.1" xref="A1.SS1.SSS1.p1.1.m1.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS1.p1.1.m1.1b">
+         <ci id="A1.SS1.SSS1.p1.1.m1.1.1.cmml" xref="A1.SS1.SSS1.p1.1.m1.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS1.p1.1.m1.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      values (from
+      <math alttext="1" class="ltx_Math" display="inline" id="A1.SS1.SSS1.p1.2.m2.1">
+       <semantics id="A1.SS1.SSS1.p1.2.m2.1a">
+        <mn id="A1.SS1.SSS1.p1.2.m2.1.1" xref="A1.SS1.SSS1.p1.2.m2.1.1.cmml">
+         1
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS1.p1.2.m2.1b">
+         <cn id="A1.SS1.SSS1.p1.2.m2.1.1.cmml" type="integer" xref="A1.SS1.SSS1.p1.2.m2.1.1">
+          1
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS1.p1.2.m2.1c">
+         1
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="10" class="ltx_Math" display="inline" id="A1.SS1.SSS1.p1.3.m3.1">
+       <semantics id="A1.SS1.SSS1.p1.3.m3.1a">
+        <mn id="A1.SS1.SSS1.p1.3.m3.1.1" xref="A1.SS1.SSS1.p1.3.m3.1.1.cmml">
+         10
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS1.p1.3.m3.1b">
+         <cn id="A1.SS1.SSS1.p1.3.m3.1.1.cmml" type="integer" xref="A1.SS1.SSS1.p1.3.m3.1.1">
+          10
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS1.p1.3.m3.1c">
+         10
+        </annotation>
+       </semantics>
+      </math>
+      ) and with different embedding sizes for both OpenAI embedding models. The setting with best F1 score on the dev dataset was
+      <math alttext="k=6" class="ltx_Math" display="inline" id="A1.SS1.SSS1.p1.4.m4.1">
+       <semantics id="A1.SS1.SSS1.p1.4.m4.1a">
+        <mrow id="A1.SS1.SSS1.p1.4.m4.1.1" xref="A1.SS1.SSS1.p1.4.m4.1.1.cmml">
+         <mi id="A1.SS1.SSS1.p1.4.m4.1.1.2" xref="A1.SS1.SSS1.p1.4.m4.1.1.2.cmml">
+          k
+         </mi>
+         <mo id="A1.SS1.SSS1.p1.4.m4.1.1.1" xref="A1.SS1.SSS1.p1.4.m4.1.1.1.cmml">
+          =
+         </mo>
+         <mn id="A1.SS1.SSS1.p1.4.m4.1.1.3" xref="A1.SS1.SSS1.p1.4.m4.1.1.3.cmml">
+          6
+         </mn>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS1.p1.4.m4.1b">
+         <apply id="A1.SS1.SSS1.p1.4.m4.1.1.cmml" xref="A1.SS1.SSS1.p1.4.m4.1.1">
+          <eq id="A1.SS1.SSS1.p1.4.m4.1.1.1.cmml" xref="A1.SS1.SSS1.p1.4.m4.1.1.1">
+          </eq>
+          <ci id="A1.SS1.SSS1.p1.4.m4.1.1.2.cmml" xref="A1.SS1.SSS1.p1.4.m4.1.1.2">
+           𝑘
+          </ci>
+          <cn id="A1.SS1.SSS1.p1.4.m4.1.1.3.cmml" type="integer" xref="A1.SS1.SSS1.p1.4.m4.1.1.3">
+           6
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS1.p1.4.m4.1c">
+         k=6
+        </annotation>
+       </semantics>
+      </math>
+      with embedding size 256 using
+      <span class="ltx_text ltx_font_typewriter" id="A1.SS1.SSS1.p1.4.1">
+       text-embedding-3-large
+      </span>
+      model provided by OpenAI.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="A1.SS1.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      A.1.2
+     </span>
+     BERT KNN Parameters
+    </h4>
+    <div class="ltx_para" id="A1.SS1.SSS2.p1">
+     <p class="ltx_p" id="A1.SS1.SSS2.p1.2">
+      TwHIN-BERT was selected because of its ability to project sentences cross-linguistically onto the same embedding space, fine-tuned on Tweet data. We selected the
+      <math alttext="k" class="ltx_Math" display="inline" id="A1.SS1.SSS2.p1.1.m1.1">
+       <semantics id="A1.SS1.SSS2.p1.1.m1.1a">
+        <mi id="A1.SS1.SSS2.p1.1.m1.1.1" xref="A1.SS1.SSS2.p1.1.m1.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS2.p1.1.m1.1b">
+         <ci id="A1.SS1.SSS2.p1.1.m1.1.1.cmml" xref="A1.SS1.SSS2.p1.1.m1.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS2.p1.1.m1.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      (in between 1 and 20) for BERT-KNN using 5-fold cross-validation F1 score on the training data and validation F1 score on the dev set. We were able to identify
+      <math alttext="k=3" class="ltx_Math" display="inline" id="A1.SS1.SSS2.p1.2.m2.1">
+       <semantics id="A1.SS1.SSS2.p1.2.m2.1a">
+        <mrow id="A1.SS1.SSS2.p1.2.m2.1.1" xref="A1.SS1.SSS2.p1.2.m2.1.1.cmml">
+         <mi id="A1.SS1.SSS2.p1.2.m2.1.1.2" xref="A1.SS1.SSS2.p1.2.m2.1.1.2.cmml">
+          k
+         </mi>
+         <mo id="A1.SS1.SSS2.p1.2.m2.1.1.1" xref="A1.SS1.SSS2.p1.2.m2.1.1.1.cmml">
+          =
+         </mo>
+         <mn id="A1.SS1.SSS2.p1.2.m2.1.1.3" xref="A1.SS1.SSS2.p1.2.m2.1.1.3.cmml">
+          3
+         </mn>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="A1.SS1.SSS2.p1.2.m2.1b">
+         <apply id="A1.SS1.SSS2.p1.2.m2.1.1.cmml" xref="A1.SS1.SSS2.p1.2.m2.1.1">
+          <eq id="A1.SS1.SSS2.p1.2.m2.1.1.1.cmml" xref="A1.SS1.SSS2.p1.2.m2.1.1.1">
+          </eq>
+          <ci id="A1.SS1.SSS2.p1.2.m2.1.1.2.cmml" xref="A1.SS1.SSS2.p1.2.m2.1.1.2">
+           𝑘
+          </ci>
+          <cn id="A1.SS1.SSS2.p1.2.m2.1.1.3.cmml" type="integer" xref="A1.SS1.SSS2.p1.2.m2.1.1.3">
+           3
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="A1.SS1.SSS2.p1.2.m2.1c">
+         k=3
+        </annotation>
+       </semantics>
+      </math>
+      as offering the best performance on both the training and dev set.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="A1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.2
+    </span>
+    Bidirectional LSTM (BiLSTM)
+   </h3>
+   <div class="ltx_para" id="A1.SS2.p1">
+    <p class="ltx_p" id="A1.SS2.p1.1">
+     Bidirectional Long Short-Term Memory (BiLSTM) has been shown to be capable of capturing the long-range contextual information needed for emotion classification of short messages
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Amadi et al.,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . BiLSTM with attention, when applied to a similar implicit emotion classification task for WASSA2018
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Zhou and Wu (
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2018
+      </a>
+      )
+     </cite>
+     , yielded competitive performance across emotion classes. Our BiLSTM took as input batches of 280 x 1024 length vectors, where 280 was the BERT tokenizer’s padded max sequence length for a sentence and 1024 was the length of each token’s TwHIN-BERT embeddings. Then, after feeding the input through a BiLSTM with 256 total hidden cells, we applied an attention layer over all 280 tokens to produce the emotion label for a sentence. The model used an Adam Optimizer coupled with a sparse categorical cross-entropy loss function during training on 90% of the training data. The remaining 10% was set aside as validation data and model training stopped after 3 epochs of no validation data loss improvement. The final model’s attention layer was then used to produce Numerical Trigger scores for Task 3 as a metric to assess how much individual tokens contributed to a sentence’s emotion. Words that had been split into multiple tokens were recombined before outputting these numerical trigger scores.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="A2">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix B
+   </span>
+   Information of Different Ensembles
+  </h2>
+  <div class="ltx_para" id="A2.p1">
+   <p class="ltx_p" id="A2.p1.1">
+    The information are detailed in Table
+    <a class="ltx_ref" href="#A2.T2" title="Table 2 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    and Table
+    <a class="ltx_ref" href="#A2.T3" title="Table 3 ‣ Appendix B Information of Different Ensembles ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_table" id="A2.T2">
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="A2.T2.1">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="A2.T2.1.1.1">
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" id="A2.T2.1.1.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.1.1.1.1">
+        <span class="ltx_p" id="A2.T2.1.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T2.1.1.1.1.1.1.1">
+          Ensemble Types
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_r ltx_border_t" id="A2.T2.1.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.1.1.2.1">
+        <span class="ltx_p" id="A2.T2.1.1.1.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T2.1.1.1.2.1.1.1">
+          F1-score
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_r ltx_border_t" id="A2.T2.1.1.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.1.1.3.1">
+        <span class="ltx_p" id="A2.T2.1.1.1.3.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T2.1.1.1.3.1.1.1">
+          Precision
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_r ltx_border_t" id="A2.T2.1.1.1.4">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.1.1.4.1">
+        <span class="ltx_p" id="A2.T2.1.1.1.4.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T2.1.1.1.4.1.1.1">
+          Recall
+         </span>
+        </span>
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="A2.T2.1.2.1">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T2.1.2.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.2.1.1.1">
+        <span class="ltx_p" id="A2.T2.1.2.1.1.1.1">
+         Unweighted voting
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.2.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.2.1.2.1">
+        <span class="ltx_p" id="A2.T2.1.2.1.2.1.1">
+         0.61
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.2.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.2.1.3.1">
+        <span class="ltx_p" id="A2.T2.1.2.1.3.1.1">
+         0.63
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.2.1.4">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.2.1.4.1">
+        <span class="ltx_p" id="A2.T2.1.2.1.4.1.1">
+         0.60
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T2.1.3.2">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T2.1.3.2.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.3.2.1.1">
+        <span class="ltx_p" id="A2.T2.1.3.2.1.1.1">
+         Weighted voting (weighted according to F1-score)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.3.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.3.2.2.1">
+        <span class="ltx_p" id="A2.T2.1.3.2.2.1.1">
+         0.60
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.3.2.3">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.3.2.3.1">
+        <span class="ltx_p" id="A2.T2.1.3.2.3.1.1">
+         0.61
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.3.2.4">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.3.2.4.1">
+        <span class="ltx_p" id="A2.T2.1.3.2.4.1.1">
+         0.60
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T2.1.4.3">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T2.1.4.3.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.4.3.1.1">
+        <span class="ltx_p" id="A2.T2.1.4.3.1.1.1">
+         Agentic Workflow (GPT4)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.4.3.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.4.3.2.1">
+        <span class="ltx_p" id="A2.T2.1.4.3.2.1.1">
+         0.49
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.4.3.3">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.4.3.3.1">
+        <span class="ltx_p" id="A2.T2.1.4.3.3.1.1">
+         0.51
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T2.1.4.3.4">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.4.3.4.1">
+        <span class="ltx_p" id="A2.T2.1.4.3.4.1.1">
+         0.52
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T2.1.5.4">
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="A2.T2.1.5.4.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.5.4.1.1">
+        <span class="ltx_p" id="A2.T2.1.5.4.1.1.1">
+         Agentic Workflow (Claude3)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A2.T2.1.5.4.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.5.4.2.1">
+        <span class="ltx_p" id="A2.T2.1.5.4.2.1.1">
+         0.50
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A2.T2.1.5.4.3">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.5.4.3.1">
+        <span class="ltx_p" id="A2.T2.1.5.4.3.1.1">
+         0.51
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A2.T2.1.5.4.4">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T2.1.5.4.4.1">
+        <span class="ltx_p" id="A2.T2.1.5.4.4.1.1">
+         0.51
+        </span>
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2:
+    </span>
+    F1-score, precision and recall for all ensemble types on the dev dataset.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table" id="A2.T3">
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="A2.T3.1">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="A2.T3.1.1.1">
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" id="A2.T3.1.1.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.1.1.1.1">
+        <span class="ltx_p" id="A2.T3.1.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T3.1.1.1.1.1.1.1">
+          Ensembles
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_r ltx_border_t" id="A2.T3.1.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.1.1.2.1">
+        <span class="ltx_p" id="A2.T3.1.1.1.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="A2.T3.1.1.1.2.1.1.1">
+          Base Models
+         </span>
+        </span>
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="A2.T3.1.2.1">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T3.1.2.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.2.1.1.1">
+        <span class="ltx_p" id="A2.T3.1.2.1.1.1.1">
+         Ensemble-8
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T3.1.2.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.2.1.2.1">
+        <span class="ltx_p" id="A2.T3.1.2.1.2.1.1">
+         MIAWF-3, BERT-KNN, ZSEC-gpt4o, FewShot, FineTuneGPT, ZeroShot, OpenAI-KNN, MBCAWF
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T3.1.3.2">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T3.1.3.2.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.3.2.1.1">
+        <span class="ltx_p" id="A2.T3.1.3.2.1.1.1">
+         Ensemble-9
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T3.1.3.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.3.2.2.1">
+        <span class="ltx_p" id="A2.T3.1.3.2.2.1.1">
+         MIAWF-2, BERT-KNN, ZSEC-gpt4o, FewShot, FineTuneGPT, ZeroShot, OpenAI-KNN, MBCAWF, Explain_turbo
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T3.1.4.3">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A2.T3.1.4.3.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.4.3.1.1">
+        <span class="ltx_p" id="A2.T3.1.4.3.1.1.1">
+         Ensemble-17
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A2.T3.1.4.3.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.4.3.2.1">
+        <span class="ltx_p" id="A2.T3.1.4.3.2.1.1">
+         5 MIAWF models (with different source models), 5 ZSEC models (with the same prompts), BERT-KNN, FewShot, FineTuneGPT, ZeroShot, OpenAI-KNN, MBCAWF, BiLSTM
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A2.T3.1.5.4">
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="A2.T3.1.5.4.1">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.5.4.1.1">
+        <span class="ltx_p" id="A2.T3.1.5.4.1.1.1">
+         Ensemble-19
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A2.T3.1.5.4.2">
+       <span class="ltx_inline-block ltx_align_top" id="A2.T3.1.5.4.2.1">
+        <span class="ltx_p" id="A2.T3.1.5.4.2.1.1">
+         5 MIAWF models (with different source models), 5 ZSEC models (with the same prompts), BERT-KNN, FewShot, FineTuneGPT, ZeroShot, OpenAI-KNN, MBCAWF, BiLSTM, Ensemble-8, Ensemble-17
+        </span>
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 3:
+    </span>
+    Composition of all submitted ensembles on the test dataset.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_appendix" id="A3">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix C
+   </span>
+   Prompts
+  </h2>
+  <section class="ltx_subsection" id="A3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.1
+    </span>
+    Fine-tuning GPT3.5
+   </h3>
+   <div class="ltx_para" id="A3.SS1.p1">
+    <p class="ltx_p" id="A3.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A3.SS1.p1.1.1">
+      System:
+     </span>
+     As a supportive assistant specialized in tweet classification, you’re tasked with determining the emotion conveyed in a given tweet. Utilizing your intuitive understanding, analyze the sentiment of the provided tweet. Your response should be just one word, choosing one emotion from these 6 emotions: Love, Joy, Anger, Fear, Sadness, Neutral.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.2
+    </span>
+    Zero-Shot and Few-Shot
+   </h3>
+   <div class="ltx_para" id="A3.SS2.p1">
+    <p class="ltx_p" id="A3.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A3.SS2.p1.1.1">
+      System:
+     </span>
+     You are a helpful assistant designed to output classification results.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS2.p1.1.2">
+      User:
+     </span>
+     Suppose there are six emotions: Love, Joy, Anger, Fear, Sadness, Neutral. Use your instinct, what is the emotion of the following tweet: ’{tweet_text}’. Your response must be just one label from the six labels. Please do not output anything else.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS2.p1.1.3">
+      Assistant (only needed for few-shot):
+     </span>
+     {label}
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.3
+    </span>
+    Zero-Shot with Explanation
+   </h3>
+   <div class="ltx_para" id="A3.SS3.p1">
+    <p class="ltx_p" id="A3.SS3.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A3.SS3.p1.1.1">
+      System:
+     </span>
+     You are an expert who takes an input tweet and outputs an emotion classification label among the following emotion labels: Love, Joy, Anger, Fear, Sadness, Neutral. Your output should start with the explanation and end with the emotion label. Explanation and emotion label should be separated by ||. Do not output newlines.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS3.p1.1.2">
+      System (only needed for correction):
+     </span>
+     You are an expert in checking emotion in tweets. There are six emotions ’Love, Joy, Anger, Fear, Sadness, Neutral’. You will be presented with a tweet that others think is ’{emotion}’. Output ’{emotion}’ if you agree with that; otherwise, output one emotion label from other emotions that describes the emotion of the tweet the best. Your output should start with the explanation and end with the emotion label. Explanation and emotion should be separated by ||. Do not output newlines.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS3.p1.1.3">
+      User:
+     </span>
+     What is the emotion label of this tweet ’{tweet}’?
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.4
+    </span>
+    Multi-Iteration Agentic Workflow
+   </h3>
+   <div class="ltx_para" id="A3.SS4.p1">
+    <p class="ltx_p" id="A3.SS4.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A3.SS4.p1.1.1">
+      System:
+     </span>
+     As an expert specialized in tweet classification, you’re presented with a tweet and two emotion labels: "{emotion1}" and "{emotion2}". Drawing upon your intuitive understanding, assess the emotion of the tweet provided. Your response should be either "{emotion1}" or "{emotion2}". If the two emotion labels are identical, return either one of them.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A3.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     C.5
+    </span>
+    Multi-Binary-Classifier Agentic Workflow
+   </h3>
+   <div class="ltx_para" id="A3.SS5.p1">
+    <p class="ltx_p" id="A3.SS5.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A3.SS5.p1.1.1">
+      System (Binary Classifier):
+     </span>
+     You are an expert in detecting ’{emotion}’ emotion in tweets. You will be presented with a tweet. Output ’yes’ if you detect ’{emotion}’ emotion in the tweet; otherwise, output ’no’. Your response should only contain ’yes’ or ’no’. No other output is allowed.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS5.p1.1.2">
+      System (Neutral Emotion Check):
+     </span>
+     You are an expert in checking emotion in tweets. You will be presented with a tweet that others think is ’Neutral’. Output ’Neutral’ if you agree with that; otherwise, output one emotion from {emotions} that describes the emotion of the tweet the best. In the latter case, your response should only contain one of {emotions} and no other output is allowed.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="A3.SS5.p1.1.3">
+      System (Agentic Workflow):
+     </span>
+     You are an expert in choosing emotions for tweets. You will be presented with a tweet. Pick one emotion from {emotions} that describes the emotion of the tweet the best. Your response should only contain one of emotions. No other output is allowed.
+     <br class="ltx_break"/>
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="A4">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix D
+   </span>
+   Empirical Error Analysis for Zero-Shot with Explanation
+  </h2>
+  <div class="ltx_para" id="A4.p1">
+   <p class="ltx_p" id="A4.p1.1">
+    There are a lot of tweets of which the LLM got the labels incorrect while providing reasonable explanation to justify its own predictions. We are sharing a few of them here from both dev dataset and test dataset. From these samples shared, it is natural for us to think that the LLM predicted the labels of the tweets correctly after reading the explanation.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="A4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     D.1
+    </span>
+    Samples from Dev Dataset
+   </h3>
+   <div class="ltx_para" id="A4.SS1.p1">
+    <p class="ltx_p" id="A4.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p1.1.1">
+      Tweet 1:
+     </span>
+     @user His performances at Hull don’t lie , he’s a good player . I remember reading somewhere that he went to Slav multiple times to say he’s being played out of position and was told “you’ll play where I play you”
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p2">
+    <p class="ltx_p" id="A4.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p2.1.1">
+      Gold Label for Tweet 1:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p3">
+    <p class="ltx_p" id="A4.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p3.1.1">
+      Predicted Label for Tweet 1:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p4">
+    <p class="ltx_p" id="A4.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p4.1.1">
+      Explanation for Tweet 1:
+     </span>
+     The tweet reflects a tone of support and mild frustration directed towards the way a player was managed, mentioning how the player’s good performances are evident and recalling an instance where the player was dismissed by the manager when raising concerns about their position. The overall sentiment seems to express a level of criticism towards the manager while recognizing the player’s talent. There’s a hint of negativity due to the mismanagement, yet it’s overridden by acknowledgment of the player’s ability.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p5">
+    <p class="ltx_p" id="A4.SS1.p5.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p5.1.1">
+      Tweet 2:
+     </span>
+     @user Fair enough . No 6 - 0 loss is ever acceptable .
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p6">
+    <p class="ltx_p" id="A4.SS1.p6.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p6.1.1">
+      Gold Label for Tweet 2:
+     </span>
+     Sadness
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p7">
+    <p class="ltx_p" id="A4.SS1.p7.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p7.1.1">
+      Predicted Label for Tweet 2:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p8">
+    <p class="ltx_p" id="A4.SS1.p8.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p8.1.1">
+      Explanation for Tweet 2:
+     </span>
+     The tweet expresses dissatisfaction and a negative sentiment as it highlights that a 6-0 loss is never acceptable. The phrase "Fair enough" might initially seem accommodating, but it’s followed by a statement of strong disapproval. This compels us to classify the emotion of the tweet as Anger.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p9">
+    <p class="ltx_p" id="A4.SS1.p9.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p9.1.1">
+      Tweet 3:
+     </span>
+     yeah my ass is going wherever jasons going lmao
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p10">
+    <p class="ltx_p" id="A4.SS1.p10.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p10.1.1">
+      Gold Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p11">
+    <p class="ltx_p" id="A4.SS1.p11.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p11.1.1">
+      Predicted Label for Tweet 3:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p12">
+    <p class="ltx_p" id="A4.SS1.p12.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p12.1.1">
+      Explanation for Tweet 3:
+     </span>
+     The tweet ’yeah my ass is going wherever jasons going lmao’ expresses amusement and lightheartedness, likely in a joking or playful context due to the use of "lmao" (laughing my ass off). This shows joy.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p13">
+    <p class="ltx_p" id="A4.SS1.p13.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p13.1.1">
+      Tweet 4:
+     </span>
+     Finna drop another track
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p14">
+    <p class="ltx_p" id="A4.SS1.p14.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p14.1.1">
+      Gold Label for Tweet 4:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p15">
+    <p class="ltx_p" id="A4.SS1.p15.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p15.1.1">
+      Predicted Label for Tweet 4:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p16">
+    <p class="ltx_p" id="A4.SS1.p16.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p16.1.1">
+      Explanation for Tweet 4:
+     </span>
+     The tweet ’Finna drop another track’ suggests excitement and anticipation about sharing new music. The conveyed emotion is positive, reflecting happiness or pride associated with creation or expression in music. Therefore, the appropriate emotion label is Joy.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p17">
+    <p class="ltx_p" id="A4.SS1.p17.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p17.1.1">
+      Tweet 5:
+     </span>
+     @user Just from reading the article it would seem sessions and Page will Be indicted soon if the Ruskies don’t get them first
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p18">
+    <p class="ltx_p" id="A4.SS1.p18.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p18.1.1">
+      Gold Label for Tweet 5:
+     </span>
+     Sadness
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p19">
+    <p class="ltx_p" id="A4.SS1.p19.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p19.1.1">
+      Predicted Label for Tweet 5:
+     </span>
+     Fear
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS1.p20">
+    <p class="ltx_p" id="A4.SS1.p20.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS1.p20.1.1">
+      Explanation for Tweet 5:
+     </span>
+     The tweet suggests a negative anticipation, possibly with a hint of fear or concern, regarding potential indictments and external threats. The mention of "indicted soon" and "Ruskies don’t get them first" conveys a worrying and slightly fearful tone, with an element of political tension. Therefore, the most fitting emotion classification is Fear.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     D.2
+    </span>
+    Samples from Test Dataset
+   </h3>
+   <div class="ltx_para" id="A4.SS2.p1">
+    <p class="ltx_p" id="A4.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p1.1.1">
+      Tweet 1:
+     </span>
+     @user Yea he found it hilarious afterwards
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p2">
+    <p class="ltx_p" id="A4.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p2.1.1">
+      Gold Label for Tweet 1:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p3">
+    <p class="ltx_p" id="A4.SS2.p3.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p3.1.1">
+      Predicted Label for Tweet 1:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p4">
+    <p class="ltx_p" id="A4.SS2.p4.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p4.1.1">
+      Explanation for Tweet 1:
+     </span>
+     The tweet describes someone finding something hilarious, which indicates happiness and amusement.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p5">
+    <p class="ltx_p" id="A4.SS2.p5.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p5.1.1">
+      Tweet 2:
+     </span>
+     Aplem is doing a $ 50 and $ 20 Visa Card giveaway ! Check it out and dont miss your chance to get one ! http
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p6">
+    <p class="ltx_p" id="A4.SS2.p6.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p6.1.1">
+      Gold Label for Tweet 2:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p7">
+    <p class="ltx_p" id="A4.SS2.p7.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p7.1.1">
+      Predicted Label for Tweet 2:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p8">
+    <p class="ltx_p" id="A4.SS2.p8.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p8.1.1">
+      Explanation for Tweet 2:
+     </span>
+     The tweet expresses excitement and anticipation about a giveaway, which are indicators of a positive and joyous emotion.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p9">
+    <p class="ltx_p" id="A4.SS2.p9.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p9.1.1">
+      Tweet 3:
+     </span>
+     @user Me too . Namely women .
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p10">
+    <p class="ltx_p" id="A4.SS2.p10.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p10.1.1">
+      Gold Label for Tweet 3:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p11">
+    <p class="ltx_p" id="A4.SS2.p11.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p11.1.1">
+      Predicted Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p12">
+    <p class="ltx_p" id="A4.SS2.p12.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p12.1.1">
+      Explanation for Tweet 3:
+     </span>
+     The tweet seems neutral and lacks emotional context. It is a mere statement without any indication of strong feelings.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p13">
+    <p class="ltx_p" id="A4.SS2.p13.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p13.1.1">
+      Tweet 4:
+     </span>
+     Debate over whether that should have been a penalty , but the bottom line is Fernanmendi bundled into Agutip - you cannot do that .
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p14">
+    <p class="ltx_p" id="A4.SS2.p14.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p14.1.1">
+      Gold Label for Tweet 4:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p15">
+    <p class="ltx_p" id="A4.SS2.p15.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p15.1.1">
+      Predicted Label for Tweet 4:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p16">
+    <p class="ltx_p" id="A4.SS2.p16.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p16.1.1">
+      Explanation for Tweet 4:
+     </span>
+     The tweet discusses a controversial situation in a sports event and the rules associated with it but does not express any overtly strong emotional response.
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p17">
+    <p class="ltx_p" id="A4.SS2.p17.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p17.1.1">
+      Tweet 5:
+     </span>
+     back at it again http
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p18">
+    <p class="ltx_p" id="A4.SS2.p18.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p18.1.1">
+      Gold Label for Tweet 5:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p19">
+    <p class="ltx_p" id="A4.SS2.p19.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p19.1.1">
+      Predicted Label for Tweet 5:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A4.SS2.p20">
+    <p class="ltx_p" id="A4.SS2.p20.1">
+     <span class="ltx_text ltx_font_bold" id="A4.SS2.p20.1.1">
+      Explanation for Tweet 5:
+     </span>
+     The tweet "back at it again http" doesn’t provide enough context or explicit emotional content. It appears to be a neutral statement about returning to an activity.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="A5">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix E
+   </span>
+   Zero-Shot with
+Explanation on Non-English Data
+  </h2>
+  <div class="ltx_para" id="A5.p1">
+   <p class="ltx_p" id="A5.p1.1">
+    The following samples include tweets in different languages from both the dev dataset and test dataset and our model predicted the emotions labels for these tweets correctly. With the explanation, we were somewhat able to see why different labels were assigned without knowing the languages of the tweets. Note that we identified the languages of the sample tweets using Google Translate for the samples presented below.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="A5.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     E.1
+    </span>
+    Samples from Dev Dataset
+   </h3>
+   <div class="ltx_para" id="A5.SS1.p1">
+    <p class="ltx_p" id="A5.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p1.1.1">
+      Tweet 1 (Spanish):
+     </span>
+     Los tipos siguen sin traer la suya al país ! ¿Explícame como esperan que esto se calme si todos sabemos que ustedes no confían en ustedes ?
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p2">
+    <p class="ltx_p" id="A5.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p2.1.1">
+      Gold Label for Tweet 1:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p3">
+    <p class="ltx_p" id="A5.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p3.1.1">
+      Predicted Label for Tweet 1:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p4">
+    <p class="ltx_p" id="A5.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p4.1.1">
+      Explanation for Tweet 1:
+     </span>
+     The tweet expresses frustration and dissatisfaction with some people not bringing something important to the country and questioning their reliability, indicating a sense of distrust and annoyance. This feeling aligns with feelings of anger.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p5">
+    <p class="ltx_p" id="A5.SS1.p5.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p5.1.1">
+      Tweet 2 (French):
+     </span>
+     Après faut pas trop leur en demander , c ’ est pas les plus futés qu ’ il y a là dedans http
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p6">
+    <p class="ltx_p" id="A5.SS1.p6.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p6.1.1">
+      Gold Label for Tweet 2:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p7">
+    <p class="ltx_p" id="A5.SS1.p7.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p7.1.1">
+      Predicted Label for Tweet 2:
+     </span>
+     Anger
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p8">
+    <p class="ltx_p" id="A5.SS1.p8.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p8.1.1">
+      Explanation for Tweet 2:
+     </span>
+     The tweet "Après faut pas trop leur en demander, c’est pas les plus futés qu’il y a là dedans" implies a dismissal or a derogatory comment about the intelligence of others, suggesting a lack of respect or slight frustration. This conveys a sense of disdain or irritation towards the subjects being discussed, which aligns with the emotion of anger.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p9">
+    <p class="ltx_p" id="A5.SS1.p9.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p9.1.1">
+      Tweet 3 (Dutch):
+     </span>
+     Weersverwachting : Vandaag wordt het in Overlangel Zwaar bewolkt , lichte regen , min . 4 graden en niet warmer dan 1 . . .
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p10">
+    <p class="ltx_p" id="A5.SS1.p10.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p10.1.1">
+      Gold Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p11">
+    <p class="ltx_p" id="A5.SS1.p11.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p11.1.1">
+      Predicted Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p12">
+    <p class="ltx_p" id="A5.SS1.p12.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p12.1.1">
+      Explanation for Tweet 3:
+     </span>
+     The tweet is a simple weather forecast stating the conditions as heavily cloudy with light rain and mentions temperatures. It has a factual tone without any personal feelings or emotions. Therefore, the emotion label for this tweet is Neutral.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p13">
+    <p class="ltx_p" id="A5.SS1.p13.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p13.1.1">
+      Tweet 4 (Russian):
+     </span>
+     <span class="ltx_text" id="A5.SS1.p13.1.2" lang="ru">
+      Уважаемые коллеги , пришла ко мне моя знакомая , случай которой я описывала . . . http http
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p14">
+    <p class="ltx_p" id="A5.SS1.p14.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p14.1.1">
+      Gold Label for Tweet 4:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p15">
+    <p class="ltx_p" id="A5.SS1.p15.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p15.1.1">
+      Predicted Label for Tweet 4:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS1.p16">
+    <p class="ltx_p" id="A5.SS1.p16.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS1.p16.1.1">
+      Explanation for Tweet 4:
+     </span>
+     The tweet provides minimal context or emotional indicators, primarily functioning as a statement of fact about a colleague visiting and mentioning a previous situation. The contents lack any clear emotional language or sentiment. Therefore, it is classified as neutral.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A5.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     E.2
+    </span>
+    Samples from Test Dataset
+   </h3>
+   <div class="ltx_para" id="A5.SS2.p1">
+    <p class="ltx_p" id="A5.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p1.1.1">
+      Tweet 1 (Spanish):
+     </span>
+     Te quiero pa ’ mi
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p2">
+    <p class="ltx_p" id="A5.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p2.1.1">
+      Gold Label for Tweet 1:
+     </span>
+     Love
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p3">
+    <p class="ltx_p" id="A5.SS2.p3.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p3.1.1">
+      Predicted Label for Tweet 1:
+     </span>
+     Love
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p4">
+    <p class="ltx_p" id="A5.SS2.p4.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p4.1.1">
+      Explanation for Tweet 1:
+     </span>
+     The phrase "Te quiero pa’ mi" translates to "I want you for myself" in English and expresses a desire to be with someone, often imbued with affectionate and loving intent.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p5">
+    <p class="ltx_p" id="A5.SS2.p5.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p5.1.1">
+      Tweet 2 (French):
+     </span>
+     un boom dans le monde du jeu vidéo ? http
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p6">
+    <p class="ltx_p" id="A5.SS2.p6.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p6.1.1">
+      Gold Label for Tweet 2:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p7">
+    <p class="ltx_p" id="A5.SS2.p7.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p7.1.1">
+      Predicted Label for Tweet 2:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p8">
+    <p class="ltx_p" id="A5.SS2.p8.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p8.1.1">
+      Explanation for Tweet 2:
+     </span>
+     The tweet asks a question about a significant event in the world of video gaming and includes a link, suggesting curiosity or interest but not clearly expressing any strong emotion.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p9">
+    <p class="ltx_p" id="A5.SS2.p9.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p9.1.1">
+      Tweet 3 (Dutch):
+     </span>
+     Zelfkennisbieb is uit haar functie ontheven . Drie dagen ontspanning . Daarna weer # inzicht opdoen . Kom jij dan lenen ? http
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p10">
+    <p class="ltx_p" id="A5.SS2.p10.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p10.1.1">
+      Gold Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p11">
+    <p class="ltx_p" id="A5.SS2.p11.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p11.1.1">
+      Predicted Label for Tweet 3:
+     </span>
+     Neutral
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p12">
+    <p class="ltx_p" id="A5.SS2.p12.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p12.1.1">
+      Explanation for Tweet 3:
+     </span>
+     The tweet mentions self-awareness being relieved from duty, followed by three days of relaxation and then gaining insight again. The overall tone is neutral and informative without strong emotional expressions.
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p13">
+    <p class="ltx_p" id="A5.SS2.p13.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p13.1.1">
+      Tweet 4 (Russian):
+     </span>
+     <span class="ltx_text" id="A5.SS2.p13.1.2" lang="ru">
+      14 . Выгляжу лучше , чем когда - либо , довольна собой .
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p14">
+    <p class="ltx_p" id="A5.SS2.p14.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p14.1.1">
+      Gold Label for Tweet 4:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p15">
+    <p class="ltx_p" id="A5.SS2.p15.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p15.1.1">
+      Predicted Label for Tweet 4:
+     </span>
+     Joy
+    </p>
+   </div>
+   <div class="ltx_para" id="A5.SS2.p16">
+    <p class="ltx_p" id="A5.SS2.p16.1">
+     <span class="ltx_text ltx_font_bold" id="A5.SS2.p16.1.1">
+      Explanation for Tweet 4:
+     </span>
+     The tweet translates to "14. I look better than ever, pleased with myself." which expresses self-satisfaction and happiness.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="A6">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix F
+   </span>
+   Per-emotion F1-scores Achieved by Ensemble-19
+  </h2>
+  <figure class="ltx_table" id="A6.T4">
+   <table class="ltx_tabular ltx_centering ltx_align_middle" id="A6.T4.1">
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="A6.T4.1.1.1">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.1.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.1.1.1.1">
+        <span class="ltx_p" id="A6.T4.1.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="A6.T4.1.1.1.1.1.1.1">
+          Emotion Labels
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.1.1.2.1">
+        <span class="ltx_p" id="A6.T4.1.1.1.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="A6.T4.1.1.1.2.1.1.1">
+          F1-score
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.1.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.1.1.3.1">
+        <span class="ltx_p" id="A6.T4.1.1.1.3.1.1">
+         <span class="ltx_text ltx_font_bold" id="A6.T4.1.1.1.3.1.1.1">
+          Precision
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.1.1.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.1.1.4.1">
+        <span class="ltx_p" id="A6.T4.1.1.1.4.1.1">
+         <span class="ltx_text ltx_font_bold" id="A6.T4.1.1.1.4.1.1.1">
+          Recall
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.1.1.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.1.1.5.1">
+        <span class="ltx_p" id="A6.T4.1.1.1.5.1.1">
+         <span class="ltx_text ltx_font_bold" id="A6.T4.1.1.1.5.1.1.1">
+          Support
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.2.2">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.2.2.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.2.2.1.1">
+        <span class="ltx_p" id="A6.T4.1.2.2.1.1.1">
+         Love
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.2.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.2.2.2.1">
+        <span class="ltx_p" id="A6.T4.1.2.2.2.1.1">
+         0.47
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.2.2.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.2.2.3.1">
+        <span class="ltx_p" id="A6.T4.1.2.2.3.1.1">
+         0.55
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.2.2.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.2.2.4.1">
+        <span class="ltx_p" id="A6.T4.1.2.2.4.1.1">
+         0.41
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.2.2.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.2.2.5.1">
+        <span class="ltx_p" id="A6.T4.1.2.2.5.1.1">
+         190
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.3.3">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.3.3.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.3.3.1.1">
+        <span class="ltx_p" id="A6.T4.1.3.3.1.1.1">
+         Joy
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.3.3.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.3.3.2.1">
+        <span class="ltx_p" id="A6.T4.1.3.3.2.1.1">
+         0.63
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.3.3.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.3.3.3.1">
+        <span class="ltx_p" id="A6.T4.1.3.3.3.1.1">
+         0.55
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.3.3.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.3.3.4.1">
+        <span class="ltx_p" id="A6.T4.1.3.3.4.1.1">
+         0.74
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.3.3.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.3.3.5.1">
+        <span class="ltx_p" id="A6.T4.1.3.3.5.1.1">
+         433
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.4.4">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.4.4.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.4.4.1.1">
+        <span class="ltx_p" id="A6.T4.1.4.4.1.1.1">
+         Anger
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.4.4.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.4.4.2.1">
+        <span class="ltx_p" id="A6.T4.1.4.4.2.1.1">
+         0.73
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.4.4.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.4.4.3.1">
+        <span class="ltx_p" id="A6.T4.1.4.4.3.1.1">
+         0.76
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.4.4.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.4.4.4.1">
+        <span class="ltx_p" id="A6.T4.1.4.4.4.1.1">
+         0.70
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.4.4.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.4.4.5.1">
+        <span class="ltx_p" id="A6.T4.1.4.4.5.1.1">
+         614
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.5.5">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.5.5.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.5.5.1.1">
+        <span class="ltx_p" id="A6.T4.1.5.5.1.1.1">
+         Fear
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.5.5.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.5.5.2.1">
+        <span class="ltx_p" id="A6.T4.1.5.5.2.1.1">
+         0.53
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.5.5.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.5.5.3.1">
+        <span class="ltx_p" id="A6.T4.1.5.5.3.1.1">
+         0.44
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.5.5.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.5.5.4.1">
+        <span class="ltx_p" id="A6.T4.1.5.5.4.1.1">
+         0.68
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.5.5.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.5.5.5.1">
+        <span class="ltx_p" id="A6.T4.1.5.5.5.1.1">
+         77
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.6.6">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.6.6.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.6.6.1.1">
+        <span class="ltx_p" id="A6.T4.1.6.6.1.1.1">
+         Sadness
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.6.6.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.6.6.2.1">
+        <span class="ltx_p" id="A6.T4.1.6.6.2.1.1">
+         0.55
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.6.6.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.6.6.3.1">
+        <span class="ltx_p" id="A6.T4.1.6.6.3.1.1">
+         0.56
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.6.6.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.6.6.4.1">
+        <span class="ltx_p" id="A6.T4.1.6.6.4.1.1">
+         0.54
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A6.T4.1.6.6.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.6.6.5.1">
+        <span class="ltx_p" id="A6.T4.1.6.6.5.1.1">
+         270
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A6.T4.1.7.7">
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="A6.T4.1.7.7.1">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.7.7.1.1">
+        <span class="ltx_p" id="A6.T4.1.7.7.1.1.1">
+         Neutral
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A6.T4.1.7.7.2">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.7.7.2.1">
+        <span class="ltx_p" id="A6.T4.1.7.7.2.1.1">
+         0.72
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A6.T4.1.7.7.3">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.7.7.3.1">
+        <span class="ltx_p" id="A6.T4.1.7.7.3.1.1">
+         0.76
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A6.T4.1.7.7.4">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.7.7.4.1">
+        <span class="ltx_p" id="A6.T4.1.7.7.4.1.1">
+         0.68
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A6.T4.1.7.7.5">
+       <span class="ltx_inline-block ltx_align_top" id="A6.T4.1.7.7.5.1">
+        <span class="ltx_p" id="A6.T4.1.7.7.5.1.1">
+         916
+        </span>
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 4:
+    </span>
+    Per-emotion F1-scores of the Ensemble-19 model.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_appendix" id="A7">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix G
+   </span>
+   Effectiveness of Explanation and Correction
+  </h2>
+  <div class="ltx_para" id="A7.p1">
+   <p class="ltx_p" id="A7.p1.1">
+    Note that during the evaluation phase, we only ran ZeroShot (gpt-4-turbo), ZSE (gpt-4o) and ZSEC (gpt-4o), of which the results are shown in Table
+    <a class="ltx_ref" href="#A7.T5" title="Table 5 ‣ Appendix G Effectiveness of Explanation and Correction ‣ TEII: Think, Explain, Interact and Iterate with Large Language Models to Solve Cross-lingual Emotion Detection">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    . For ZeroShot (gpt-4o), we ran it after the gold labels were released for the test dataset. We noticed that there was a nonnegligible improvement on the evaluation metrics with ZeroShot (gpt-4o) comparing to ZeroShot (gpt-4-turbo). It remains uncertain to us whether the gpt-4o model has been updated since the evaluation phase, because due to cost and time constraints, we were unable to re-run the ZSE (gpt-4o) and ZSEC (gpt-4o) models again after the gold labels were released for the test dataset.
+   </p>
+  </div>
+  <figure class="ltx_table" id="A7.T5">
+   <table class="ltx_tabular ltx_centering ltx_align_middle" id="A7.T5.1">
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="A7.T5.1.1.1">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A7.T5.1.1.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.1.1.1.1">
+        <span class="ltx_p" id="A7.T5.1.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.1.1.1.1.1.1">
+          Models
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.1.1.2.1">
+        <span class="ltx_p" id="A7.T5.1.1.1.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.1.1.2.1.1.1">
+          F1-score
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.1.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.1.1.3.1">
+        <span class="ltx_p" id="A7.T5.1.1.1.3.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.1.1.3.1.1.1">
+          Precision
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.1.1.4">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.1.1.4.1">
+        <span class="ltx_p" id="A7.T5.1.1.1.4.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.1.1.4.1.1.1">
+          Recall
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.1.1.5">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.1.1.5.1">
+        <span class="ltx_p" id="A7.T5.1.1.1.5.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.1.1.5.1.1.1">
+          Acc.
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A7.T5.1.2.2">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A7.T5.1.2.2.1">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.2.2.1.1">
+        <span class="ltx_p" id="A7.T5.1.2.2.1.1.1">
+         ZeroShot (gpt-4-turbo)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.2.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.2.2.2.1">
+        <span class="ltx_p" id="A7.T5.1.2.2.2.1.1">
+         0.5459
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.2.2.3">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.2.2.3.1">
+        <span class="ltx_p" id="A7.T5.1.2.2.3.1.1">
+         0.5539
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.2.2.4">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.2.2.4.1">
+        <span class="ltx_p" id="A7.T5.1.2.2.4.1.1">
+         0.5682
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.2.2.5">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.2.2.5.1">
+        <span class="ltx_p" id="A7.T5.1.2.2.5.1.1">
+         0.6028
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A7.T5.1.3.3">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A7.T5.1.3.3.1">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.3.3.1.1">
+        <span class="ltx_p" id="A7.T5.1.3.3.1.1.1">
+         ZeroShot (gpt-4o)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.3.3.2">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.3.3.2.1">
+        <span class="ltx_p" id="A7.T5.1.3.3.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.3.3.2.1.1.1">
+          0.5732
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.3.3.3">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.3.3.3.1">
+        <span class="ltx_p" id="A7.T5.1.3.3.3.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.3.3.3.1.1.1">
+          0.5685
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.3.3.4">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.3.3.4.1">
+        <span class="ltx_p" id="A7.T5.1.3.3.4.1.1">
+         0.5813
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.3.3.5">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.3.3.5.1">
+        <span class="ltx_p" id="A7.T5.1.3.3.5.1.1">
+         0.6164
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A7.T5.1.4.4">
+      <td class="ltx_td ltx_align_justify ltx_border_l ltx_border_r ltx_border_t" id="A7.T5.1.4.4.1">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.4.4.1.1">
+        <span class="ltx_p" id="A7.T5.1.4.4.1.1.1">
+         ZSE (gpt-4o)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.4.4.2">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.4.4.2.1">
+        <span class="ltx_p" id="A7.T5.1.4.4.2.1.1">
+         0.5723
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.4.4.3">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.4.4.3.1">
+        <span class="ltx_p" id="A7.T5.1.4.4.3.1.1">
+         0.5664
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.4.4.4">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.4.4.4.1">
+        <span class="ltx_p" id="A7.T5.1.4.4.4.1.1">
+         0.589
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t" id="A7.T5.1.4.4.5">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.4.4.5.1">
+        <span class="ltx_p" id="A7.T5.1.4.4.5.1.1">
+         0.6232
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A7.T5.1.5.5">
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="A7.T5.1.5.5.1">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.5.5.1.1">
+        <span class="ltx_p" id="A7.T5.1.5.5.1.1.1">
+         ZSEC (gpt-4o)
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A7.T5.1.5.5.2">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.5.5.2.1">
+        <span class="ltx_p" id="A7.T5.1.5.5.2.1.1">
+         0.5726
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A7.T5.1.5.5.3">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.5.5.3.1">
+        <span class="ltx_p" id="A7.T5.1.5.5.3.1.1">
+         0.5631
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A7.T5.1.5.5.4">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.5.5.4.1">
+        <span class="ltx_p" id="A7.T5.1.5.5.4.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.5.5.4.1.1.1">
+          0.5953
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_b ltx_border_r ltx_border_t" id="A7.T5.1.5.5.5">
+       <span class="ltx_inline-block ltx_align_top" id="A7.T5.1.5.5.5.1">
+        <span class="ltx_p" id="A7.T5.1.5.5.5.1.1">
+         <span class="ltx_text ltx_font_bold" id="A7.T5.1.5.5.5.1.1.1">
+          0.624
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 5:
+    </span>
+    Precision, Recall, F1-scores and Accuracy on the test dataset for ZeroShot, ZSE and ZSEC (correction on "Neutral").
+   </figcaption>
+  </figure>
+ </section>
+</article>

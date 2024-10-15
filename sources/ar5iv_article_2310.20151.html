@@ -1,0 +1,4836 @@
+<article class="ltx_document ltx_authors_1line">
+ <div class="ltx_para" id="p1">
+  <span class="ltx_ERROR undefined" id="p1.1">
+   \contourlength
+  </span>
+  <p class="ltx_p" id="p1.2">
+   1.5pt
+  </p>
+ </div>
+ <h1 class="ltx_title ltx_title_document">
+  Multi-Agent Consensus Seeking via
+  <br class="ltx_break"/>
+  Large Language Models
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Huaben Chen, Wenkang Ji, Lufeng Xu, Shiyu Zhao
+    <br class="ltx_break"/>
+    Westlake University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     {chenhuaben, jiwenkang, xulufeng, zhaoshiyu}@westlake.edu.cn
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   Multi-agent systems driven by large language models (LLMs) have shown promising abilities for solving complex tasks in a collaborative manner. This work considers a fundamental problem in multi-agent collaboration: consensus seeking. When multiple agents work together, we are interested in how they can reach a consensus through inter-agent negotiation. To that end, this work studies a consensus-seeking task where the state of each agent is a numerical value and they negotiate with each other to reach a consensus value. It is revealed that when not explicitly directed on which strategy should be adopted, the LLM-driven agents primarily use the average strategy for consensus seeking although they may occasionally use some other strategies. Moreover, this work analyzes the impact of the agent number, agent personality, and network topology on the negotiation process. The findings reported in this work can potentially lay the foundations for understanding the behaviors of LLM-driven multi-agent systems for solving more complex tasks. Furthermore, LLM-driven consensus seeking is applied to a multi-robot aggregation task. This application demonstrates the potential of LLM-driven agents to achieve zero-shot autonomous planning for multi-robot collaboration tasks.
+Project website:
+   <a class="ltx_ref ltx_href" href="https://westlakeintelligentrobotics.github.io/ConsensusLLM/" target="_blank" title="">
+    westlakeintelligentrobotics.github.io/ConsensusLLM/
+   </a>
+   .
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p1.1.1">
+     Background:
+    </span>
+    In recent months, multi-agent systems driven by large language models (LLMs) have received rapidly increasing attention. It is reported that the problem-solving ability of LLMs can be significantly enhanced through collaboration between multiple agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    . The works in MetaGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    , CAMEL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    , and ChatDev
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    break down complex tasks into simpler sub-tasks, which are then handled by different agents separately. These collaboration strategies, to some extent, can reduce hallucinations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    and enhance the ability to solve complex tasks.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p2.1.1">
+     Topic addressed:
+    </span>
+    Our work considers a fundamental problem in multi-agent systems: consensus seeking. When multiple LLMs are used to solve the same task, they may have different solutions initially, but they can eventually reach the same solution through continuous negotiation. This is essentially a consensus-seeking process. Consensus seeking also widely exists in collective decision-making systems such as animal groups
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    and human societies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    . It is also a core research problem in the fields of multi-robot systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    and federated learning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p3.1.1">
+     Research gap:
+    </span>
+    Consensus seeking via LLMs has not been well understood so far. There are many important questions that need to be answered. For instance, if we use multiple LLMs to assist us in negotiations or problem-solving, it is important for us to know whether they can eventually reach a consensus amongst themselves. If they can, how long would it take and what factors can influence the final consensus outcome? If they cannot, what factors may lead to this failure? The answers to these questions play a pivotal role in our proper utilization of LLMs. For example, it would be beneficial if we could predict the final negotiation outcome even before deploying LLMs or we know how to obtain desired negotiation outcomes by adjusting some prompts.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p4.1.1">
+     Problem setup:
+    </span>
+    In this work, we study a specific consensus-seeking task. Specifically, in an LLM-driven multi-agent system, each agent starts with an initial state represented by a numerical value. The objective for them is to continuously adjust their states to achieve the same final state. Throughout this process, each agent can perceive the states of the other agents, and based on this information, formulate strategies to adjust their own states.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p5.1.1">
+     Significance:
+    </span>
+    This consensus-seeking task is an abstraction of more complex tasks. Understanding this simple task can lay the necessary foundations for understanding more complex ones.
+Specifically, in this task, the state of each agent corresponds to a point in the set of real numbers. In more complex tasks, the state of each agent may correspond to a point within a more complex set (e.g., a set of solutions).
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p6.1.1">
+     Findings:
+    </span>
+    The primary findings of this work are summarized below.
+   </p>
+   <ol class="ltx_enumerate" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i1.p1.1.1">
+        Consensus strategy:
+       </span>
+       When not explicitly directed on which strategy the agents should adopt, they often tend to use an
+       <em class="ltx_emph ltx_font_italic" id="S1.I1.i1.p1.1.2">
+        average strategy
+       </em>
+       for consensus seeking although they may also occasionally use some other strategies. By the average strategy, an agent sets its state in the next round as the average value of the current states of all agents. This strategy shows that the agent is considerate and collaborative.
+      </p>
+     </div>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i1.p2">
+      <p class="ltx_p" id="S1.I1.i1.p2.1">
+       Interestingly,
+       <em class="ltx_emph ltx_font_italic" id="S1.I1.i1.p2.1.1">
+        average consensus
+       </em>
+       is a well-studied problem in the field of multi-agent cooperative control
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib10" title="">
+         10
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib11" title="">
+         11
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib12" title="">
+         12
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib13" title="">
+         13
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib14" title="">
+         14
+        </a>
+        ]
+       </cite>
+       . In that context, each agent is modeled as a dynamic system governed by ordinary differential or difference equations (ODEs). This work reveals the similarity between the behavior exhibited by LLM-driven and ODE-driven multi-agent systems. The existing theoretical results of ODE-driven agents can provide a theoretical foundation to help us understand LLM-driven agents.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i2.p1.1.1">
+        Impact of personality:
+       </span>
+       A person’s personality often plays a significant role in negotiation and collaboration tasks. Motivated by this, we examined two types of personalities:
+       <em class="ltx_emph ltx_font_italic" id="S1.I1.i2.p1.1.2">
+        stubborn
+       </em>
+       and
+       <em class="ltx_emph ltx_font_italic" id="S1.I1.i2.p1.1.3">
+        suggestible
+       </em>
+       . Compared to suggestible agents, stubborn agents tend to insist on their views and are less likely to change. We observed that stubborn agents have a dominant influence on the final consensus value of the group, leading the entire system to display a leader-follower structure.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i3.p1.1.1">
+        Impact of topology:
+       </span>
+       The flow of information in a multi-agent system corresponds to a network topology, which plays a pivotal role in negotiations. We examined several typical network topologies. For instance, when the network is fully connected, the exchange of information is most efficient, resulting in fast consensus convergence speed. When the network is not fully connected, the consensus convergence speed slows down. In the case of directed graphs, a leader-follower hierarchical structure emerges since some agents have a dominant influence on the final consensus outcome. In some systems, due to the interplay between personality and topology, consensus may not be reached, leading to clustering outcomes.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i4.p1.1.1">
+        Impact of agent number:
+       </span>
+       It is shown by Monte Carlo simulation that as the number of agents increases, the variance of the final consensus value decreases. This suggests that multiple agents can alleviate the randomness or hallucinations of the system so that a consistent outcome can be obtained in different trials. Moreover, while a small number of suggestible agents may cause oscillations of their states, a large number of them can suppress the occurrence of oscillations, suggesting that increasing the number of agents may stabilize group decision-making.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p7.1.1">
+     Application to multi-robot aggregation:
+    </span>
+    The LLM-driven consensus seeking framework is further applied as a cooperative planner to a multi-robot aggregation task. In this task, multiple robots starting from different initial positions plan and move to a common position in the plane. It is a consensus seeking problem in Euclidean space. This application is important since it shows the potential of LLM-driven agents to achieve zero-shot autonomous task planning based on simple verbal commands.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_square" height="543" id="S1.F1.g1" src="/html/2310.20151/assets/x1.png" width="438"/>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" height="138" id="S1.F1.g2" src="/html/2310.20151/assets/x2.png" width="276"/>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    An illustration of the negotiation process of two agents. The upper subfigure shows the conversation details. The lower subfigure visualizes the state history of the two agents.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Problem Setup
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.3">
+    Consider
+    <math alttext="n" class="ltx_Math" display="inline" id="S2.p1.1.m1.1">
+     <semantics id="S2.p1.1.m1.1a">
+      <mi id="S2.p1.1.m1.1.1" xref="S2.p1.1.m1.1.1.cmml">
+       n
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.1.m1.1b">
+       <ci id="S2.p1.1.m1.1.1.cmml" xref="S2.p1.1.m1.1.1">
+        𝑛
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.1.m1.1c">
+       n
+      </annotation>
+     </semantics>
+    </math>
+    (
+    <math alttext="n\geq 2" class="ltx_Math" display="inline" id="S2.p1.2.m2.1">
+     <semantics id="S2.p1.2.m2.1a">
+      <mrow id="S2.p1.2.m2.1.1" xref="S2.p1.2.m2.1.1.cmml">
+       <mi id="S2.p1.2.m2.1.1.2" xref="S2.p1.2.m2.1.1.2.cmml">
+        n
+       </mi>
+       <mo id="S2.p1.2.m2.1.1.1" xref="S2.p1.2.m2.1.1.1.cmml">
+        ≥
+       </mo>
+       <mn id="S2.p1.2.m2.1.1.3" xref="S2.p1.2.m2.1.1.3.cmml">
+        2
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.2.m2.1b">
+       <apply id="S2.p1.2.m2.1.1.cmml" xref="S2.p1.2.m2.1.1">
+        <geq id="S2.p1.2.m2.1.1.1.cmml" xref="S2.p1.2.m2.1.1.1">
+        </geq>
+        <ci id="S2.p1.2.m2.1.1.2.cmml" xref="S2.p1.2.m2.1.1.2">
+         𝑛
+        </ci>
+        <cn id="S2.p1.2.m2.1.1.3.cmml" type="integer" xref="S2.p1.2.m2.1.1.3">
+         2
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.2.m2.1c">
+       n\geq 2
+      </annotation>
+     </semantics>
+    </math>
+    ) agents, each driven by an LLM (GPT-3.5-turbo-0613). These
+    <math alttext="n" class="ltx_Math" display="inline" id="S2.p1.3.m3.1">
+     <semantics id="S2.p1.3.m3.1a">
+      <mi id="S2.p1.3.m3.1.1" xref="S2.p1.3.m3.1.1.cmml">
+       n
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.3.m3.1b">
+       <ci id="S2.p1.3.m3.1.1.cmml" xref="S2.p1.3.m3.1.1">
+        𝑛
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.3.m3.1c">
+       n
+      </annotation>
+     </semantics>
+    </math>
+    agents, at the initial moment, are randomly assigned a number between 0 to 100 as their state. This number can be thought of as the position of the agent in a one-dimensional space, or the index of a point in a more complex solution space. Through multiple rounds of inter-agent negotiation, the agents are expected to reach a consensus value.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    The negotiation process is illustrated in Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Multi-Agent Consensus Seeking via Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    and explained as follows.
+The initial prompt for each agent is the same apart from the difference in their initial states.
+In each round, every agent must decide on a new state based on the information of the other agents’ states. The output of each agent in every round consists of two parts. The first part is “Reasoning”, which briefly explains the logic behind its decision. The second part is the “Position”, which represents the new state chosen by the agent. The introduction of reasoning is motivated by the Chain of Thought (CoT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    . It can avoid basic errors to guide the agents to produce more reliable answers. It also allows us to observe the strategies chosen by the agent.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    Two remarks about this problem setup are given below.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p4">
+   <ol class="ltx_enumerate" id="S2.I1">
+    <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S2.I1.i1.p1">
+      <p class="ltx_p" id="S2.I1.i1.p1.1">
+       The state of an agent can correspond to each agent’s thoughts, objectives, solutions, etc. In this paper, the state of an agent is a number, which can be thought of as an abstract state or the index of more complex quantities. If each agent represents a mobile robot, the number may correspond to the position of the robot on a one-dimensional straight line. In this context, consensus seeking corresponds to the
+       <em class="ltx_emph ltx_font_italic" id="S2.I1.i1.p1.1.1">
+        aggregation
+       </em>
+       task, which is a fundamental task for multi-robot systems
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib17" title="">
+         17
+        </a>
+        ]
+       </cite>
+       . In particular, it refers to the task where multiple robots, starting from different locations, converge at the same location.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2)
+     </span>
+     <div class="ltx_para ltx_noindent" id="S2.I1.i2.p1">
+      <p class="ltx_p" id="S2.I1.i2.p1.1">
+       Although we know quite a few strategies for consensus seeking among multiple agents, we avoid directly instructing the agents on which strategy to adopt and hope the agents autonomously select strategies. This is important because we may no longer know strategies for more complex tasks. It is essential for the agents to autonomously generate strategies.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experimental Findings
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Consensus strategies and consensus values
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Extensive experiments show that consensus can be achieved in most cases, as illustrated in Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . There are also some minor yet interesting cases where consensus fails to be achieved, as illustrated in Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     The strategies that the agents may adopt are summarized below.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F2.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="105" id="S3.F2.sf1.g1" src="/html/2310.20151/assets/x3.png" width="415"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F2.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="105" id="S3.F2.sf2.g1" src="/html/2310.20151/assets/x4.png" width="415"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Examples in which consensus is successfully achieved. As can be seen, the states of the three agents reached a consensus after several rounds of negotiations. The agents adopt the
+     <em class="ltx_emph ltx_font_italic" id="S3.F2.2.1">
+      average strategy
+     </em>
+     in these negotiation processes. However, the agents may or may not count their own state when using this strategy.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S3.F3">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="108" id="S3.F3.sf1.g1" src="/html/2310.20151/assets/x5.png" width="415"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="116" id="S3.F3.sf2.g1" src="/html/2310.20151/assets/x6.png" width="415"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="103" id="S3.F3.sf3.g1" src="/html/2310.20151/assets/x7.png" width="415"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((c))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Examples in which the agents fail to reach consensus. The agents adopt different strategies in these examples.
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p3">
+    <ol class="ltx_enumerate" id="S3.I1">
+     <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I1.i1.p1">
+       <p class="ltx_p" id="S3.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+         Average strategy:
+        </span>
+        The most common strategy adopted by the agents is the
+        <em class="ltx_emph ltx_font_italic" id="S3.I1.i1.p1.1.2">
+         average strategy
+        </em>
+        : the agents set their state in the next round as the average value of the current states of all agents (Figure
+        <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          2
+         </span>
+        </a>
+        (a)). This is a reasonable strategy that shows the agent is considerate and collaborative. It is worth noting that we did not instruct the agents on how to select their strategies, so the selection is inherent to the LLM. Sometimes, when calculating the average value, an agent may exclude its own state (Figure
+        <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          2
+         </span>
+        </a>
+        (b)).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I1.i2.p1">
+       <p class="ltx_p" id="S3.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+         Suggestable strategy:
+        </span>
+        At times, an agent may choose another agent’s state as its next state (Figure
+        <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          3
+         </span>
+        </a>
+        ). Agents using this strategy demonstrate a high degree of collaboration. However, when all agents adopt this strategy, it may lead to
+        <em class="ltx_emph ltx_font_italic" id="S3.I1.i2.p1.1.2">
+         oscillation
+        </em>
+        . As illustrated in Figure
+        <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          3
+         </span>
+        </a>
+        (a), both agent 1 and agent 2 persistently choose each other’s states as their next states throughout the iterations. This behavior causes the system to oscillate continuously, preventing the agents from successfully reaching consensus.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       3)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I1.i3.p1">
+       <p class="ltx_p" id="S3.I1.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+         Stubborn strategy:
+        </span>
+        Agents using this strategy display a high degree of
+        <em class="ltx_emph ltx_font_italic" id="S3.I1.i3.p1.1.2">
+         stubbornness
+        </em>
+        or
+        <em class="ltx_emph ltx_font_italic" id="S3.I1.i3.p1.1.3">
+         selfishness
+        </em>
+        . They expect other agents to move toward them and firmly believe that staying in place is the most advantageous choice for themselves (Figure
+        <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          3
+         </span>
+        </a>
+        (b)). In this case, the other agents, in order to complete the consensus task, decide to compromise, resulting in gradually moving toward the stubborn agent.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       4)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I1.i4.p1">
+       <p class="ltx_p" id="S3.I1.i4.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i4.p1.1.1">
+         Erroneous strategy:
+        </span>
+        LLMs may sometimes exhibit hallucinations or make incorrect decisions. As illustrated in Figure
+        <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          3
+         </span>
+        </a>
+        (c), agent 4 mistakenly believes that 81 is the next state for all the other agents. Consequently, it moves toward 81. The other agents exhibit a following behavior, gradually trailing agent 4. This phenomenon demonstrates how hallucinations can propagate in multi-agent systems.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.1">
+     In addition to strategies, the finally reached consensus value is also an important quantity of interest. Our experiments show that in most situations, the final consensus value is close to the average of the initial states of all agents. This is mainly attributed to the average strategy adopted by the agents in most scenarios.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="220" id="S3.F4.g1" src="/html/2310.20151/assets/x8.png" width="392"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Statistical results of the final consensus values. As can be seen, the mean of the statistics is close to the average of the initial states, and the variance decreases as the number of agents increases. Here, the small dots represent data points. The numbers of agents were selected as 2, 4, 6, and 8, and temperatures were set to 0.0 and 0.7, resulting in 8 groups totaling 2,400 experiments. In each experiment, the initial state of the agents was randomly set.
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p5">
+    <p class="ltx_p" id="S3.SS1.p5.1">
+     We conducted Monte Carlo simulation to examine the final consensus value.
+From the statistics as shown in Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , we highlight two important observations:
+    </p>
+    <ol class="ltx_enumerate" id="S3.I2">
+     <li class="ltx_item" id="S3.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I2.i1.p1">
+       <p class="ltx_p" id="S3.I2.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I2.i1.p1.1.1">
+         Impact of agent number:
+        </span>
+        As the number of agents increases, the variance of the consensus value decreases, and the mean gets closer to the initial average. This observation suggests that multiple agents can alleviate the randomness or even hallucinations of LLMs so that a consistent outcome can be obtained. This is consistent with the conclusions drawn in the previous studies that multi-agent collaboration can reduce hallucinations for solving complex tasks
+        <cite class="ltx_cite ltx_citemacro_cite">
+         [
+         <a class="ltx_ref" href="#bib.bib7" title="">
+          7
+         </a>
+         ]
+        </cite>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I2.i2.p1">
+       <p class="ltx_p" id="S3.I2.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I2.i2.p1.1.1">
+         Impact of temperature:
+        </span>
+        Compared to the temperature=0.7 setting, when the temperature is set to 0, we observed that the bias exhibits a higher compactness around the initial average. It is suggested that a lower temperature brings slightly better stability to the system, while a higher temperature introduces more divergence.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Impact of personality
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     We did not intentionally set the personality of the agents in the experiments discussed in Section
+     <a class="ltx_ref" href="#S3.SS1" title="3.1 Consensus strategies and consensus values ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3.1
+      </span>
+     </a>
+     . We observed that the agents tend to be considerate and cooperative in most cases: they actively take into account the states of other agents to change their own states. However, we also observed that the agents may be highly suggestible or stubborn. To further explore the impact of agent personality, we conducted the following experiments.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="106" id="S3.F5.g1" src="/html/2310.20151/assets/x9.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     The prompt used to set the personality of each agent.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S3.F6">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F6.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="138" id="S3.F6.sf1.g1" src="/html/2310.20151/assets/x10.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F6.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="138" id="S3.F6.sf2.g1" src="/html/2310.20151/assets/x11.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F6.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="126" id="S3.F6.sf3.g1" src="/html/2310.20151/assets/x12.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((c))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     The impact of personalities in the case of two agents. As can be seen, different personalities lead to different negotiation outcomes.
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     We set the personalities of the agents through prompts, as shown in Figure
+     <a class="ltx_ref" href="#S3.F5" title="Figure 5 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . Two personalities are examined: the first is
+     <em class="ltx_emph ltx_font_italic" id="S3.SS2.p2.1.1">
+      stubborn
+     </em>
+     and the second is
+     <em class="ltx_emph ltx_font_italic" id="S3.SS2.p2.1.2">
+      suggestible
+     </em>
+     . A stubborn agent tends to stick to its state, making it non-cooperative. In contrast, a suggestible agent tends to easily change its state.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     First, consider the scenarios when there are two agents:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p4">
+    <ol class="ltx_enumerate" id="S3.I3">
+     <li class="ltx_item" id="S3.I3.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I3.i1.p1">
+       <p class="ltx_p" id="S3.I3.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I3.i1.p1.1.1">
+         Stubborn and suggestible:
+        </span>
+        If one agent is stubborn and the other is suggestible, the stubborn agent’s state hardly changes, while the suggestible agent gradually aligns with the stubborn agent (Figure
+        <a class="ltx_ref" href="#S3.F6" title="Figure 6 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          6
+         </span>
+        </a>
+        (a)).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I3.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I3.i2.p1">
+       <p class="ltx_p" id="S3.I3.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I3.i2.p1.1.1">
+         Both are suggestible:
+        </span>
+        When both agents are suggestible, they tend to align their states with the other’s, which may lead to
+        <em class="ltx_emph ltx_font_italic" id="S3.I3.i2.p1.1.2">
+         oscillations
+        </em>
+        (Figure
+        <a class="ltx_ref" href="#S3.F6" title="Figure 6 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          6
+         </span>
+        </a>
+        (b)). This phenomenon is noteworthy because such oscillations can make it challenging to reach a consensus. Therefore, to achieve consensus efficiently, the agents should not be too suggestible.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I3.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       3)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I3.i3.p1">
+       <p class="ltx_p" id="S3.I3.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I3.i3.p1.1.1">
+         Both are stubborn:
+        </span>
+        When both agents are stubborn, reaching consensus between them becomes challenging, as both hold their states, expecting the other to compromise (Figure
+        <a class="ltx_ref" href="#S3.F6" title="Figure 6 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          6
+         </span>
+        </a>
+        (c)). Although sometimes one stubborn agent might eventually compromise to align with the other agent, such a process converges slowly.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p5">
+    <p class="ltx_p" id="S3.SS2.p5.1">
+     Next, consider some scenarios involving more agents (e.g., 10 agents).
+    </p>
+    <ol class="ltx_enumerate" id="S3.I4">
+     <li class="ltx_item" id="S3.I4.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I4.i1.p1">
+       <p class="ltx_p" id="S3.I4.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I4.i1.p1.1.1">
+         All agents are suggestible:
+        </span>
+        Although two suggestible agents may cause oscillation in their states (Figure
+        <a class="ltx_ref" href="#S3.F6" title="Figure 6 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          6
+         </span>
+        </a>
+        (b)), 10 suggestible agents often reach consensus without state oscillation (Figure
+        <a class="ltx_ref" href="#S3.F7" title="Figure 7 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          7
+         </span>
+        </a>
+        (a)). That is because, due to the increased number of agents, they tend to choose states where the majority reside, thereby suppressing the occurrence of oscillations. This indicates that increasing the number of agents may effectively stabilize group decision-making.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I4.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I4.i2.p1">
+       <p class="ltx_p" id="S3.I4.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I4.i2.p1.1.1">
+         Multiple stubborn agents:
+        </span>
+        When multiple agents are stubborn, a
+        <em class="ltx_emph ltx_font_italic" id="S3.I4.i2.p1.1.2">
+         clustering phenomenon
+        </em>
+        may emerge (Figure
+        <a class="ltx_ref" href="#S3.F7" title="Figure 7 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          7
+         </span>
+        </a>
+        (b)). That is, some agents aggregate at one particular state, while the rest aggregate at another distinct state. Both of these clusters firmly believe that their stance is right and should not be changed, leading to a deadlock situation.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <figure class="ltx_figure" id="S3.F7">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F7.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="116" id="S3.F7.sf1.g1" src="/html/2310.20151/assets/x13.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F7.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="181" id="S3.F7.sf2.g1" src="/html/2310.20151/assets/x14.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     The impact of personalities in the case of 10 agents. If all agents are suggestible, the system may still reach a consensus. When there are multiple stubborn agents, the system may have multiple clusters.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S3.F8">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F8.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="213" id="S3.F8.sf1.g1" src="/html/2310.20151/assets/x15.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F8.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="188" id="S3.F8.sf2.g1" src="/html/2310.20151/assets/x16.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 8:
+     </span>
+     The impact of topologies when the network is
+     <em class="ltx_emph ltx_font_italic" id="S3.F8.2.1">
+      undirected
+     </em>
+     . As can be seen, when the topology is fully connected, the convergence speed is fast. When the topology is not fully connected, consensus can still be achieved but the convergence speed is slower.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S3.F9">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F9.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="202" id="S3.F9.sf1.g1" src="/html/2310.20151/assets/x17.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F9.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="228" id="S3.F9.sf2.g1" src="/html/2310.20151/assets/x18.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 9:
+     </span>
+     The impact of topologies when the network is
+     <em class="ltx_emph ltx_font_italic" id="S3.F9.2.1">
+      directed
+     </em>
+     . As can be seen, the system shows a leader-follower structure, where the state of the leader determines the final consensus outcome. Here, the arrows indicate the information flow.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Impact of network topology
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     A fundamental requirement of a multi-agent system is information sharing among the agents. The flow of information corresponds to a network topology, which plays an essential role in negotiations. Until now, we have only considered fully connected network topologies. That is, every agent can access the information of all other agents. However, this may not always be true. It is important to examine the impact of different network topologies.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     First, consider some typical network topologies for three agents.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p3">
+    <p class="ltx_p" id="S3.SS3.p3.4">
+     <span class="ltx_text ltx_font_bold" id="S3.SS3.p3.4.1">
+      Undirected networks:
+     </span>
+     In an undirected network, the flow of information between multiple intelligent agents is
+     <em class="ltx_emph ltx_font_italic" id="S3.SS3.p3.4.2">
+      bidirectional
+     </em>
+     . That is if agent
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS3.p3.1.m1.1">
+      <semantics id="S3.SS3.p3.1.m1.1a">
+       <mi id="S3.SS3.p3.1.m1.1.1" xref="S3.SS3.p3.1.m1.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.1.m1.1b">
+        <ci id="S3.SS3.p3.1.m1.1.1.cmml" xref="S3.SS3.p3.1.m1.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.1.m1.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     can access information from agent
+     <math alttext="j" class="ltx_Math" display="inline" id="S3.SS3.p3.2.m2.1">
+      <semantics id="S3.SS3.p3.2.m2.1a">
+       <mi id="S3.SS3.p3.2.m2.1.1" xref="S3.SS3.p3.2.m2.1.1.cmml">
+        j
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.2.m2.1b">
+        <ci id="S3.SS3.p3.2.m2.1.1.cmml" xref="S3.SS3.p3.2.m2.1.1">
+         𝑗
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.2.m2.1c">
+        j
+       </annotation>
+      </semantics>
+     </math>
+     , then agent
+     <math alttext="j" class="ltx_Math" display="inline" id="S3.SS3.p3.3.m3.1">
+      <semantics id="S3.SS3.p3.3.m3.1a">
+       <mi id="S3.SS3.p3.3.m3.1.1" xref="S3.SS3.p3.3.m3.1.1.cmml">
+        j
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.3.m3.1b">
+        <ci id="S3.SS3.p3.3.m3.1.1.cmml" xref="S3.SS3.p3.3.m3.1.1">
+         𝑗
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.3.m3.1c">
+        j
+       </annotation>
+      </semantics>
+     </math>
+     can also access information from agent
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS3.p3.4.m4.1">
+      <semantics id="S3.SS3.p3.4.m4.1a">
+       <mi id="S3.SS3.p3.4.m4.1.1" xref="S3.SS3.p3.4.m4.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.4.m4.1b">
+        <ci id="S3.SS3.p3.4.m4.1.1.cmml" xref="S3.SS3.p3.4.m4.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.4.m4.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p4">
+    <ol class="ltx_enumerate" id="S3.I5">
+     <li class="ltx_item" id="S3.I5.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para" id="S3.I5.i1.p1">
+       <p class="ltx_p" id="S3.I5.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I5.i1.p1.1.1">
+         Fully connected:
+        </span>
+        As shown in Figure
+        <a class="ltx_ref" href="#S3.F8" title="Figure 8 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          8
+         </span>
+        </a>
+        (a), every agent can access the information of all other agents. Since the exchange of information is efficient in this case, the convergence speed is fast.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I5.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I5.i2.p1">
+       <p class="ltx_p" id="S3.I5.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I5.i2.p1.1.1">
+         Not fully connected:
+        </span>
+        As shown in Figure
+        <a class="ltx_ref" href="#S3.F8" title="Figure 8 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          8
+         </span>
+        </a>
+        (b), agent 2 and agent 3 cannot exchange information directly. Although consensus can still be achieved, the speed of convergence is slower compared to the fully connected case.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p5">
+    <p class="ltx_p" id="S3.SS3.p5.4">
+     <span class="ltx_text ltx_font_bold" id="S3.SS3.p5.4.1">
+      Directed networks:
+     </span>
+     In directed networks, the flow of information between the agents may be
+     <em class="ltx_emph ltx_font_italic" id="S3.SS3.p5.4.2">
+      unidirectional
+     </em>
+     . That is if agent
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS3.p5.1.m1.1">
+      <semantics id="S3.SS3.p5.1.m1.1a">
+       <mi id="S3.SS3.p5.1.m1.1.1" xref="S3.SS3.p5.1.m1.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p5.1.m1.1b">
+        <ci id="S3.SS3.p5.1.m1.1.1.cmml" xref="S3.SS3.p5.1.m1.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p5.1.m1.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     can obtain information from agent
+     <math alttext="j" class="ltx_Math" display="inline" id="S3.SS3.p5.2.m2.1">
+      <semantics id="S3.SS3.p5.2.m2.1a">
+       <mi id="S3.SS3.p5.2.m2.1.1" xref="S3.SS3.p5.2.m2.1.1.cmml">
+        j
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p5.2.m2.1b">
+        <ci id="S3.SS3.p5.2.m2.1.1.cmml" xref="S3.SS3.p5.2.m2.1.1">
+         𝑗
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p5.2.m2.1c">
+        j
+       </annotation>
+      </semantics>
+     </math>
+     , agent
+     <math alttext="j" class="ltx_Math" display="inline" id="S3.SS3.p5.3.m3.1">
+      <semantics id="S3.SS3.p5.3.m3.1a">
+       <mi id="S3.SS3.p5.3.m3.1.1" xref="S3.SS3.p5.3.m3.1.1.cmml">
+        j
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p5.3.m3.1b">
+        <ci id="S3.SS3.p5.3.m3.1.1.cmml" xref="S3.SS3.p5.3.m3.1.1">
+         𝑗
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p5.3.m3.1c">
+        j
+       </annotation>
+      </semantics>
+     </math>
+     may not necessarily obtain information from agent
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS3.p5.4.m4.1">
+      <semantics id="S3.SS3.p5.4.m4.1a">
+       <mi id="S3.SS3.p5.4.m4.1.1" xref="S3.SS3.p5.4.m4.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p5.4.m4.1b">
+        <ci id="S3.SS3.p5.4.m4.1.1.cmml" xref="S3.SS3.p5.4.m4.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p5.4.m4.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p6">
+    <ol class="ltx_enumerate" id="S3.I6">
+     <li class="ltx_item" id="S3.I6.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I6.i1.p1">
+       <p class="ltx_p" id="S3.I6.i1.p1.1">
+        As shown in Figure
+        <a class="ltx_ref" href="#S3.F9" title="Figure 9 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          9
+         </span>
+        </a>
+        (a), agent 2 and agent 3 can receive information from agent 1, but agent 1 cannot receive information from agents 2 and 3. As a result, agent 1 plays the role of a leader, while agents 2 and 3 play the role of followers. Ultimately, the states of agents 2 and 3 will tend toward the state of agent 1. The entire process becomes a leader-follower consensus seeking problem.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I6.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2)
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I6.i2.p1">
+       <p class="ltx_p" id="S3.I6.i2.p1.1">
+        As depicted in Figure
+        <a class="ltx_ref" href="#S3.F9" title="Figure 9 ‣ 3.2 Impact of personality ‣ 3 Experimental Findings ‣ Multi-Agent Consensus Seeking via Large Language Models">
+         <span class="ltx_text ltx_ref_tag">
+          9
+         </span>
+        </a>
+        (b), agent 1 is the leader of agent 3, and agent 3 is the leader of agent 2. Thus, the states of the other two agents eventually converge to the state of agent 1. Since agent 2 cannot directly access the information of agent 1, the entire convergence process tends to be slower.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p7">
+    <p class="ltx_p" id="S3.SS3.p7.1">
+     For more complex networks
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ]
+     </cite>
+     , we believe the above observations for simple networks can generalize to a certain extent. Moreover, personality and topology can be combined. Then, the consensus process is jointly determined by the topology and the personality. There are still many other factors that may affect the consensus process, such as communication delays and weights assigned to different agents.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Application to multi-robot aggregation
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this section, we show how to apply LLM-driven consensus seeking in a multi-robot aggregation task, where multiple robots starting from different initial positions should converge to the same final position in the two-dimensional plane. In this task, the state of each robot is a two-dimensional position vector.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    The trajectory of each robot is shown in Figure
+    <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4 Application to multi-robot aggregation ‣ Multi-Agent Consensus Seeking via Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      10
+     </span>
+    </a>
+    (a). As can be seen, the robots starting from different initial positions can eventually converge to the same position. The planned and actual states of each robot are shown in Figure
+    <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4 Application to multi-robot aggregation ‣ Multi-Agent Consensus Seeking via Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      10
+     </span>
+    </a>
+    (b). As can be seen, the LLM planner outputs discontinuous target states, while the controller can effectively track the target state.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.4">
+    The framework of the simulation is shown in Figure
+    <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4 Application to multi-robot aggregation ‣ Multi-Agent Consensus Seeking via Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      10
+     </span>
+    </a>
+    (c). Each robot has a planner and a controller. The planner driven by an LLM outputs the target state of each robot based on the current states of other robots. It updates its output every
+    <math alttext="\Delta T_{p}" class="ltx_Math" display="inline" id="S4.p3.1.m1.1">
+     <semantics id="S4.p3.1.m1.1a">
+      <mrow id="S4.p3.1.m1.1.1" xref="S4.p3.1.m1.1.1.cmml">
+       <mi id="S4.p3.1.m1.1.1.2" mathvariant="normal" xref="S4.p3.1.m1.1.1.2.cmml">
+        Δ
+       </mi>
+       <mo id="S4.p3.1.m1.1.1.1" lspace="0em" rspace="0em" xref="S4.p3.1.m1.1.1.1.cmml">
+        ​
+       </mo>
+       <msub id="S4.p3.1.m1.1.1.3" xref="S4.p3.1.m1.1.1.3.cmml">
+        <mi id="S4.p3.1.m1.1.1.3.2" xref="S4.p3.1.m1.1.1.3.2.cmml">
+         T
+        </mi>
+        <mi id="S4.p3.1.m1.1.1.3.3" xref="S4.p3.1.m1.1.1.3.3.cmml">
+         p
+        </mi>
+       </msub>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p3.1.m1.1b">
+       <apply id="S4.p3.1.m1.1.1.cmml" xref="S4.p3.1.m1.1.1">
+        <times id="S4.p3.1.m1.1.1.1.cmml" xref="S4.p3.1.m1.1.1.1">
+        </times>
+        <ci id="S4.p3.1.m1.1.1.2.cmml" xref="S4.p3.1.m1.1.1.2">
+         Δ
+        </ci>
+        <apply id="S4.p3.1.m1.1.1.3.cmml" xref="S4.p3.1.m1.1.1.3">
+         <csymbol cd="ambiguous" id="S4.p3.1.m1.1.1.3.1.cmml" xref="S4.p3.1.m1.1.1.3">
+          subscript
+         </csymbol>
+         <ci id="S4.p3.1.m1.1.1.3.2.cmml" xref="S4.p3.1.m1.1.1.3.2">
+          𝑇
+         </ci>
+         <ci id="S4.p3.1.m1.1.1.3.3.cmml" xref="S4.p3.1.m1.1.1.3.3">
+          𝑝
+         </ci>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p3.1.m1.1c">
+       \Delta T_{p}
+      </annotation>
+     </semantics>
+    </math>
+    time. The controller outputs the velocity command based on the target state generated by the planner. It updates its output every
+    <math alttext="\Delta T_{c}" class="ltx_Math" display="inline" id="S4.p3.2.m2.1">
+     <semantics id="S4.p3.2.m2.1a">
+      <mrow id="S4.p3.2.m2.1.1" xref="S4.p3.2.m2.1.1.cmml">
+       <mi id="S4.p3.2.m2.1.1.2" mathvariant="normal" xref="S4.p3.2.m2.1.1.2.cmml">
+        Δ
+       </mi>
+       <mo id="S4.p3.2.m2.1.1.1" lspace="0em" rspace="0em" xref="S4.p3.2.m2.1.1.1.cmml">
+        ​
+       </mo>
+       <msub id="S4.p3.2.m2.1.1.3" xref="S4.p3.2.m2.1.1.3.cmml">
+        <mi id="S4.p3.2.m2.1.1.3.2" xref="S4.p3.2.m2.1.1.3.2.cmml">
+         T
+        </mi>
+        <mi id="S4.p3.2.m2.1.1.3.3" xref="S4.p3.2.m2.1.1.3.3.cmml">
+         c
+        </mi>
+       </msub>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p3.2.m2.1b">
+       <apply id="S4.p3.2.m2.1.1.cmml" xref="S4.p3.2.m2.1.1">
+        <times id="S4.p3.2.m2.1.1.1.cmml" xref="S4.p3.2.m2.1.1.1">
+        </times>
+        <ci id="S4.p3.2.m2.1.1.2.cmml" xref="S4.p3.2.m2.1.1.2">
+         Δ
+        </ci>
+        <apply id="S4.p3.2.m2.1.1.3.cmml" xref="S4.p3.2.m2.1.1.3">
+         <csymbol cd="ambiguous" id="S4.p3.2.m2.1.1.3.1.cmml" xref="S4.p3.2.m2.1.1.3">
+          subscript
+         </csymbol>
+         <ci id="S4.p3.2.m2.1.1.3.2.cmml" xref="S4.p3.2.m2.1.1.3.2">
+          𝑇
+         </ci>
+         <ci id="S4.p3.2.m2.1.1.3.3.cmml" xref="S4.p3.2.m2.1.1.3.3">
+          𝑐
+         </ci>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p3.2.m2.1c">
+       \Delta T_{c}
+      </annotation>
+     </semantics>
+    </math>
+    time. Here,
+    <math alttext="\Delta T_{p}=2" class="ltx_Math" display="inline" id="S4.p3.3.m3.1">
+     <semantics id="S4.p3.3.m3.1a">
+      <mrow id="S4.p3.3.m3.1.1" xref="S4.p3.3.m3.1.1.cmml">
+       <mrow id="S4.p3.3.m3.1.1.2" xref="S4.p3.3.m3.1.1.2.cmml">
+        <mi id="S4.p3.3.m3.1.1.2.2" mathvariant="normal" xref="S4.p3.3.m3.1.1.2.2.cmml">
+         Δ
+        </mi>
+        <mo id="S4.p3.3.m3.1.1.2.1" lspace="0em" rspace="0em" xref="S4.p3.3.m3.1.1.2.1.cmml">
+         ​
+        </mo>
+        <msub id="S4.p3.3.m3.1.1.2.3" xref="S4.p3.3.m3.1.1.2.3.cmml">
+         <mi id="S4.p3.3.m3.1.1.2.3.2" xref="S4.p3.3.m3.1.1.2.3.2.cmml">
+          T
+         </mi>
+         <mi id="S4.p3.3.m3.1.1.2.3.3" xref="S4.p3.3.m3.1.1.2.3.3.cmml">
+          p
+         </mi>
+        </msub>
+       </mrow>
+       <mo id="S4.p3.3.m3.1.1.1" xref="S4.p3.3.m3.1.1.1.cmml">
+        =
+       </mo>
+       <mn id="S4.p3.3.m3.1.1.3" xref="S4.p3.3.m3.1.1.3.cmml">
+        2
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p3.3.m3.1b">
+       <apply id="S4.p3.3.m3.1.1.cmml" xref="S4.p3.3.m3.1.1">
+        <eq id="S4.p3.3.m3.1.1.1.cmml" xref="S4.p3.3.m3.1.1.1">
+        </eq>
+        <apply id="S4.p3.3.m3.1.1.2.cmml" xref="S4.p3.3.m3.1.1.2">
+         <times id="S4.p3.3.m3.1.1.2.1.cmml" xref="S4.p3.3.m3.1.1.2.1">
+         </times>
+         <ci id="S4.p3.3.m3.1.1.2.2.cmml" xref="S4.p3.3.m3.1.1.2.2">
+          Δ
+         </ci>
+         <apply id="S4.p3.3.m3.1.1.2.3.cmml" xref="S4.p3.3.m3.1.1.2.3">
+          <csymbol cd="ambiguous" id="S4.p3.3.m3.1.1.2.3.1.cmml" xref="S4.p3.3.m3.1.1.2.3">
+           subscript
+          </csymbol>
+          <ci id="S4.p3.3.m3.1.1.2.3.2.cmml" xref="S4.p3.3.m3.1.1.2.3.2">
+           𝑇
+          </ci>
+          <ci id="S4.p3.3.m3.1.1.2.3.3.cmml" xref="S4.p3.3.m3.1.1.2.3.3">
+           𝑝
+          </ci>
+         </apply>
+        </apply>
+        <cn id="S4.p3.3.m3.1.1.3.cmml" type="integer" xref="S4.p3.3.m3.1.1.3">
+         2
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p3.3.m3.1c">
+       \Delta T_{p}=2
+      </annotation>
+     </semantics>
+    </math>
+    and
+    <math alttext="\Delta T_{c}=0.1" class="ltx_Math" display="inline" id="S4.p3.4.m4.1">
+     <semantics id="S4.p3.4.m4.1a">
+      <mrow id="S4.p3.4.m4.1.1" xref="S4.p3.4.m4.1.1.cmml">
+       <mrow id="S4.p3.4.m4.1.1.2" xref="S4.p3.4.m4.1.1.2.cmml">
+        <mi id="S4.p3.4.m4.1.1.2.2" mathvariant="normal" xref="S4.p3.4.m4.1.1.2.2.cmml">
+         Δ
+        </mi>
+        <mo id="S4.p3.4.m4.1.1.2.1" lspace="0em" rspace="0em" xref="S4.p3.4.m4.1.1.2.1.cmml">
+         ​
+        </mo>
+        <msub id="S4.p3.4.m4.1.1.2.3" xref="S4.p3.4.m4.1.1.2.3.cmml">
+         <mi id="S4.p3.4.m4.1.1.2.3.2" xref="S4.p3.4.m4.1.1.2.3.2.cmml">
+          T
+         </mi>
+         <mi id="S4.p3.4.m4.1.1.2.3.3" xref="S4.p3.4.m4.1.1.2.3.3.cmml">
+          c
+         </mi>
+        </msub>
+       </mrow>
+       <mo id="S4.p3.4.m4.1.1.1" xref="S4.p3.4.m4.1.1.1.cmml">
+        =
+       </mo>
+       <mn id="S4.p3.4.m4.1.1.3" xref="S4.p3.4.m4.1.1.3.cmml">
+        0.1
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p3.4.m4.1b">
+       <apply id="S4.p3.4.m4.1.1.cmml" xref="S4.p3.4.m4.1.1">
+        <eq id="S4.p3.4.m4.1.1.1.cmml" xref="S4.p3.4.m4.1.1.1">
+        </eq>
+        <apply id="S4.p3.4.m4.1.1.2.cmml" xref="S4.p3.4.m4.1.1.2">
+         <times id="S4.p3.4.m4.1.1.2.1.cmml" xref="S4.p3.4.m4.1.1.2.1">
+         </times>
+         <ci id="S4.p3.4.m4.1.1.2.2.cmml" xref="S4.p3.4.m4.1.1.2.2">
+          Δ
+         </ci>
+         <apply id="S4.p3.4.m4.1.1.2.3.cmml" xref="S4.p3.4.m4.1.1.2.3">
+          <csymbol cd="ambiguous" id="S4.p3.4.m4.1.1.2.3.1.cmml" xref="S4.p3.4.m4.1.1.2.3">
+           subscript
+          </csymbol>
+          <ci id="S4.p3.4.m4.1.1.2.3.2.cmml" xref="S4.p3.4.m4.1.1.2.3.2">
+           𝑇
+          </ci>
+          <ci id="S4.p3.4.m4.1.1.2.3.3.cmml" xref="S4.p3.4.m4.1.1.2.3.3">
+           𝑐
+          </ci>
+         </apply>
+        </apply>
+        <cn id="S4.p3.4.m4.1.1.3.cmml" type="float" xref="S4.p3.4.m4.1.1.3">
+         0.1
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p3.4.m4.1c">
+       \Delta T_{c}=0.1
+      </annotation>
+     </semantics>
+    </math>
+    , indicating a fast control loop and a slow planning loop. The details of the controller and the robot motion model can be found in the code.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.2">
+    In the simulation, the prompt remained consistent, undergoing only a single modification: the one-dimensional state variable denoted as
+    <math alttext="[x]" class="ltx_Math" display="inline" id="S4.p4.1.m1.1">
+     <semantics id="S4.p4.1.m1.1a">
+      <mrow id="S4.p4.1.m1.1.2.2" xref="S4.p4.1.m1.1.2.1.cmml">
+       <mo id="S4.p4.1.m1.1.2.2.1" stretchy="false" xref="S4.p4.1.m1.1.2.1.1.cmml">
+        [
+       </mo>
+       <mi id="S4.p4.1.m1.1.1" xref="S4.p4.1.m1.1.1.cmml">
+        x
+       </mi>
+       <mo id="S4.p4.1.m1.1.2.2.2" stretchy="false" xref="S4.p4.1.m1.1.2.1.1.cmml">
+        ]
+       </mo>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p4.1.m1.1b">
+       <apply id="S4.p4.1.m1.1.2.1.cmml" xref="S4.p4.1.m1.1.2.2">
+        <csymbol cd="latexml" id="S4.p4.1.m1.1.2.1.1.cmml" xref="S4.p4.1.m1.1.2.2.1">
+         delimited-[]
+        </csymbol>
+        <ci id="S4.p4.1.m1.1.1.cmml" xref="S4.p4.1.m1.1.1">
+         𝑥
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p4.1.m1.1c">
+       [x]
+      </annotation>
+     </semantics>
+    </math>
+    is changed to a two-dimensional state variable expressed as
+    <math alttext="[x,y]" class="ltx_Math" display="inline" id="S4.p4.2.m2.2">
+     <semantics id="S4.p4.2.m2.2a">
+      <mrow id="S4.p4.2.m2.2.3.2" xref="S4.p4.2.m2.2.3.1.cmml">
+       <mo id="S4.p4.2.m2.2.3.2.1" stretchy="false" xref="S4.p4.2.m2.2.3.1.cmml">
+        [
+       </mo>
+       <mi id="S4.p4.2.m2.1.1" xref="S4.p4.2.m2.1.1.cmml">
+        x
+       </mi>
+       <mo id="S4.p4.2.m2.2.3.2.2" xref="S4.p4.2.m2.2.3.1.cmml">
+        ,
+       </mo>
+       <mi id="S4.p4.2.m2.2.2" xref="S4.p4.2.m2.2.2.cmml">
+        y
+       </mi>
+       <mo id="S4.p4.2.m2.2.3.2.3" stretchy="false" xref="S4.p4.2.m2.2.3.1.cmml">
+        ]
+       </mo>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S4.p4.2.m2.2b">
+       <interval closure="closed" id="S4.p4.2.m2.2.3.1.cmml" xref="S4.p4.2.m2.2.3.2">
+        <ci id="S4.p4.2.m2.1.1.cmml" xref="S4.p4.2.m2.1.1">
+         𝑥
+        </ci>
+        <ci id="S4.p4.2.m2.2.2.cmml" xref="S4.p4.2.m2.2.2">
+         𝑦
+        </ci>
+       </interval>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p4.2.m2.2c">
+       [x,y]
+      </annotation>
+     </semantics>
+    </math>
+    . The personality of each robot is intentionally left undefined. The inter-robot communication network has a fully connected topology.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S4.F10">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F10.sf1">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="173" id="S4.F10.sf1.g1" src="/html/2310.20151/assets/x19.png" width="322"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        ((a))
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F10.sf2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="205" id="S4.F10.sf2.g1" src="/html/2310.20151/assets/x20.png" width="461"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        ((b))
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F10.sf3">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="121" id="S4.F10.sf3.g1" src="/html/2310.20151/assets/x21.png" width="369"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        ((c))
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 10:
+    </span>
+    Application to multi-robot aggregation.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Related Works
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    Recent research on multi-agent systems based on LLMs has explored how multiple agents can collectively accomplish intricate reasoning tasks through debates and negotiations. In comparison to systems reliant on a single agent, this collaborative approach demonstrates its unique superiority in tackling challenging tasks. For example, research studies such as Camel
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    , ChatDev
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , RoCo
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    , and MetaGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    , along with others
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    , explore strategies related to task division and collaboration: a complex task is decomposed into several refined subtasks, which are then processed by agents based on their expertise. By employing this method, the risk of the system generating hallucinations is effectively reduced, ensuring more reliable outputs. On the other hand, research works like FactReason-MAD
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    , DivThink-MAD
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , ChatEval
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    , and ReConcile
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    focus on continuous debates among multiple agents. In this process, each agent draws insights from other agents and corrects its misconceptions until consensus is reached. Such strategies enable agents to analyze problems from various perspectives, avoiding singular thinking and yielding higher-quality results.
+In addition, a series of studies have explored how to utilize LLMs to simulate human behaviors. This includes human bargaining behavior
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ]
+    </cite>
+    , strategic games like Werewolf
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    , sandbox games like Minecraft
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    , human social interactions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ]
+    </cite>
+    , humanoid agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      29
+     </a>
+     ]
+    </cite>
+    , and classic game theory games like the Prisoner’s Dilemma
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    . However, up to now, the consensus seeking problem has not been specifically addressed.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Moreover, some research works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      32
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib33" title="">
+      33
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib34" title="">
+      34
+     </a>
+     ]
+    </cite>
+    have pointed out the potential problem of non-self-consistency in individual LLMs. In essence, for a given input, there exist multiple reasoning paths within an LLM, potentially resulting in diverse answers, highlighting the non-consistency problem of a single model. As a comparison, our research investigates the consistency among multiple LLMs.At the same time, the work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib35" title="">
+      35
+     </a>
+     ]
+    </cite>
+    is similar to ours, but they explored the consensus among different types of LLMs and did not delve into the factors influencing the consensus.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion and Limitations
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    This work addresses the problem of consensus seeking, a core problem in collective decision-making. Our work reveals that multiple LLM-driven agents demonstrate considerate and cooperative personalities since they primarily use the average strategy for consensus seeking. The final consensus outcome is jointly affected by many factors such as agent personalities and network topology. It is also found that increasing the number of agents can alleviate the hallucinations of the system and may stabilize group decision-making. The findings obtained in this work can potentially lay the foundations for understanding the behaviors of LLM-driven multi-agent systems for collaboratively solving more complex tasks.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    Some limitations of this work are summarized below. First, the state of each agent in this work is simply a numerical value. In more complex tasks, the state may correspond to a point in more intricate spaces (e.g., a sophisticated solution space for a task). In such cases, we believe that the conclusions drawn in this work can to some extent shed light on these more complex tasks. However, the degree to which these conclusions can be generalized still requires further investigation. Second, this work only considers one large language model, ChatGPT 3.5. Different models may employ slightly different strategies for consensus seeking. Lastly, when applied to multi-robot aggregation tasks, LLM-driven consensus seeking plays the role of a cooperative planner. However, the update rate of this planner is low. For high-performance multi-robot tasks, the planner should update at a higher frequency.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Du et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Du, S. Li, A. Torralba, J. B. Tenenbaum, and I. Mordatch.
+    </span>
+    <span class="ltx_bibblock">
+     Improving factuality and reasoning in language models through multiagent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2305.14325
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     T. Liang, Z. He, W. Jiao, X. Wang, Y. Wang, R. Wang, Y. Yang, Z. Tu, and S. Shi.
+    </span>
+    <span class="ltx_bibblock">
+     Encouraging divergent thinking in large language models through multi-agent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2305.19118
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chan et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     C.-M. Chan, W. Chen, Y. Su, J. Yu, W. Xue, S. Zhang, J. Fu, and Z. Liu.
+    </span>
+    <span class="ltx_bibblock">
+     Chateval: Towards better llm-based evaluators through multi-agent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2308.07201
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hong et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     S. Hong, X. Zheng, J. Chen, Y. Cheng, C. Zhang, Z. Wang, S. K. S. Yau, Z. Lin, L. Zhou, C. Ran, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Metagpt: Meta programming for multi-agent collaborative framework.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2308.00352
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     G. Li, H. A. A. K. Hammoud, H. Itani, D. Khizbullin, and B. Ghanem.
+    </span>
+    <span class="ltx_bibblock">
+     Camel: Communicative agents for" mind" exploration of large scale language model society.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:2303.17760
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qian et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     C. Qian, X. Cong, C. Yang, W. Chen, Y. Su, J. Xu, Z. Liu, and M. Sun.
+    </span>
+    <span class="ltx_bibblock">
+     Communicative agents for software development.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2307.07924
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Zhang, Y. Li, L. Cui, D. Cai, L. Liu, T. Fu, X. Huang, E. Zhao, Y. Zhang, Y. Chen, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Siren’s song in the ai ocean: A survey on hallucination in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2309.01219
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sumpter [2010]
+    </span>
+    <span class="ltx_bibblock">
+     D. J. Sumpter.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Collective animal behavior
+     </em>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Princeton University Press, 2010.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Moussaïd et al. [2011]
+    </span>
+    <span class="ltx_bibblock">
+     M. Moussaïd, D. Helbing, and G. Theraulaz.
+    </span>
+    <span class="ltx_bibblock">
+     How simple rules determine pedestrian behavior and crowd disasters.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the National Academy of Sciences
+     </em>
+     , 108(17):6884–6888, 2011.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Jadbabaie et al. [2003]
+    </span>
+    <span class="ltx_bibblock">
+     A. Jadbabaie, J. Lin, and A. S. Morse.
+    </span>
+    <span class="ltx_bibblock">
+     Coordination of groups of mobile autonomous agents using nearest neighbor rules.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      IEEE Transactions on automatic control
+     </em>
+     , 48(6):988–1001, 2003.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Olfati-Saber and Murray [2004]
+    </span>
+    <span class="ltx_bibblock">
+     R. Olfati-Saber and R. M. Murray.
+    </span>
+    <span class="ltx_bibblock">
+     Consensus problems in networks of agents with switching topology and time-delays.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      IEEE Transactions on automatic control
+     </em>
+     , 49(9):1520–1533, 2004.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ren et al. [2007]
+    </span>
+    <span class="ltx_bibblock">
+     W. Ren, R. W. Beard, and E. M. Atkins.
+    </span>
+    <span class="ltx_bibblock">
+     Information consensus in multivehicle cooperative control.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      IEEE Control systems magazine
+     </em>
+     , 27(2):71–82, 2007.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin et al. [2005]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Lin, B. Francis, and M. Maggiore.
+    </span>
+    <span class="ltx_bibblock">
+     Necessary and sufficient graphical conditions for formation control of unicycles.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      IEEE Transactions on automatic control
+     </em>
+     , 50(1):121–127, 2005.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hong et al. [2006]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Hong, J. Hu, and L. Gao.
+    </span>
+    <span class="ltx_bibblock">
+     Tracking control for multi-agent consensus with an active leader and variable topology.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Automatica
+     </em>
+     , 42(7):1177–1182, 2006.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kairouz et al. [2021]
+    </span>
+    <span class="ltx_bibblock">
+     P. Kairouz, H. B. McMahan, B. Avent, A. Bellet, M. Bennis, A. N. Bhagoji, K. Bonawitz, Z. Charles, G. Cormode, R. Cummings, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Advances and open problems in federated learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Foundations and Trends® in Machine Learning
+     </em>
+     , 14(1–2):1–210, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wei, X. Wang, D. Schuurmans, M. Bosma, F. Xia, E. Chi, Q. V. Le, D. Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:24824–24837, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhao et al. [2017]
+    </span>
+    <span class="ltx_bibblock">
+     S. Zhao, D. V. Dimarogonas, Z. Sun, and D. Bauso.
+    </span>
+    <span class="ltx_bibblock">
+     A general approach to coordination control of mobile agents with motion constraints.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      IEEE Transactions on Automatic Control
+     </em>
+     , 63(5):1509–1516, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Boccaletti et al. [2006]
+    </span>
+    <span class="ltx_bibblock">
+     S. Boccaletti, V. Latora, Y. Moreno, M. Chavez, and D.-U. Hwang.
+    </span>
+    <span class="ltx_bibblock">
+     Complex networks: Structure and dynamics.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Physics reports
+     </em>
+     , 424(4-5):175–308, 2006.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mandi et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Mandi, S. Jain, and S. Song.
+    </span>
+    <span class="ltx_bibblock">
+     Roco: Dialectic multi-robot collaboration with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2307.04738
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     H. Zhang, W. Du, J. Shan, Q. Zhou, Y. Du, J. B. Tenenbaum, T. Shu, and C. Gan.
+    </span>
+    <span class="ltx_bibblock">
+     Building cooperative embodied agents modularly with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2307.02485
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dong et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Dong, X. Jiang, Z. Jin, and G. Li.
+    </span>
+    <span class="ltx_bibblock">
+     Self-collaboration code generation via chatgpt.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2304.07590
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     N. Shinn, F. Cassano, E. Berman, A. Gopinath, K. Narasimhan, and S. Yao.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: Language Agents with Verbal Reinforcement Learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2303.11366
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     J. C.-Y. Chen, S. Saha, and M. Bansal.
+    </span>
+    <span class="ltx_bibblock">
+     Reconcile: Round-table conference improves reasoning via consensus among diverse llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      arXiv preprint arXiv:2309.13007
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Fu et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Fu, H. Peng, T. Khot, and M. Lapata.
+    </span>
+    <span class="ltx_bibblock">
+     Improving language model negotiation with self-play and in-context learning from ai feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2305.10142
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xu et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Xu, S. Wang, P. Li, F. Luo, X. Wang, W. Liu, and Y. Liu.
+    </span>
+    <span class="ltx_bibblock">
+     Exploring large language models for communication games: An empirical study on werewolf.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2309.04658
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     G. Wang, Y. Xie, Y. Jiang, A. Mandlekar, C. Xiao, Y. Zhu, L. Fan, and A. Anandkumar.
+    </span>
+    <span class="ltx_bibblock">
+     Voyager: An open-ended embodied agent with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2305.16291
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhu et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     X. Zhu, Y. Chen, H. Tian, C. Tao, W. Su, C. Yang, G. Huang, B. Li, L. Lu, X. Wang, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Ghost in the minecraft: Generally capable agents for open-world enviroments via large language models with text-based knowledge and memory.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2305.17144
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Park et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     J. S. Park, J. C. O’Brien, C. J. Cai, M. R. Morris, P. Liang, and M. S. Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2304.03442
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Wang, Y. Y. Chiu, and Y. C. Chiu.
+    </span>
+    <span class="ltx_bibblock">
+     Humanoid agents: Platform for simulating human-like generative agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2310.05418
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Akata et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     E. Akata, L. Schulz, J. Coda-Forno, S. J. Oh, M. Bethge, and E. Schulz.
+    </span>
+    <span class="ltx_bibblock">
+     Playing repeated games with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      arXiv preprint arXiv:2305.16867
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Adiwardana et al. [2020]
+    </span>
+    <span class="ltx_bibblock">
+     D. Adiwardana, M.-T. Luong, D. R. So, J. Hall, N. Fiedel, R. Thoppilan, Z. Yang, A. Kulshreshtha, G. Nemade, Y. Lu, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Towards a human-like open-domain chatbot.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2001.09977
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     X. Wang, J. Wei, D. Schuurmans, Q. Le, E. Chi, S. Narang, A. Chowdhery, and D. Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Self-consistency improves chain of thought reasoning in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      arXiv preprint arXiv:2203.11171
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Camburu et al. [2019]
+    </span>
+    <span class="ltx_bibblock">
+     O.-M. Camburu, B. Shillingford, P. Minervini, T. Lukasiewicz, and P. Blunsom.
+    </span>
+    <span class="ltx_bibblock">
+     Make up your mind! adversarial generation of inconsistent natural language explanations.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      arXiv preprint arXiv:1910.03065
+     </em>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Elazar et al. [2021]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Elazar, N. Kassner, S. Ravfogel, A. Ravichander, E. Hovy, H. Schütze, and Y. Goldberg.
+    </span>
+    <span class="ltx_bibblock">
+     Measuring and improving consistency in pretrained language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      Transactions of the Association for Computational Linguistics
+     </em>
+     , 9:1012–1031, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xiong et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     K. Xiong, X. Ding, Y. Cao, T. Liu, and B. Qin.
+    </span>
+    <span class="ltx_bibblock">
+     Examining the Inter-Consistency of Large Language Models: An In-depth Analysis via Debate.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib35.1.1">
+      arXiv preprint arXiv:2305.11595
+     </em>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    Algorithm
+   </h3>
+   <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_float">
+      <span class="ltx_text ltx_font_bold" id="alg1.2.1.1">
+       Algorithm 1
+      </span>
+     </span>
+     LLM-driven consensus seeking
+    </figcaption>
+    <div class="ltx_listing ltx_listing" id="alg1.3">
+     <div class="ltx_listingline" id="alg1.l1">
+      <span class="ltx_text ltx_font_bold" id="alg1.l1.1">
+       procedure
+      </span>
+      <span class="ltx_text ltx_font_smallcaps" id="alg1.l1.2">
+       Run
+      </span>
+      (
+      <math alttext="n_{e}" class="ltx_Math" display="inline" id="alg1.l1.m1.1">
+       <semantics id="alg1.l1.m1.1a">
+        <msub id="alg1.l1.m1.1.1" xref="alg1.l1.m1.1.1.cmml">
+         <mi id="alg1.l1.m1.1.1.2" xref="alg1.l1.m1.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l1.m1.1.1.3" xref="alg1.l1.m1.1.1.3.cmml">
+          e
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l1.m1.1b">
+         <apply id="alg1.l1.m1.1.1.cmml" xref="alg1.l1.m1.1.1">
+          <csymbol cd="ambiguous" id="alg1.l1.m1.1.1.1.cmml" xref="alg1.l1.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l1.m1.1.1.2.cmml" xref="alg1.l1.m1.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l1.m1.1.1.3.cmml" xref="alg1.l1.m1.1.1.3">
+           𝑒
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l1.m1.1c">
+         n_{e}
+        </annotation>
+       </semantics>
+      </math>
+      : Number of experiments,
+      <math alttext="n_{a}" class="ltx_Math" display="inline" id="alg1.l1.m2.1">
+       <semantics id="alg1.l1.m2.1a">
+        <msub id="alg1.l1.m2.1.1" xref="alg1.l1.m2.1.1.cmml">
+         <mi id="alg1.l1.m2.1.1.2" xref="alg1.l1.m2.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l1.m2.1.1.3" xref="alg1.l1.m2.1.1.3.cmml">
+          a
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l1.m2.1b">
+         <apply id="alg1.l1.m2.1.1.cmml" xref="alg1.l1.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l1.m2.1.1.1.cmml" xref="alg1.l1.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l1.m2.1.1.2.cmml" xref="alg1.l1.m2.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l1.m2.1.1.3.cmml" xref="alg1.l1.m2.1.1.3">
+           𝑎
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l1.m2.1c">
+         n_{a}
+        </annotation>
+       </semantics>
+      </math>
+      : Number of agents,
+      <math alttext="n_{r}" class="ltx_Math" display="inline" id="alg1.l1.m3.1">
+       <semantics id="alg1.l1.m3.1a">
+        <msub id="alg1.l1.m3.1.1" xref="alg1.l1.m3.1.1.cmml">
+         <mi id="alg1.l1.m3.1.1.2" xref="alg1.l1.m3.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l1.m3.1.1.3" xref="alg1.l1.m3.1.1.3.cmml">
+          r
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l1.m3.1b">
+         <apply id="alg1.l1.m3.1.1.cmml" xref="alg1.l1.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.1.cmml" xref="alg1.l1.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l1.m3.1.1.2.cmml" xref="alg1.l1.m3.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l1.m3.1.1.3.cmml" xref="alg1.l1.m3.1.1.3">
+           𝑟
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l1.m3.1c">
+         n_{r}
+        </annotation>
+       </semantics>
+      </math>
+      : Number of rounds)
+     </div>
+     <div class="ltx_listingline" id="alg1.l2">
+      Initialize agents
+      <math alttext="\mathbf{A}=[a_{1},a_{2},\ldots,a_{n_{a}}]" class="ltx_Math" display="inline" id="alg1.l2.m1.4">
+       <semantics id="alg1.l2.m1.4a">
+        <mrow id="alg1.l2.m1.4.4" xref="alg1.l2.m1.4.4.cmml">
+         <mi id="alg1.l2.m1.4.4.5" xref="alg1.l2.m1.4.4.5.cmml">
+          𝐀
+         </mi>
+         <mo id="alg1.l2.m1.4.4.4" xref="alg1.l2.m1.4.4.4.cmml">
+          =
+         </mo>
+         <mrow id="alg1.l2.m1.4.4.3.3" xref="alg1.l2.m1.4.4.3.4.cmml">
+          <mo id="alg1.l2.m1.4.4.3.3.4" stretchy="false" xref="alg1.l2.m1.4.4.3.4.cmml">
+           [
+          </mo>
+          <msub id="alg1.l2.m1.2.2.1.1.1" xref="alg1.l2.m1.2.2.1.1.1.cmml">
+           <mi id="alg1.l2.m1.2.2.1.1.1.2" xref="alg1.l2.m1.2.2.1.1.1.2.cmml">
+            a
+           </mi>
+           <mn id="alg1.l2.m1.2.2.1.1.1.3" xref="alg1.l2.m1.2.2.1.1.1.3.cmml">
+            1
+           </mn>
+          </msub>
+          <mo id="alg1.l2.m1.4.4.3.3.5" xref="alg1.l2.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <msub id="alg1.l2.m1.3.3.2.2.2" xref="alg1.l2.m1.3.3.2.2.2.cmml">
+           <mi id="alg1.l2.m1.3.3.2.2.2.2" xref="alg1.l2.m1.3.3.2.2.2.2.cmml">
+            a
+           </mi>
+           <mn id="alg1.l2.m1.3.3.2.2.2.3" xref="alg1.l2.m1.3.3.2.2.2.3.cmml">
+            2
+           </mn>
+          </msub>
+          <mo id="alg1.l2.m1.4.4.3.3.6" xref="alg1.l2.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <mi id="alg1.l2.m1.1.1" mathvariant="normal" xref="alg1.l2.m1.1.1.cmml">
+           …
+          </mi>
+          <mo id="alg1.l2.m1.4.4.3.3.7" xref="alg1.l2.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <msub id="alg1.l2.m1.4.4.3.3.3" xref="alg1.l2.m1.4.4.3.3.3.cmml">
+           <mi id="alg1.l2.m1.4.4.3.3.3.2" xref="alg1.l2.m1.4.4.3.3.3.2.cmml">
+            a
+           </mi>
+           <msub id="alg1.l2.m1.4.4.3.3.3.3" xref="alg1.l2.m1.4.4.3.3.3.3.cmml">
+            <mi id="alg1.l2.m1.4.4.3.3.3.3.2" xref="alg1.l2.m1.4.4.3.3.3.3.2.cmml">
+             n
+            </mi>
+            <mi id="alg1.l2.m1.4.4.3.3.3.3.3" xref="alg1.l2.m1.4.4.3.3.3.3.3.cmml">
+             a
+            </mi>
+           </msub>
+          </msub>
+          <mo id="alg1.l2.m1.4.4.3.3.8" stretchy="false" xref="alg1.l2.m1.4.4.3.4.cmml">
+           ]
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l2.m1.4b">
+         <apply id="alg1.l2.m1.4.4.cmml" xref="alg1.l2.m1.4.4">
+          <eq id="alg1.l2.m1.4.4.4.cmml" xref="alg1.l2.m1.4.4.4">
+          </eq>
+          <ci id="alg1.l2.m1.4.4.5.cmml" xref="alg1.l2.m1.4.4.5">
+           𝐀
+          </ci>
+          <list id="alg1.l2.m1.4.4.3.4.cmml" xref="alg1.l2.m1.4.4.3.3">
+           <apply id="alg1.l2.m1.2.2.1.1.1.cmml" xref="alg1.l2.m1.2.2.1.1.1">
+            <csymbol cd="ambiguous" id="alg1.l2.m1.2.2.1.1.1.1.cmml" xref="alg1.l2.m1.2.2.1.1.1">
+             subscript
+            </csymbol>
+            <ci id="alg1.l2.m1.2.2.1.1.1.2.cmml" xref="alg1.l2.m1.2.2.1.1.1.2">
+             𝑎
+            </ci>
+            <cn id="alg1.l2.m1.2.2.1.1.1.3.cmml" type="integer" xref="alg1.l2.m1.2.2.1.1.1.3">
+             1
+            </cn>
+           </apply>
+           <apply id="alg1.l2.m1.3.3.2.2.2.cmml" xref="alg1.l2.m1.3.3.2.2.2">
+            <csymbol cd="ambiguous" id="alg1.l2.m1.3.3.2.2.2.1.cmml" xref="alg1.l2.m1.3.3.2.2.2">
+             subscript
+            </csymbol>
+            <ci id="alg1.l2.m1.3.3.2.2.2.2.cmml" xref="alg1.l2.m1.3.3.2.2.2.2">
+             𝑎
+            </ci>
+            <cn id="alg1.l2.m1.3.3.2.2.2.3.cmml" type="integer" xref="alg1.l2.m1.3.3.2.2.2.3">
+             2
+            </cn>
+           </apply>
+           <ci id="alg1.l2.m1.1.1.cmml" xref="alg1.l2.m1.1.1">
+            …
+           </ci>
+           <apply id="alg1.l2.m1.4.4.3.3.3.cmml" xref="alg1.l2.m1.4.4.3.3.3">
+            <csymbol cd="ambiguous" id="alg1.l2.m1.4.4.3.3.3.1.cmml" xref="alg1.l2.m1.4.4.3.3.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l2.m1.4.4.3.3.3.2.cmml" xref="alg1.l2.m1.4.4.3.3.3.2">
+             𝑎
+            </ci>
+            <apply id="alg1.l2.m1.4.4.3.3.3.3.cmml" xref="alg1.l2.m1.4.4.3.3.3.3">
+             <csymbol cd="ambiguous" id="alg1.l2.m1.4.4.3.3.3.3.1.cmml" xref="alg1.l2.m1.4.4.3.3.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l2.m1.4.4.3.3.3.3.2.cmml" xref="alg1.l2.m1.4.4.3.3.3.3.2">
+              𝑛
+             </ci>
+             <ci id="alg1.l2.m1.4.4.3.3.3.3.3.cmml" xref="alg1.l2.m1.4.4.3.3.3.3.3">
+              𝑎
+             </ci>
+            </apply>
+           </apply>
+          </list>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l2.m1.4c">
+         \mathbf{A}=[a_{1},a_{2},\ldots,a_{n_{a}}]
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l3">
+      Define connectivity matrix
+      <math alttext="\mathbf{M}\in\{0,1\}^{n_{a}\times n_{a}}" class="ltx_Math" display="inline" id="alg1.l3.m1.2">
+       <semantics id="alg1.l3.m1.2a">
+        <mrow id="alg1.l3.m1.2.3" xref="alg1.l3.m1.2.3.cmml">
+         <mi id="alg1.l3.m1.2.3.2" xref="alg1.l3.m1.2.3.2.cmml">
+          𝐌
+         </mi>
+         <mo id="alg1.l3.m1.2.3.1" xref="alg1.l3.m1.2.3.1.cmml">
+          ∈
+         </mo>
+         <msup id="alg1.l3.m1.2.3.3" xref="alg1.l3.m1.2.3.3.cmml">
+          <mrow id="alg1.l3.m1.2.3.3.2.2" xref="alg1.l3.m1.2.3.3.2.1.cmml">
+           <mo id="alg1.l3.m1.2.3.3.2.2.1" stretchy="false" xref="alg1.l3.m1.2.3.3.2.1.cmml">
+            {
+           </mo>
+           <mn id="alg1.l3.m1.1.1" xref="alg1.l3.m1.1.1.cmml">
+            0
+           </mn>
+           <mo id="alg1.l3.m1.2.3.3.2.2.2" xref="alg1.l3.m1.2.3.3.2.1.cmml">
+            ,
+           </mo>
+           <mn id="alg1.l3.m1.2.2" xref="alg1.l3.m1.2.2.cmml">
+            1
+           </mn>
+           <mo id="alg1.l3.m1.2.3.3.2.2.3" stretchy="false" xref="alg1.l3.m1.2.3.3.2.1.cmml">
+            }
+           </mo>
+          </mrow>
+          <mrow id="alg1.l3.m1.2.3.3.3" xref="alg1.l3.m1.2.3.3.3.cmml">
+           <msub id="alg1.l3.m1.2.3.3.3.2" xref="alg1.l3.m1.2.3.3.3.2.cmml">
+            <mi id="alg1.l3.m1.2.3.3.3.2.2" xref="alg1.l3.m1.2.3.3.3.2.2.cmml">
+             n
+            </mi>
+            <mi id="alg1.l3.m1.2.3.3.3.2.3" xref="alg1.l3.m1.2.3.3.3.2.3.cmml">
+             a
+            </mi>
+           </msub>
+           <mo id="alg1.l3.m1.2.3.3.3.1" lspace="0.222em" rspace="0.222em" xref="alg1.l3.m1.2.3.3.3.1.cmml">
+            ×
+           </mo>
+           <msub id="alg1.l3.m1.2.3.3.3.3" xref="alg1.l3.m1.2.3.3.3.3.cmml">
+            <mi id="alg1.l3.m1.2.3.3.3.3.2" xref="alg1.l3.m1.2.3.3.3.3.2.cmml">
+             n
+            </mi>
+            <mi id="alg1.l3.m1.2.3.3.3.3.3" xref="alg1.l3.m1.2.3.3.3.3.3.cmml">
+             a
+            </mi>
+           </msub>
+          </mrow>
+         </msup>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m1.2b">
+         <apply id="alg1.l3.m1.2.3.cmml" xref="alg1.l3.m1.2.3">
+          <in id="alg1.l3.m1.2.3.1.cmml" xref="alg1.l3.m1.2.3.1">
+          </in>
+          <ci id="alg1.l3.m1.2.3.2.cmml" xref="alg1.l3.m1.2.3.2">
+           𝐌
+          </ci>
+          <apply id="alg1.l3.m1.2.3.3.cmml" xref="alg1.l3.m1.2.3.3">
+           <csymbol cd="ambiguous" id="alg1.l3.m1.2.3.3.1.cmml" xref="alg1.l3.m1.2.3.3">
+            superscript
+           </csymbol>
+           <set id="alg1.l3.m1.2.3.3.2.1.cmml" xref="alg1.l3.m1.2.3.3.2.2">
+            <cn id="alg1.l3.m1.1.1.cmml" type="integer" xref="alg1.l3.m1.1.1">
+             0
+            </cn>
+            <cn id="alg1.l3.m1.2.2.cmml" type="integer" xref="alg1.l3.m1.2.2">
+             1
+            </cn>
+           </set>
+           <apply id="alg1.l3.m1.2.3.3.3.cmml" xref="alg1.l3.m1.2.3.3.3">
+            <times id="alg1.l3.m1.2.3.3.3.1.cmml" xref="alg1.l3.m1.2.3.3.3.1">
+            </times>
+            <apply id="alg1.l3.m1.2.3.3.3.2.cmml" xref="alg1.l3.m1.2.3.3.3.2">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.2.3.3.3.2.1.cmml" xref="alg1.l3.m1.2.3.3.3.2">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.2.3.3.3.2.2.cmml" xref="alg1.l3.m1.2.3.3.3.2.2">
+              𝑛
+             </ci>
+             <ci id="alg1.l3.m1.2.3.3.3.2.3.cmml" xref="alg1.l3.m1.2.3.3.3.2.3">
+              𝑎
+             </ci>
+            </apply>
+            <apply id="alg1.l3.m1.2.3.3.3.3.cmml" xref="alg1.l3.m1.2.3.3.3.3">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.2.3.3.3.3.1.cmml" xref="alg1.l3.m1.2.3.3.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.2.3.3.3.3.2.cmml" xref="alg1.l3.m1.2.3.3.3.3.2">
+              𝑛
+             </ci>
+             <ci id="alg1.l3.m1.2.3.3.3.3.3.cmml" xref="alg1.l3.m1.2.3.3.3.3.3">
+              𝑎
+             </ci>
+            </apply>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m1.2c">
+         \mathbf{M}\in\{0,1\}^{n_{a}\times n_{a}}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l4">
+      //
+      <math alttext="\mathbf{M}_{i,j}" class="ltx_Math" display="inline" id="alg1.l4.m1.2">
+       <semantics id="alg1.l4.m1.2a">
+        <msub id="alg1.l4.m1.2.3" xref="alg1.l4.m1.2.3.cmml">
+         <mi id="alg1.l4.m1.2.3.2" xref="alg1.l4.m1.2.3.2.cmml">
+          𝐌
+         </mi>
+         <mrow id="alg1.l4.m1.2.2.2.4" xref="alg1.l4.m1.2.2.2.3.cmml">
+          <mi id="alg1.l4.m1.1.1.1.1" xref="alg1.l4.m1.1.1.1.1.cmml">
+           i
+          </mi>
+          <mo id="alg1.l4.m1.2.2.2.4.1" xref="alg1.l4.m1.2.2.2.3.cmml">
+           ,
+          </mo>
+          <mi id="alg1.l4.m1.2.2.2.2" xref="alg1.l4.m1.2.2.2.2.cmml">
+           j
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m1.2b">
+         <apply id="alg1.l4.m1.2.3.cmml" xref="alg1.l4.m1.2.3">
+          <csymbol cd="ambiguous" id="alg1.l4.m1.2.3.1.cmml" xref="alg1.l4.m1.2.3">
+           subscript
+          </csymbol>
+          <ci id="alg1.l4.m1.2.3.2.cmml" xref="alg1.l4.m1.2.3.2">
+           𝐌
+          </ci>
+          <list id="alg1.l4.m1.2.2.2.3.cmml" xref="alg1.l4.m1.2.2.2.4">
+           <ci id="alg1.l4.m1.1.1.1.1.cmml" xref="alg1.l4.m1.1.1.1.1">
+            𝑖
+           </ci>
+           <ci id="alg1.l4.m1.2.2.2.2.cmml" xref="alg1.l4.m1.2.2.2.2">
+            𝑗
+           </ci>
+          </list>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m1.2c">
+         \mathbf{M}_{i,j}
+        </annotation>
+       </semantics>
+      </math>
+      = 1 means
+      <math alttext="\mathbf{A}_{i}" class="ltx_Math" display="inline" id="alg1.l4.m2.1">
+       <semantics id="alg1.l4.m2.1a">
+        <msub id="alg1.l4.m2.1.1" xref="alg1.l4.m2.1.1.cmml">
+         <mi id="alg1.l4.m2.1.1.2" xref="alg1.l4.m2.1.1.2.cmml">
+          𝐀
+         </mi>
+         <mi id="alg1.l4.m2.1.1.3" xref="alg1.l4.m2.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m2.1b">
+         <apply id="alg1.l4.m2.1.1.cmml" xref="alg1.l4.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.1.cmml" xref="alg1.l4.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l4.m2.1.1.2.cmml" xref="alg1.l4.m2.1.1.2">
+           𝐀
+          </ci>
+          <ci id="alg1.l4.m2.1.1.3.cmml" xref="alg1.l4.m2.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m2.1c">
+         \mathbf{A}_{i}
+        </annotation>
+       </semantics>
+      </math>
+      knows the location of
+      <math alttext="\mathbf{A}_{j}" class="ltx_Math" display="inline" id="alg1.l4.m3.1">
+       <semantics id="alg1.l4.m3.1a">
+        <msub id="alg1.l4.m3.1.1" xref="alg1.l4.m3.1.1.cmml">
+         <mi id="alg1.l4.m3.1.1.2" xref="alg1.l4.m3.1.1.2.cmml">
+          𝐀
+         </mi>
+         <mi id="alg1.l4.m3.1.1.3" xref="alg1.l4.m3.1.1.3.cmml">
+          j
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m3.1b">
+         <apply id="alg1.l4.m3.1.1.cmml" xref="alg1.l4.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l4.m3.1.1.1.cmml" xref="alg1.l4.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l4.m3.1.1.2.cmml" xref="alg1.l4.m3.1.1.2">
+           𝐀
+          </ci>
+          <ci id="alg1.l4.m3.1.1.3.cmml" xref="alg1.l4.m3.1.1.3">
+           𝑗
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m3.1c">
+         \mathbf{A}_{j}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l5">
+      Define
+      <math alttext="\mathbf{p}=[p_{1},p_{2},\ldots,p_{n}]" class="ltx_Math" display="inline" id="alg1.l5.m1.4">
+       <semantics id="alg1.l5.m1.4a">
+        <mrow id="alg1.l5.m1.4.4" xref="alg1.l5.m1.4.4.cmml">
+         <mi id="alg1.l5.m1.4.4.5" xref="alg1.l5.m1.4.4.5.cmml">
+          𝐩
+         </mi>
+         <mo id="alg1.l5.m1.4.4.4" xref="alg1.l5.m1.4.4.4.cmml">
+          =
+         </mo>
+         <mrow id="alg1.l5.m1.4.4.3.3" xref="alg1.l5.m1.4.4.3.4.cmml">
+          <mo id="alg1.l5.m1.4.4.3.3.4" stretchy="false" xref="alg1.l5.m1.4.4.3.4.cmml">
+           [
+          </mo>
+          <msub id="alg1.l5.m1.2.2.1.1.1" xref="alg1.l5.m1.2.2.1.1.1.cmml">
+           <mi id="alg1.l5.m1.2.2.1.1.1.2" xref="alg1.l5.m1.2.2.1.1.1.2.cmml">
+            p
+           </mi>
+           <mn id="alg1.l5.m1.2.2.1.1.1.3" xref="alg1.l5.m1.2.2.1.1.1.3.cmml">
+            1
+           </mn>
+          </msub>
+          <mo id="alg1.l5.m1.4.4.3.3.5" xref="alg1.l5.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <msub id="alg1.l5.m1.3.3.2.2.2" xref="alg1.l5.m1.3.3.2.2.2.cmml">
+           <mi id="alg1.l5.m1.3.3.2.2.2.2" xref="alg1.l5.m1.3.3.2.2.2.2.cmml">
+            p
+           </mi>
+           <mn id="alg1.l5.m1.3.3.2.2.2.3" xref="alg1.l5.m1.3.3.2.2.2.3.cmml">
+            2
+           </mn>
+          </msub>
+          <mo id="alg1.l5.m1.4.4.3.3.6" xref="alg1.l5.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <mi id="alg1.l5.m1.1.1" mathvariant="normal" xref="alg1.l5.m1.1.1.cmml">
+           …
+          </mi>
+          <mo id="alg1.l5.m1.4.4.3.3.7" xref="alg1.l5.m1.4.4.3.4.cmml">
+           ,
+          </mo>
+          <msub id="alg1.l5.m1.4.4.3.3.3" xref="alg1.l5.m1.4.4.3.3.3.cmml">
+           <mi id="alg1.l5.m1.4.4.3.3.3.2" xref="alg1.l5.m1.4.4.3.3.3.2.cmml">
+            p
+           </mi>
+           <mi id="alg1.l5.m1.4.4.3.3.3.3" xref="alg1.l5.m1.4.4.3.3.3.3.cmml">
+            n
+           </mi>
+          </msub>
+          <mo id="alg1.l5.m1.4.4.3.3.8" stretchy="false" xref="alg1.l5.m1.4.4.3.4.cmml">
+           ]
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l5.m1.4b">
+         <apply id="alg1.l5.m1.4.4.cmml" xref="alg1.l5.m1.4.4">
+          <eq id="alg1.l5.m1.4.4.4.cmml" xref="alg1.l5.m1.4.4.4">
+          </eq>
+          <ci id="alg1.l5.m1.4.4.5.cmml" xref="alg1.l5.m1.4.4.5">
+           𝐩
+          </ci>
+          <list id="alg1.l5.m1.4.4.3.4.cmml" xref="alg1.l5.m1.4.4.3.3">
+           <apply id="alg1.l5.m1.2.2.1.1.1.cmml" xref="alg1.l5.m1.2.2.1.1.1">
+            <csymbol cd="ambiguous" id="alg1.l5.m1.2.2.1.1.1.1.cmml" xref="alg1.l5.m1.2.2.1.1.1">
+             subscript
+            </csymbol>
+            <ci id="alg1.l5.m1.2.2.1.1.1.2.cmml" xref="alg1.l5.m1.2.2.1.1.1.2">
+             𝑝
+            </ci>
+            <cn id="alg1.l5.m1.2.2.1.1.1.3.cmml" type="integer" xref="alg1.l5.m1.2.2.1.1.1.3">
+             1
+            </cn>
+           </apply>
+           <apply id="alg1.l5.m1.3.3.2.2.2.cmml" xref="alg1.l5.m1.3.3.2.2.2">
+            <csymbol cd="ambiguous" id="alg1.l5.m1.3.3.2.2.2.1.cmml" xref="alg1.l5.m1.3.3.2.2.2">
+             subscript
+            </csymbol>
+            <ci id="alg1.l5.m1.3.3.2.2.2.2.cmml" xref="alg1.l5.m1.3.3.2.2.2.2">
+             𝑝
+            </ci>
+            <cn id="alg1.l5.m1.3.3.2.2.2.3.cmml" type="integer" xref="alg1.l5.m1.3.3.2.2.2.3">
+             2
+            </cn>
+           </apply>
+           <ci id="alg1.l5.m1.1.1.cmml" xref="alg1.l5.m1.1.1">
+            …
+           </ci>
+           <apply id="alg1.l5.m1.4.4.3.3.3.cmml" xref="alg1.l5.m1.4.4.3.3.3">
+            <csymbol cd="ambiguous" id="alg1.l5.m1.4.4.3.3.3.1.cmml" xref="alg1.l5.m1.4.4.3.3.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l5.m1.4.4.3.3.3.2.cmml" xref="alg1.l5.m1.4.4.3.3.3.2">
+             𝑝
+            </ci>
+            <ci id="alg1.l5.m1.4.4.3.3.3.3.cmml" xref="alg1.l5.m1.4.4.3.3.3.3">
+             𝑛
+            </ci>
+           </apply>
+          </list>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l5.m1.4c">
+         \mathbf{p}=[p_{1},p_{2},\ldots,p_{n}]
+        </annotation>
+       </semantics>
+      </math>
+      , and set
+      <math alttext="p_{i}" class="ltx_Math" display="inline" id="alg1.l5.m2.1">
+       <semantics id="alg1.l5.m2.1a">
+        <msub id="alg1.l5.m2.1.1" xref="alg1.l5.m2.1.1.cmml">
+         <mi id="alg1.l5.m2.1.1.2" xref="alg1.l5.m2.1.1.2.cmml">
+          p
+         </mi>
+         <mi id="alg1.l5.m2.1.1.3" xref="alg1.l5.m2.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l5.m2.1b">
+         <apply id="alg1.l5.m2.1.1.cmml" xref="alg1.l5.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l5.m2.1.1.1.cmml" xref="alg1.l5.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l5.m2.1.1.2.cmml" xref="alg1.l5.m2.1.1.2">
+           𝑝
+          </ci>
+          <ci id="alg1.l5.m2.1.1.3.cmml" xref="alg1.l5.m2.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l5.m2.1c">
+         p_{i}
+        </annotation>
+       </semantics>
+      </math>
+      as the personality of
+      <math alttext="a_{i}" class="ltx_Math" display="inline" id="alg1.l5.m3.1">
+       <semantics id="alg1.l5.m3.1a">
+        <msub id="alg1.l5.m3.1.1" xref="alg1.l5.m3.1.1.cmml">
+         <mi id="alg1.l5.m3.1.1.2" xref="alg1.l5.m3.1.1.2.cmml">
+          a
+         </mi>
+         <mi id="alg1.l5.m3.1.1.3" xref="alg1.l5.m3.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l5.m3.1b">
+         <apply id="alg1.l5.m3.1.1.cmml" xref="alg1.l5.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l5.m3.1.1.1.cmml" xref="alg1.l5.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l5.m3.1.1.2.cmml" xref="alg1.l5.m3.1.1.2">
+           𝑎
+          </ci>
+          <ci id="alg1.l5.m3.1.1.3.cmml" xref="alg1.l5.m3.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l5.m3.1c">
+         a_{i}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l6">
+      Define
+      <math alttext="records" class="ltx_Math" display="inline" id="alg1.l6.m1.1">
+       <semantics id="alg1.l6.m1.1a">
+        <mrow id="alg1.l6.m1.1.1" xref="alg1.l6.m1.1.1.cmml">
+         <mi id="alg1.l6.m1.1.1.2" xref="alg1.l6.m1.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.3" xref="alg1.l6.m1.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.4" xref="alg1.l6.m1.1.1.4.cmml">
+          c
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.5" xref="alg1.l6.m1.1.1.5.cmml">
+          o
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.6" xref="alg1.l6.m1.1.1.6.cmml">
+          r
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.7" xref="alg1.l6.m1.1.1.7.cmml">
+          d
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.8" xref="alg1.l6.m1.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l6.m1.1b">
+         <apply id="alg1.l6.m1.1.1.cmml" xref="alg1.l6.m1.1.1">
+          <times id="alg1.l6.m1.1.1.1.cmml" xref="alg1.l6.m1.1.1.1">
+          </times>
+          <ci id="alg1.l6.m1.1.1.2.cmml" xref="alg1.l6.m1.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l6.m1.1.1.3.cmml" xref="alg1.l6.m1.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l6.m1.1.1.4.cmml" xref="alg1.l6.m1.1.1.4">
+           𝑐
+          </ci>
+          <ci id="alg1.l6.m1.1.1.5.cmml" xref="alg1.l6.m1.1.1.5">
+           𝑜
+          </ci>
+          <ci id="alg1.l6.m1.1.1.6.cmml" xref="alg1.l6.m1.1.1.6">
+           𝑟
+          </ci>
+          <ci id="alg1.l6.m1.1.1.7.cmml" xref="alg1.l6.m1.1.1.7">
+           𝑑
+          </ci>
+          <ci id="alg1.l6.m1.1.1.8.cmml" xref="alg1.l6.m1.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l6.m1.1c">
+         records
+        </annotation>
+       </semantics>
+      </math>
+      to store all conversation records
+     </div>
+     <div class="ltx_listingline" id="alg1.l7">
+      <span class="ltx_text ltx_font_bold" id="alg1.l7.1">
+       for
+      </span>
+      <math alttext="i" class="ltx_Math" display="inline" id="alg1.l7.m1.1">
+       <semantics id="alg1.l7.m1.1a">
+        <mi id="alg1.l7.m1.1.1" xref="alg1.l7.m1.1.1.cmml">
+         i
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l7.m1.1b">
+         <ci id="alg1.l7.m1.1.1.cmml" xref="alg1.l7.m1.1.1">
+          𝑖
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l7.m1.1c">
+         i
+        </annotation>
+       </semantics>
+      </math>
+      from
+      <math alttext="1" class="ltx_Math" display="inline" id="alg1.l7.m2.1">
+       <semantics id="alg1.l7.m2.1a">
+        <mn id="alg1.l7.m2.1.1" xref="alg1.l7.m2.1.1.cmml">
+         1
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="alg1.l7.m2.1b">
+         <cn id="alg1.l7.m2.1.1.cmml" type="integer" xref="alg1.l7.m2.1.1">
+          1
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l7.m2.1c">
+         1
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="n_{e}" class="ltx_Math" display="inline" id="alg1.l7.m3.1">
+       <semantics id="alg1.l7.m3.1a">
+        <msub id="alg1.l7.m3.1.1" xref="alg1.l7.m3.1.1.cmml">
+         <mi id="alg1.l7.m3.1.1.2" xref="alg1.l7.m3.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l7.m3.1.1.3" xref="alg1.l7.m3.1.1.3.cmml">
+          e
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l7.m3.1b">
+         <apply id="alg1.l7.m3.1.1.cmml" xref="alg1.l7.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l7.m3.1.1.1.cmml" xref="alg1.l7.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l7.m3.1.1.2.cmml" xref="alg1.l7.m3.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l7.m3.1.1.3.cmml" xref="alg1.l7.m3.1.1.3">
+           𝑒
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l7.m3.1c">
+         n_{e}
+        </annotation>
+       </semantics>
+      </math>
+      <span class="ltx_text ltx_font_bold" id="alg1.l7.2">
+       do
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l8">
+      Randomly initialize locations
+      <math alttext="\mathbf{x}\in\mathbb{R}^{n_{a}}" class="ltx_Math" display="inline" id="alg1.l8.m1.1">
+       <semantics id="alg1.l8.m1.1a">
+        <mrow id="alg1.l8.m1.1.1" xref="alg1.l8.m1.1.1.cmml">
+         <mi id="alg1.l8.m1.1.1.2" xref="alg1.l8.m1.1.1.2.cmml">
+          𝐱
+         </mi>
+         <mo id="alg1.l8.m1.1.1.1" xref="alg1.l8.m1.1.1.1.cmml">
+          ∈
+         </mo>
+         <msup id="alg1.l8.m1.1.1.3" xref="alg1.l8.m1.1.1.3.cmml">
+          <mi id="alg1.l8.m1.1.1.3.2" xref="alg1.l8.m1.1.1.3.2.cmml">
+           ℝ
+          </mi>
+          <msub id="alg1.l8.m1.1.1.3.3" xref="alg1.l8.m1.1.1.3.3.cmml">
+           <mi id="alg1.l8.m1.1.1.3.3.2" xref="alg1.l8.m1.1.1.3.3.2.cmml">
+            n
+           </mi>
+           <mi id="alg1.l8.m1.1.1.3.3.3" xref="alg1.l8.m1.1.1.3.3.3.cmml">
+            a
+           </mi>
+          </msub>
+         </msup>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l8.m1.1b">
+         <apply id="alg1.l8.m1.1.1.cmml" xref="alg1.l8.m1.1.1">
+          <in id="alg1.l8.m1.1.1.1.cmml" xref="alg1.l8.m1.1.1.1">
+          </in>
+          <ci id="alg1.l8.m1.1.1.2.cmml" xref="alg1.l8.m1.1.1.2">
+           𝐱
+          </ci>
+          <apply id="alg1.l8.m1.1.1.3.cmml" xref="alg1.l8.m1.1.1.3">
+           <csymbol cd="ambiguous" id="alg1.l8.m1.1.1.3.1.cmml" xref="alg1.l8.m1.1.1.3">
+            superscript
+           </csymbol>
+           <ci id="alg1.l8.m1.1.1.3.2.cmml" xref="alg1.l8.m1.1.1.3.2">
+            ℝ
+           </ci>
+           <apply id="alg1.l8.m1.1.1.3.3.cmml" xref="alg1.l8.m1.1.1.3.3">
+            <csymbol cd="ambiguous" id="alg1.l8.m1.1.1.3.3.1.cmml" xref="alg1.l8.m1.1.1.3.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l8.m1.1.1.3.3.2.cmml" xref="alg1.l8.m1.1.1.3.3.2">
+             𝑛
+            </ci>
+            <ci id="alg1.l8.m1.1.1.3.3.3.cmml" xref="alg1.l8.m1.1.1.3.3.3">
+             𝑎
+            </ci>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l8.m1.1c">
+         \mathbf{x}\in\mathbb{R}^{n_{a}}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l9">
+      Define
+      <math alttext="contexts" class="ltx_Math" display="inline" id="alg1.l9.m1.1">
+       <semantics id="alg1.l9.m1.1a">
+        <mrow id="alg1.l9.m1.1.1" xref="alg1.l9.m1.1.1.cmml">
+         <mi id="alg1.l9.m1.1.1.2" xref="alg1.l9.m1.1.1.2.cmml">
+          c
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.3" xref="alg1.l9.m1.1.1.3.cmml">
+          o
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.4" xref="alg1.l9.m1.1.1.4.cmml">
+          n
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.5" xref="alg1.l9.m1.1.1.5.cmml">
+          t
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.6" xref="alg1.l9.m1.1.1.6.cmml">
+          e
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.7" xref="alg1.l9.m1.1.1.7.cmml">
+          x
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.8" xref="alg1.l9.m1.1.1.8.cmml">
+          t
+         </mi>
+         <mo id="alg1.l9.m1.1.1.1f" lspace="0em" rspace="0em" xref="alg1.l9.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l9.m1.1.1.9" xref="alg1.l9.m1.1.1.9.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l9.m1.1b">
+         <apply id="alg1.l9.m1.1.1.cmml" xref="alg1.l9.m1.1.1">
+          <times id="alg1.l9.m1.1.1.1.cmml" xref="alg1.l9.m1.1.1.1">
+          </times>
+          <ci id="alg1.l9.m1.1.1.2.cmml" xref="alg1.l9.m1.1.1.2">
+           𝑐
+          </ci>
+          <ci id="alg1.l9.m1.1.1.3.cmml" xref="alg1.l9.m1.1.1.3">
+           𝑜
+          </ci>
+          <ci id="alg1.l9.m1.1.1.4.cmml" xref="alg1.l9.m1.1.1.4">
+           𝑛
+          </ci>
+          <ci id="alg1.l9.m1.1.1.5.cmml" xref="alg1.l9.m1.1.1.5">
+           𝑡
+          </ci>
+          <ci id="alg1.l9.m1.1.1.6.cmml" xref="alg1.l9.m1.1.1.6">
+           𝑒
+          </ci>
+          <ci id="alg1.l9.m1.1.1.7.cmml" xref="alg1.l9.m1.1.1.7">
+           𝑥
+          </ci>
+          <ci id="alg1.l9.m1.1.1.8.cmml" xref="alg1.l9.m1.1.1.8">
+           𝑡
+          </ci>
+          <ci id="alg1.l9.m1.1.1.9.cmml" xref="alg1.l9.m1.1.1.9">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l9.m1.1c">
+         contexts
+        </annotation>
+       </semantics>
+      </math>
+      as an empty list
+     </div>
+     <div class="ltx_listingline" id="alg1.l10">
+      <span class="ltx_text ltx_font_bold" id="alg1.l10.1">
+       for
+      </span>
+      <math alttext="j" class="ltx_Math" display="inline" id="alg1.l10.m1.1">
+       <semantics id="alg1.l10.m1.1a">
+        <mi id="alg1.l10.m1.1.1" xref="alg1.l10.m1.1.1.cmml">
+         j
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l10.m1.1b">
+         <ci id="alg1.l10.m1.1.1.cmml" xref="alg1.l10.m1.1.1">
+          𝑗
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l10.m1.1c">
+         j
+        </annotation>
+       </semantics>
+      </math>
+      from
+      <math alttext="1" class="ltx_Math" display="inline" id="alg1.l10.m2.1">
+       <semantics id="alg1.l10.m2.1a">
+        <mn id="alg1.l10.m2.1.1" xref="alg1.l10.m2.1.1.cmml">
+         1
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="alg1.l10.m2.1b">
+         <cn id="alg1.l10.m2.1.1.cmml" type="integer" xref="alg1.l10.m2.1.1">
+          1
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l10.m2.1c">
+         1
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="n_{r}" class="ltx_Math" display="inline" id="alg1.l10.m3.1">
+       <semantics id="alg1.l10.m3.1a">
+        <msub id="alg1.l10.m3.1.1" xref="alg1.l10.m3.1.1.cmml">
+         <mi id="alg1.l10.m3.1.1.2" xref="alg1.l10.m3.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l10.m3.1.1.3" xref="alg1.l10.m3.1.1.3.cmml">
+          r
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l10.m3.1b">
+         <apply id="alg1.l10.m3.1.1.cmml" xref="alg1.l10.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l10.m3.1.1.1.cmml" xref="alg1.l10.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l10.m3.1.1.2.cmml" xref="alg1.l10.m3.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l10.m3.1.1.3.cmml" xref="alg1.l10.m3.1.1.3">
+           𝑟
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l10.m3.1c">
+         n_{r}
+        </annotation>
+       </semantics>
+      </math>
+      <span class="ltx_text ltx_font_bold" id="alg1.l10.2">
+       do
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l11">
+      Initialize
+      <math alttext="results" class="ltx_Math" display="inline" id="alg1.l11.m1.1">
+       <semantics id="alg1.l11.m1.1a">
+        <mrow id="alg1.l11.m1.1.1" xref="alg1.l11.m1.1.1.cmml">
+         <mi id="alg1.l11.m1.1.1.2" xref="alg1.l11.m1.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.3" xref="alg1.l11.m1.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.4" xref="alg1.l11.m1.1.1.4.cmml">
+          s
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.5" xref="alg1.l11.m1.1.1.5.cmml">
+          u
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.6" xref="alg1.l11.m1.1.1.6.cmml">
+          l
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.7" xref="alg1.l11.m1.1.1.7.cmml">
+          t
+         </mi>
+         <mo id="alg1.l11.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l11.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l11.m1.1.1.8" xref="alg1.l11.m1.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l11.m1.1b">
+         <apply id="alg1.l11.m1.1.1.cmml" xref="alg1.l11.m1.1.1">
+          <times id="alg1.l11.m1.1.1.1.cmml" xref="alg1.l11.m1.1.1.1">
+          </times>
+          <ci id="alg1.l11.m1.1.1.2.cmml" xref="alg1.l11.m1.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l11.m1.1.1.3.cmml" xref="alg1.l11.m1.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l11.m1.1.1.4.cmml" xref="alg1.l11.m1.1.1.4">
+           𝑠
+          </ci>
+          <ci id="alg1.l11.m1.1.1.5.cmml" xref="alg1.l11.m1.1.1.5">
+           𝑢
+          </ci>
+          <ci id="alg1.l11.m1.1.1.6.cmml" xref="alg1.l11.m1.1.1.6">
+           𝑙
+          </ci>
+          <ci id="alg1.l11.m1.1.1.7.cmml" xref="alg1.l11.m1.1.1.7">
+           𝑡
+          </ci>
+          <ci id="alg1.l11.m1.1.1.8.cmml" xref="alg1.l11.m1.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l11.m1.1c">
+         results
+        </annotation>
+       </semantics>
+      </math>
+      as an empty list
+     </div>
+     <div class="ltx_listingline" id="alg1.l12">
+      <span class="ltx_text ltx_font_bold" id="alg1.l12.1">
+       for
+      </span>
+      <math alttext="k" class="ltx_Math" display="inline" id="alg1.l12.m1.1">
+       <semantics id="alg1.l12.m1.1a">
+        <mi id="alg1.l12.m1.1.1" xref="alg1.l12.m1.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l12.m1.1b">
+         <ci id="alg1.l12.m1.1.1.cmml" xref="alg1.l12.m1.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l12.m1.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      from
+      <math alttext="1" class="ltx_Math" display="inline" id="alg1.l12.m2.1">
+       <semantics id="alg1.l12.m2.1a">
+        <mn id="alg1.l12.m2.1.1" xref="alg1.l12.m2.1.1.cmml">
+         1
+        </mn>
+        <annotation-xml encoding="MathML-Content" id="alg1.l12.m2.1b">
+         <cn id="alg1.l12.m2.1.1.cmml" type="integer" xref="alg1.l12.m2.1.1">
+          1
+         </cn>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l12.m2.1c">
+         1
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="n_{a}" class="ltx_Math" display="inline" id="alg1.l12.m3.1">
+       <semantics id="alg1.l12.m3.1a">
+        <msub id="alg1.l12.m3.1.1" xref="alg1.l12.m3.1.1.cmml">
+         <mi id="alg1.l12.m3.1.1.2" xref="alg1.l12.m3.1.1.2.cmml">
+          n
+         </mi>
+         <mi id="alg1.l12.m3.1.1.3" xref="alg1.l12.m3.1.1.3.cmml">
+          a
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l12.m3.1b">
+         <apply id="alg1.l12.m3.1.1.cmml" xref="alg1.l12.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l12.m3.1.1.1.cmml" xref="alg1.l12.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l12.m3.1.1.2.cmml" xref="alg1.l12.m3.1.1.2">
+           𝑛
+          </ci>
+          <ci id="alg1.l12.m3.1.1.3.cmml" xref="alg1.l12.m3.1.1.3">
+           𝑎
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l12.m3.1c">
+         n_{a}
+        </annotation>
+       </semantics>
+      </math>
+      <span class="ltx_text ltx_font_bold" id="alg1.l12.2">
+       do
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l13">
+      Get locations of other agents,
+      <math alttext="\mathbf{x^{\prime}}=\{\mathbf{x}_{m}\,|\,\mathbf{M}_{k,m}" class="ltx_math_unparsed" display="inline" id="alg1.l13.m1.2">
+       <semantics id="alg1.l13.m1.2a">
+        <mrow id="alg1.l13.m1.2b">
+         <msup id="alg1.l13.m1.2.3">
+          <mi id="alg1.l13.m1.2.3.2">
+           𝐱
+          </mi>
+          <mo id="alg1.l13.m1.2.3.3">
+           ′
+          </mo>
+         </msup>
+         <mo id="alg1.l13.m1.2.4">
+          =
+         </mo>
+         <mrow id="alg1.l13.m1.2.5">
+          <mo id="alg1.l13.m1.2.5.1" stretchy="false">
+           {
+          </mo>
+          <msub id="alg1.l13.m1.2.5.2">
+           <mi id="alg1.l13.m1.2.5.2.2">
+            𝐱
+           </mi>
+           <mi id="alg1.l13.m1.2.5.2.3">
+            m
+           </mi>
+          </msub>
+          <mo fence="false" id="alg1.l13.m1.2.5.3" rspace="0.337em" stretchy="false">
+           |
+          </mo>
+          <msub id="alg1.l13.m1.2.5.4">
+           <mi id="alg1.l13.m1.2.5.4.2">
+            𝐌
+           </mi>
+           <mrow id="alg1.l13.m1.2.2.2.4">
+            <mi id="alg1.l13.m1.1.1.1.1">
+             k
+            </mi>
+            <mo id="alg1.l13.m1.2.2.2.4.1">
+             ,
+            </mo>
+            <mi id="alg1.l13.m1.2.2.2.2">
+             m
+            </mi>
+           </mrow>
+          </msub>
+         </mrow>
+        </mrow>
+        <annotation encoding="application/x-tex" id="alg1.l13.m1.2c">
+         \mathbf{x^{\prime}}=\{\mathbf{x}_{m}\,|\,\mathbf{M}_{k,m}
+        </annotation>
+       </semantics>
+      </math>
+      = 1}
+     </div>
+     <div class="ltx_listingline" id="alg1.l14">
+      Generate
+      <math alttext="prompt" class="ltx_Math" display="inline" id="alg1.l14.m1.1">
+       <semantics id="alg1.l14.m1.1a">
+        <mrow id="alg1.l14.m1.1.1" xref="alg1.l14.m1.1.1.cmml">
+         <mi id="alg1.l14.m1.1.1.2" xref="alg1.l14.m1.1.1.2.cmml">
+          p
+         </mi>
+         <mo id="alg1.l14.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l14.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l14.m1.1.1.3" xref="alg1.l14.m1.1.1.3.cmml">
+          r
+         </mi>
+         <mo id="alg1.l14.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l14.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l14.m1.1.1.4" xref="alg1.l14.m1.1.1.4.cmml">
+          o
+         </mi>
+         <mo id="alg1.l14.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l14.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l14.m1.1.1.5" xref="alg1.l14.m1.1.1.5.cmml">
+          m
+         </mi>
+         <mo id="alg1.l14.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l14.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l14.m1.1.1.6" xref="alg1.l14.m1.1.1.6.cmml">
+          p
+         </mi>
+         <mo id="alg1.l14.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l14.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l14.m1.1.1.7" xref="alg1.l14.m1.1.1.7.cmml">
+          t
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l14.m1.1b">
+         <apply id="alg1.l14.m1.1.1.cmml" xref="alg1.l14.m1.1.1">
+          <times id="alg1.l14.m1.1.1.1.cmml" xref="alg1.l14.m1.1.1.1">
+          </times>
+          <ci id="alg1.l14.m1.1.1.2.cmml" xref="alg1.l14.m1.1.1.2">
+           𝑝
+          </ci>
+          <ci id="alg1.l14.m1.1.1.3.cmml" xref="alg1.l14.m1.1.1.3">
+           𝑟
+          </ci>
+          <ci id="alg1.l14.m1.1.1.4.cmml" xref="alg1.l14.m1.1.1.4">
+           𝑜
+          </ci>
+          <ci id="alg1.l14.m1.1.1.5.cmml" xref="alg1.l14.m1.1.1.5">
+           𝑚
+          </ci>
+          <ci id="alg1.l14.m1.1.1.6.cmml" xref="alg1.l14.m1.1.1.6">
+           𝑝
+          </ci>
+          <ci id="alg1.l14.m1.1.1.7.cmml" xref="alg1.l14.m1.1.1.7">
+           𝑡
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l14.m1.1c">
+         prompt
+        </annotation>
+       </semantics>
+      </math>
+      for
+      <math alttext="\mathbf{A}_{k}" class="ltx_Math" display="inline" id="alg1.l14.m2.1">
+       <semantics id="alg1.l14.m2.1a">
+        <msub id="alg1.l14.m2.1.1" xref="alg1.l14.m2.1.1.cmml">
+         <mi id="alg1.l14.m2.1.1.2" xref="alg1.l14.m2.1.1.2.cmml">
+          𝐀
+         </mi>
+         <mi id="alg1.l14.m2.1.1.3" xref="alg1.l14.m2.1.1.3.cmml">
+          k
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l14.m2.1b">
+         <apply id="alg1.l14.m2.1.1.cmml" xref="alg1.l14.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l14.m2.1.1.1.cmml" xref="alg1.l14.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l14.m2.1.1.2.cmml" xref="alg1.l14.m2.1.1.2">
+           𝐀
+          </ci>
+          <ci id="alg1.l14.m2.1.1.3.cmml" xref="alg1.l14.m2.1.1.3">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l14.m2.1c">
+         \mathbf{A}_{k}
+        </annotation>
+       </semantics>
+      </math>
+      with
+      <math alttext="\mathbf{x}_{k}" class="ltx_Math" display="inline" id="alg1.l14.m3.1">
+       <semantics id="alg1.l14.m3.1a">
+        <msub id="alg1.l14.m3.1.1" xref="alg1.l14.m3.1.1.cmml">
+         <mi id="alg1.l14.m3.1.1.2" xref="alg1.l14.m3.1.1.2.cmml">
+          𝐱
+         </mi>
+         <mi id="alg1.l14.m3.1.1.3" xref="alg1.l14.m3.1.1.3.cmml">
+          k
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l14.m3.1b">
+         <apply id="alg1.l14.m3.1.1.cmml" xref="alg1.l14.m3.1.1">
+          <csymbol cd="ambiguous" id="alg1.l14.m3.1.1.1.cmml" xref="alg1.l14.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l14.m3.1.1.2.cmml" xref="alg1.l14.m3.1.1.2">
+           𝐱
+          </ci>
+          <ci id="alg1.l14.m3.1.1.3.cmml" xref="alg1.l14.m3.1.1.3">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l14.m3.1c">
+         \mathbf{x}_{k}
+        </annotation>
+       </semantics>
+      </math>
+      and
+      <math alttext="\mathbf{x}^{\prime}" class="ltx_Math" display="inline" id="alg1.l14.m4.1">
+       <semantics id="alg1.l14.m4.1a">
+        <msup id="alg1.l14.m4.1.1" xref="alg1.l14.m4.1.1.cmml">
+         <mi id="alg1.l14.m4.1.1.2" xref="alg1.l14.m4.1.1.2.cmml">
+          𝐱
+         </mi>
+         <mo id="alg1.l14.m4.1.1.3" xref="alg1.l14.m4.1.1.3.cmml">
+          ′
+         </mo>
+        </msup>
+        <annotation-xml encoding="MathML-Content" id="alg1.l14.m4.1b">
+         <apply id="alg1.l14.m4.1.1.cmml" xref="alg1.l14.m4.1.1">
+          <csymbol cd="ambiguous" id="alg1.l14.m4.1.1.1.cmml" xref="alg1.l14.m4.1.1">
+           superscript
+          </csymbol>
+          <ci id="alg1.l14.m4.1.1.2.cmml" xref="alg1.l14.m4.1.1.2">
+           𝐱
+          </ci>
+          <ci id="alg1.l14.m4.1.1.3.cmml" xref="alg1.l14.m4.1.1.3">
+           ′
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l14.m4.1c">
+         \mathbf{x}^{\prime}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l15">
+      Send
+      <math alttext="prompt" class="ltx_Math" display="inline" id="alg1.l15.m1.1">
+       <semantics id="alg1.l15.m1.1a">
+        <mrow id="alg1.l15.m1.1.1" xref="alg1.l15.m1.1.1.cmml">
+         <mi id="alg1.l15.m1.1.1.2" xref="alg1.l15.m1.1.1.2.cmml">
+          p
+         </mi>
+         <mo id="alg1.l15.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l15.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m1.1.1.3" xref="alg1.l15.m1.1.1.3.cmml">
+          r
+         </mi>
+         <mo id="alg1.l15.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l15.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m1.1.1.4" xref="alg1.l15.m1.1.1.4.cmml">
+          o
+         </mi>
+         <mo id="alg1.l15.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l15.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m1.1.1.5" xref="alg1.l15.m1.1.1.5.cmml">
+          m
+         </mi>
+         <mo id="alg1.l15.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l15.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m1.1.1.6" xref="alg1.l15.m1.1.1.6.cmml">
+          p
+         </mi>
+         <mo id="alg1.l15.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l15.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m1.1.1.7" xref="alg1.l15.m1.1.1.7.cmml">
+          t
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l15.m1.1b">
+         <apply id="alg1.l15.m1.1.1.cmml" xref="alg1.l15.m1.1.1">
+          <times id="alg1.l15.m1.1.1.1.cmml" xref="alg1.l15.m1.1.1.1">
+          </times>
+          <ci id="alg1.l15.m1.1.1.2.cmml" xref="alg1.l15.m1.1.1.2">
+           𝑝
+          </ci>
+          <ci id="alg1.l15.m1.1.1.3.cmml" xref="alg1.l15.m1.1.1.3">
+           𝑟
+          </ci>
+          <ci id="alg1.l15.m1.1.1.4.cmml" xref="alg1.l15.m1.1.1.4">
+           𝑜
+          </ci>
+          <ci id="alg1.l15.m1.1.1.5.cmml" xref="alg1.l15.m1.1.1.5">
+           𝑚
+          </ci>
+          <ci id="alg1.l15.m1.1.1.6.cmml" xref="alg1.l15.m1.1.1.6">
+           𝑝
+          </ci>
+          <ci id="alg1.l15.m1.1.1.7.cmml" xref="alg1.l15.m1.1.1.7">
+           𝑡
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l15.m1.1c">
+         prompt
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="\mathbf{A}_{k}" class="ltx_Math" display="inline" id="alg1.l15.m2.1">
+       <semantics id="alg1.l15.m2.1a">
+        <msub id="alg1.l15.m2.1.1" xref="alg1.l15.m2.1.1.cmml">
+         <mi id="alg1.l15.m2.1.1.2" xref="alg1.l15.m2.1.1.2.cmml">
+          𝐀
+         </mi>
+         <mi id="alg1.l15.m2.1.1.3" xref="alg1.l15.m2.1.1.3.cmml">
+          k
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l15.m2.1b">
+         <apply id="alg1.l15.m2.1.1.cmml" xref="alg1.l15.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l15.m2.1.1.1.cmml" xref="alg1.l15.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l15.m2.1.1.2.cmml" xref="alg1.l15.m2.1.1.2">
+           𝐀
+          </ci>
+          <ci id="alg1.l15.m2.1.1.3.cmml" xref="alg1.l15.m2.1.1.3">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l15.m2.1c">
+         \mathbf{A}_{k}
+        </annotation>
+       </semantics>
+      </math>
+      and add response to
+      <math alttext="results" class="ltx_Math" display="inline" id="alg1.l15.m3.1">
+       <semantics id="alg1.l15.m3.1a">
+        <mrow id="alg1.l15.m3.1.1" xref="alg1.l15.m3.1.1.cmml">
+         <mi id="alg1.l15.m3.1.1.2" xref="alg1.l15.m3.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.3" xref="alg1.l15.m3.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.4" xref="alg1.l15.m3.1.1.4.cmml">
+          s
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.5" xref="alg1.l15.m3.1.1.5.cmml">
+          u
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.6" xref="alg1.l15.m3.1.1.6.cmml">
+          l
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.7" xref="alg1.l15.m3.1.1.7.cmml">
+          t
+         </mi>
+         <mo id="alg1.l15.m3.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l15.m3.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l15.m3.1.1.8" xref="alg1.l15.m3.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l15.m3.1b">
+         <apply id="alg1.l15.m3.1.1.cmml" xref="alg1.l15.m3.1.1">
+          <times id="alg1.l15.m3.1.1.1.cmml" xref="alg1.l15.m3.1.1.1">
+          </times>
+          <ci id="alg1.l15.m3.1.1.2.cmml" xref="alg1.l15.m3.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l15.m3.1.1.3.cmml" xref="alg1.l15.m3.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l15.m3.1.1.4.cmml" xref="alg1.l15.m3.1.1.4">
+           𝑠
+          </ci>
+          <ci id="alg1.l15.m3.1.1.5.cmml" xref="alg1.l15.m3.1.1.5">
+           𝑢
+          </ci>
+          <ci id="alg1.l15.m3.1.1.6.cmml" xref="alg1.l15.m3.1.1.6">
+           𝑙
+          </ci>
+          <ci id="alg1.l15.m3.1.1.7.cmml" xref="alg1.l15.m3.1.1.7">
+           𝑡
+          </ci>
+          <ci id="alg1.l15.m3.1.1.8.cmml" xref="alg1.l15.m3.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l15.m3.1c">
+         results
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </div>
+     <div class="ltx_listingline" id="alg1.l16">
+      <span class="ltx_text ltx_font_bold" id="alg1.l16.1">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l16.2">
+       for
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l17">
+      Extract new locations of agents from
+      <math alttext="results" class="ltx_Math" display="inline" id="alg1.l17.m1.1">
+       <semantics id="alg1.l17.m1.1a">
+        <mrow id="alg1.l17.m1.1.1" xref="alg1.l17.m1.1.1.cmml">
+         <mi id="alg1.l17.m1.1.1.2" xref="alg1.l17.m1.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.3" xref="alg1.l17.m1.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.4" xref="alg1.l17.m1.1.1.4.cmml">
+          s
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.5" xref="alg1.l17.m1.1.1.5.cmml">
+          u
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.6" xref="alg1.l17.m1.1.1.6.cmml">
+          l
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.7" xref="alg1.l17.m1.1.1.7.cmml">
+          t
+         </mi>
+         <mo id="alg1.l17.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l17.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l17.m1.1.1.8" xref="alg1.l17.m1.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l17.m1.1b">
+         <apply id="alg1.l17.m1.1.1.cmml" xref="alg1.l17.m1.1.1">
+          <times id="alg1.l17.m1.1.1.1.cmml" xref="alg1.l17.m1.1.1.1">
+          </times>
+          <ci id="alg1.l17.m1.1.1.2.cmml" xref="alg1.l17.m1.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l17.m1.1.1.3.cmml" xref="alg1.l17.m1.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l17.m1.1.1.4.cmml" xref="alg1.l17.m1.1.1.4">
+           𝑠
+          </ci>
+          <ci id="alg1.l17.m1.1.1.5.cmml" xref="alg1.l17.m1.1.1.5">
+           𝑢
+          </ci>
+          <ci id="alg1.l17.m1.1.1.6.cmml" xref="alg1.l17.m1.1.1.6">
+           𝑙
+          </ci>
+          <ci id="alg1.l17.m1.1.1.7.cmml" xref="alg1.l17.m1.1.1.7">
+           𝑡
+          </ci>
+          <ci id="alg1.l17.m1.1.1.8.cmml" xref="alg1.l17.m1.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l17.m1.1c">
+         results
+        </annotation>
+       </semantics>
+      </math>
+      and update
+      <math alttext="\mathbf{x}" class="ltx_Math" display="inline" id="alg1.l17.m2.1">
+       <semantics id="alg1.l17.m2.1a">
+        <mi id="alg1.l17.m2.1.1" xref="alg1.l17.m2.1.1.cmml">
+         𝐱
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l17.m2.1b">
+         <ci id="alg1.l17.m2.1.1.cmml" xref="alg1.l17.m2.1.1">
+          𝐱
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l17.m2.1c">
+         \mathbf{x}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l18">
+      Add
+      <math alttext="results" class="ltx_Math" display="inline" id="alg1.l18.m1.1">
+       <semantics id="alg1.l18.m1.1a">
+        <mrow id="alg1.l18.m1.1.1" xref="alg1.l18.m1.1.1.cmml">
+         <mi id="alg1.l18.m1.1.1.2" xref="alg1.l18.m1.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.3" xref="alg1.l18.m1.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.4" xref="alg1.l18.m1.1.1.4.cmml">
+          s
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.5" xref="alg1.l18.m1.1.1.5.cmml">
+          u
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.6" xref="alg1.l18.m1.1.1.6.cmml">
+          l
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.7" xref="alg1.l18.m1.1.1.7.cmml">
+          t
+         </mi>
+         <mo id="alg1.l18.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l18.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m1.1.1.8" xref="alg1.l18.m1.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l18.m1.1b">
+         <apply id="alg1.l18.m1.1.1.cmml" xref="alg1.l18.m1.1.1">
+          <times id="alg1.l18.m1.1.1.1.cmml" xref="alg1.l18.m1.1.1.1">
+          </times>
+          <ci id="alg1.l18.m1.1.1.2.cmml" xref="alg1.l18.m1.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l18.m1.1.1.3.cmml" xref="alg1.l18.m1.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l18.m1.1.1.4.cmml" xref="alg1.l18.m1.1.1.4">
+           𝑠
+          </ci>
+          <ci id="alg1.l18.m1.1.1.5.cmml" xref="alg1.l18.m1.1.1.5">
+           𝑢
+          </ci>
+          <ci id="alg1.l18.m1.1.1.6.cmml" xref="alg1.l18.m1.1.1.6">
+           𝑙
+          </ci>
+          <ci id="alg1.l18.m1.1.1.7.cmml" xref="alg1.l18.m1.1.1.7">
+           𝑡
+          </ci>
+          <ci id="alg1.l18.m1.1.1.8.cmml" xref="alg1.l18.m1.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l18.m1.1c">
+         results
+        </annotation>
+       </semantics>
+      </math>
+      to
+      <math alttext="contexts" class="ltx_Math" display="inline" id="alg1.l18.m2.1">
+       <semantics id="alg1.l18.m2.1a">
+        <mrow id="alg1.l18.m2.1.1" xref="alg1.l18.m2.1.1.cmml">
+         <mi id="alg1.l18.m2.1.1.2" xref="alg1.l18.m2.1.1.2.cmml">
+          c
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.3" xref="alg1.l18.m2.1.1.3.cmml">
+          o
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.4" xref="alg1.l18.m2.1.1.4.cmml">
+          n
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.5" xref="alg1.l18.m2.1.1.5.cmml">
+          t
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.6" xref="alg1.l18.m2.1.1.6.cmml">
+          e
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.7" xref="alg1.l18.m2.1.1.7.cmml">
+          x
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.8" xref="alg1.l18.m2.1.1.8.cmml">
+          t
+         </mi>
+         <mo id="alg1.l18.m2.1.1.1f" lspace="0em" rspace="0em" xref="alg1.l18.m2.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l18.m2.1.1.9" xref="alg1.l18.m2.1.1.9.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l18.m2.1b">
+         <apply id="alg1.l18.m2.1.1.cmml" xref="alg1.l18.m2.1.1">
+          <times id="alg1.l18.m2.1.1.1.cmml" xref="alg1.l18.m2.1.1.1">
+          </times>
+          <ci id="alg1.l18.m2.1.1.2.cmml" xref="alg1.l18.m2.1.1.2">
+           𝑐
+          </ci>
+          <ci id="alg1.l18.m2.1.1.3.cmml" xref="alg1.l18.m2.1.1.3">
+           𝑜
+          </ci>
+          <ci id="alg1.l18.m2.1.1.4.cmml" xref="alg1.l18.m2.1.1.4">
+           𝑛
+          </ci>
+          <ci id="alg1.l18.m2.1.1.5.cmml" xref="alg1.l18.m2.1.1.5">
+           𝑡
+          </ci>
+          <ci id="alg1.l18.m2.1.1.6.cmml" xref="alg1.l18.m2.1.1.6">
+           𝑒
+          </ci>
+          <ci id="alg1.l18.m2.1.1.7.cmml" xref="alg1.l18.m2.1.1.7">
+           𝑥
+          </ci>
+          <ci id="alg1.l18.m2.1.1.8.cmml" xref="alg1.l18.m2.1.1.8">
+           𝑡
+          </ci>
+          <ci id="alg1.l18.m2.1.1.9.cmml" xref="alg1.l18.m2.1.1.9">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l18.m2.1c">
+         contexts
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l19">
+      <span class="ltx_text ltx_font_bold" id="alg1.l19.1">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l19.2">
+       for
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l20">
+      <math alttext="records[\mathbf{x}]\leftarrow contexts" class="ltx_Math" display="inline" id="alg1.l20.m1.1">
+       <semantics id="alg1.l20.m1.1a">
+        <mrow id="alg1.l20.m1.1.2" xref="alg1.l20.m1.1.2.cmml">
+         <mrow id="alg1.l20.m1.1.2.2" xref="alg1.l20.m1.1.2.2.cmml">
+          <mi id="alg1.l20.m1.1.2.2.2" xref="alg1.l20.m1.1.2.2.2.cmml">
+           r
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.3" xref="alg1.l20.m1.1.2.2.3.cmml">
+           e
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1a" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.4" xref="alg1.l20.m1.1.2.2.4.cmml">
+           c
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1b" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.5" xref="alg1.l20.m1.1.2.2.5.cmml">
+           o
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1c" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.6" xref="alg1.l20.m1.1.2.2.6.cmml">
+           r
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1d" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.7" xref="alg1.l20.m1.1.2.2.7.cmml">
+           d
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1e" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.2.8" xref="alg1.l20.m1.1.2.2.8.cmml">
+           s
+          </mi>
+          <mo id="alg1.l20.m1.1.2.2.1f" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.2.1.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l20.m1.1.2.2.9.2" xref="alg1.l20.m1.1.2.2.9.1.cmml">
+           <mo id="alg1.l20.m1.1.2.2.9.2.1" stretchy="false" xref="alg1.l20.m1.1.2.2.9.1.1.cmml">
+            [
+           </mo>
+           <mi id="alg1.l20.m1.1.1" xref="alg1.l20.m1.1.1.cmml">
+            𝐱
+           </mi>
+           <mo id="alg1.l20.m1.1.2.2.9.2.2" stretchy="false" xref="alg1.l20.m1.1.2.2.9.1.1.cmml">
+            ]
+           </mo>
+          </mrow>
+         </mrow>
+         <mo id="alg1.l20.m1.1.2.1" stretchy="false" xref="alg1.l20.m1.1.2.1.cmml">
+          ←
+         </mo>
+         <mrow id="alg1.l20.m1.1.2.3" xref="alg1.l20.m1.1.2.3.cmml">
+          <mi id="alg1.l20.m1.1.2.3.2" xref="alg1.l20.m1.1.2.3.2.cmml">
+           c
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.3" xref="alg1.l20.m1.1.2.3.3.cmml">
+           o
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1a" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.4" xref="alg1.l20.m1.1.2.3.4.cmml">
+           n
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1b" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.5" xref="alg1.l20.m1.1.2.3.5.cmml">
+           t
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1c" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.6" xref="alg1.l20.m1.1.2.3.6.cmml">
+           e
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1d" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.7" xref="alg1.l20.m1.1.2.3.7.cmml">
+           x
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1e" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.8" xref="alg1.l20.m1.1.2.3.8.cmml">
+           t
+          </mi>
+          <mo id="alg1.l20.m1.1.2.3.1f" lspace="0em" rspace="0em" xref="alg1.l20.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mi id="alg1.l20.m1.1.2.3.9" xref="alg1.l20.m1.1.2.3.9.cmml">
+           s
+          </mi>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l20.m1.1b">
+         <apply id="alg1.l20.m1.1.2.cmml" xref="alg1.l20.m1.1.2">
+          <ci id="alg1.l20.m1.1.2.1.cmml" xref="alg1.l20.m1.1.2.1">
+           ←
+          </ci>
+          <apply id="alg1.l20.m1.1.2.2.cmml" xref="alg1.l20.m1.1.2.2">
+           <times id="alg1.l20.m1.1.2.2.1.cmml" xref="alg1.l20.m1.1.2.2.1">
+           </times>
+           <ci id="alg1.l20.m1.1.2.2.2.cmml" xref="alg1.l20.m1.1.2.2.2">
+            𝑟
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.3.cmml" xref="alg1.l20.m1.1.2.2.3">
+            𝑒
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.4.cmml" xref="alg1.l20.m1.1.2.2.4">
+            𝑐
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.5.cmml" xref="alg1.l20.m1.1.2.2.5">
+            𝑜
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.6.cmml" xref="alg1.l20.m1.1.2.2.6">
+            𝑟
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.7.cmml" xref="alg1.l20.m1.1.2.2.7">
+            𝑑
+           </ci>
+           <ci id="alg1.l20.m1.1.2.2.8.cmml" xref="alg1.l20.m1.1.2.2.8">
+            𝑠
+           </ci>
+           <apply id="alg1.l20.m1.1.2.2.9.1.cmml" xref="alg1.l20.m1.1.2.2.9.2">
+            <csymbol cd="latexml" id="alg1.l20.m1.1.2.2.9.1.1.cmml" xref="alg1.l20.m1.1.2.2.9.2.1">
+             delimited-[]
+            </csymbol>
+            <ci id="alg1.l20.m1.1.1.cmml" xref="alg1.l20.m1.1.1">
+             𝐱
+            </ci>
+           </apply>
+          </apply>
+          <apply id="alg1.l20.m1.1.2.3.cmml" xref="alg1.l20.m1.1.2.3">
+           <times id="alg1.l20.m1.1.2.3.1.cmml" xref="alg1.l20.m1.1.2.3.1">
+           </times>
+           <ci id="alg1.l20.m1.1.2.3.2.cmml" xref="alg1.l20.m1.1.2.3.2">
+            𝑐
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.3.cmml" xref="alg1.l20.m1.1.2.3.3">
+            𝑜
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.4.cmml" xref="alg1.l20.m1.1.2.3.4">
+            𝑛
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.5.cmml" xref="alg1.l20.m1.1.2.3.5">
+            𝑡
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.6.cmml" xref="alg1.l20.m1.1.2.3.6">
+            𝑒
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.7.cmml" xref="alg1.l20.m1.1.2.3.7">
+            𝑥
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.8.cmml" xref="alg1.l20.m1.1.2.3.8">
+            𝑡
+           </ci>
+           <ci id="alg1.l20.m1.1.2.3.9.cmml" xref="alg1.l20.m1.1.2.3.9">
+            𝑠
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l20.m1.1c">
+         records[\mathbf{x}]\leftarrow contexts
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l21">
+      <span class="ltx_text ltx_font_bold" id="alg1.l21.1">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l21.2">
+       for
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l22">
+      Store
+      <math alttext="records" class="ltx_Math" display="inline" id="alg1.l22.m1.1">
+       <semantics id="alg1.l22.m1.1a">
+        <mrow id="alg1.l22.m1.1.1" xref="alg1.l22.m1.1.1.cmml">
+         <mi id="alg1.l22.m1.1.1.2" xref="alg1.l22.m1.1.1.2.cmml">
+          r
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.3" xref="alg1.l22.m1.1.1.3.cmml">
+          e
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.4" xref="alg1.l22.m1.1.1.4.cmml">
+          c
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1b" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.5" xref="alg1.l22.m1.1.1.5.cmml">
+          o
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1c" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.6" xref="alg1.l22.m1.1.1.6.cmml">
+          r
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1d" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.7" xref="alg1.l22.m1.1.1.7.cmml">
+          d
+         </mi>
+         <mo id="alg1.l22.m1.1.1.1e" lspace="0em" rspace="0em" xref="alg1.l22.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l22.m1.1.1.8" xref="alg1.l22.m1.1.1.8.cmml">
+          s
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l22.m1.1b">
+         <apply id="alg1.l22.m1.1.1.cmml" xref="alg1.l22.m1.1.1">
+          <times id="alg1.l22.m1.1.1.1.cmml" xref="alg1.l22.m1.1.1.1">
+          </times>
+          <ci id="alg1.l22.m1.1.1.2.cmml" xref="alg1.l22.m1.1.1.2">
+           𝑟
+          </ci>
+          <ci id="alg1.l22.m1.1.1.3.cmml" xref="alg1.l22.m1.1.1.3">
+           𝑒
+          </ci>
+          <ci id="alg1.l22.m1.1.1.4.cmml" xref="alg1.l22.m1.1.1.4">
+           𝑐
+          </ci>
+          <ci id="alg1.l22.m1.1.1.5.cmml" xref="alg1.l22.m1.1.1.5">
+           𝑜
+          </ci>
+          <ci id="alg1.l22.m1.1.1.6.cmml" xref="alg1.l22.m1.1.1.6">
+           𝑟
+          </ci>
+          <ci id="alg1.l22.m1.1.1.7.cmml" xref="alg1.l22.m1.1.1.7">
+           𝑑
+          </ci>
+          <ci id="alg1.l22.m1.1.1.8.cmml" xref="alg1.l22.m1.1.1.8">
+           𝑠
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l22.m1.1c">
+         records
+        </annotation>
+       </semantics>
+      </math>
+      in data files
+     </div>
+     <div class="ltx_listingline" id="alg1.l23">
+      <span class="ltx_text ltx_font_bold" id="alg1.l23.1">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l23.2">
+       procedure
+      </span>
+     </div>
+    </div>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="A1.SS1.p1.1.1">
+      Prompt 1:
+     </span>
+     Set agent’s role
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p2">
+    <svg class="ltx_picture" height="37.46" id="A1.SS1.p2.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,37.46) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 0 L 0 37.46 L 600 37.46 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 0 0 L 0 37.46 L 600 37.46 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 19.68 11.81)">
+       <foreignobject color="#000000" height="13.84" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="560.63">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A1.SS1.p2.pic1.1.1.1.1.1" style="width:405.2pt;">
+         <span class="ltx_p" id="A1.SS1.p2.pic1.1.1.1.1.1.1">
+          You are an agent moving in a one-dimensional space. [Personality Description]
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p3">
+    <p class="ltx_p" id="A1.SS1.p3.1">
+     Notice that the placeholder
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p3.1.1">
+      [Personality Description]
+     </span>
+     may either remain empty or be dynamically replaced with one of the following personality traits:
+    </p>
+    <ul class="ltx_itemize" id="A1.I1">
+     <li class="ltx_item" id="A1.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="A1.I1.i1.p1">
+       <p class="ltx_p" id="A1.I1.i1.p1.1">
+        You are an extremely stubborn person, prefer to remain stationary.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="A1.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="A1.I1.i2.p1">
+       <p class="ltx_p" id="A1.I1.i2.p1.1">
+        You are an extremely suggestible person, prefer to move to someone else’s position.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p4">
+    <p class="ltx_p" id="A1.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="A1.SS1.p4.1.1">
+      Prompt 2:
+     </span>
+     Prompt at round 0
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p5">
+    <p class="ltx_p" id="A1.SS1.p5.1">
+     In a scenario involving two agents:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p6">
+    <svg class="ltx_picture" height="69.13" id="A1.SS1.p6.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,69.13) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 0 L 0 69.13 L 600 69.13 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 0 0 L 0 69.13 L 600 69.13 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 19.68 11.81)">
+       <foreignobject color="#000000" height="45.51" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="560.63">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A1.SS1.p6.pic1.1.1.1.1.1" style="width:405.2pt;">
+         <span class="ltx_p" id="A1.SS1.p6.pic1.1.1.1.1.1.1">
+          Another agent is present in the space, and you need to gather. Your position is: […] and the other agent’s position is: […]."You need to choose a position to move to in order to gather, and briefly explain the reasoning behind your decision.
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p7">
+    <p class="ltx_p" id="A1.SS1.p7.1">
+     In scenarios with more than two agents:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p8">
+    <svg class="ltx_picture" height="69.13" id="A1.SS1.p8.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,69.13) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 0 L 0 69.13 L 600 69.13 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 0 0 L 0 69.13 L 600 69.13 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 19.68 11.81)">
+       <foreignobject color="#000000" height="45.51" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="560.63">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A1.SS1.p8.pic1.1.1.1.1.1" style="width:405.2pt;">
+         <span class="ltx_p" id="A1.SS1.p8.pic1.1.1.1.1.1.1">
+          There are many other agents in the space, you all need to gather at the same position, your position is: […], other people’s positions are: […].You need to choose a position to move to in order to gather, and briefly explain the reasoning behind your decision.
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p9">
+    <p class="ltx_p" id="A1.SS1.p9.1">
+     <span class="ltx_text ltx_font_bold" id="A1.SS1.p9.1.1">
+      Prompt 3:
+     </span>
+     Prompt after round 0
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p10">
+    <p class="ltx_p" id="A1.SS1.p10.1">
+     In a scenario involving two agents:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p11">
+    <svg class="ltx_picture" height="52.16" id="A1.SS1.p11.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,52.16) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 0 L 0 52.16 L 600 52.16 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 0 0 L 0 52.16 L 600 52.16 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 19.68 11.81)">
+       <foreignobject color="#000000" height="28.54" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="560.63">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A1.SS1.p11.pic1.1.1.1.1.1" style="width:405.2pt;">
+         <span class="ltx_p" id="A1.SS1.p11.pic1.1.1.1.1.1.1">
+          You have moved to
+          <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p11.pic1.1.1.1.1.1.1.1">
+           [...]
+          </span>
+          , and the latest position of another agent is:
+          <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p11.pic1.1.1.1.1.1.1.2">
+           [...]
+          </span>
+          .,
+please choose the position you want to move to next.
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p12">
+    <p class="ltx_p" id="A1.SS1.p12.1">
+     In scenarios with more than two agents:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p13">
+    <svg class="ltx_picture" height="51.43" id="A1.SS1.p13.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,51.43) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 0 L 0 51.43 L 600 51.43 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 0 0 L 0 51.43 L 600 51.43 L 600 0 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 19.68 11.81)">
+       <foreignobject color="#000000" height="27.81" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="560.63">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A1.SS1.p13.pic1.1.1.1.1.1" style="width:405.2pt;">
+         <span class="ltx_p" id="A1.SS1.p13.pic1.1.1.1.1.1.1">
+          You have now moved to
+          <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p13.pic1.1.1.1.1.1.1.1">
+           [...]
+          </span>
+          , the positions of other agents are
+          <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p13.pic1.1.1.1.1.1.1.2">
+           [...]
+          </span>
+          ,
+please choose the position you want to move to next
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS1.p14">
+    <p class="ltx_p" id="A1.SS1.p14.1">
+     Details can be found on the project website:
+     <a class="ltx_ref ltx_href" href="https://westlakeintelligentrobotics.github.io/ConsensusLLM/" target="_blank" title="">
+      westlakeintelligentrobotics.github.io/ConsensusLLM/
+     </a>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.2
+    </span>
+    Hallucination in the personality experiments
+   </h3>
+   <div class="ltx_para ltx_noindent" id="A1.SS2.p1">
+    <p class="ltx_p" id="A1.SS2.p1.1">
+     The agents may occasionally misunderstand its personality due to hallucination. There are instances, as shown in Figure
+     <a class="ltx_ref" href="#A1.F11" title="Figure 11 ‣ A.2 Hallucination in the personality experiments ‣ Appendix A Appendix ‣ Multi-Agent Consensus Seeking via Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       11
+      </span>
+     </a>
+     , where agents act against their inherent personalities to accomplish the task of gathering.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F11">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="A1.F11.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="113" id="A1.F11.sf1.g1" src="/html/2310.20151/assets/x22.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((a))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_1">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="A1.F11.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="183" id="A1.F11.sf2.g1" src="/html/2310.20151/assets/x23.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         ((b))
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 11:
+     </span>
+     Figure (a) illustrates a special scenario with 2 agents, where both agents have suggestible personalities, yet they might choose to remain stationary. In Figure (b), a special scenario with 10 agents is depicted, where even if the agents have stubborn personalities, they might still move to different positions to enhance the likelihood of completing the aggregation task.
+    </figcaption>
+   </figure>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+ <div about="" class="ltx_rdf" content="Anonymous Submission" property="dcterms:creator">
+ </div>
+ <div about="" class="ltx_rdf" property="dcterms:subject">
+ </div>
+ <div about="" class="ltx_rdf" content="Proceedings of the 7th Conference on Robot Learning (CoRL 2023)" property="dcterms:subject">
+ </div>
+ <div about="" class="ltx_rdf" property="dcterms:title">
+ </div>
+</article>

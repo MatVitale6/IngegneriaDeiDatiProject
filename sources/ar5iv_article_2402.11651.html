@@ -1,0 +1,3287 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  Learning From Failure: Integrating Negative Examples when Fine-tuning
+  <br class="ltx_break"/>
+  Large Language Models as Agents
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Renxi Wang
+    <sup class="ltx_sup" id="id1.1.id1">
+     1,2
+    </sup>
+    Haonan Li
+    <sup class="ltx_sup" id="id2.2.id2">
+     1,2
+    </sup>
+    Xudong Han
+    <sup class="ltx_sup" id="id3.3.id3">
+     1,2
+    </sup>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="id4.4.id4">
+     Yixuan Zhang
+     <sup class="ltx_sup" id="id4.4.id4.1">
+      1,2
+     </sup>
+    </span>
+    <span class="ltx_text ltx_font_bold" id="id5.5.id5">
+     Timothy Baldwin
+     <sup class="ltx_sup" id="id5.5.id5.1">
+      1,2,3
+     </sup>
+    </span>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id6.6.id6">
+     1
+    </sup>
+    LibrAI
+    <sup class="ltx_sup" id="id7.7.id7">
+     2
+    </sup>
+    MBZUAI
+    <sup class="ltx_sup" id="id8.8.id8">
+     3
+    </sup>
+    The University of Melbourne
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id9.9.id9">
+     {renxi.wang,haonan.li,xudong.han,yixuan.zhang,timothy.baldwin}@mbzuai.ac.ae
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id10.id1">
+   Large language models (LLMs) have achieved success in acting as agents, which interact with environments through tools like search engines. However, LLMs are not optimized specifically for tool use during training or alignment, limiting their effectiveness as agents. To resolve this problem, previous work has collected interaction trajectories between GPT-4 and environments, and fine-tuned smaller models with them.
+As part of this, the standard approach has been to simply discard trajectories that do not finish the task successfully, which, on the one hand, leads to a significant waste of data and resources, and on the other hand, has the potential to limit the possible optimization paths during fine-tuning.
+In this paper, we contend that large language models can learn from failures through appropriate data cleaning and fine-tuning strategies. We conduct experiments on mathematical reasoning, multi-hop question answering, and strategic question answering tasks.
+Experimental results demonstrate that compared to solely using positive examples, incorporating negative examples enhances model performance by a large margin.
+   <span class="ltx_note ltx_role_footnote" id="footnote1">
+    <sup class="ltx_note_mark">
+     1
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       1
+      </span>
+      Code and data are available at:
+      <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/Reason-Wang/NAT" target="_blank" title="">
+       https://github.com/Reason-Wang/NAT
+      </a>
+      .
+     </span>
+    </span>
+   </span>
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.1">
+   <p class="ltx_p" id="p1.1.1">
+    <span class="ltx_text ltx_font_bold" id="p1.1.1.1">
+     Learning From Failure: Integrating Negative Examples when Fine-tuning
+     <br class="ltx_break"/>
+     Large Language Models as Agents
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.1.2" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.1.2.1" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.2.1.1">
+      <span class="ltx_tr" id="p1.1.2.1.1.1">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.1.1.1.1.1">
+         Renxi Wang
+         <sup class="ltx_sup" id="p1.1.2.1.1.1.1.1.1">
+          1,2
+         </sup>
+         Haonan Li
+         <sup class="ltx_sup" id="p1.1.2.1.1.1.1.1.2">
+          1,2
+         </sup>
+         Xudong Han
+         <sup class="ltx_sup" id="p1.1.2.1.1.1.1.1.3">
+          1,2
+         </sup>
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.1.1.2">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.2.1">
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.1.1.2.1.1">
+         Yixuan Zhang
+         <sup class="ltx_sup" id="p1.1.2.1.1.2.1.1.1">
+          1,2
+         </sup>
+        </span>
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.1.1.2.1.2">
+         Timothy Baldwin
+         <sup class="ltx_sup" id="p1.1.2.1.1.2.1.2.1">
+          1,2,3
+         </sup>
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.1.1.3">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.3.1">
+        <sup class="ltx_sup" id="p1.1.2.1.1.3.1.1">
+         1
+        </sup>
+        LibrAI
+        <sup class="ltx_sup" id="p1.1.2.1.1.3.1.2">
+         2
+        </sup>
+        MBZUAI
+        <sup class="ltx_sup" id="p1.1.2.1.1.3.1.3">
+         3
+        </sup>
+        The University of Melbourne
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.1.1.4">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.4.1">
+        <span class="ltx_text ltx_font_typewriter" id="p1.1.2.1.1.4.1.1">
+         {renxi.wang,haonan.li,xudong.han,yixuan.zhang,timothy.baldwin}@mbzuai.ac.ae
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    An agent is a model which has the ability to interact with an environment, make decisions, and achieve predefined goals
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wooldridge,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      1999
+     </a>
+     )
+    </cite>
+    .
+Early work used rule-based or template-based systems to complete tasks in narrow and specialized domains
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Green Jr et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      1961
+     </a>
+     ; Weizenbaum,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      1966
+     </a>
+     )
+    </cite>
+    .
+Recent work has taken powerful LLMs such as GPT-4
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Achiam et al.,
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    ans used them as the core of an agent system to process information and make decisions
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Gravitas,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2024
+     </a>
+     ; Yoheinakajima,
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+This line of work has resulted in agent systems that are able to do much more complex and general tasks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    However, these models rely on closed models through paid APIs, raising concerns about cost, latency, and reproducibility. Additionally, existing LLMs were not developed for agent use cases (e.g., generating actions), and few-shot prompting offers only limited learning support
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chen et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Subsequent work has explored fine-tuning LLMs as agents, typically in three stages: data collection, fine-tuning, and inference
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chen et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     ; Zeng et al.,
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     ; Yin et al.,
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     ; Qiao et al.,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+At the data collection stage, a powerful LLM such as GPT-4 is employed to interact with the environment, and the LLM-generated outputs and environment observations are collected as trajectories. In the fine-tuning stage, smaller models are fine-tuned using only successful trajectories. The fine-tuned models then serve as the agent’s core during inference, demonstrating enhanced tool-using and decision-making capabilities, sometimes even surpassing the performance of the original LLM.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    To ensure the agent is being optimized appropriately, previous work has simply discard trajectories that do not successfully complete the task, using only successful trajectories in the fine-tuning stage.
+However, in tasks demanding intricate planning, reasoning, or tool usage, the volume of discarded negative samples can exceed 60%, leading to substantial data and computational resource wastage.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    In this paper, we explore two key questions: (1) Can LLMs learn from negative examples through fine-tuning? and (2) How can we optimize the use of negative examples to enhance agent performance? To address the first question, we fine-tune LLMs with a mix of positive and negative examples, and observe that incorporating negative examples generally yields benefits.
+For the second question, we introduce a negative-aware training (NAT) approach that explicitly instructs the model to differentiate between correct and incorrect interactions. Our experiments demonstrate that NAT outperforms traditional methods that solely use positive examples or naively combine positive and negative examples.
+In addition, we conduct extensive experiments to analyze the learned agents’ behavior when fine-tuning with negative examples. We find that LLMs implicitly learn a lot from negative samples when combined with positive ones.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our contributions can be summarized as follows:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We demonstrate the value of negative trajectories and introduce a negative-aware training approach, allowing LLM-based trained agents to effectively learn from both positive and negative examples.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       We validate the broad applicability and effectiveness of learning from negative examples, and show that it enables models to acquire information akin to positive examples across various tasks and prompting strategies.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="167" id="S1.F1.g1" src="/html/2402.11651/assets/x1.png" width="415"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Illustration of negative-aware training (NAT).
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="S1.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="331" id="S1.F2.g1" src="/html/2402.11651/assets/x2.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Example of positive (left) and negative (right) trajectories obtained from the GSM8K dataset.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Fine-tuning LLMs as Agents
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Previous work on language agents has taken a powerful LLM as the core of the agent system without fine-tuning
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Sumers et al. (
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2023
+      </a>
+      ); Wu et al. (
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       2023
+      </a>
+      ); Ruan et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023
+      </a>
+      ); Zhao et al. (
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . However, LLMs are optimized to generate natural language. To make them capable of using tools and making decisions, current work typically collects trajectories generated by GPT-3.5/4, then uses only successful trajectories to fine-tune a smaller LLM.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Zeng et al. (
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     collect trajectories generated by GPT-4 on AgentBench
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Liu et al.,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2023
+      </a>
+      )
+     </cite>
+     tasks, and only keep samples that received the best rewards.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Chen et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      )
+     </cite>
+     collect trajectories on question answering tasks and fine-tune models with samples that correctly answered the question.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Liu et al. (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2024
+      </a>
+      )
+     </cite>
+     propose a memory-enhanced agent framework and a complex filtering mechanism to collect fine-tuning datasets.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Qiao et al. (
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2024
+      </a>
+      )
+     </cite>
+     divide an agent into sub-agents with different functions. They then synthesize trajectories for these agents respectively. However, they still only use samples with the best rewards. Although a simple ablation study is done by
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Zeng et al. (
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , none of them has investigated the effectiveness of negative samples in detail.
+Although not directly comparable, in Table
+     <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2.2 Learning from Negative Trajectories ‣ 2 Related Work ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , we compare the methods of these papers with the ours on several main benchmarks.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Learning from Negative Trajectories
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Learning from negative trajectories can be divided into prompting-only and fine-tuning-based methods. Prompting-based methods enable LLMs to summarize experiences from previous mistakes without updating parameters.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Madaan et al. (
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2023
+      </a>
+      )
+     </cite>
+     use LLMs to first generate an output and then refine the output iteratively, while
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Shinn et al. (
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2023
+      </a>
+      )
+     </cite>
+     employ an evaluator to provide external feedback.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Zhao et al. (
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       2023
+      </a>
+      )
+     </cite>
+     let the agent compare successful and unsuccessful trajectories, and extract insights based on comparison. The success of these methods relies on the quality of the evaluator used to analyze the trajectories. The performance of fine-tuning-based methods is less predictable since model weights are updated, and less work has been done on this.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Li et al. (
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2023
+      </a>
+      )
+     </cite>
+     propose a two-stage training paradigm to capture knowledge from negative samples. However, their method focuses on Chain-of-Thought prompts and is complex since multiple models are fine-tuned. Our work focuses on the fine-tuning-based method and is both much simpler and more effective.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S2.T1">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S2.T1.1" style="width:433.6pt;height:294.2pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(97.4pt,-66.1pt) scale(1.81610018264072,1.81610018264072) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S2.T1.1.1">
+       <tr class="ltx_tr" id="S2.T1.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S2.T1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.1.1.1">
+          Model
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.1.2.1">
+          GSM8K
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.1.3.1">
+          SVAMP
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S2.T1.1.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.1.4.1">
+          HotpotQA
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.1.1.2.1">
+         AutoAct-7B
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.2.2">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.2.3">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.2.4">
+         29.2
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.3">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.1.3.1">
+         AgentLM-7B
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.3.2">
+         24.6
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.3.3">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.3.4">
+         22.3
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.4">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.1.4.1">
+         Lumos-O-7B
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.4.2">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.4.2.1">
+          50.5
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.4.3">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.4.3.1">
+          65.5
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.4.4">
+         24.9
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.5">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.1.5.1">
+         Lumos-I-7B
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.5.2">
+         47.1
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.5.3">
+         63.6
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.5.4">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S2.T1.1.1.5.4.1">
+          29.4
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.6">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.1.6.1">
+         NAT-7B
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.6.2">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S2.T1.1.1.6.2.1">
+          49.1
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.6.3">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S2.T1.1.1.6.3.1">
+          64.4
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.6.4">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.6.4.1">
+          29.8
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.7">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.1.1.7.1">
+         CodeLlama-13B
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.7.2">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S2.T1.1.1.7.2.1">
+          36.1
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.7.3">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S2.T1.1.1.7.3.1">
+          60.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.7.4">
+         –
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.8">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.1.8.1">
+         AgentLM-13B
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.8.2">
+         32.4
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.8.3">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S2.T1.1.1.8.4">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.8.4.1">
+          29.6
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.1.9">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.1.1.9.1">
+         NAT-13B
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S2.T1.1.1.9.2">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.9.2.1">
+          53.8
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S2.T1.1.1.9.3">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.9.3.1">
+          70.6
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S2.T1.1.1.9.4">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.1.1.9.4.1">
+          29.6
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Comparison with methods from other papers. We report the best results reported in the corresponding papers.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Negative-Aware Training
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Background
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     As shown in Figure
+     <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , in our agent framework, the process of task resolution is delineated as follows. First, the LLM is provided with an initial prompt that outlines (a) the specific task to be addressed (for instance,
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.1">
+      solve a mathematical problem
+     </span>
+     ), (b) the tools that are permissible for task execution, and (c) the expected action space and output format (for example,
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.2">
+      finish[N]
+     </span>
+     signifies that
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.3">
+      N
+     </span>
+     is the final answer). See the example in Figure
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .
+Second, an instance is introduced, prompting the model to generate an initial series of “thoughts” and actions. Finally, during the interaction phase, the system executes the LLM-generated actions using the predefined tools, returns the resulting observations back to the LLM, and prompts for subsequent actions until the finished action of the task is generated, or the interaction rounds exceeds a pre-defined threshold.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Naturally, the task-solving process yields interaction trajectories between the LLM and the environment (i.e., tools in our framework). Prior research has demonstrated that fine-tuning the LLM with successful interaction trajectories can significantly enhance its problem-solving capabilities
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chen et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      ); Zeng et al. (
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     In this study, we propose to use not only positive examples (i.e., trajectories that lead to successful task resolution), but also negative samples (i.e., trajectories that fail to resolve the task).
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Motivation
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Our idea is motivated by two considerations. First, humans learn from failure, because it provides valuable lessons that contribute to personal growth and improvement. Failure is often seen as a stepping stone to success, as it offers insights into what doesn’t work and highlights areas that require change or development.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     Second, even the most advanced LLMs such as GPT-4 produce unsuccessful trajectories in over 50% of attempts when acting as an agent to solve simple mathematical reasoning questions. Simply discarding these trajectories leads to a waste of computational resources, and ignores potentially valuable supervision signal.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Proposed Approach
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     Our method can be structured into four phases, as detailed below: (1) data collection, (2) data cleaning, (3) negative-aware reformatting, and (4) fine-tuning.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS3.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Data collection
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS3.SSS0.Px1.p1.1">
+      For each task, we obtain the initial questions and corresponding ground truth answers as seed data. We then use an LLM to generate trajectories three times, each with different temperatures (0.2, 0.5, and 0.7). This allows us to gather a diverse range of positive samples while experimenting with various negative sample collection strategies. In this paper, we use GPT-3.5-1106 to generate high-quality trajectories.
+      <span class="ltx_note ltx_role_footnote" id="footnote2">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          2
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          2
+         </span>
+         Although GPT-4 has the potential to produce even higher quality data, we opted for GPT-3.5 due to cost considerations.
+        </span>
+       </span>
+      </span>
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS3.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Data cleaning
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS3.SSS0.Px2.p1.1">
+      We contend that certain negative samples are beneficial for fine-tuning models, while others may be harmful. Therefore, data cleaning plays a vital role in our approach. Given the variability across tasks, we adopted task-specific data-cleaning criteria and methodologies, which we detail in the experimental setup of each task.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS3.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Negative-aware reformatting
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS3.SSS0.Px3.p1.1">
+      Differentiating positive samples from negative samples during the agent tuning process aids in teaching the model to discern between successful and unsuccessful outcomes. We frame this as implicit contrastive learning, to help the model learn from both success and failure. Therefore, before fine-tuning, we concatenate different prompts to positive and negative trajectories, to differentiate them to the model.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS3.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Fine-tuning
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS0.Px4.p1">
+     <p class="ltx_p" id="S3.SS3.SSS0.Px4.p1.1">
+      After negative-aware reformatting, we use the reformatted trajectories to fine-tune an LLM, which we call negative-aware training (NAT). The loss is computed only on the part of the text generated by the LLM, as seen in Figure
+      <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      in the blue boxes.
+As an ablation, for all tasks, we also fine-tune the models on the dataset without negative-aware reformatting, where the positive and negative examples are concatenated with the same prompt. We name this training process negative-unaware training (NUT).
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS3.SSS0.Px5">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Inference
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS0.Px5.p1">
+     <p class="ltx_p" id="S3.SS3.SSS0.Px5.p1.1">
+      During inference, we prompt the fine-tuned agent using the prompt for positive examples only.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Experimental Setup
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     Following prior work
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      ; Yin et al.,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , we conduct experiments on mathematical reasoning, multi-hop question answering, and strategic question answering tasks, using GSM8k
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Cobbe et al. (
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2021
+      </a>
+      )
+     </cite>
+     , HotpotQA
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Yang et al. (
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2018
+      </a>
+      )
+     </cite>
+     , and StrategyQA
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Geva et al. (
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       2021
+      </a>
+      )
+     </cite>
+     , respectively.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS4.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Agent Framework
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS4.SSS0.Px1.p1.1">
+      We use
+      <span class="ltx_text ltx_font_typewriter" id="S3.SS4.SSS0.Px1.p1.1.1">
+       ReAct
+      </span>
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Yao et al.,
+       <a class="ltx_ref" href="#bib.bib28" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , which consists of interleaving “thoughts” and actions. During inference, an observation from the environment is given to the model. The model first generates a “thought”, which is plain-text reasoning based on the observation as to what it should do next. Then, it generates an action, which is what the tools use in agent scenarios.
+We also experiment with Chain-of-Thought
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Wei et al.,
+       <a class="ltx_ref" href="#bib.bib23" title="">
+        2022
+       </a>
+       )
+      </cite>
+      prompting in
+      <a class="ltx_ref" href="#S6" title="6 Chain-of-Thought Prompting ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Section
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        6
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS4.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Tools
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS4.SSS0.Px2.p1.1">
+      For math tasks, we design a calculator implemented by SymPy
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Meurer et al.,
+       <a class="ltx_ref" href="#bib.bib13" title="">
+        2017
+       </a>
+       )
+      </cite>
+      , which takes a math expression as input and outputs the result. For the two question-answering tasks, we design a search tool for the Serper API. It takes a search query as input and returns the Google search results. We further re-rank the search results using MPNet
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Song et al.,
+       <a class="ltx_ref" href="#bib.bib21" title="">
+        2020
+       </a>
+       )
+      </cite>
+      and DPR
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Karpukhin et al.,
+       <a class="ltx_ref" href="#bib.bib7" title="">
+        2020
+       </a>
+       )
+      </cite>
+      .
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS4.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Fine-tuning Setup
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS4.SSS0.Px3.p1.2">
+      We conduct experiments on LLaMA-2-Chat 7B and 13B models.
+All the models are fine-tuned for 2 epochs with a batch size of 64. We use a cosine scheduler with 3% of total steps as the warm-up. The maximum learning rate is set to
+      <math alttext="5\times 10^{-5}" class="ltx_Math" display="inline" id="S3.SS4.SSS0.Px3.p1.1.m1.1">
+       <semantics id="S3.SS4.SSS0.Px3.p1.1.m1.1a">
+        <mrow id="S3.SS4.SSS0.Px3.p1.1.m1.1.1" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.cmml">
+         <mn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.2" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.2.cmml">
+          5
+         </mn>
+         <mo id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.1" lspace="0.222em" rspace="0.222em" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.1.cmml">
+          ×
+         </mo>
+         <msup id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.cmml">
+          <mn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.2" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.2.cmml">
+           10
+          </mn>
+          <mrow id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.cmml">
+           <mo id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3a" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.cmml">
+            −
+           </mo>
+           <mn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.2" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.2.cmml">
+            5
+           </mn>
+          </mrow>
+         </msup>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S3.SS4.SSS0.Px3.p1.1.m1.1b">
+         <apply id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1">
+          <times id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.1.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.1">
+          </times>
+          <cn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.2.cmml" type="integer" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.2">
+           5
+          </cn>
+          <apply id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3">
+           <csymbol cd="ambiguous" id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.1.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3">
+            superscript
+           </csymbol>
+           <cn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.2.cmml" type="integer" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.2">
+            10
+           </cn>
+           <apply id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3">
+            <minus id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.1.cmml" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3">
+            </minus>
+            <cn id="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.2.cmml" type="integer" xref="S3.SS4.SSS0.Px3.p1.1.m1.1.1.3.3.2">
+             5
+            </cn>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS4.SSS0.Px3.p1.1.m1.1c">
+         5\times 10^{-5}
+        </annotation>
+       </semantics>
+      </math>
+      . We train the model with 4
+      <math alttext="\times" class="ltx_Math" display="inline" id="S3.SS4.SSS0.Px3.p1.2.m2.1">
+       <semantics id="S3.SS4.SSS0.Px3.p1.2.m2.1a">
+        <mo id="S3.SS4.SSS0.Px3.p1.2.m2.1.1" xref="S3.SS4.SSS0.Px3.p1.2.m2.1.1.cmml">
+         ×
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S3.SS4.SSS0.Px3.p1.2.m2.1b">
+         <times id="S3.SS4.SSS0.Px3.p1.2.m2.1.1.cmml" xref="S3.SS4.SSS0.Px3.p1.2.m2.1.1">
+         </times>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS4.SSS0.Px3.p1.2.m2.1c">
+         \times
+        </annotation>
+       </semantics>
+      </math>
+      A100 GPUs with DeepSpeed ZeRO 3 stage
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Rajbhandari et al.,
+       <a class="ltx_ref" href="#bib.bib17" title="">
+        2019
+       </a>
+       )
+      </cite>
+      .
+     </p>
+    </div>
+    <figure class="ltx_table" id="S3.T2">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S3.T2.1" style="width:390.3pt;height:214.8pt;vertical-align:-0.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-17.4pt,9.6pt) scale(0.918096298871847,0.918096298871847) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S3.T2.1.1">
+        <tr class="ltx_tr" id="S3.T2.1.1.1">
+         <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T2.1.1.1.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.1.1">
+           Model
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.2.1">
+           # Positive
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.3.1">
+           Strategy
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.4.1">
+           GSM8K
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.5.1">
+           ASDiv
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.6.1">
+           SVAMP
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.7">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.7.1">
+           MultiArith
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.1.1.1.8">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.1.8.1">
+           Average
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.2">
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.1.1.2.1" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.2.1.1">
+           LLama-2-7B
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.2" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.2.2.1">
+           2k
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.3">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.4">
+          35.63
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.5">
+          60.55
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.6">
+          47.40
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.7">
+          80.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.2.8">
+          55.90
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.3">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.1">
+          NUT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.2">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.3.2.1">
+           44.43
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.3">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.3.3.1">
+           65.69
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.4">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.3.4.1">
+           60.40
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.5">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.3.5.1">
+           83.05
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.3.6">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.3.6.1">
+           63.39
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.4">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.1">
+          NAT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.4.2.1">
+           46.93
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.4.3.1">
+           66.93
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.4.4.1">
+           60.80
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.4.5.1">
+           83.89
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.4.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.4.6.1">
+           64.64
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.5">
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.1.1.5.1" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.5.1.1">
+           LLama-2-7B
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.2" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.5.2.1">
+           5k
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.3">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.4">
+          45.87
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.5">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.5.5.1">
+           68.12
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.6">
+          58.80
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.5.7.1">
+           83.89
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.5.8">
+          64.17
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.6">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.1">
+          NUT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.2">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.6.2.1">
+           47.54
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.3">
+          67.03
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.4">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.6.4.1">
+           63.50
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.5">
+          81.71
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.6.6">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.6.6.1">
+           64.95
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.7">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.1">
+          NAT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.7.2.1">
+           49.05
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.7.3.1">
+           68.66
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.7.4.1">
+           64.40
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.7.5.1">
+           87.58
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.7.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.7.6.1">
+           67.42
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.8">
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.1.1.8.1" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.8.1.1">
+           LLama-2-13B
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.2" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.8.2.1">
+           2k
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.3">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.4">
+          44.43
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.5">
+          66.49
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.6">
+          65.40
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.7">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.8.7.1">
+           84.40
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.8.8">
+          65.18
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.9">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.1">
+          NUT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.2">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.9.2.1">
+           49.43
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.3">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.9.3.1">
+           67.72
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.4">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.9.4.1">
+           67.60
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.5">
+          81.37
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.9.6">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.9.6.1">
+           66.53
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.10">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.1">
+          NAT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.10.2.1">
+           50.64
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.10.3.1">
+           67.92
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.10.4.1">
+           68.50
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.5">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.10.5.1">
+           83.89
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.10.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.10.6.1">
+           67.74
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.11">
+         <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S3.T2.1.1.11.1" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.11.1.1">
+           LLama-2-13B
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.1.1.11.2" rowspan="3">
+          <span class="ltx_text" id="S3.T2.1.1.11.2.1">
+           5k
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.3">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.11.4.1">
+           54.21
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.11.5.1">
+           71.28
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.6">
+          68.30
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.11.7.1">
+           89.26
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.1.1.11.8">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.11.8.1">
+           70.76
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.12">
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.1">
+          NUT
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.2">
+          51.40
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.3">
+          70.34
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.4">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.12.4.1">
+           68.60
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.5">
+          86.07
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T2.1.1.12.6">
+          69.10
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T2.1.1.13">
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.1">
+          NAT
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.2">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.13.2.1">
+           53.75
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.3">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.1.1.13.3.1">
+           70.49
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.13.4.1">
+           70.60
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.13.5.1">
+           90.27
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T2.1.1.13.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T2.1.1.13.6.1">
+           71.28
+          </span>
+         </td>
+        </tr>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 2:
+      </span>
+      Overall results for math tasks. Each block is a setting with a specific model and number of positive examples. The best results are
+      <span class="ltx_text ltx_font_bold" id="S3.T2.4.1">
+       bolded
+      </span>
+      and second best results are
+      <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T2.5.2">
+       underlined
+      </span>
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Math Reasoning
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Datasets
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     For mathematical reasoning tasks, we use a dataset of approximately 7k instances from the GSM8K training set as initial seed data, and generate three trajectories with GPT-3.5, as mentioned in Section
+     <a class="ltx_ref" href="#S3.SS3" title="3.3 Proposed Approach ‣ 3 Negative-Aware Training ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       3.3
+      </span>
+     </a>
+     . This process results in a collection of around 9k positive examples and 12k negative examples. Among the positive examples, 5k are unique, indicating that despite multiple attempts, GPT-3.5 fails to solve 2k out of the 7k original questions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     For our experiments, we incorporate 5k unique positive examples from GSM8K to emulate all available positive examples having been generated by GPT-3.5. Additionally, we created a simulated limited dataset using the 2k positive examples generated by ChatGPT. In both scenarios, we include 10k negative examples.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     We evaluate different models and training strategies on four test datasets:
+GSM8K
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Cobbe et al.,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2021
+      </a>
+      )
+     </cite>
+     , a high-quality school math word problem dataset containing 1,319 examples (test set), each requiring 2–8 steps to solve;
+ASDiv
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Miao et al.,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2020
+      </a>
+      )
+     </cite>
+     , a math word problem dataset that contains 2,023 examples with diverse language patterns and problem types.
+SVAMP
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Patel et al.,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2021
+      </a>
+      )
+     </cite>
+     , a challenge set of math word problems with 1k examples based on perturbing existing datasets
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Miao et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2020
+      </a>
+      ); Koncel-Kedziorski et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2016
+      </a>
+      )
+     </cite>
+     .
+MultiArith
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Roy and Roth,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2015
+      </a>
+      )
+     </cite>
+     , a multi-step arithmetic problem dataset with 596 examples.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Results
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     Table
+     <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ Fine-tuning Setup ‣ 3.4 Experimental Setup ‣ 3 Negative-Aware Training ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     presents the overall results of the math tasks, from which we observe:
+(1) In the first three settings (out of four), incorporating negative examples improves model performance on almost all test sets;
+(2) In all four settings, models with negative-aware training (NAT) not only outperform the corresponding model trained only on positive examples, but also beat the same model trained with negative-unaware training (NUT); and
+(3) The improvement of NAT is more substantial when there are fewer positive examples or the model is smaller. Specifically, NAT achieves an 8.74 improvement when using a 7B model with 2k positive examples, and a 0.52 improvement when using a 13B model with 5k positive examples. This highlights the value of NAT in data-scarce scenarios, which is common for agent tuning.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     It is worth noting that previous work
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Zeng et al.,
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     has shown that including negative examples harms model performance. We believe this does not contradict our findings: as we discuss in Section
+     <a class="ltx_ref" href="#S4.SS3" title="4.3 Analysis ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       4.3
+      </span>
+     </a>
+     , performance change is determined by the quality of the negative data.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="288" id="S4.F3.g1" src="/html/2402.11651/assets/x3.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Performance of LLaMA-2-7B for a fixed number of positive samples and variable number of negative samples.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S4.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="275" id="S4.F4.g1" src="/html/2402.11651/assets/x4.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Performance for a fixed number of negative samples (10k) and variable number of positive samples.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Analysis
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Table
+     <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ Fine-tuning Setup ‣ 3.4 Experimental Setup ‣ 3 Negative-Aware Training ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     showcases the capability of LLMs to learn from negative examples when fine-tuned to function as agents. Here, we delve into various factors that could influence the effectiveness of negative-aware training. Specifically, we seek to address the following questions: (1) Given a fixed number of positive examples, how much negative data should be used? (2) What insights does the model gain from negative trajectories? (3) Are all types of negative examples beneficial? and (4) What factors contribute to negative-aware training (NAT) outperforming negative-unaware training (NUT)?
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS3.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Impact of training sample quantity
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px1.p1.1">
+      Our initial analysis focuses on the influence of negative sample quantity. We maintain a constant number of positive samples at 2k or 5k, while adjusting the negative samples from 0 to 12k. The results, depicted in
+      <a class="ltx_ref" href="#S4.F3" title="In 4.2 Results ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Figure
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      , illustrate the relationship between the quantity of negative data and average math task performance. We observe a performance enhancement with an increase in negative data, which plateaus when the volume of negative samples is about 11k in both cases. Due to data availability, we did not experiment with more negatives.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px1.p2">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px1.p2.1">
+      Based on insights from
+      <a class="ltx_ref" href="#S3.T2" title="In Fine-tuning Setup ‣ 3.4 Experimental Setup ‣ 3 Negative-Aware Training ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Table
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      and
+      <a class="ltx_ref" href="#S4.F3" title="In 4.2 Results ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Figure
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      , we hypothesize that the ideal ratio of negative samples is not fixed. Instead, it is influenced by two main factors: (1) the saturation point of positive sample utility (i.e., the threshold beyond which additional positive samples cease to enhance model performance) and the actual volume of positive samples; and (2) the intrinsic quality of the negative samples.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px1.p3">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px1.p3.1">
+      Regarding the first point, we hypothesize that the marginal utility of negative samples diminishes as the quantity of positive samples increases. To test this point, we maintain a constant number of negative samples while varying the quantity of positive samples from 0 to 5k. As depicted in
+      <a class="ltx_ref" href="#S4.F4" title="In 4.2 Results ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Figure
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      , there is a diminishing return on the value added by negative samples as the count of positive samples rises.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T3">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.1" style="width:433.6pt;height:256.3pt;vertical-align:-0.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(79.8pt,-47.2pt) scale(1.58231143467639,1.58231143467639) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S4.T3.1.1">
+        <tr class="ltx_tr" id="S4.T3.1.1.1">
+         <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T3.1.1.1.1">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.1.1">
+           Data
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.1.2">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.2.1">
+           GSM8K
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.1.3">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.3.1">
+           ASDiv
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.1.4">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.4.1">
+           SVAMP
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.1.5">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.5.1">
+           MArith
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.1.6">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.6.1">
+           Avg
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.2">
+         <td class="ltx_td ltx_align_left ltx_border_t" colspan="5" id="S4.T3.1.1.2.1">
+          2K positive samples
+         </td>
+         <td class="ltx_td ltx_border_t" id="S4.T3.1.1.2.2">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.3">
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.1.3.1">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.3.2">
+          35.63
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.3.3">
+          60.55
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.3.4">
+          47.40
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.3.5">
+          80.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.3.6">
+          55.90
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.4">
+         <td class="ltx_td ltx_align_left" id="S4.T3.1.1.4.1">
+          NAT-low
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.2">
+          32.98
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.3">
+          58.72
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.4">
+          47.60
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.5">
+          71.64
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.6">
+          52.74
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.5">
+         <td class="ltx_td ltx_align_left" id="S4.T3.1.1.5.1">
+          NAT-high
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.2">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.5.2.1">
+           46.93
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.3">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.5.3.1">
+           66.93
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.4">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.5.4.1">
+           60.80
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.5">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.5.5.1">
+           83.89
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.6">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.5.6.1">
+           64.64
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.6">
+         <td class="ltx_td ltx_align_left ltx_border_t" colspan="5" id="S4.T3.1.1.6.1">
+          5K positive samples
+         </td>
+         <td class="ltx_td ltx_border_t" id="S4.T3.1.1.6.2">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.7">
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.1.7.1">
+          w/o Neg
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.7.2">
+          45.87
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.7.3">
+          68.12
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.7.4">
+          58.80
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.7.5">
+          83.89
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.7.6">
+          64.17
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.8">
+         <td class="ltx_td ltx_align_left" id="S4.T3.1.1.8.1">
+          NAT-low
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.8.2">
+          38.59
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.8.3">
+          62.28
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.8.4">
+          52.50
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.8.5">
+          78.52
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.8.6">
+          57.97
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.9">
+         <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T3.1.1.9.1">
+          NAT-high
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.9.2">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.9.2.1">
+           49.05
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.9.3">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.9.3.1">
+           68.66
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.9.4">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.9.4.1">
+           64.40
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.9.5">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.9.5.1">
+           87.58
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.9.6">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.9.6.1">
+           67.42
+          </span>
+         </td>
+        </tr>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 3:
+      </span>
+      LLaMA-2 7B model results trained with different quality negative data. We use 10k negative samples and experiment with 2k or 5k positive samples.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS3.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Data quality matters in negative-aware training
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px2.p1.4">
+      We sourced negative data from various models to investigate the impact of negative data quality in NAT. Specifically, we consider the data from GPT-3.5 as high-quality examples. In contrast, we generated 10k negative examples using a fine-tuned LLaMA-2-7B model to represent low-quality data. For our NAT process, we paired 2k positive examples with 10k negative examples. The outcomes, presented in
+      <a class="ltx_ref" href="#S4.T3" title="In Impact of training sample quantity ‣ 4.3 Analysis ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Table
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      , underscore the critical role of data quality in NAT. In the 2k positive sample setting, the improvement is
+      <math alttext="-" class="ltx_Math" display="inline" id="S4.SS3.SSS0.Px2.p1.1.m1.1">
+       <semantics id="S4.SS3.SSS0.Px2.p1.1.m1.1a">
+        <mo id="S4.SS3.SSS0.Px2.p1.1.m1.1.1" xref="S4.SS3.SSS0.Px2.p1.1.m1.1.1.cmml">
+         −
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px2.p1.1.m1.1b">
+         <minus id="S4.SS3.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S4.SS3.SSS0.Px2.p1.1.m1.1.1">
+         </minus>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px2.p1.1.m1.1c">
+         -
+        </annotation>
+       </semantics>
+      </math>
+      3.16 for low quality compared to
+      <math alttext="+" class="ltx_Math" display="inline" id="S4.SS3.SSS0.Px2.p1.2.m2.1">
+       <semantics id="S4.SS3.SSS0.Px2.p1.2.m2.1a">
+        <mo id="S4.SS3.SSS0.Px2.p1.2.m2.1.1" xref="S4.SS3.SSS0.Px2.p1.2.m2.1.1.cmml">
+         +
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px2.p1.2.m2.1b">
+         <plus id="S4.SS3.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S4.SS3.SSS0.Px2.p1.2.m2.1.1">
+         </plus>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px2.p1.2.m2.1c">
+         +
+        </annotation>
+       </semantics>
+      </math>
+      8.74 for high quality negative examples. Similarly in the 5k positive sample setting, the improvements are
+      <math alttext="-" class="ltx_Math" display="inline" id="S4.SS3.SSS0.Px2.p1.3.m3.1">
+       <semantics id="S4.SS3.SSS0.Px2.p1.3.m3.1a">
+        <mo id="S4.SS3.SSS0.Px2.p1.3.m3.1.1" xref="S4.SS3.SSS0.Px2.p1.3.m3.1.1.cmml">
+         −
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px2.p1.3.m3.1b">
+         <minus id="S4.SS3.SSS0.Px2.p1.3.m3.1.1.cmml" xref="S4.SS3.SSS0.Px2.p1.3.m3.1.1">
+         </minus>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px2.p1.3.m3.1c">
+         -
+        </annotation>
+       </semantics>
+      </math>
+      6.20 and
+      <math alttext="+" class="ltx_Math" display="inline" id="S4.SS3.SSS0.Px2.p1.4.m4.1">
+       <semantics id="S4.SS3.SSS0.Px2.p1.4.m4.1a">
+        <mo id="S4.SS3.SSS0.Px2.p1.4.m4.1.1" xref="S4.SS3.SSS0.Px2.p1.4.m4.1.1.cmml">
+         +
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px2.p1.4.m4.1b">
+         <plus id="S4.SS3.SSS0.Px2.p1.4.m4.1.1.cmml" xref="S4.SS3.SSS0.Px2.p1.4.m4.1.1">
+         </plus>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px2.p1.4.m4.1c">
+         +
+        </annotation>
+       </semantics>
+      </math>
+      3.25, respectively.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F5">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="286" id="S4.F5.g1" src="/html/2402.11651/assets/x5.png" width="461"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 5:
+      </span>
+      Perplexity for the model trained with 2k positive samples and differing numbers of negative samples. The three dashed lines are perplexity computed on models tuned with differing numbers of positive trajectories (without negatives).
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS3.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Negative samples play a similar role as positive samples
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px3.p1.1">
+      To explore what the model learns from negative trajectories, we randomly sample 100 successful trajectories from the training set (as a dev set) and measure the perplexity of models trained with 2k positive examples (not overlapping with the dev set) and varying numbers of negative examples.
+      <a class="ltx_ref" href="#S4.F5" title="In Data quality matters in negative-aware training ‣ 4.3 Analysis ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Figure
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      shows the change in perplexity as the number of negative data increases. The perplexity decreases as more negative data is included, which indicates the model learns to fit successful trajectories with knowledge from failed trajectories. However, this curve seems to be asymptoting towards the end, and there is still a large gap between the curve with 5k positives, which shows that some properties or knowledge from successful trajectories can never be learned from failed trajectories.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T4">
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T4.1">
+      <tr class="ltx_tr" id="S4.T4.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.1.1">
+         Positive
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.2.1">
+         Negative
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T4.1.1.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.3.1">
+         Average
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.1">
+        Correct
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2">
+        Incorrect
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.2.3">
+        63.55
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.3">
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.3.1">
+        Good
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.3.2">
+        Bad
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T4.1.3.3">
+        <span class="ltx_text ltx_framed ltx_framed_underline" id="S4.T4.1.3.3.1">
+         63.91
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.4">
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.4.1">
+        A
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.4.2">
+        B
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T4.1.4.3">
+        63.15
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.5">
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.5.1">
+        Random string 1
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T4.1.5.2">
+        Random string 2
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T4.1.5.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T4.1.5.3.1">
+         64.04
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.6">
+       <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T4.1.6.1">
+        Incorrect
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T4.1.6.2">
+        Correct
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T4.1.6.3">
+        63.33
+       </td>
+      </tr>
+     </table>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 4:
+      </span>
+      Results for models trained on prompts with and without interpretability.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS3.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     NAT works by differentiating positive and negative samples
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS0.Px4.p1">
+     <p class="ltx_p" id="S4.SS3.SSS0.Px4.p1.1">
+      Finally, we explore the role of prompts during negative-aware training. More specifically, does the content of the prompt enable LLMs to learn differently from successful and failed trajectories, or simply differentiate these trajectories?
+We propose two sets of prompts. One set is prompts with interpretability, such as have the model generate a correct or incorrect trajectory. Another set is prompts without interpretability. For example, simply add different letters to the front of positive and negative trajectories.
+      <a class="ltx_ref" href="#S4.T4" title="In Negative samples play a similar role as positive samples ‣ 4.3 Analysis ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Table
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      shows the results of models trained with interpretable and uninterpretable prompts. Different prompts do not show a large difference in performance, indicating that the performance boost of NAT comes from simply differentiating positive and negative data.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Question Answering
+  </h2>
+  <section class="ltx_subsection" id="S5.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.1
+    </span>
+    Datasets
+   </h3>
+   <div class="ltx_para" id="S5.SS1.p1">
+    <p class="ltx_p" id="S5.SS1.p1.1">
+     For question-answering tasks, we collected trajectories based on HotpotQA
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Yang et al.,
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2018
+      </a>
+      )
+     </cite>
+     and StrategyQA
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Geva et al.,
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       2021
+      </a>
+      )
+     </cite>
+     . HotpotQA is a Wikipedia-based question-answering dataset where each question requires several steps of reasoning with supporting passages. We use 4k examples from the training set to generate trajectories. StrategyQA is also a multi-step question-answering dataset but the reasoning steps are implicit. The answer to its question is either yes or no. It consists of 2,780 examples, of which 1k are the training set. We provide examples from both datasets in Appendix
+     <a class="ltx_ref" href="#A1" title="Appendix A Example ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p2">
+    <p class="ltx_p" id="S5.SS1.p2.1">
+     Similar to math tasks, we generate three QA trajectories. As discussed in
+     <a class="ltx_ref" href="#S4.SS3" title="4.3 Analysis ‣ 4 Math Reasoning ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       Section
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       4.3
+      </span>
+     </a>
+     , the quality of negative samples is important for the effectiveness of NAT. For HotpotQA, we filter out trajectories that do not give an answer within a certain number of turns or with a zero f1 score. Finally, we obtain 2k unique positive samples, and 2k negative samples. However, we find that 2k examples is enough for performance to saturate, and that adding more negative samples causes a performance drop. Therefore, we set the number of HotpotQA positive examples to 500 in the following experiments.
+We evaluate the performance of 500 randomly-sampled examples from HotpotQA and StrategyQA.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S5.T5">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S5.T5.1">
+     <tr class="ltx_tr" id="S5.T5.1.1">
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T5.1.1.1" rowspan="2">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.1.1.1">
+        Strategy
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T5.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.1.2.1">
+        7B
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T5.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.1.3.1">
+        13B
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T5.1.2">
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.2.1">
+       EM
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.2.2">
+       F1
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.2.3">
+       EM
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.2.4">
+       F1
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T5.1.3">
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.3.1">
+       w/o Neg
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.3.2">
+       27.44
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.3.3">
+       36.41
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.3.4">
+       27.04
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.3.5">
+       36.95
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T5.1.4">
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.4.1">
+       NUT
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.4.2">
+       28.04
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.4.3">
+       40.96
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.4.4">
+       28.24
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.4.5">
+       42.47
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T5.1.5">
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.5.1">
+       NAT
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.5.2">
+       28.80
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.5.3">
+       41.37
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.5.4">
+       28.44
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T5.1.5.5">
+       42.45
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T5.1.6">
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T5.1.6.1">
+       NAT-2
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T5.1.6.2">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.6.2.1">
+        29.76
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T5.1.6.3">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.6.3.1">
+        42.51
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T5.1.6.4">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.6.4.1">
+        29.60
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T5.1.6.5">
+       <span class="ltx_text ltx_font_bold" id="S5.T5.1.6.5.1">
+        43.29
+       </span>
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 5:
+     </span>
+     Results of LLaMA-2-7B and 13B on HotpotQA. All results are reported as the mean score of 5 runs. For the 7B model, we report results using 1,500 negative samples; for the 13B models, we use 2k negative samples.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S5.T6">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S5.T6.1">
+     <tr class="ltx_tr" id="S5.T6.1.1">
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T6.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="S5.T6.1.1.1.1">
+        Strategy
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T6.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S5.T6.1.1.2.1">
+        7B
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T6.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S5.T6.1.1.3.1">
+        13B
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T6.1.2">
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T6.1.2.1">
+       w/o Neg
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T6.1.2.2">
+       55.40
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T6.1.2.3">
+       53.40
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T6.1.3">
+      <td class="ltx_td ltx_align_center" id="S5.T6.1.3.1">
+       NUT
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T6.1.3.2">
+       62.40
+      </td>
+      <td class="ltx_td ltx_align_center" id="S5.T6.1.3.3">
+       61.80
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T6.1.4">
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T6.1.4.1">
+       NAT
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T6.1.4.2">
+       <span class="ltx_text ltx_font_bold" id="S5.T6.1.4.2.1">
+        65.80
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T6.1.4.3">
+       <span class="ltx_text ltx_font_bold" id="S5.T6.1.4.3.1">
+        64.60
+       </span>
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 6:
+     </span>
+     Results of LLaMA-2-7B and 13B on StrategyQA with 1000 positive samples and 500 negative samples.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S5.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.2
+    </span>
+    Results
+   </h3>
+   <div class="ltx_para" id="S5.SS2.p1">
+    <p class="ltx_p" id="S5.SS2.p1.1">
+     <a class="ltx_ref" href="#S5.T5" title="In 5.1 Datasets ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       Tables
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S5.T6" title="Table 6 ‣ 5.1 Datasets ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     show the results on HotpotQA and StrategyQA. On HotpotQA, NAT improves performance by more than 2 points in EM and 6 points in f1 score, compared to no negative samples. Compared with NUT, NAT is still about 1 better on EM and f1. On StrategyQA, NAT achieves more than 8 and about 3 improvement compared to no negative samples and NUT, respectively.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S5.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="242" id="S5.F6.g1" src="/html/2402.11651/assets/x6.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Performance of LLaMA-2-7B on HotpotQA with 500 positive examples and varying numbers of negative examples.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S5.T7">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T7.1" style="width:433.6pt;height:116.5pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(82.8pt,-22.3pt) scale(1.61840173594062,1.61840173594062) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T7.1.1">
+       <tr class="ltx_tr" id="S5.T7.1.1.1">
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.1.1">
+          Strategy
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.2.1">
+          GSM8K
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.3.1">
+          ASDiv
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.4.1">
+          SVAMP
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.5">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.5.1">
+          MArith
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T7.1.1.1.6">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.1.6.1">
+          Avg
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T7.1.1.2">
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.1">
+         w/o Neg
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.2">
+         29.04
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.3">
+         55.26
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.4">
+         45.60
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.5">
+         80.87
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T7.1.1.2.6">
+         52.69
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T7.1.1.3">
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.1">
+         NUT
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.2">
+         33.50
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.3.3.1">
+          61.69
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.4">
+         52.20
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.5">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.3.5.1">
+          86.41
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T7.1.1.3.6">
+         58.45
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T7.1.1.4">
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.1">
+         NAT
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.4.2.1">
+          36.24
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.3">
+         61.10
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.4.4.1">
+          53.90
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.5">
+         86.24
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T7.1.1.4.6">
+         <span class="ltx_text ltx_font_bold" id="S5.T7.1.1.4.6.1">
+          59.37
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 7:
+     </span>
+     LLaMA-2-7B model CoT results fine-tuned using 2k positive samples and 1.6k negative samples.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S5.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.3
+    </span>
+    Analysis
+   </h3>
+   <section class="ltx_paragraph" id="S5.SS3.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Fine-grained NAT
+    </h4>
+    <div class="ltx_para" id="S5.SS3.SSS0.Px1.p1">
+     <p class="ltx_p" id="S5.SS3.SSS0.Px1.p1.2">
+      In addition to the EM score, each trajectory in HotpotQA has an f1 score, measuring the overlap between the predicted and gold answers. We take this as a fine-grained measurement of data quality, where a trajectory with a higher f1 score has better quality. In this way, we can differentiate trajectories based on quality by assigning different prompts. For example, the trajectory is labeled as
+      <span class="ltx_text ltx_font_italic" id="S5.SS3.SSS0.Px1.p1.2.1">
+       almost wrong
+      </span>
+      if its f1 score is smaller than 0.1, and another trajectory is
+      <span class="ltx_text ltx_font_italic" id="S5.SS3.SSS0.Px1.p1.2.2">
+       mostly correct
+      </span>
+      with an f1 score of 0.9. We denote this NAT with different prompting strategies as NAT-
+      <math alttext="k" class="ltx_Math" display="inline" id="S5.SS3.SSS0.Px1.p1.1.m1.1">
+       <semantics id="S5.SS3.SSS0.Px1.p1.1.m1.1a">
+        <mi id="S5.SS3.SSS0.Px1.p1.1.m1.1.1" xref="S5.SS3.SSS0.Px1.p1.1.m1.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S5.SS3.SSS0.Px1.p1.1.m1.1b">
+         <ci id="S5.SS3.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S5.SS3.SSS0.Px1.p1.1.m1.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S5.SS3.SSS0.Px1.p1.1.m1.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      , where
+      <math alttext="k" class="ltx_Math" display="inline" id="S5.SS3.SSS0.Px1.p1.2.m2.1">
+       <semantics id="S5.SS3.SSS0.Px1.p1.2.m2.1a">
+        <mi id="S5.SS3.SSS0.Px1.p1.2.m2.1.1" xref="S5.SS3.SSS0.Px1.p1.2.m2.1.1.cmml">
+         k
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S5.SS3.SSS0.Px1.p1.2.m2.1b">
+         <ci id="S5.SS3.SSS0.Px1.p1.2.m2.1.1.cmml" xref="S5.SS3.SSS0.Px1.p1.2.m2.1.1">
+          𝑘
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S5.SS3.SSS0.Px1.p1.2.m2.1c">
+         k
+        </annotation>
+       </semantics>
+      </math>
+      represents how many classes we divide the negative data into.
+For NAT-2, we take trajectories with f1 scores equal to 1.0 as positive, and assign different prompts for trajectories with f1 scores less than 0.4 and with f1 scores greater than 0.4 less than 1.0. It can be seen from
+      <a class="ltx_ref" href="#S5.T5" title="In 5.1 Datasets ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Table
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      that the NAT-2 consistently outperforms NAT in all settings, indicating that negative samples associated with finer-grained info are more informative.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S5.SS3.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Fine-grained NAT learns more from negative samples
+    </h4>
+    <div class="ltx_para" id="S5.SS3.SSS0.Px2.p1">
+     <p class="ltx_p" id="S5.SS3.SSS0.Px2.p1.1">
+      We investigate how the performance changes with differing numbers of negative samples in
+      <a class="ltx_ref" href="#S5.F6" title="In 5.2 Results ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Figure
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        6
+       </span>
+      </a>
+      . When adding negative samples, the performance increases by a margin, consistent with
+      <a class="ltx_ref" href="#S5.SS2" title="5.2 Results ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+       <span class="ltx_text ltx_ref_tag">
+        Section
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        5.2
+       </span>
+      </a>
+      . However, NAT achieves the best performance with only 500 negative samples, and its performance decreases when adding more negative samples. NAT-2, on the other hand, achieves the best performance with 1k negative samples, consistent with our hypothesis that fine-grained NAT is more beneficial to model training.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Chain-of-Thought Prompting
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    So far we have conducted all experiments on agent scenarios with
+    <span class="ltx_text ltx_font_typewriter" id="S6.p1.1.1">
+     ReAct
+    </span>
+    prompting strategy. In this section, we conduct preliminary experiments to explore whether NAT works well with the Chain-of-Thought (CoT) prompting strategy
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wei et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . The key difference is that the agent receives an observation from the environment and then generates thought–action pairs, while CoT generates reasoning steps without observations.
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    We use GPT-3.5-0125 to generate CoT reasoning steps with three in-context examples on the GSM8k dataset. We then train the model with NAT.
+    <a class="ltx_ref" href="#S5.T7" title="In 5.2 Results ‣ 5 Question Answering ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+     <span class="ltx_text ltx_ref_tag">
+      Table
+     </span>
+     <span class="ltx_text ltx_ref_tag">
+      7
+     </span>
+    </a>
+    shows the results with CoT prompting. NAT achieves a 6.68 improvement compared to no negative data training. NAT is still about 1 point higher compared to directly including negative samples (NUT). The results demonstrate that NAT is also applicable and effective for CoT training.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    In this paper, we first demonstrated that LLMs can learn from failures when fine-tuned as an agent. On the basis of this finding, we propose NAT, a simple and effective method for integrating failed trajectories in fine-tuning agents. We conduct experiments on math and question-answering tasks, and show the superior performance of our method when training directly with positive or negative trajectories across tasks and model sizes. Our analysis finds that the quality of negative data is the key to the success of our method, and that models learn similar knowledge as what they learn from increased positive data (which is much more expensive to attain). We also demonstrated that our method is applicable and effective in Chain-of-Thought scenarios.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p2">
+   <p class="ltx_p" id="S7.p2.1">
+    Negative-aware training is designed to be both agent-agnostic and reasoning strategy-agnostic, implying its compatibility with various agent strategies, including self-refinement and reflection. At the end of this paper, we demonstrated the effectiveness of NAT on Chain-of-Thought (COT) reasoning in mathematical tasks. Moving forward, we aim to assess the applicability and effectiveness of NAT across a broader spectrum of agent frameworks, strategies, and tasks.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    8
+   </span>
+   Limitations
+  </h2>
+  <div class="ltx_para" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    Although we have conducted extensive experiments to illustrate the effectiveness of our method, there are still limitations.
+First, similar to previous work in tool learning, our approach requires the ground truth label of the data, while in real scenarios, there is usually no ground truth label, which limits its application.
+Second, we do not experiment with fine-tuning our method on more diverse and powerful models (e.g. GPT-3.5) due to the time and budget limits.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Achiam et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2303.08774
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Baian Chen, Chang Shu, Ehsan Shareghi, Nigel Collier, Karthik Narasimhan, and Shunyu Yao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:263829338" target="_blank" title="">
+      Fireact: Toward language agent fine-tuning
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      ArXiv
+     </em>
+     , abs/2310.05915.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cobbe et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Training verifiers to solve math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2110.14168
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Geva et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Mor Geva, Daniel Khashabi, Elad Segal, Tushar Khot, Dan Roth, and Jonathan Berant. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1162/tacl_a_00370" target="_blank" title="">
+      Did aristotle use a laptop? a question answering benchmark with implicit reasoning strategies
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Transactions of the Association for Computational Linguistics
+     </em>
+     , 9:346–361.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gravitas (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Significant Gravitas. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+      Autogpt
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+      https://github.com/Significant-Gravitas/AutoGPT
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Green Jr et al. (1961)
+    </span>
+    <span class="ltx_bibblock">
+     Bert F Green Jr, Alice K Wolf, Carol Chomsky, and Kenneth Laughery. 1961.
+    </span>
+    <span class="ltx_bibblock">
+     Baseball: an automatic question-answerer.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Papers presented at the May 9-11, 1961, western joint IRE-AIEE-ACM computer conference
+     </em>
+     , pages 219–224.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Karpukhin et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2020.emnlp-main.550" target="_blank" title="">
+      Dense passage retrieval for open-domain question answering
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
+     </em>
+     , pages 6769–6781, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Koncel-Kedziorski et al. (2016)
+    </span>
+    <span class="ltx_bibblock">
+     Rik Koncel-Kedziorski, Subhro Roy, Aida Amini, Nate Kushman, and Hannaneh Hajishirzi. 2016.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/N16-1136" target="_blank" title="">
+      MAWPS: A math word problem repository
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 2016 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies
+     </em>
+     , pages 1152–1157, San Diego, California. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yiwei Li, Peiwen Yuan, Shaoxiong Feng, Boyuan Pan, Bin Sun, Xinglin Wang, Heda Wang, and Kan Li. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:266375154" target="_blank" title="">
+      Turning dust into gold: Distilling complex reasoning capabilities from llms by leveraging negative data
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      AAAI 2024
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Na Liu, Liangyu Chen, Xiaoyu Tian, Wei Zou, Kaijiang Chen, and Ming Cui. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:266818453" target="_blank" title="">
+      From llm to conversational agent: A memory enhanced architecture with fine-tuning of large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      ArXiv
+     </em>
+     , abs/2401.02777.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Yuxian Gu, Hangliang Ding, Kai Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Aohan Zeng, Zhengxiao Du, Chenhui Zhang, Shengqi Shen, Tianjun Zhang, Yu Su, Huan Sun, Minlie Huang, Yuxiao Dong, and Jie Tang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:260682249" target="_blank" title="">
+      Agentbench: Evaluating llms as agents
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      ArXiv
+     </em>
+     , abs/2308.03688.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Sean Welleck, Bodhisattwa Prasad Majumder, Shashank Gupta, Amir Yazdanbakhsh, and Peter Clark. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:257900871" target="_blank" title="">
+      Self-refine: Iterative refinement with self-feedback
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      ArXiv
+     </em>
+     , abs/2303.17651.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Meurer et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Aaron Meurer, Christopher P. Smith, Mateusz Paprocki, Ondřej Čertík, Sergey B. Kirpichev, Matthew Rocklin, Amit Kumar, Sergiu Ivanov, Jason K. Moore, Sartaj Singh, Thilina Rathnayake, Sean Vig, Brian E. Granger, Richard P. Muller, Francesco Bonazzi, Harsh Gupta, Shivam Vats, Fredrik Johansson, Fabian Pedregosa, Matthew J. Curry, Andy R. Terrel, Štěpán Roučka, Ashutosh Saboo, Isuru Fernando, Sumith Kulal, Robert Cimrman, and Anthony Scopatz. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.7717/peerj-cs.103" target="_blank" title="">
+      Sympy: symbolic computing in python
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      PeerJ Computer Science
+     </em>
+     , 3:e103.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Miao et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Shen-yun Miao, Chao-Chun Liang, and Keh-Yih Su. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     A diverse corpus for evaluating and developing english math word problem solvers.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics
+     </em>
+     , pages 975–984.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Patel et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Arkil Patel, Satwik Bhattamishra, and Navin Goyal. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2021.naacl-main.168" target="_blank" title="">
+      Are NLP models really able to solve simple math word problems?
+     </a>
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies
+     </em>
+     , pages 2080–2094, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qiao et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Shuofei Qiao, Ningyu Zhang, Runnan Fang, Yujie Luo, Wangchunshu Zhou, Yuchen Eleanor Jiang, Chengfei Lv, and Huajun Chen. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:266902590" target="_blank" title="">
+      Autoact: Automatic agent learning from scratch via self-planning
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      ArXiv
+     </em>
+     , abs/2401.05268.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Rajbhandari et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:203736482" target="_blank" title="">
+      Zero: Memory optimizations toward training trillion parameter models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      SC20: International Conference for High Performance Computing, Networking, Storage and Analysis
+     </em>
+     , pages 1–16.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Roy and Roth (2015)
+    </span>
+    <span class="ltx_bibblock">
+     Subhro Roy and Dan Roth. 2015.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/V1/D15-1202" target="_blank" title="">
+      Solving general arithmetic word problems
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing, EMNLP 2015, Lisbon, Portugal, September 17-21, 2015
+     </em>
+     , pages 1743–1752. The Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ruan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yangjun Ruan, Honghua Dong, Andrew Wang, Silviu Pitis, Yongchao Zhou, Jimmy Ba, Yann Dubois, Chris J. Maddison, and Tatsunori Hashimoto. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:262944419" target="_blank" title="">
+      Identifying the risks of lm agents with an lm-emulated sandbox
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      ArXiv
+     </em>
+     , abs/2309.15817.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Federico Cassano, Beck Labash, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: Language agents with verbal reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://api.semanticscholar.org/CorpusID:258833055" target="_blank" title="">
+      https://api.semanticscholar.org/CorpusID:258833055
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Song et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Kaitao Song, Xu Tan, Tao Qin, Jianfeng Lu, and Tie-Yan Liu. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Mpnet: Masked and permuted pre-training for language understanding.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2004.09297
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sumers et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Theodore R Sumers, Shunyu Yao, Karthik Narasimhan, and Thomas L Griffiths. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Cognitive architectures for language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2309.02427
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed H Chi, Quoc V Le, Denny Zhou, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Weizenbaum (1966)
+    </span>
+    <span class="ltx_bibblock">
+     Joseph Weizenbaum. 1966.
+    </span>
+    <span class="ltx_bibblock">
+     Eliza—a computer program for the study of natural language communication between man and machine.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      Communications of the ACM
+     </em>
+     , 9(1):36–45.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wooldridge (1999)
+    </span>
+    <span class="ltx_bibblock">
+     Michael Wooldridge. 1999.
+    </span>
+    <span class="ltx_bibblock">
+     Intelligent agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      Multiagent systems: A modern approach to distributed artificial intelligence
+     </em>
+     , 1:27–73.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li, Li Jiang, Xiaoyun Zhang, and Chi Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Autogen: Enabling next-gen llm applications via multi-agent conversation framework.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2308.08155
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yang et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov, and Christopher D. Manning. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/D18-1259" target="_blank" title="">
+      HotpotQA: A dataset for diverse, explainable multi-hop question answering
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 2369–2380, Brussels, Belgium. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     ReAct: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      International Conference on Learning Representations (ICLR)
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yin et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Da Yin, Faeze Brahman, Abhilasha Ravichander, Khyathi Raghavi Chandu, Kai-Wei Chang, Yejin Choi, and Bill Yuchen Lin. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:265128672" target="_blank" title="">
+      Lumos: Learning agents with unified data, modular design, and open-source llms
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      ArXiv
+     </em>
+     , abs/2311.05657.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yoheinakajima (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Yoheinakajima. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+      Babyagi
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+      https://github.com/Significant-Gravitas/AutoGPT
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zeng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aohan Zeng, Mingdao Liu, Rui Lu, Bowen Wang, Xiao Liu, Yuxiao Dong, and Jie Tang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:264306101" target="_blank" title="">
+      Agenttuning: Enabling generalized agent abilities for llms
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      ArXiv
+     </em>
+     , abs/2310.12823.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Andrew Zhao, Daniel Huang, Quentin Xu, Matthieu Lin, Y. Liu, and Gao Huang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:261048772" target="_blank" title="">
+      Expel: Llm agents are experiential learners
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      ArXiv
+     </em>
+     , abs/2308.10144.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Example
+  </h2>
+  <div class="ltx_para" id="A1.p1">
+   <p class="ltx_p" id="A1.p1.1">
+    Figure
+    <a class="ltx_ref" href="#A1.F7" title="Figure 7 ‣ Appendix A Example ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+     <span class="ltx_text ltx_ref_tag">
+      7
+     </span>
+    </a>
+    shows an example from HotpotQA, and Figure
+    <a class="ltx_ref" href="#A1.F8" title="Figure 8 ‣ Appendix A Example ‣ Learning From Failure: Integrating Negative Examples when Fine-tuning Large Language Models as Agents">
+     <span class="ltx_text ltx_ref_tag">
+      8
+     </span>
+    </a>
+    shows an example from StrategyQA.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="A1.F7">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="347" id="A1.F7.g1" src="/html/2402.11651/assets/x7.png" width="346"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 7:
+    </span>
+    An example of a successful trajectory from HotpotQA
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="A1.F8">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="296" id="A1.F8.g1" src="/html/2402.11651/assets/x8.png" width="346"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 8:
+    </span>
+    An example of a successful trajectory from StrategyQA
+   </figcaption>
+  </figure>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+</article>

@@ -1,0 +1,2667 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yuanzhi Liang
+    <sup class="ltx_sup ltx_markedasmath" id="id6.6.id1">
+     1
+    </sup>
+    , Linchao Zhu
+    <sup class="ltx_sup ltx_markedasmath" id="id7.7.id2">
+     2
+    </sup>
+    , Yi Yang
+    <sup class="ltx_sup ltx_markedasmath" id="id8.8.id3">
+     2
+    </sup>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup ltx_markedasmath" id="id9.9.id4">
+     1
+    </sup>
+    University of Technology Sydney,
+    <sup class="ltx_sup ltx_markedasmath" id="id10.10.id5">
+     2
+    </sup>
+    Zhejiang University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id11.11.id6">
+     yuanzhi.Liang@student.uts.edu.au
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id12.12.id7">
+     zhulinchao7@gmail.com
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id13.13.id8">
+     yangyics@zju.edu.cn
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id14.id1">
+   Recent advancements in natural language and Large Language Models (LLMs) have enabled AI agents to simulate human-like interactions within virtual worlds. However, these interactions still face limitations in complexity and flexibility, particularly in scenarios involving multiple characters and novel objects. Pre-defining all interactable objects in the agent’s world model presents challenges, and conveying implicit intentions to multiple characters through complex interactions remains difficult. To address these issues, we propose integrating virtual Game Masters (GMs) into the agent’s world model, drawing inspiration from Tabletop Role-Playing Games (TRPGs). GMs play a crucial role in overseeing information, estimating players’ intentions, providing environment descriptions, and offering feedback, compensating for current world model deficiencies. To facilitate future explorations for complex interactions, we introduce a benchmark named Tachikuma, comprising a Multiple character and novel Object based interaction Estimation (MOE) task and a supporting dataset. MOE challenges models to understand characters’ intentions and accurately determine their actions within intricate contexts involving multi-character and novel object interactions. Besides, the dataset captures log data from real-time communications during gameplay, providing diverse, grounded, and complex interactions for further explorations. Finally, we present a simple prompting baseline and evaluate its performance, demonstrating its effectiveness in enhancing interaction understanding. We hope that our dataset and task will inspire further research in complex interactions with natural language, fostering the development of more advanced AI agents.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    <em class="ltx_emph ltx_font_italic" id="S1.p1.1.1">
+     … the teaching of language is not explaining, but training.
+    </em>
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    – Ludwig Josef Johann Wittgenstei, Philosophical Investigations
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    In recent years, there has been a growing interest in constructing AI agents capable of simulating and supporting human-like interactions across various domains. Notably, some agents have exhibited exceptional performance, surpassing human abilities in games like MOBA, Starcraft, poker, and Go. Building on the advancements in Large Language Models (LLMs), researchers have extended agent interactions to incorporate natural language. For instance, Park et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    have introduced generative agents that engage in free-form interactions using natural language, thereby creating virtual worlds where agents reside and even demonstrate spontaneous activities such as hosting parties. Similarly, Liu et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    have developed simulated societies in which LLM-powered agents engage in the virtual world and can support some discussions for social problems. These recent developments hold promise for advancing AI agents by leveraging natural language as an interactive tool, enabling them to exhibit more human-like behaviors. Furthermore, the exploration of phenomena resulting from endowing agents with more powerful language abilities for interaction can offer valuable insights. As discussed in the philosophical investigation, Ludwig Josef Johann Wittgenstein emphasized that teaching language is a form of training rather than mere explanation. General human communication is similar to engaging in a language game. Language serves as a fundamental tool for human interaction with the environment, facilitating the transmission of information, communication, negotiation, and cooperation within human groups, and contributing to the overall functioning of society. While the relationship between language and intelligence remains an open question, it is always worth exploring the potential evolution of more powerful and autonomous agents that can interact using natural language.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Going further with agent interactions, we have yet to fully empower the sufficient openness and freedom in the interactions between agents and the world. Existing approaches have often imposed constraints on agent interactions, leading to limited complexity and diversity in their capabilities. These constraints arise from the lack of interactions involving novel objects and multiple characters. While some prior research has explored language-based interaction abilities in generative agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    , their diversity remains restricted, focusing on a limited range of interactable objects. Additionally, previous works have primarily concentrated on two-character communication without considering implicit intentions through complex interactions. Such interactions fail to encompass nuanced behaviors (e.g., refusal, persuasion, group decision making, coalition building), akin to real-time communications involving multi-characters.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    To address this challenge, we draw inspiration from tabletop role-playing games (TRPGs) and introduce a Game Master (GM) role into the agent’s world model. TRPGs inherently offer highly complex and diverse interactions through natural language, involving multiple players in intricate and grounded multi-character scenarios. The GM oversees the game, provides scenario details, understands characters’ intentions, and offers feedback on player actions, aligning with the requirements for a more comprehensive world model. Constructing and introducing a virtual GM capable of handling complex interactions with real humans could significantly enhance the feedback given to agents.
+However, existing benchmarks in TRPG-related research lack the scope needed to develop a virtual GM that compensates for world model deficiencies. Current virtual GM works only explore short and simple interactions in limited rounds, lacking sufficient complexity. For instance, previous works have been derived from play-by-post forums
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    , where players contribute by writing and posting their responses on the forum. While, this asynchronous online communication introduces significant delays, with players often waiting for hours or even weeks to receive responses. As a result, data collected from such forums struggle to capture the vibrant and nuanced grounded semantics characteristic of real-time human interactions.
+Moreover, the forum-based communication format tends to encourage players to respond to the immediate turn and provide formal written replies, thereby limiting the richness and groundedness of expressions that can be observed in real-time interactions with multi-characters. Consequently, previous works derived from forum data do not fully represent the diversity and complexity found in real-world multi-character interactions. More comprehensive and realistic benchmarks are needed to support the development of effective virtual GMs and address the deficiencies in agent world models.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    In this paper, we take the first step towards enhancing the world model for agents by integrating a virtual GM role capable of handling complex real-time interactions with multiple characters. We propose a benchmark, named Tachikuma, designed to encourage the designation of the virtual GM to effectively handle these complex interactions, infer characters’ intentions, and provide accurate feedback to corresponding characters.
+Our benchmark consists of two components: a Multiple character and novel Object based interaction Estimation (MOE) task and a supporting dataset. In MOE, models are presented with intricate contexts extracted from TRPG log data, capturing real-time communications during gameplay. The objective is to infer character intentions and identify corresponding interactions, typically represented as skill checks, judged by a GM. The dataset supports the MOE task by providing long and intricate contexts from game logs, featuring interactions among multiple characters. The complexity of interactions among multiple characters, grounded in natural language, makes MOE a valuable testbed for evaluating abilities of virtual GMs.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    Furthermore, in our dataset, we collect complex and long contexts with diverse real-human interactions from the game logs. Our dataset differs from conventional play-by-post forum data collection methods. Instead, we utilize data extracted from a Chinese TRPG forum
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       www.goddessfantasy.net
+      </span>
+     </span>
+    </span>
+    . These forum records, compiled by GMs after game ending, consist of voice recordings or real-time chat logs. This data source overcomes the limitations of play-by-post data collection, enabling us to extract long contexts with complex semantics similar to the real interactions. As these logs capture immediate communications, the interactions also exhibit higher groundedness, resulting in more vibrant and realistic responses akin to everyday conversations, as demonstrated in Fig.
+    <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Task Overview ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    .
+Moreover, our dataset encompasses not only the popular DND rules
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    but also a wide range of diverse game rules, including Call of Cthulhu (COC)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    , Pathfinder2 (PF2)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , Savage Worlds (SW)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , etc. This diversity enhances the complexity and variety of our dataset. Building upon this dataset, we introduce MOE task, which consists of 1,003 context sections extracted from the game logs. Each section represents a complete adventure with multiple turns, showcasing intricate semantics. As shown in Tab.
+    <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4 Dataset ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , MOE includes an average of 32.12 turns per context excerpt, in contrast to previous works that typically involve only one turn.
+The number of possible answers for characters and skills varies depending on the context, ranging from one to eleven. Additionally, specific game rules necessitate different skill categories for answers. For instance, considering the DND rule, there are 51 potential skills. These factors collectively contribute to MOE representing a challenging task for AI agents. The agent must demonstrate a comprehensive understanding of both the complex interactions, emulating human-like comprehension.
+To provide a comprehensive assessment, we report the F-score as the final metric, separately for the predicted characters and overall intention answers. Evaluating character predictions reflects the accuracy of methods in inferring players’ intentions. Simultaneously, evaluating overall answers offers insights into the understanding ability of both character intentions and the corresponding interactions.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p8">
+   <p class="ltx_p" id="S1.p8.1">
+    Finally, we present a three-step prompting baseline for constructing an agent capable of handling interactions like a real-human GM in TRPGs. Our simple baseline serves to demonstrate the value of our task and dataset in understanding complex interactions. Our method incorporates prompts specifically related to existing characters, their intentions, and the associated skill checks. By utilizing these prompts, we guide LLMs in gradually comprehending the intricate interactions that occur between players. We thoroughly evaluate our baseline method and compare its performance with other prompting methods utilizing various LLMs within MOE task.
+The experimental results indicate that MOE task is solvable but still possesses a large room for further improvement.
+Furthermore, leveraging the answers obtained from MOE task, we employ LLMs to generate responses that simulate a real-human GM in the games. To evaluate the quality of these generated responses, we invite numerous volunteers to provide subjective evaluations. The experimental results demonstrate that incorporating the improved understanding ability of the agent leads to higher levels of factual correctness, naturalness, and groundedness in the generated responses, closely resembling real-human interactions. These results further underscore the significance of understanding ability in constructing proficient agents and highlight the importance of our benchmark.
+We hope our dataset and benchmark as valuable resources that will inspire the research community to delve into the understanding of complex interactions and contribute to the development of more capable AI agents.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p9">
+   <p class="ltx_p" id="S1.p9.1">
+    Our contributions can be summarized as follows:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p10">
+   <p class="ltx_p" id="S1.p10.1">
+    1. We introduce a Multiple character and novel Object based interaction Estimation (MOE) task, specifically addressing challenges in handling complex interaction like a real-human GM. This task serves as a valuable testbed for evaluating the abilities of constructing virtual GMs and contributes to advancements in developing more realistic agents.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p11">
+   <p class="ltx_p" id="S1.p11.1">
+    2. We collect a dataset for MOE to address the limitations in exploring long contexts and intricate multi-character interactions in real-time communications. This dataset bridges a crucial gap in the current research, offering a comprehensive resource for analyzing and understanding these complex interactions.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p12">
+   <p class="ltx_p" id="S1.p12.1">
+    3. We introduce a prompting baseline and conduct a comprehensive evaluation of different prompting methods using a range of Large Language Models (LLMs) within MOE task. The experimental results indicate that MOE task is solvable, yet there is ample room for further improvement.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p13">
+   <p class="ltx_p" id="S1.p13.1">
+    4. We conduct subjective evaluations based on the answers obtained from MOE. These evaluations show that better performances in MOE lead to higher levels of factual correctness, naturalness, and groundedness in the generated responses, which are crucial factors for creating a vivid agents. These results further underscore the significance of our dataset and task in improving AI agents.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Tabletop Role-Playing Games (TRPGs) are immersive games where players assume different character roles in fictional settings, guided by a Game Master (GM) who provides relevant information to progress the game. These games involve diverse and complex grounded natural language interactions among multiple characters with distinct personalities and backgrounds. Due to the diversity and complexity, TRPGs serve as valuable testbeds
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    for research in Natural Language Processing (NLP). Several works have explored NLP problems using TRPG game records. For instance, Louis et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    proposed predicting character actions based on previous interactions. Other works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    focused on generating flexible dialogue or descriptions in accordance with varying contexts or specific rules in TRPGs.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    Furthermore, recent studies have commonly utilized play-by-post data from popular DND forums, providing a substantial corpus for research. This play-by-post format allows players to interact by posting replies, reducing participation barriers and generating a significant number of game rounds on the forum. Chris et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    have collected extensive corpus from these forums, resulting in the creation of TRPG dialogue datasets. Subsequently, Pei et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    filtered the dataset and developed a guidance generation task called GANDALF. Given the context from a single round, GANDALF predicts the guidance provided by the DM under the DND rule. Zhu et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    further extended the approach by constructing a more comprehensive and larger dataset using the play-by-post format in Discord, a messaging program. This dataset, named FIREBALL, contains additional game details such as dialogues, states, combat procedures, etc. It serves as a versatile testbed for language generation, particularly focusing on generating commands for games, including combat actions, checks, and dice rolls.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    In this paper, we address the limitations of previous works in exploring more complex interactions. We introduce Multiple character and novel Object based interaction Estimation (MOE) task and Multiple character and a supporting dataset as valuable resources for interaction understanding for agents. Unlike previous approaches that rely on play-by-post formats, our dataset leverages game logs obtained from real-time interactions, providing a more grounded and complex semantics. MOE requires methods to answer questions about next acting characters and their corresponding actions. This task and dataset open up new possibilities for improving the agents with enhanced factual correctness, naturalness, and groundedness.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Multiple character and novel Object based interaction Estimation
+  </h2>
+  <figure class="ltx_figure" id="S3.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="304" id="S3.F1.g1" src="/html/2307.12573/assets/x1.png" width="415"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Examples of different tasks and datasets based on game logs of TRPG. Our MOE and MOD focuses on the understanding of long and complex interactions with Long contexts.
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Task Overview
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     We introduce a novel task, Multiple character and novel Object based interaction Estimation (MOE), which presents a challenge to comprehend complex interactions within long contexts. The input contexts, illustrated in Fig.
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Task Overview ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , involve 11 turns encompassing intricate interactions among three players and an NPC. In MOE task, the primary objective is to accurately determine the character who will act in the next turn and identify the corresponding actions. It is important to note that actions in Tabletop Role-Playing Games (TRPGs) can be simplified and classified as various pre-defined skills. Game Masters (GMs) play a crucial role in guiding players to perform correct skill checks during gameplay, resulting in GMs intuitively annotating all intended actions, which are recorded in the game log. As a result, the game logs naturally contain labeled character intentions, enabling MOE to leverage this data to construct intention understanding tasks with accurate intention labels.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Moreover, there are two primary challenges that need to be addressed in MOE. Both challenges requires the methods to provide higher understanding ability to the input interactions.
+The first challenge revolves around comprehending the behaviors and intentions of multiple characters in complex scenarios. As depicted in Fig.
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Task Overview ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , the current game scenario involves four characters: the brown bear, Bill, Elvis Zem, and Maurice. While all characters interact with one another, only one player intends to perform an action and needs to undergo a skill check in the upcoming turn. In the first turn, Bill expresses his disinterest in engaging in the fight. Subsequently, Zem combines the electric spell with the sickle. Notably, the spell was cast in Turn 4 and its effects were explained by the GM in Turn 10. Thus, the spell’s execution has already taken place and should not be reevaluated after Turn 10.
+The second challenge is understanding the game rules and aligning them with the characters’ movements. In Fig.
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Task Overview ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , Maurice intends to escape from the bear’s attack. However, there is no specific ‘escape’ operation in the skill checks defined by the DND rules. Instead, the bear utilizes its strength to grapple Maurice in the game, and Maurice must also check their strength to contest against the bear. To answer this skill check, methods need to comprehend the intentions and movements of characters and, based on the game rules, infer the appropriate check items for the current turn, akin to a real-human.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="200" id="S3.F2.g1" src="/html/2307.12573/assets/x2.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Example of MOE. In the given context, a scenario unfolds where three players find themselves facing a formidable brown bear in combat. Each character actively participates in the battle, except for Bill, who observes from the safety of a carriage. During the encounter, Zem casts a spell; however, it is important to note that the skill check for this particular spell has already been performed after Turn 4 and was explained by the DM in Turn 10. Consequently, the only character currently requiring a skill check is Maurice. Despite his intention to escape from the bear, the DND rule does not include a specific “escape” skill. In such a predicament, Maurice must utilize his strength to resist the bear’s attempt to grapple him. As a result, the DM advises him to perform a strength check in adherence to the DND rule. Furthermore, we also present the predicted results from GPT-3.5 utilizing template prompts. The results demonstrate a lack of effective context comprehension and highlight the challenges in understanding complex interactions among agents.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Evaluation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.8">
+     To provide a comprehensive assessment of context understanding in MOE, we evaluate the predicted character names and overall predictions separately. Specifically, we measure the average Character Precision (CP) and Character Recall (CR) for character names, as well as the average Skill Precision (SP) and Skill Recall (SR) for both character names and associated skills. Additionally, we compute the Character F-scores (CF) for character names and Skill F-score (SF) for both character names with associated skills.
+    </p>
+    <table class="ltx_equationgroup ltx_eqn_align ltx_eqn_table" id="S8.EGx1">
+     <tbody id="S3.E1">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E1.2.1.1.1">
+         CP
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=\frac{1}{K}\sum_{i}^{K}t_{c}^{i}/p^{i}" class="ltx_Math" display="inline" id="S3.E1.m2.1">
+         <semantics id="S3.E1.m2.1a">
+          <mrow id="S3.E1.m2.1.1" xref="S3.E1.m2.1.1.cmml">
+           <mi id="S3.E1.m2.1.1.2" xref="S3.E1.m2.1.1.2.cmml">
+           </mi>
+           <mo id="S3.E1.m2.1.1.1" xref="S3.E1.m2.1.1.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E1.m2.1.1.3" xref="S3.E1.m2.1.1.3.cmml">
+            <mstyle displaystyle="true" id="S3.E1.m2.1.1.3.2" xref="S3.E1.m2.1.1.3.2.cmml">
+             <mfrac id="S3.E1.m2.1.1.3.2a" xref="S3.E1.m2.1.1.3.2.cmml">
+              <mn id="S3.E1.m2.1.1.3.2.2" xref="S3.E1.m2.1.1.3.2.2.cmml">
+               1
+              </mn>
+              <mi id="S3.E1.m2.1.1.3.2.3" xref="S3.E1.m2.1.1.3.2.3.cmml">
+               K
+              </mi>
+             </mfrac>
+            </mstyle>
+            <mo id="S3.E1.m2.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E1.m2.1.1.3.1.cmml">
+             ​
+            </mo>
+            <mrow id="S3.E1.m2.1.1.3.3" xref="S3.E1.m2.1.1.3.3.cmml">
+             <mstyle displaystyle="true" id="S3.E1.m2.1.1.3.3.1" xref="S3.E1.m2.1.1.3.3.1.cmml">
+              <munderover id="S3.E1.m2.1.1.3.3.1a" xref="S3.E1.m2.1.1.3.3.1.cmml">
+               <mo id="S3.E1.m2.1.1.3.3.1.2.2" movablelimits="false" xref="S3.E1.m2.1.1.3.3.1.2.2.cmml">
+                ∑
+               </mo>
+               <mi id="S3.E1.m2.1.1.3.3.1.2.3" xref="S3.E1.m2.1.1.3.3.1.2.3.cmml">
+                i
+               </mi>
+               <mi id="S3.E1.m2.1.1.3.3.1.3" xref="S3.E1.m2.1.1.3.3.1.3.cmml">
+                K
+               </mi>
+              </munderover>
+             </mstyle>
+             <mrow id="S3.E1.m2.1.1.3.3.2" xref="S3.E1.m2.1.1.3.3.2.cmml">
+              <msubsup id="S3.E1.m2.1.1.3.3.2.2" xref="S3.E1.m2.1.1.3.3.2.2.cmml">
+               <mi id="S3.E1.m2.1.1.3.3.2.2.2.2" xref="S3.E1.m2.1.1.3.3.2.2.2.2.cmml">
+                t
+               </mi>
+               <mi id="S3.E1.m2.1.1.3.3.2.2.2.3" xref="S3.E1.m2.1.1.3.3.2.2.2.3.cmml">
+                c
+               </mi>
+               <mi id="S3.E1.m2.1.1.3.3.2.2.3" xref="S3.E1.m2.1.1.3.3.2.2.3.cmml">
+                i
+               </mi>
+              </msubsup>
+              <mo id="S3.E1.m2.1.1.3.3.2.1" xref="S3.E1.m2.1.1.3.3.2.1.cmml">
+               /
+              </mo>
+              <msup id="S3.E1.m2.1.1.3.3.2.3" xref="S3.E1.m2.1.1.3.3.2.3.cmml">
+               <mi id="S3.E1.m2.1.1.3.3.2.3.2" xref="S3.E1.m2.1.1.3.3.2.3.2.cmml">
+                p
+               </mi>
+               <mi id="S3.E1.m2.1.1.3.3.2.3.3" xref="S3.E1.m2.1.1.3.3.2.3.3.cmml">
+                i
+               </mi>
+              </msup>
+             </mrow>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E1.m2.1b">
+           <apply id="S3.E1.m2.1.1.cmml" xref="S3.E1.m2.1.1">
+            <eq id="S3.E1.m2.1.1.1.cmml" xref="S3.E1.m2.1.1.1">
+            </eq>
+            <csymbol cd="latexml" id="S3.E1.m2.1.1.2.cmml" xref="S3.E1.m2.1.1.2">
+             absent
+            </csymbol>
+            <apply id="S3.E1.m2.1.1.3.cmml" xref="S3.E1.m2.1.1.3">
+             <times id="S3.E1.m2.1.1.3.1.cmml" xref="S3.E1.m2.1.1.3.1">
+             </times>
+             <apply id="S3.E1.m2.1.1.3.2.cmml" xref="S3.E1.m2.1.1.3.2">
+              <divide id="S3.E1.m2.1.1.3.2.1.cmml" xref="S3.E1.m2.1.1.3.2">
+              </divide>
+              <cn id="S3.E1.m2.1.1.3.2.2.cmml" type="integer" xref="S3.E1.m2.1.1.3.2.2">
+               1
+              </cn>
+              <ci id="S3.E1.m2.1.1.3.2.3.cmml" xref="S3.E1.m2.1.1.3.2.3">
+               𝐾
+              </ci>
+             </apply>
+             <apply id="S3.E1.m2.1.1.3.3.cmml" xref="S3.E1.m2.1.1.3.3">
+              <apply id="S3.E1.m2.1.1.3.3.1.cmml" xref="S3.E1.m2.1.1.3.3.1">
+               <csymbol cd="ambiguous" id="S3.E1.m2.1.1.3.3.1.1.cmml" xref="S3.E1.m2.1.1.3.3.1">
+                superscript
+               </csymbol>
+               <apply id="S3.E1.m2.1.1.3.3.1.2.cmml" xref="S3.E1.m2.1.1.3.3.1">
+                <csymbol cd="ambiguous" id="S3.E1.m2.1.1.3.3.1.2.1.cmml" xref="S3.E1.m2.1.1.3.3.1">
+                 subscript
+                </csymbol>
+                <sum id="S3.E1.m2.1.1.3.3.1.2.2.cmml" xref="S3.E1.m2.1.1.3.3.1.2.2">
+                </sum>
+                <ci id="S3.E1.m2.1.1.3.3.1.2.3.cmml" xref="S3.E1.m2.1.1.3.3.1.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <ci id="S3.E1.m2.1.1.3.3.1.3.cmml" xref="S3.E1.m2.1.1.3.3.1.3">
+                𝐾
+               </ci>
+              </apply>
+              <apply id="S3.E1.m2.1.1.3.3.2.cmml" xref="S3.E1.m2.1.1.3.3.2">
+               <divide id="S3.E1.m2.1.1.3.3.2.1.cmml" xref="S3.E1.m2.1.1.3.3.2.1">
+               </divide>
+               <apply id="S3.E1.m2.1.1.3.3.2.2.cmml" xref="S3.E1.m2.1.1.3.3.2.2">
+                <csymbol cd="ambiguous" id="S3.E1.m2.1.1.3.3.2.2.1.cmml" xref="S3.E1.m2.1.1.3.3.2.2">
+                 superscript
+                </csymbol>
+                <apply id="S3.E1.m2.1.1.3.3.2.2.2.cmml" xref="S3.E1.m2.1.1.3.3.2.2">
+                 <csymbol cd="ambiguous" id="S3.E1.m2.1.1.3.3.2.2.2.1.cmml" xref="S3.E1.m2.1.1.3.3.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E1.m2.1.1.3.3.2.2.2.2.cmml" xref="S3.E1.m2.1.1.3.3.2.2.2.2">
+                  𝑡
+                 </ci>
+                 <ci id="S3.E1.m2.1.1.3.3.2.2.2.3.cmml" xref="S3.E1.m2.1.1.3.3.2.2.2.3">
+                  𝑐
+                 </ci>
+                </apply>
+                <ci id="S3.E1.m2.1.1.3.3.2.2.3.cmml" xref="S3.E1.m2.1.1.3.3.2.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S3.E1.m2.1.1.3.3.2.3.cmml" xref="S3.E1.m2.1.1.3.3.2.3">
+                <csymbol cd="ambiguous" id="S3.E1.m2.1.1.3.3.2.3.1.cmml" xref="S3.E1.m2.1.1.3.3.2.3">
+                 superscript
+                </csymbol>
+                <ci id="S3.E1.m2.1.1.3.3.2.3.2.cmml" xref="S3.E1.m2.1.1.3.3.2.3.2">
+                 𝑝
+                </ci>
+                <ci id="S3.E1.m2.1.1.3.3.2.3.3.cmml" xref="S3.E1.m2.1.1.3.3.2.3.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E1.m2.1c">
+           \displaystyle=\frac{1}{K}\sum_{i}^{K}t_{c}^{i}/p^{i}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (1)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+     <tbody id="S3.E2">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E2.2.1.1.1">
+         CR
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=\frac{1}{K}\sum_{i}^{K}t_{c}^{i}/g^{i}" class="ltx_Math" display="inline" id="S3.E2.m2.1">
+         <semantics id="S3.E2.m2.1a">
+          <mrow id="S3.E2.m2.1.1" xref="S3.E2.m2.1.1.cmml">
+           <mi id="S3.E2.m2.1.1.2" xref="S3.E2.m2.1.1.2.cmml">
+           </mi>
+           <mo id="S3.E2.m2.1.1.1" xref="S3.E2.m2.1.1.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E2.m2.1.1.3" xref="S3.E2.m2.1.1.3.cmml">
+            <mstyle displaystyle="true" id="S3.E2.m2.1.1.3.2" xref="S3.E2.m2.1.1.3.2.cmml">
+             <mfrac id="S3.E2.m2.1.1.3.2a" xref="S3.E2.m2.1.1.3.2.cmml">
+              <mn id="S3.E2.m2.1.1.3.2.2" xref="S3.E2.m2.1.1.3.2.2.cmml">
+               1
+              </mn>
+              <mi id="S3.E2.m2.1.1.3.2.3" xref="S3.E2.m2.1.1.3.2.3.cmml">
+               K
+              </mi>
+             </mfrac>
+            </mstyle>
+            <mo id="S3.E2.m2.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E2.m2.1.1.3.1.cmml">
+             ​
+            </mo>
+            <mrow id="S3.E2.m2.1.1.3.3" xref="S3.E2.m2.1.1.3.3.cmml">
+             <mstyle displaystyle="true" id="S3.E2.m2.1.1.3.3.1" xref="S3.E2.m2.1.1.3.3.1.cmml">
+              <munderover id="S3.E2.m2.1.1.3.3.1a" xref="S3.E2.m2.1.1.3.3.1.cmml">
+               <mo id="S3.E2.m2.1.1.3.3.1.2.2" movablelimits="false" xref="S3.E2.m2.1.1.3.3.1.2.2.cmml">
+                ∑
+               </mo>
+               <mi id="S3.E2.m2.1.1.3.3.1.2.3" xref="S3.E2.m2.1.1.3.3.1.2.3.cmml">
+                i
+               </mi>
+               <mi id="S3.E2.m2.1.1.3.3.1.3" xref="S3.E2.m2.1.1.3.3.1.3.cmml">
+                K
+               </mi>
+              </munderover>
+             </mstyle>
+             <mrow id="S3.E2.m2.1.1.3.3.2" xref="S3.E2.m2.1.1.3.3.2.cmml">
+              <msubsup id="S3.E2.m2.1.1.3.3.2.2" xref="S3.E2.m2.1.1.3.3.2.2.cmml">
+               <mi id="S3.E2.m2.1.1.3.3.2.2.2.2" xref="S3.E2.m2.1.1.3.3.2.2.2.2.cmml">
+                t
+               </mi>
+               <mi id="S3.E2.m2.1.1.3.3.2.2.2.3" xref="S3.E2.m2.1.1.3.3.2.2.2.3.cmml">
+                c
+               </mi>
+               <mi id="S3.E2.m2.1.1.3.3.2.2.3" xref="S3.E2.m2.1.1.3.3.2.2.3.cmml">
+                i
+               </mi>
+              </msubsup>
+              <mo id="S3.E2.m2.1.1.3.3.2.1" xref="S3.E2.m2.1.1.3.3.2.1.cmml">
+               /
+              </mo>
+              <msup id="S3.E2.m2.1.1.3.3.2.3" xref="S3.E2.m2.1.1.3.3.2.3.cmml">
+               <mi id="S3.E2.m2.1.1.3.3.2.3.2" xref="S3.E2.m2.1.1.3.3.2.3.2.cmml">
+                g
+               </mi>
+               <mi id="S3.E2.m2.1.1.3.3.2.3.3" xref="S3.E2.m2.1.1.3.3.2.3.3.cmml">
+                i
+               </mi>
+              </msup>
+             </mrow>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E2.m2.1b">
+           <apply id="S3.E2.m2.1.1.cmml" xref="S3.E2.m2.1.1">
+            <eq id="S3.E2.m2.1.1.1.cmml" xref="S3.E2.m2.1.1.1">
+            </eq>
+            <csymbol cd="latexml" id="S3.E2.m2.1.1.2.cmml" xref="S3.E2.m2.1.1.2">
+             absent
+            </csymbol>
+            <apply id="S3.E2.m2.1.1.3.cmml" xref="S3.E2.m2.1.1.3">
+             <times id="S3.E2.m2.1.1.3.1.cmml" xref="S3.E2.m2.1.1.3.1">
+             </times>
+             <apply id="S3.E2.m2.1.1.3.2.cmml" xref="S3.E2.m2.1.1.3.2">
+              <divide id="S3.E2.m2.1.1.3.2.1.cmml" xref="S3.E2.m2.1.1.3.2">
+              </divide>
+              <cn id="S3.E2.m2.1.1.3.2.2.cmml" type="integer" xref="S3.E2.m2.1.1.3.2.2">
+               1
+              </cn>
+              <ci id="S3.E2.m2.1.1.3.2.3.cmml" xref="S3.E2.m2.1.1.3.2.3">
+               𝐾
+              </ci>
+             </apply>
+             <apply id="S3.E2.m2.1.1.3.3.cmml" xref="S3.E2.m2.1.1.3.3">
+              <apply id="S3.E2.m2.1.1.3.3.1.cmml" xref="S3.E2.m2.1.1.3.3.1">
+               <csymbol cd="ambiguous" id="S3.E2.m2.1.1.3.3.1.1.cmml" xref="S3.E2.m2.1.1.3.3.1">
+                superscript
+               </csymbol>
+               <apply id="S3.E2.m2.1.1.3.3.1.2.cmml" xref="S3.E2.m2.1.1.3.3.1">
+                <csymbol cd="ambiguous" id="S3.E2.m2.1.1.3.3.1.2.1.cmml" xref="S3.E2.m2.1.1.3.3.1">
+                 subscript
+                </csymbol>
+                <sum id="S3.E2.m2.1.1.3.3.1.2.2.cmml" xref="S3.E2.m2.1.1.3.3.1.2.2">
+                </sum>
+                <ci id="S3.E2.m2.1.1.3.3.1.2.3.cmml" xref="S3.E2.m2.1.1.3.3.1.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <ci id="S3.E2.m2.1.1.3.3.1.3.cmml" xref="S3.E2.m2.1.1.3.3.1.3">
+                𝐾
+               </ci>
+              </apply>
+              <apply id="S3.E2.m2.1.1.3.3.2.cmml" xref="S3.E2.m2.1.1.3.3.2">
+               <divide id="S3.E2.m2.1.1.3.3.2.1.cmml" xref="S3.E2.m2.1.1.3.3.2.1">
+               </divide>
+               <apply id="S3.E2.m2.1.1.3.3.2.2.cmml" xref="S3.E2.m2.1.1.3.3.2.2">
+                <csymbol cd="ambiguous" id="S3.E2.m2.1.1.3.3.2.2.1.cmml" xref="S3.E2.m2.1.1.3.3.2.2">
+                 superscript
+                </csymbol>
+                <apply id="S3.E2.m2.1.1.3.3.2.2.2.cmml" xref="S3.E2.m2.1.1.3.3.2.2">
+                 <csymbol cd="ambiguous" id="S3.E2.m2.1.1.3.3.2.2.2.1.cmml" xref="S3.E2.m2.1.1.3.3.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E2.m2.1.1.3.3.2.2.2.2.cmml" xref="S3.E2.m2.1.1.3.3.2.2.2.2">
+                  𝑡
+                 </ci>
+                 <ci id="S3.E2.m2.1.1.3.3.2.2.2.3.cmml" xref="S3.E2.m2.1.1.3.3.2.2.2.3">
+                  𝑐
+                 </ci>
+                </apply>
+                <ci id="S3.E2.m2.1.1.3.3.2.2.3.cmml" xref="S3.E2.m2.1.1.3.3.2.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S3.E2.m2.1.1.3.3.2.3.cmml" xref="S3.E2.m2.1.1.3.3.2.3">
+                <csymbol cd="ambiguous" id="S3.E2.m2.1.1.3.3.2.3.1.cmml" xref="S3.E2.m2.1.1.3.3.2.3">
+                 superscript
+                </csymbol>
+                <ci id="S3.E2.m2.1.1.3.3.2.3.2.cmml" xref="S3.E2.m2.1.1.3.3.2.3.2">
+                 𝑔
+                </ci>
+                <ci id="S3.E2.m2.1.1.3.3.2.3.3.cmml" xref="S3.E2.m2.1.1.3.3.2.3.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E2.m2.1c">
+           \displaystyle=\frac{1}{K}\sum_{i}^{K}t_{c}^{i}/g^{i}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (2)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+     <tbody id="S3.E3">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E3.2.1.1.1">
+         SP
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=\frac{1}{K}\sum_{i}^{K}t_{s}^{i}/p^{i}" class="ltx_Math" display="inline" id="S3.E3.m2.1">
+         <semantics id="S3.E3.m2.1a">
+          <mrow id="S3.E3.m2.1.1" xref="S3.E3.m2.1.1.cmml">
+           <mi id="S3.E3.m2.1.1.2" xref="S3.E3.m2.1.1.2.cmml">
+           </mi>
+           <mo id="S3.E3.m2.1.1.1" xref="S3.E3.m2.1.1.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E3.m2.1.1.3" xref="S3.E3.m2.1.1.3.cmml">
+            <mstyle displaystyle="true" id="S3.E3.m2.1.1.3.2" xref="S3.E3.m2.1.1.3.2.cmml">
+             <mfrac id="S3.E3.m2.1.1.3.2a" xref="S3.E3.m2.1.1.3.2.cmml">
+              <mn id="S3.E3.m2.1.1.3.2.2" xref="S3.E3.m2.1.1.3.2.2.cmml">
+               1
+              </mn>
+              <mi id="S3.E3.m2.1.1.3.2.3" xref="S3.E3.m2.1.1.3.2.3.cmml">
+               K
+              </mi>
+             </mfrac>
+            </mstyle>
+            <mo id="S3.E3.m2.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E3.m2.1.1.3.1.cmml">
+             ​
+            </mo>
+            <mrow id="S3.E3.m2.1.1.3.3" xref="S3.E3.m2.1.1.3.3.cmml">
+             <mstyle displaystyle="true" id="S3.E3.m2.1.1.3.3.1" xref="S3.E3.m2.1.1.3.3.1.cmml">
+              <munderover id="S3.E3.m2.1.1.3.3.1a" xref="S3.E3.m2.1.1.3.3.1.cmml">
+               <mo id="S3.E3.m2.1.1.3.3.1.2.2" movablelimits="false" xref="S3.E3.m2.1.1.3.3.1.2.2.cmml">
+                ∑
+               </mo>
+               <mi id="S3.E3.m2.1.1.3.3.1.2.3" xref="S3.E3.m2.1.1.3.3.1.2.3.cmml">
+                i
+               </mi>
+               <mi id="S3.E3.m2.1.1.3.3.1.3" xref="S3.E3.m2.1.1.3.3.1.3.cmml">
+                K
+               </mi>
+              </munderover>
+             </mstyle>
+             <mrow id="S3.E3.m2.1.1.3.3.2" xref="S3.E3.m2.1.1.3.3.2.cmml">
+              <msubsup id="S3.E3.m2.1.1.3.3.2.2" xref="S3.E3.m2.1.1.3.3.2.2.cmml">
+               <mi id="S3.E3.m2.1.1.3.3.2.2.2.2" xref="S3.E3.m2.1.1.3.3.2.2.2.2.cmml">
+                t
+               </mi>
+               <mi id="S3.E3.m2.1.1.3.3.2.2.2.3" xref="S3.E3.m2.1.1.3.3.2.2.2.3.cmml">
+                s
+               </mi>
+               <mi id="S3.E3.m2.1.1.3.3.2.2.3" xref="S3.E3.m2.1.1.3.3.2.2.3.cmml">
+                i
+               </mi>
+              </msubsup>
+              <mo id="S3.E3.m2.1.1.3.3.2.1" xref="S3.E3.m2.1.1.3.3.2.1.cmml">
+               /
+              </mo>
+              <msup id="S3.E3.m2.1.1.3.3.2.3" xref="S3.E3.m2.1.1.3.3.2.3.cmml">
+               <mi id="S3.E3.m2.1.1.3.3.2.3.2" xref="S3.E3.m2.1.1.3.3.2.3.2.cmml">
+                p
+               </mi>
+               <mi id="S3.E3.m2.1.1.3.3.2.3.3" xref="S3.E3.m2.1.1.3.3.2.3.3.cmml">
+                i
+               </mi>
+              </msup>
+             </mrow>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E3.m2.1b">
+           <apply id="S3.E3.m2.1.1.cmml" xref="S3.E3.m2.1.1">
+            <eq id="S3.E3.m2.1.1.1.cmml" xref="S3.E3.m2.1.1.1">
+            </eq>
+            <csymbol cd="latexml" id="S3.E3.m2.1.1.2.cmml" xref="S3.E3.m2.1.1.2">
+             absent
+            </csymbol>
+            <apply id="S3.E3.m2.1.1.3.cmml" xref="S3.E3.m2.1.1.3">
+             <times id="S3.E3.m2.1.1.3.1.cmml" xref="S3.E3.m2.1.1.3.1">
+             </times>
+             <apply id="S3.E3.m2.1.1.3.2.cmml" xref="S3.E3.m2.1.1.3.2">
+              <divide id="S3.E3.m2.1.1.3.2.1.cmml" xref="S3.E3.m2.1.1.3.2">
+              </divide>
+              <cn id="S3.E3.m2.1.1.3.2.2.cmml" type="integer" xref="S3.E3.m2.1.1.3.2.2">
+               1
+              </cn>
+              <ci id="S3.E3.m2.1.1.3.2.3.cmml" xref="S3.E3.m2.1.1.3.2.3">
+               𝐾
+              </ci>
+             </apply>
+             <apply id="S3.E3.m2.1.1.3.3.cmml" xref="S3.E3.m2.1.1.3.3">
+              <apply id="S3.E3.m2.1.1.3.3.1.cmml" xref="S3.E3.m2.1.1.3.3.1">
+               <csymbol cd="ambiguous" id="S3.E3.m2.1.1.3.3.1.1.cmml" xref="S3.E3.m2.1.1.3.3.1">
+                superscript
+               </csymbol>
+               <apply id="S3.E3.m2.1.1.3.3.1.2.cmml" xref="S3.E3.m2.1.1.3.3.1">
+                <csymbol cd="ambiguous" id="S3.E3.m2.1.1.3.3.1.2.1.cmml" xref="S3.E3.m2.1.1.3.3.1">
+                 subscript
+                </csymbol>
+                <sum id="S3.E3.m2.1.1.3.3.1.2.2.cmml" xref="S3.E3.m2.1.1.3.3.1.2.2">
+                </sum>
+                <ci id="S3.E3.m2.1.1.3.3.1.2.3.cmml" xref="S3.E3.m2.1.1.3.3.1.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <ci id="S3.E3.m2.1.1.3.3.1.3.cmml" xref="S3.E3.m2.1.1.3.3.1.3">
+                𝐾
+               </ci>
+              </apply>
+              <apply id="S3.E3.m2.1.1.3.3.2.cmml" xref="S3.E3.m2.1.1.3.3.2">
+               <divide id="S3.E3.m2.1.1.3.3.2.1.cmml" xref="S3.E3.m2.1.1.3.3.2.1">
+               </divide>
+               <apply id="S3.E3.m2.1.1.3.3.2.2.cmml" xref="S3.E3.m2.1.1.3.3.2.2">
+                <csymbol cd="ambiguous" id="S3.E3.m2.1.1.3.3.2.2.1.cmml" xref="S3.E3.m2.1.1.3.3.2.2">
+                 superscript
+                </csymbol>
+                <apply id="S3.E3.m2.1.1.3.3.2.2.2.cmml" xref="S3.E3.m2.1.1.3.3.2.2">
+                 <csymbol cd="ambiguous" id="S3.E3.m2.1.1.3.3.2.2.2.1.cmml" xref="S3.E3.m2.1.1.3.3.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E3.m2.1.1.3.3.2.2.2.2.cmml" xref="S3.E3.m2.1.1.3.3.2.2.2.2">
+                  𝑡
+                 </ci>
+                 <ci id="S3.E3.m2.1.1.3.3.2.2.2.3.cmml" xref="S3.E3.m2.1.1.3.3.2.2.2.3">
+                  𝑠
+                 </ci>
+                </apply>
+                <ci id="S3.E3.m2.1.1.3.3.2.2.3.cmml" xref="S3.E3.m2.1.1.3.3.2.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S3.E3.m2.1.1.3.3.2.3.cmml" xref="S3.E3.m2.1.1.3.3.2.3">
+                <csymbol cd="ambiguous" id="S3.E3.m2.1.1.3.3.2.3.1.cmml" xref="S3.E3.m2.1.1.3.3.2.3">
+                 superscript
+                </csymbol>
+                <ci id="S3.E3.m2.1.1.3.3.2.3.2.cmml" xref="S3.E3.m2.1.1.3.3.2.3.2">
+                 𝑝
+                </ci>
+                <ci id="S3.E3.m2.1.1.3.3.2.3.3.cmml" xref="S3.E3.m2.1.1.3.3.2.3.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E3.m2.1c">
+           \displaystyle=\frac{1}{K}\sum_{i}^{K}t_{s}^{i}/p^{i}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (3)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+     <tbody id="S3.E4">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E4.2.1.1.1">
+         SR
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=\frac{1}{K}\sum_{i}^{K}t_{s}^{i}/g^{i}" class="ltx_Math" display="inline" id="S3.E4.m2.1">
+         <semantics id="S3.E4.m2.1a">
+          <mrow id="S3.E4.m2.1.1" xref="S3.E4.m2.1.1.cmml">
+           <mi id="S3.E4.m2.1.1.2" xref="S3.E4.m2.1.1.2.cmml">
+           </mi>
+           <mo id="S3.E4.m2.1.1.1" xref="S3.E4.m2.1.1.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E4.m2.1.1.3" xref="S3.E4.m2.1.1.3.cmml">
+            <mstyle displaystyle="true" id="S3.E4.m2.1.1.3.2" xref="S3.E4.m2.1.1.3.2.cmml">
+             <mfrac id="S3.E4.m2.1.1.3.2a" xref="S3.E4.m2.1.1.3.2.cmml">
+              <mn id="S3.E4.m2.1.1.3.2.2" xref="S3.E4.m2.1.1.3.2.2.cmml">
+               1
+              </mn>
+              <mi id="S3.E4.m2.1.1.3.2.3" xref="S3.E4.m2.1.1.3.2.3.cmml">
+               K
+              </mi>
+             </mfrac>
+            </mstyle>
+            <mo id="S3.E4.m2.1.1.3.1" lspace="0em" rspace="0em" xref="S3.E4.m2.1.1.3.1.cmml">
+             ​
+            </mo>
+            <mrow id="S3.E4.m2.1.1.3.3" xref="S3.E4.m2.1.1.3.3.cmml">
+             <mstyle displaystyle="true" id="S3.E4.m2.1.1.3.3.1" xref="S3.E4.m2.1.1.3.3.1.cmml">
+              <munderover id="S3.E4.m2.1.1.3.3.1a" xref="S3.E4.m2.1.1.3.3.1.cmml">
+               <mo id="S3.E4.m2.1.1.3.3.1.2.2" movablelimits="false" xref="S3.E4.m2.1.1.3.3.1.2.2.cmml">
+                ∑
+               </mo>
+               <mi id="S3.E4.m2.1.1.3.3.1.2.3" xref="S3.E4.m2.1.1.3.3.1.2.3.cmml">
+                i
+               </mi>
+               <mi id="S3.E4.m2.1.1.3.3.1.3" xref="S3.E4.m2.1.1.3.3.1.3.cmml">
+                K
+               </mi>
+              </munderover>
+             </mstyle>
+             <mrow id="S3.E4.m2.1.1.3.3.2" xref="S3.E4.m2.1.1.3.3.2.cmml">
+              <msubsup id="S3.E4.m2.1.1.3.3.2.2" xref="S3.E4.m2.1.1.3.3.2.2.cmml">
+               <mi id="S3.E4.m2.1.1.3.3.2.2.2.2" xref="S3.E4.m2.1.1.3.3.2.2.2.2.cmml">
+                t
+               </mi>
+               <mi id="S3.E4.m2.1.1.3.3.2.2.2.3" xref="S3.E4.m2.1.1.3.3.2.2.2.3.cmml">
+                s
+               </mi>
+               <mi id="S3.E4.m2.1.1.3.3.2.2.3" xref="S3.E4.m2.1.1.3.3.2.2.3.cmml">
+                i
+               </mi>
+              </msubsup>
+              <mo id="S3.E4.m2.1.1.3.3.2.1" xref="S3.E4.m2.1.1.3.3.2.1.cmml">
+               /
+              </mo>
+              <msup id="S3.E4.m2.1.1.3.3.2.3" xref="S3.E4.m2.1.1.3.3.2.3.cmml">
+               <mi id="S3.E4.m2.1.1.3.3.2.3.2" xref="S3.E4.m2.1.1.3.3.2.3.2.cmml">
+                g
+               </mi>
+               <mi id="S3.E4.m2.1.1.3.3.2.3.3" xref="S3.E4.m2.1.1.3.3.2.3.3.cmml">
+                i
+               </mi>
+              </msup>
+             </mrow>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E4.m2.1b">
+           <apply id="S3.E4.m2.1.1.cmml" xref="S3.E4.m2.1.1">
+            <eq id="S3.E4.m2.1.1.1.cmml" xref="S3.E4.m2.1.1.1">
+            </eq>
+            <csymbol cd="latexml" id="S3.E4.m2.1.1.2.cmml" xref="S3.E4.m2.1.1.2">
+             absent
+            </csymbol>
+            <apply id="S3.E4.m2.1.1.3.cmml" xref="S3.E4.m2.1.1.3">
+             <times id="S3.E4.m2.1.1.3.1.cmml" xref="S3.E4.m2.1.1.3.1">
+             </times>
+             <apply id="S3.E4.m2.1.1.3.2.cmml" xref="S3.E4.m2.1.1.3.2">
+              <divide id="S3.E4.m2.1.1.3.2.1.cmml" xref="S3.E4.m2.1.1.3.2">
+              </divide>
+              <cn id="S3.E4.m2.1.1.3.2.2.cmml" type="integer" xref="S3.E4.m2.1.1.3.2.2">
+               1
+              </cn>
+              <ci id="S3.E4.m2.1.1.3.2.3.cmml" xref="S3.E4.m2.1.1.3.2.3">
+               𝐾
+              </ci>
+             </apply>
+             <apply id="S3.E4.m2.1.1.3.3.cmml" xref="S3.E4.m2.1.1.3.3">
+              <apply id="S3.E4.m2.1.1.3.3.1.cmml" xref="S3.E4.m2.1.1.3.3.1">
+               <csymbol cd="ambiguous" id="S3.E4.m2.1.1.3.3.1.1.cmml" xref="S3.E4.m2.1.1.3.3.1">
+                superscript
+               </csymbol>
+               <apply id="S3.E4.m2.1.1.3.3.1.2.cmml" xref="S3.E4.m2.1.1.3.3.1">
+                <csymbol cd="ambiguous" id="S3.E4.m2.1.1.3.3.1.2.1.cmml" xref="S3.E4.m2.1.1.3.3.1">
+                 subscript
+                </csymbol>
+                <sum id="S3.E4.m2.1.1.3.3.1.2.2.cmml" xref="S3.E4.m2.1.1.3.3.1.2.2">
+                </sum>
+                <ci id="S3.E4.m2.1.1.3.3.1.2.3.cmml" xref="S3.E4.m2.1.1.3.3.1.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <ci id="S3.E4.m2.1.1.3.3.1.3.cmml" xref="S3.E4.m2.1.1.3.3.1.3">
+                𝐾
+               </ci>
+              </apply>
+              <apply id="S3.E4.m2.1.1.3.3.2.cmml" xref="S3.E4.m2.1.1.3.3.2">
+               <divide id="S3.E4.m2.1.1.3.3.2.1.cmml" xref="S3.E4.m2.1.1.3.3.2.1">
+               </divide>
+               <apply id="S3.E4.m2.1.1.3.3.2.2.cmml" xref="S3.E4.m2.1.1.3.3.2.2">
+                <csymbol cd="ambiguous" id="S3.E4.m2.1.1.3.3.2.2.1.cmml" xref="S3.E4.m2.1.1.3.3.2.2">
+                 superscript
+                </csymbol>
+                <apply id="S3.E4.m2.1.1.3.3.2.2.2.cmml" xref="S3.E4.m2.1.1.3.3.2.2">
+                 <csymbol cd="ambiguous" id="S3.E4.m2.1.1.3.3.2.2.2.1.cmml" xref="S3.E4.m2.1.1.3.3.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E4.m2.1.1.3.3.2.2.2.2.cmml" xref="S3.E4.m2.1.1.3.3.2.2.2.2">
+                  𝑡
+                 </ci>
+                 <ci id="S3.E4.m2.1.1.3.3.2.2.2.3.cmml" xref="S3.E4.m2.1.1.3.3.2.2.2.3">
+                  𝑠
+                 </ci>
+                </apply>
+                <ci id="S3.E4.m2.1.1.3.3.2.2.3.cmml" xref="S3.E4.m2.1.1.3.3.2.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S3.E4.m2.1.1.3.3.2.3.cmml" xref="S3.E4.m2.1.1.3.3.2.3">
+                <csymbol cd="ambiguous" id="S3.E4.m2.1.1.3.3.2.3.1.cmml" xref="S3.E4.m2.1.1.3.3.2.3">
+                 superscript
+                </csymbol>
+                <ci id="S3.E4.m2.1.1.3.3.2.3.2.cmml" xref="S3.E4.m2.1.1.3.3.2.3.2">
+                 𝑔
+                </ci>
+                <ci id="S3.E4.m2.1.1.3.3.2.3.3.cmml" xref="S3.E4.m2.1.1.3.3.2.3.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E4.m2.1c">
+           \displaystyle=\frac{1}{K}\sum_{i}^{K}t_{s}^{i}/g^{i}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (4)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+     <tbody id="S3.E5">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E5.2.1.1.1">
+         CF
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=2*\text{CP}*\text{CR}/(\text{CP}+\text{CR})" class="ltx_Math" display="inline" id="S3.E5.m2.1">
+         <semantics id="S3.E5.m2.1a">
+          <mrow id="S3.E5.m2.1.1" xref="S3.E5.m2.1.1.cmml">
+           <mi id="S3.E5.m2.1.1.3" xref="S3.E5.m2.1.1.3.cmml">
+           </mi>
+           <mo id="S3.E5.m2.1.1.2" xref="S3.E5.m2.1.1.2.cmml">
+            =
+           </mo>
+           <mrow id="S3.E5.m2.1.1.1" xref="S3.E5.m2.1.1.1.cmml">
+            <mrow id="S3.E5.m2.1.1.1.3" xref="S3.E5.m2.1.1.1.3.cmml">
+             <mn id="S3.E5.m2.1.1.1.3.2" xref="S3.E5.m2.1.1.1.3.2.cmml">
+              2
+             </mn>
+             <mo id="S3.E5.m2.1.1.1.3.1" lspace="0.222em" rspace="0.222em" xref="S3.E5.m2.1.1.1.3.1.cmml">
+              ∗
+             </mo>
+             <mtext id="S3.E5.m2.1.1.1.3.3" xref="S3.E5.m2.1.1.1.3.3a.cmml">
+              CP
+             </mtext>
+             <mo id="S3.E5.m2.1.1.1.3.1a" lspace="0.222em" rspace="0.222em" xref="S3.E5.m2.1.1.1.3.1.cmml">
+              ∗
+             </mo>
+             <mtext id="S3.E5.m2.1.1.1.3.4" xref="S3.E5.m2.1.1.1.3.4a.cmml">
+              CR
+             </mtext>
+            </mrow>
+            <mo id="S3.E5.m2.1.1.1.2" xref="S3.E5.m2.1.1.1.2.cmml">
+             /
+            </mo>
+            <mrow id="S3.E5.m2.1.1.1.1.1" xref="S3.E5.m2.1.1.1.1.1.1.cmml">
+             <mo id="S3.E5.m2.1.1.1.1.1.2" stretchy="false" xref="S3.E5.m2.1.1.1.1.1.1.cmml">
+              (
+             </mo>
+             <mrow id="S3.E5.m2.1.1.1.1.1.1" xref="S3.E5.m2.1.1.1.1.1.1.cmml">
+              <mtext id="S3.E5.m2.1.1.1.1.1.1.2" xref="S3.E5.m2.1.1.1.1.1.1.2a.cmml">
+               CP
+              </mtext>
+              <mo id="S3.E5.m2.1.1.1.1.1.1.1" xref="S3.E5.m2.1.1.1.1.1.1.1.cmml">
+               +
+              </mo>
+              <mtext id="S3.E5.m2.1.1.1.1.1.1.3" xref="S3.E5.m2.1.1.1.1.1.1.3a.cmml">
+               CR
+              </mtext>
+             </mrow>
+             <mo id="S3.E5.m2.1.1.1.1.1.3" stretchy="false" xref="S3.E5.m2.1.1.1.1.1.1.cmml">
+              )
+             </mo>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E5.m2.1b">
+           <apply id="S3.E5.m2.1.1.cmml" xref="S3.E5.m2.1.1">
+            <eq id="S3.E5.m2.1.1.2.cmml" xref="S3.E5.m2.1.1.2">
+            </eq>
+            <csymbol cd="latexml" id="S3.E5.m2.1.1.3.cmml" xref="S3.E5.m2.1.1.3">
+             absent
+            </csymbol>
+            <apply id="S3.E5.m2.1.1.1.cmml" xref="S3.E5.m2.1.1.1">
+             <divide id="S3.E5.m2.1.1.1.2.cmml" xref="S3.E5.m2.1.1.1.2">
+             </divide>
+             <apply id="S3.E5.m2.1.1.1.3.cmml" xref="S3.E5.m2.1.1.1.3">
+              <times id="S3.E5.m2.1.1.1.3.1.cmml" xref="S3.E5.m2.1.1.1.3.1">
+              </times>
+              <cn id="S3.E5.m2.1.1.1.3.2.cmml" type="integer" xref="S3.E5.m2.1.1.1.3.2">
+               2
+              </cn>
+              <ci id="S3.E5.m2.1.1.1.3.3a.cmml" xref="S3.E5.m2.1.1.1.3.3">
+               <mtext id="S3.E5.m2.1.1.1.3.3.cmml" xref="S3.E5.m2.1.1.1.3.3">
+                CP
+               </mtext>
+              </ci>
+              <ci id="S3.E5.m2.1.1.1.3.4a.cmml" xref="S3.E5.m2.1.1.1.3.4">
+               <mtext id="S3.E5.m2.1.1.1.3.4.cmml" xref="S3.E5.m2.1.1.1.3.4">
+                CR
+               </mtext>
+              </ci>
+             </apply>
+             <apply id="S3.E5.m2.1.1.1.1.1.1.cmml" xref="S3.E5.m2.1.1.1.1.1">
+              <plus id="S3.E5.m2.1.1.1.1.1.1.1.cmml" xref="S3.E5.m2.1.1.1.1.1.1.1">
+              </plus>
+              <ci id="S3.E5.m2.1.1.1.1.1.1.2a.cmml" xref="S3.E5.m2.1.1.1.1.1.1.2">
+               <mtext id="S3.E5.m2.1.1.1.1.1.1.2.cmml" xref="S3.E5.m2.1.1.1.1.1.1.2">
+                CP
+               </mtext>
+              </ci>
+              <ci id="S3.E5.m2.1.1.1.1.1.1.3a.cmml" xref="S3.E5.m2.1.1.1.1.1.1.3">
+               <mtext id="S3.E5.m2.1.1.1.1.1.1.3.cmml" xref="S3.E5.m2.1.1.1.1.1.1.3">
+                CR
+               </mtext>
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E5.m2.1c">
+           \displaystyle=2*\text{CP}*\text{CR}/(\text{CP}+\text{CR})
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (5)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+     <tbody id="S3.E6">
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <span class="ltx_text ltx_markedasmath" id="S3.E6.2.1.1.1">
+         SF
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle=2*\text{SP}*\text{SR}/(\text{SP}+\text{SR})" class="ltx_Math" display="inline" id="S3.E6.m2.1">
+         <semantics id="S3.E6.m2.1a">
+          <mrow id="S3.E6.m2.1.1" xref="S3.E6.m2.1.1.cmml">
+           <mi id="S3.E6.m2.1.1.3" xref="S3.E6.m2.1.1.3.cmml">
+           </mi>
+           <mo id="S3.E6.m2.1.1.2" xref="S3.E6.m2.1.1.2.cmml">
+            =
+           </mo>
+           <mrow id="S3.E6.m2.1.1.1" xref="S3.E6.m2.1.1.1.cmml">
+            <mrow id="S3.E6.m2.1.1.1.3" xref="S3.E6.m2.1.1.1.3.cmml">
+             <mn id="S3.E6.m2.1.1.1.3.2" xref="S3.E6.m2.1.1.1.3.2.cmml">
+              2
+             </mn>
+             <mo id="S3.E6.m2.1.1.1.3.1" lspace="0.222em" rspace="0.222em" xref="S3.E6.m2.1.1.1.3.1.cmml">
+              ∗
+             </mo>
+             <mtext id="S3.E6.m2.1.1.1.3.3" xref="S3.E6.m2.1.1.1.3.3a.cmml">
+              SP
+             </mtext>
+             <mo id="S3.E6.m2.1.1.1.3.1a" lspace="0.222em" rspace="0.222em" xref="S3.E6.m2.1.1.1.3.1.cmml">
+              ∗
+             </mo>
+             <mtext id="S3.E6.m2.1.1.1.3.4" xref="S3.E6.m2.1.1.1.3.4a.cmml">
+              SR
+             </mtext>
+            </mrow>
+            <mo id="S3.E6.m2.1.1.1.2" xref="S3.E6.m2.1.1.1.2.cmml">
+             /
+            </mo>
+            <mrow id="S3.E6.m2.1.1.1.1.1" xref="S3.E6.m2.1.1.1.1.1.1.cmml">
+             <mo id="S3.E6.m2.1.1.1.1.1.2" stretchy="false" xref="S3.E6.m2.1.1.1.1.1.1.cmml">
+              (
+             </mo>
+             <mrow id="S3.E6.m2.1.1.1.1.1.1" xref="S3.E6.m2.1.1.1.1.1.1.cmml">
+              <mtext id="S3.E6.m2.1.1.1.1.1.1.2" xref="S3.E6.m2.1.1.1.1.1.1.2a.cmml">
+               SP
+              </mtext>
+              <mo id="S3.E6.m2.1.1.1.1.1.1.1" xref="S3.E6.m2.1.1.1.1.1.1.1.cmml">
+               +
+              </mo>
+              <mtext id="S3.E6.m2.1.1.1.1.1.1.3" xref="S3.E6.m2.1.1.1.1.1.1.3a.cmml">
+               SR
+              </mtext>
+             </mrow>
+             <mo id="S3.E6.m2.1.1.1.1.1.3" stretchy="false" xref="S3.E6.m2.1.1.1.1.1.1.cmml">
+              )
+             </mo>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E6.m2.1b">
+           <apply id="S3.E6.m2.1.1.cmml" xref="S3.E6.m2.1.1">
+            <eq id="S3.E6.m2.1.1.2.cmml" xref="S3.E6.m2.1.1.2">
+            </eq>
+            <csymbol cd="latexml" id="S3.E6.m2.1.1.3.cmml" xref="S3.E6.m2.1.1.3">
+             absent
+            </csymbol>
+            <apply id="S3.E6.m2.1.1.1.cmml" xref="S3.E6.m2.1.1.1">
+             <divide id="S3.E6.m2.1.1.1.2.cmml" xref="S3.E6.m2.1.1.1.2">
+             </divide>
+             <apply id="S3.E6.m2.1.1.1.3.cmml" xref="S3.E6.m2.1.1.1.3">
+              <times id="S3.E6.m2.1.1.1.3.1.cmml" xref="S3.E6.m2.1.1.1.3.1">
+              </times>
+              <cn id="S3.E6.m2.1.1.1.3.2.cmml" type="integer" xref="S3.E6.m2.1.1.1.3.2">
+               2
+              </cn>
+              <ci id="S3.E6.m2.1.1.1.3.3a.cmml" xref="S3.E6.m2.1.1.1.3.3">
+               <mtext id="S3.E6.m2.1.1.1.3.3.cmml" xref="S3.E6.m2.1.1.1.3.3">
+                SP
+               </mtext>
+              </ci>
+              <ci id="S3.E6.m2.1.1.1.3.4a.cmml" xref="S3.E6.m2.1.1.1.3.4">
+               <mtext id="S3.E6.m2.1.1.1.3.4.cmml" xref="S3.E6.m2.1.1.1.3.4">
+                SR
+               </mtext>
+              </ci>
+             </apply>
+             <apply id="S3.E6.m2.1.1.1.1.1.1.cmml" xref="S3.E6.m2.1.1.1.1.1">
+              <plus id="S3.E6.m2.1.1.1.1.1.1.1.cmml" xref="S3.E6.m2.1.1.1.1.1.1.1">
+              </plus>
+              <ci id="S3.E6.m2.1.1.1.1.1.1.2a.cmml" xref="S3.E6.m2.1.1.1.1.1.1.2">
+               <mtext id="S3.E6.m2.1.1.1.1.1.1.2.cmml" xref="S3.E6.m2.1.1.1.1.1.1.2">
+                SP
+               </mtext>
+              </ci>
+              <ci id="S3.E6.m2.1.1.1.1.1.1.3a.cmml" xref="S3.E6.m2.1.1.1.1.1.1.3">
+               <mtext id="S3.E6.m2.1.1.1.1.1.1.3.cmml" xref="S3.E6.m2.1.1.1.1.1.1.3">
+                SR
+               </mtext>
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E6.m2.1c">
+           \displaystyle=2*\text{SP}*\text{SR}/(\text{SP}+\text{SR})
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (6)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <p class="ltx_p" id="S3.SS2.p1.7">
+     where
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS2.p1.1.m1.1">
+      <semantics id="S3.SS2.p1.1.m1.1a">
+       <mi id="S3.SS2.p1.1.m1.1.1" xref="S3.SS2.p1.1.m1.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.1.m1.1b">
+        <ci id="S3.SS2.p1.1.m1.1.1.cmml" xref="S3.SS2.p1.1.m1.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.1.m1.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     indicates the
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS2.p1.2.m2.1">
+      <semantics id="S3.SS2.p1.2.m2.1a">
+       <mi id="S3.SS2.p1.2.m2.1.1" xref="S3.SS2.p1.2.m2.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.2.m2.1b">
+        <ci id="S3.SS2.p1.2.m2.1.1.cmml" xref="S3.SS2.p1.2.m2.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.2.m2.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     -th sample,
+     <math alttext="t_{c}" class="ltx_Math" display="inline" id="S3.SS2.p1.3.m3.1">
+      <semantics id="S3.SS2.p1.3.m3.1a">
+       <msub id="S3.SS2.p1.3.m3.1.1" xref="S3.SS2.p1.3.m3.1.1.cmml">
+        <mi id="S3.SS2.p1.3.m3.1.1.2" xref="S3.SS2.p1.3.m3.1.1.2.cmml">
+         t
+        </mi>
+        <mi id="S3.SS2.p1.3.m3.1.1.3" xref="S3.SS2.p1.3.m3.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.3.m3.1b">
+        <apply id="S3.SS2.p1.3.m3.1.1.cmml" xref="S3.SS2.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p1.3.m3.1.1.1.cmml" xref="S3.SS2.p1.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p1.3.m3.1.1.2.cmml" xref="S3.SS2.p1.3.m3.1.1.2">
+          𝑡
+         </ci>
+         <ci id="S3.SS2.p1.3.m3.1.1.3.cmml" xref="S3.SS2.p1.3.m3.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.3.m3.1c">
+        t_{c}
+       </annotation>
+      </semantics>
+     </math>
+     represent the number of correctly predicted character names,
+     <math alttext="t_{s}" class="ltx_Math" display="inline" id="S3.SS2.p1.4.m4.1">
+      <semantics id="S3.SS2.p1.4.m4.1a">
+       <msub id="S3.SS2.p1.4.m4.1.1" xref="S3.SS2.p1.4.m4.1.1.cmml">
+        <mi id="S3.SS2.p1.4.m4.1.1.2" xref="S3.SS2.p1.4.m4.1.1.2.cmml">
+         t
+        </mi>
+        <mi id="S3.SS2.p1.4.m4.1.1.3" xref="S3.SS2.p1.4.m4.1.1.3.cmml">
+         s
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.4.m4.1b">
+        <apply id="S3.SS2.p1.4.m4.1.1.cmml" xref="S3.SS2.p1.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p1.4.m4.1.1.1.cmml" xref="S3.SS2.p1.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p1.4.m4.1.1.2.cmml" xref="S3.SS2.p1.4.m4.1.1.2">
+          𝑡
+         </ci>
+         <ci id="S3.SS2.p1.4.m4.1.1.3.cmml" xref="S3.SS2.p1.4.m4.1.1.3">
+          𝑠
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.4.m4.1c">
+        t_{s}
+       </annotation>
+      </semantics>
+     </math>
+     denote the number of correct predictions for both character names and associated skills,
+     <math alttext="p" class="ltx_Math" display="inline" id="S3.SS2.p1.5.m5.1">
+      <semantics id="S3.SS2.p1.5.m5.1a">
+       <mi id="S3.SS2.p1.5.m5.1.1" xref="S3.SS2.p1.5.m5.1.1.cmml">
+        p
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.5.m5.1b">
+        <ci id="S3.SS2.p1.5.m5.1.1.cmml" xref="S3.SS2.p1.5.m5.1.1">
+         𝑝
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.5.m5.1c">
+        p
+       </annotation>
+      </semantics>
+     </math>
+     indicate the total number of predicted tuples,
+     <math alttext="g" class="ltx_Math" display="inline" id="S3.SS2.p1.6.m6.1">
+      <semantics id="S3.SS2.p1.6.m6.1a">
+       <mi id="S3.SS2.p1.6.m6.1.1" xref="S3.SS2.p1.6.m6.1.1.cmml">
+        g
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.6.m6.1b">
+        <ci id="S3.SS2.p1.6.m6.1.1.cmml" xref="S3.SS2.p1.6.m6.1.1">
+         𝑔
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.6.m6.1c">
+        g
+       </annotation>
+      </semantics>
+     </math>
+     represent the number of answers in the ground truth, and
+     <math alttext="K" class="ltx_Math" display="inline" id="S3.SS2.p1.7.m7.1">
+      <semantics id="S3.SS2.p1.7.m7.1a">
+       <mi id="S3.SS2.p1.7.m7.1.1" xref="S3.SS2.p1.7.m7.1.1.cmml">
+        K
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.7.m7.1b">
+        <ci id="S3.SS2.p1.7.m7.1.1.cmml" xref="S3.SS2.p1.7.m7.1.1">
+         𝐾
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.7.m7.1c">
+        K
+       </annotation>
+      </semantics>
+     </math>
+     represent the total number of evaluation data samples.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     The metrics CP and CR are employed to evaluate the understanding of character intentions, focusing on the accuracy of predicting the characters about to take action. The proposed methods are required to provide correct character predictions, thereby achieving higher values for CP and CR. Then, to achieve higher SP and SR, the proposed methods must accurately comprehend both character intentions and the rules of the game. It is worth noting that if the model consistently predicts all characters as outputs, it may increase the recall but reduce the precision. Conversely, if the method tends to predict only one character, it may achieve higher precision but lower recall. To strike a balance between these factors, we employ F-scores as the final evaluation metrics in our experiments. The F-scores consider both precision and recall values, providing a comprehensive measure of the performance.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="66" id="S3.F3.g1" src="/html/2307.12573/assets/x3.png" width="391"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Distribution of character number in MOE labels.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="70" id="S3.F4.g1" src="/html/2307.12573/assets/x4.png" width="391"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Distribution of skill names in MOE labels of the contexts within DND rule. initiative (ini), intelligence (int), perception (per), arcana (arc), insight (ins).
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Skill Check Annotation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     In Tabletop Role-Playing Games (TRPGs), skill checks can directly indicate the players’ intentions in the game, which play a crucial role in determining the success or failure of character actions. When a player wishes to have their character perform an action involving a skill, such as combat, persuasion, or searching for clues, the game models or rules provide a difficulty level or target number for the action. This difficulty level represents the challenge or desired level of success for the action. The Game Master (GM) assumes the responsibility of judging and guiding the player in performing the skill check based on the character’s proficiency associated with the action. The GM then rolls a dice to determine the outcome.
+In our task, we annotate the skill checks performed by players’ characters during the games based on the semantic or recorded results provided by the GM. It is important to note that some skill checks are not predictable based solely on previous interactions. For example, in Call of Cthulhu (COC) games, perception checks may be prompted by the GM when players enter specific locations. These checks are closely tied to the game models and cannot be predicted in advance. Additionally, certain checks require additional calculations based on character attributes or cards, such as determining damage based on hit points or factoring in armor class to reduce damage. These calculations cannot be inferred solely from the game logs and we also remove these check in MOE.
+Thus, we have excluded any checks that are unpredictable and included only those check items that can be inferred from the game logs. For example, the COC logs contain 61 check items (including skills and attributes) that can be verified, while the DND logs contain 25 such items. Further details regarding the check items will be provided in the supplementary material.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Context Excerpt
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     Following the labeling of check items in the game logs, we proceed to excerpt relevant contexts associated with each check. Our selection of excerpted contexts is guided by three key principles to ensure the inclusion of long and diverse interactions.
+First, we ensure that the excerpted contexts encompass complete events within the game, such as the entire process of encountering enemies or the detailed information and clues leading up to the exploration of certain locations. This ensures that the extracted contexts provide a comprehensive understanding of the events.
+Second, we require that the excerpted contexts involve at least two characters who are present in the current scenarios of the game. This criterion allows for the examination of interactions between multiple characters, providing a more complex context for analysis.
+Lastly, we ensure that at least one character within the excerpted contexts has a skill check that can be predicted. This principle guarantees that the selected contexts contain situations where skill checks can be inferred based on the information available up to the last turn.
+By adhering to these principles, we ensure that the contexts support the understanding of the complex interactions and enable the inference of characters’ intentions in subsequent turns.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.5
+    </span>
+    Statistical Analysis
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS5.p1">
+    <p class="ltx_p" id="S3.SS5.p1.1">
+     We present the statistical results of answers in MOE in Tab.
+     <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4 Dataset ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . In total, we have extracted and labeled 1,003 sets of contexts and corresponding skill checks, which serve as the input context and ground truth for our task. The average number of turns in our dataset is 32.12, indicating its complexity compared to previous works that primarily focused on single-turn responses. Furthermore, we provide the distributions of skill check labels of the Dungeons and Dragons (DND) logs in the MOE task, as illustrated in Fig.
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.2 Evaluation ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     and Fig.
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.2 Evaluation ‣ 3 Multiple character and novel Object based interaction Estimation ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     . The number of characters involved in skill checks varies from 1 to 11, with an average of 1.696 characters per skill check. This reflects the complexity of multi-character interactions within our dataset, which close to the real-human communication in the games. Additionally, the items for skill checks exhibit diversity, highlighting the varied interactions between players. Both sets of statistical results underscore the value of our task as a comprehensive testbed for understanding complex interactions in TRPGs.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Dataset
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    To support our MOE task with more grounded and complex data, we have collect a new dataset. It is sourced from a Chinese TRPG forum
+    <span class="ltx_note ltx_role_footnote" id="footnote2">
+     <sup class="ltx_note_mark">
+      2
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        2
+       </span>
+       www.goddessfantasy.net
+      </span>
+     </span>
+    </span>
+    . This forum hosts a wide array of game records uploaded by users, spanning different rule systems e.g., DND, COC, PF, SW, etc. Unlike play-by-post forums
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    , where players interact by writing and posting responses, the game logs in this forum are compiled and summarized by the Game Masters (GMs) after the game sessions
+    <span class="ltx_note ltx_role_footnote" id="footnote3">
+     <sup class="ltx_note_mark">
+      3
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        3
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        3
+       </span>
+       Most users whose logs are used in our study have agreed and provided their informed consent. We are trying to contact and communicate all users to be informed and agree with the participation of the research.
+      </span>
+     </span>
+    </span>
+    . Besides, in play-by-post scenarios, interactions between players are not immediate, and the feedback from the next player may not appear until several days or even weeks later. In contrast, the majority of game logs in our dataset are derived from instant messaging platforms, including voice and text communication. This characteristic allows for the capture of abundant immediate player responses, closely mirroring daily conversations with grounded language interactions. Consequently, our dataset provides more grounded semantics within real-time communication, making it conducive for exploring AI agents.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Statistically, our dataset comprises 95 sets of records from different games with various rule systems. It encompasses a total of 647,480 Chinese words, as indicated in Tab.
+    <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4 Dataset ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . In summary, our dataset not only surpasses previous works in terms of data diversity, groundedness, and complexity but also matches or exceeds their scale.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S4.T1">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T1.2.2" style="width:238.5pt;height:53.5pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-81.3pt,18.2pt) scale(0.594706620422879,0.594706620422879) ;">
+     <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T1.2.2.2">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T1.2.2.2.3.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.2.2.2.3.1.1">
+         Dataset
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.2.2.2.3.1.2">
+         #words
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.2.2.2.3.1.3">
+         rules
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T1.1.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_tt" id="S4.T1.1.1.1.1.2">
+         DDD Corpus
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib13" title="">
+           13
+          </a>
+          ]
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S4.T1.1.1.1.1.1">
+         <math alttext="\sim" class="ltx_Math" display="inline" id="S4.T1.1.1.1.1.1.m1.1">
+          <semantics id="S4.T1.1.1.1.1.1.m1.1a">
+           <mo id="S4.T1.1.1.1.1.1.m1.1.1" xref="S4.T1.1.1.1.1.1.m1.1.1.cmml">
+            ∼
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S4.T1.1.1.1.1.1.m1.1b">
+            <csymbol cd="latexml" id="S4.T1.1.1.1.1.1.m1.1.1.cmml" xref="S4.T1.1.1.1.1.1.m1.1.1">
+             similar-to
+            </csymbol>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S4.T1.1.1.1.1.1.m1.1c">
+            \sim
+           </annotation>
+          </semantics>
+         </math>
+         4,430,000
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S4.T1.1.1.1.1.3">
+         DND
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T1.2.2.2.4.1">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.2.2.2.4.1.1">
+         PBP
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib3" title="">
+           3
+          </a>
+          ]
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T1.2.2.2.4.1.2">
+         58,187,526
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T1.2.2.2.4.1.3">
+         DND
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T1.2.2.2.2">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.2.2.2.2.2">
+         GANDALF
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib25" title="">
+           25
+          </a>
+          ]
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T1.2.2.2.2.1">
+         <math alttext="\sim" class="ltx_Math" display="inline" id="S4.T1.2.2.2.2.1.m1.1">
+          <semantics id="S4.T1.2.2.2.2.1.m1.1a">
+           <mo id="S4.T1.2.2.2.2.1.m1.1.1" xref="S4.T1.2.2.2.2.1.m1.1.1.cmml">
+            ∼
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S4.T1.2.2.2.2.1.m1.1b">
+            <csymbol cd="latexml" id="S4.T1.2.2.2.2.1.m1.1.1.cmml" xref="S4.T1.2.2.2.2.1.m1.1.1">
+             similar-to
+            </csymbol>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S4.T1.2.2.2.2.1.m1.1c">
+            \sim
+           </annotation>
+          </semantics>
+         </math>
+         47,000
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T1.2.2.2.2.3">
+         DND
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T1.2.2.2.5.2">
+        <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.2.2.2.5.2.1">
+         Ours
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.2.2.2.5.2.2">
+         647,480
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.2.2.2.5.2.3">
+         DND,COC,PF,SW
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Dataset statistic. Our dataset exhibits a comparable scale to previous works, while also encompassing a higher diversity of game rules.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Think Before Speak prompting method
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    We propose a three-step agent generation benchmark called “Think Before Speak” (TBS), which aims to guide Large Language Models (LLMs) in comprehending complex and lengthy contexts of interactions more accurately. Unlike simple template-based prompting approaches
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , our method takes into consideration the specific properties of Tabletop Role-Playing Games (TRPGs) and incorporates the principles of Chain of Thought (CoT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    in its prompting design.
+In the generated check item, the answers consist of character names and corresponding skill names. However, directly expecting the models to produce accurate character and skill names is a challenging task. Using a single-step template prompting approach may result in LLMs generating characters that do not exist in the given contexts, characters with no relevant actions, mismatches between characters and their associated skills, or skills that are not defined within the game rules.
+To address these challenges, our method guides LLMs through a three-step process. Firstly, the models are prompted to identify the characters present in the current game scenarios. Then, they are encouraged to consider the intentions of the characters and list those who are likely to take action or are engaged in ongoing movements. Finally, we provide the models with a comprehensive set of possible skills derived from the game rules, allowing them to select the most appropriate character-skill combinations that the GM may ask the players to check. This gradual guidance facilitates more accurate and context-aware responses from the LLMs.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Specifically, in the first step of our prompting approach, we guide the language models by providing a prompt such as “Based on the TRPG game record provided above, identify the characters or NPCs that exist in the current scenarios.” This prompts the language model to recognize and understand the characters present in the given contexts.
+In the second step, we prompt the language models with a question like “Which character or NPC is expected to carry out activities next?” This encourages the models to delve deeper into the semantics of the contexts and infer the intentions of the characters.
+For the final step, we provide LLMs with all possible skills defined in the TRPG rules and guide them to generate character names that correspond to the potential skill checks. Our prompts for this step include phrases such as “What skills are required for the mentioned characters to carry out their respective activities?”
+Furthermore, to facilitate comparison with other benchmarks, we extend the TBS approach to also generate utterances to simulate a real-human GM. Given the predictions from the TBS model, LLMs are required to generate responses in the tone and style of a GM. We achieve this by using prompts such as “As a game master for a TRPG game, generate responses based on the provided character names and the corresponding skills.”
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Experimental Results
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    In this section, we provide a detailed discussion, comprehensive evaluation, and analysis of our benchmark.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S6.p2.1.1">
+     Baseline Methods:
+    </span>
+    As our baseline, we employ LLMs with template prompting, which have been utilized in previous studies. We specifically adapt two popular LLMs, which are GPT-3.5 and GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    . By incorporating different language models, we can thoroughly assess the performance of our prompting benchmark. Furthermore, recent researches
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    have demonstrated the efficacy of Chain-of-Thought (CoT) methods in improving understanding capabilities. To compare with this approach, we include the zero-shot CoT (zcot) method
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    in our evaluation.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p3">
+   <p class="ltx_p" id="S6.p3.1">
+    Additionally, to demonstrate the ability to infer check items, we introduce a statistical predictor for check items. Given the predicted characters, we select the skills with the highest probability based on the statistical distribution observed in our dataset. This statistical predictor serves as a lower bound for generating check items and also reveals the impact of any biases present in our dataset.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p4">
+   <p class="ltx_p" id="S6.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S6.p4.1.1">
+     Evaluations:
+    </span>
+    To evaluate the effects of MOE and TBS frameworks on interaction understanding, we introduce the concept of a virtual Game Master (GM) in TRPGs. The virtual GM serves as a simulation of a real-human GM, possessing the ability to comprehend interactions, infer intentions, interact with players, and provide guidance for their actions. This role fulfills the criteria of our requirements for the agents that enable to understand complex interactions. By incorporating the virtual GM, we create a platform to assess the agents’ understanding of complex interactions and their ability to navigate diverse scenarios.
+In detail, we generate GM utterances using both ground truth information from C2A and predictions from TBS. The generation process follows the methodology outlined in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    , which leverages LLMs, template prompts, and additional inputs for characters and skills.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p5">
+   <p class="ltx_p" id="S6.p5.1">
+    Rather than relying on metrics based on captioning in previous works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    , we employ subjective evaluation conducted by real-human players. Given the diversity of descriptions in grounded language, there is no definitive ground truth for evaluating the responses of GMs. Subjective evaluation provides more valuable insights into the degree of realism in the generated utterances. Following
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    , we invite volunteers to score the responses based on three factors: naturalness, groundedness, and factual correctness. Naturalness assesses the extent to which the generated responses resemble human-like language. Groundedness measures the degree to which the responses effectively employ grounded language similar to everyday communication. Lastly, factual correctness evaluates whether there are any factual errors or inconsistencies with the given contexts.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S6.T2">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S6.T2.1" style="width:381.6pt;height:155.4pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-8.1pt,3.3pt) scale(0.959430995462527,0.959430995462527) ;">
+     <table class="ltx_tabular ltx_align_middle" id="S6.T2.1.1">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S6.T2.1.1.1.1">
+        <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t" id="S6.T2.1.1.1.1.1" rowspan="3">
+         <span class="ltx_text" id="S6.T2.1.1.1.1.1.1">
+          Prompting Method
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="4" id="S6.T2.1.1.1.1.2">
+         LLMs
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.2.2">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="2" id="S6.T2.1.1.2.2.1">
+         GPT-3.5
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="2" id="S6.T2.1.1.2.2.2">
+         GPT-4
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.3.3">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.3.3.1">
+         CF
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.3.3.2">
+         SF
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.3.3.3">
+         CF
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.3.3.4">
+         SF
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.4.4">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_tt" id="S6.T2.1.1.4.4.1">
+         template prompt
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.4.4.2">
+         42.02
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.4.4.3">
+         15.30
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.4.4.4">
+         43.21
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.4.4.5">
+         15.93
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.5.5">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S6.T2.1.1.5.5.1">
+         template prompt + zcot
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.5.5.2">
+         39.28
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.5.5.3">
+         14.46
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.5.5.4">
+         42.45
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.5.5.5">
+         16.25
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.6.6">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_tt" id="S6.T2.1.1.6.6.1">
+         char prompt + skill prompt
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.6.6.2">
+         50.43
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.6.6.3">
+         14.78
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.6.6.4">
+         53.55
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S6.T2.1.1.6.6.5">
+         16.79
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.7.7">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S6.T2.1.1.7.7.1">
+         pre-char prompt + char prompt + statistic predictor
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.7.7.2">
+         53.32
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.7.7.3">
+         5.03
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.7.7.4">
+         57.94
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.7.7.5">
+         5.03
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.8.8">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S6.T2.1.1.8.8.1">
+         pre-char prompt + char prompt + skill prompt + zcot
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.8.8.2">
+         50.50
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.8.8.3">
+         12.88
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.8.8.4">
+         53.45
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S6.T2.1.1.8.8.5">
+         17.39
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T2.1.1.9.9">
+        <td class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S6.T2.1.1.9.9.1">
+         pre-char prompt + char prompt + skill prompt
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S6.T2.1.1.9.9.2">
+         53.32
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S6.T2.1.1.9.9.3">
+         15.91
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S6.T2.1.1.9.9.4">
+         57.94
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S6.T2.1.1.9.9.5">
+         20.02
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2:
+    </span>
+    Comparison of different prompting methods and LLMs. Results prove that our task is solvable but requires higher understanding ability for grounded and complex semantics.
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S6.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     6.1
+    </span>
+    Objective Evaluation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S6.SS1.p1">
+    <p class="ltx_p" id="S6.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S6.SS1.p1.1.1">
+      Comparison of Prompting Methods:
+     </span>
+     We conduct a comparison between our proposed method and different prompting approaches. The results, as shown in Tab.
+     <a class="ltx_ref" href="#S6.T2" title="Table 2 ‣ 6 Experimental Results ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , reveal the effectiveness of our step-wise prompting approach compared to baselines such as zero-shot CoT and the statistical predictor.
+The experimental results demonstrate that each step in our prompting process contributes significantly, leading to improved F-score for both characters and skills. This highlights the enhanced understanding capability of LLMs in comprehending the given contexts. Furthermore, due to the distribution bias present in our dataset, the statistical predictor proves to be useful, albeit with considerably lower performance compared to our proposed method and other prompting methods. This reveal the lower performance boundary in predicting skill labels.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S6.SS1.p2">
+    <p class="ltx_p" id="S6.SS1.p2.1">
+     Furthermore, in line with previous studies
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     , the incorporation of zero-shot CoT has demonstrated improvements in the performance of LLMs across various tasks. However, when applied to the MOE task, the observed enhancements are not as substantial. Since MOE involves more grounded semantics and complex interactions, it presents a challenging scenario for existing prompting methods and remains an unsolved problem that requires further investigation.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S6.SS1.p3">
+    <p class="ltx_p" id="S6.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S6.SS1.p3.1.1">
+      Comparison of different language models:
+     </span>
+     We further investigate the impact of different LLMs on the performance of our prompting methods. With advancements in LLM, the overall understanding and reasoning capabilities have significantly improved. As depicted in Tab.
+     <a class="ltx_ref" href="#S6.T2" title="Table 2 ‣ 6 Experimental Results ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , employing more advanced language models leads to higher performance in MOE task. In addition to the effectiveness of the prompting methods, the enhancements in LLMs themselves are also beneficial in comprehending the intricacies of complex and grounded interactions. The experimental results reveal that our task is solvable, yet there remains ample room for further exploration and improvement.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S6.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     6.2
+    </span>
+    Subjective Evaluation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S6.SS2.p1">
+    <p class="ltx_p" id="S6.SS2.p1.1">
+     We conducted a subjective evaluation by recruiting real-human players of TRPG as volunteers and collecting their responses through questionnaires. The average scores in different factors, which are naturalness, groundedness, and factual correctness, were computed following established guidelines
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     . The statistical results are presented in Fig.
+     <a class="ltx_ref" href="#S6.F5" title="Figure 5 ‣ 6.2 Subjective Evaluation ‣ 6 Experimental Results ‣ Tachikuma: Understading Complex Interactions with Multi-Character and Novel Objects by Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . Notably, methods that take into account the predictions or ground truth of MOE demonstrate higher performance across all evaluation factors. Generally, methods utilizing MOE labels outperform those using predicted labels. Moreover, when considering MOE predictions, the methods achieve superior performance in generating virtual GM responses. This observation confirms that a higher understanding ability for complex semantics leads to more vivid and human-like responses from the agents. Additionally, it underscores the strong correlation between MOE performance and virtual GM performance, highlighting the importance of MOE in the pursuit of improved agent generation.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S6.SS2.p2">
+    <p class="ltx_p" id="S6.SS2.p2.1">
+     Besides, our prompting method demonstrates superior performance in all evaluated factors. Specifically, our method exhibits significant improvements in factual correctness compared to the baseline methods. Furthermore, in terms of groundedness and naturalness, our method showcases comparable or even better performance than other methods. These results indicate that our method achieves enhanced understanding ability and is capable of generating improved utterances as GM descriptions. However, there is still ample room for improvement in terms of groundness and naturalness. The generated utterances may occasionally be overly verbose and lack the same level of vividness as those produced by real humans. This performance gap motivates further exploration of more effective methods for constructing advanced AI agents.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S6.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="136" id="S6.F5.g1" src="/html/2307.12573/assets/x5.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     Subjective evaluation by volunteers. With MOE labels or predictions from our method, LLMs generate better responses that close to the real-human in all three evaluating factors.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    This paper proposes a new dataset, task, and benchmark to enhance the understanding ability of AI agents in dealing with complex interactions with multiple characters. The existing works in this field have limitations, particularly their reliance on forum-based data collections and do not consider complex and grounded semantics in the real-time communications. To overcome these limitations, we formalize a new task named Multiple character and Open instances based interaction Estimation (MOE), providing a testbed for the understanding ability of the agents and leading further improvements in agents’ factual correctness. We also introduce a dataset to support MOE task, which is derived from real-time game logs in tabletop role-playing games (TRPGs) and provides a richer and more complex context capable of supporting MOE tasks.
+Additionally, we introduce a prompting benchmark designed specifically to refine the interaction capabilities of AI agents in TRPGs. This benchmark focuses on understanding complex interactions and generating vibrant game master utterances. The three-stage generation process, which includes game check and GM utterance generation, has been evaluated both objectively and subjectively. The results clearly indicate that this approach significantly enhances the quality of AI responses within the TRPG context. We hope that this work will serve as inspiration for the AI community to further explore and enhance their understanding of complex grounded interactions and advance the interaction ability of AI agents.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    8
+   </span>
+   Limitations and Social Impacts
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    While the use of an AI agent in a tabletop role-playing game (TRPG) could revolutionize the way these games are played, providing consistent and unbiased decisions, there are potential limitations and social impacts to consider. One key limitation is the AI’s ability to simulate human creativity, empathy, and adaptability, which are all fundamental to the role of a game master. For instance, the AI may not fully comprehend nuanced player interactions or adapt the game based on the players’ emotional state. Additionally, there could be social implications, such as the potential reduction in human interaction and shared storytelling, which are often crucial elements of TRPGs. For players, part of the joy of a TRPG is the shared human experience, the unpredictable responses, and the subtle non-verbal cues, which an AI might not replicate. The introduction of an AI game master could also result in job loss in professional game-mastering circles. Despite the AI’s potential to provide a consistent and more accessible gaming experience, these human and social elements may be irreplaceable in a TRPG context.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla
+Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Advances in neural information processing systems
+     </span>
+     ,
+33:1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Bulmahn.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      Pathfinder Roleplaying Game: Advanced Player’s Guide
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Paizo, 2010.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Chris Callison-Burch, Gaurav Singh Tomar, Lara Martin, Daphne Ippolito, Suma
+Bailis, and David Reitter.
+    </span>
+    <span class="ltx_bibblock">
+     Dungeons and dragons as a dialog challenge for artificial
+intelligence.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      Proceedings of the 2022 Conference on Empirical Methods in
+Natural Language Processing
+     </span>
+     , pages 9379–9393, Abu Dhabi, United Arab
+Emirates, Dec. 2022. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Alexandra DeLucia, Aaron Mueller, Xiang Lisa Li, and João Sedoc.
+    </span>
+    <span class="ltx_bibblock">
+     Decoding methods for neural narrative generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2010.07375
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Qingxiu Dong, Lei Li, Damai Dai, Ce Zheng, Zhiyong Wu, Baobao Chang, Xu Sun,
+Jingjing Xu, and Zhifang Sui.
+    </span>
+    <span class="ltx_bibblock">
+     A survey for in-context learning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:2301.00234
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Gary Gygax and Dave Arneson.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      dungeons &amp; dragons
+     </span>
+     , volume 19.
+    </span>
+    <span class="ltx_bibblock">
+     Tactical Studies Rules Lake Geneva, WI, 1974.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Shane Lacy Hensley, Clint Black, et al.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Savage worlds
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Studio 2 Publishing, 2008.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Jie Huang and Kevin Chen-Chuan Chang.
+    </span>
+    <span class="ltx_bibblock">
+     Towards reasoning in large language models: A survey.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2212.10403
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Takeshi Kojima, Shixiang Shane Gu, Machel Reid, Yutaka Matsuo, and Yusuke
+Iwasawa.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models are zero-shot reasoners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2205.11916
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Qianyu Feng, Linchao Zhu, Li Hu, Pan Pan, and Yi Yang.
+    </span>
+    <span class="ltx_bibblock">
+     Seeg: Semantic energized co-speech gesture generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition
+     </span>
+     , pages 10473–10482, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Pengfei Liu, Weizhe Yuan, Jinlan Fu, Zhengbao Jiang, Hiroaki Hayashi, and
+Graham Neubig.
+    </span>
+    <span class="ltx_bibblock">
+     Pre-train, prompt, and predict: A systematic survey of prompting
+methods in natural language processing.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      ACM Computing Surveys
+     </span>
+     , 55(9):1–35, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Ruibo Liu, Ruixin Yang, Chenyan Jia, Ge Zhang, Denny Zhou, Andrew M Dai, Diyi
+Yang, and Soroush Vosoughi.
+    </span>
+    <span class="ltx_bibblock">
+     Training socially aligned language models in simulated human society.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2305.16960
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Annie Louis and Charles Sutton.
+    </span>
+    <span class="ltx_bibblock">
+     Deep dungeons and dragons: Learning character-action interactions
+from role-playing game transcripts.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      Proceedings of the 2018 Conference of the North American
+Chapter of the Association for Computational Linguistics: Human Language
+Technologies, Volume 2 (Short Papers)
+     </span>
+     , pages 708–713, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Howard Phillips Lovecraft.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      The call of Cthulhu
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Lulu. com, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Lara J Martin, Srijan Sood, and Mark O Riedl.
+    </span>
+    <span class="ltx_bibblock">
+     Dungeons and dqns: Toward reinforcement learning agents that play
+tabletop roleplaying games.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      INT/WICED@ AIIDE
+     </span>
+     , 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Pax Newman and Yudong Liu.
+    </span>
+    <span class="ltx_bibblock">
+     Generating descriptive and rules-adhering spells for dungeons &amp;
+dragons fifth edition.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      Proceedings of the 9th Workshop on Games and Natural Language
+Processing within the 13th Language Resources and Evaluation Conference
+     </span>
+     ,
+pages 54–60, Marseille, France, June 2022. European Language Resources
+Association.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph C O’Brien, Carrie J Cai, Meredith Ringel Morris, Percy
+Liang, and Michael S Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      arXiv preprint arXiv:2304.03442
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Manasvi Sagarkar, John Wieting, Lifu Tu, and Kevin Gimpel.
+    </span>
+    <span class="ltx_bibblock">
+     Quality signals in generated stories.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the Seventh Joint Conference on Lexical and
+Computational Semantics
+     </span>
+     , pages 192–202, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Wai Man Si, Prithviraj Ammanabrolu, and Mark Riedl.
+    </span>
+    <span class="ltx_bibblock">
+     Telling stories through multi-user dialogue by modeling character
+relations.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      Proceedings of the 22nd Annual Meeting of the Special
+Interest Group on Discourse and Dialogue
+     </span>
+     , pages 269–275, Singapore and
+Online, July 2021. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed Chi, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Self-consistency improves chain of thought reasoning in language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2203.11171
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V
+Le, Denny Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:24824–24837, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Nathaniel Weir, Ryan Thomas, Randolph D’Amore, Kellie Hill, Benjamin Van Durme,
+and Harsh Jhamtani.
+    </span>
+    <span class="ltx_bibblock">
+     Ontologically faithful generation of non-player character dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2212.10618
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Pieter Wolfert, Nicole Robinson, and Tony Belpaeme.
+    </span>
+    <span class="ltx_bibblock">
+     A review of evaluation practices of gesture generation in embodied
+conversational agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      IEEE Transactions on Human-Machine Systems
+     </span>
+     , 52(3):379–389,
+2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Wayne Xin Zhao, Kun Zhou, Junyi Li, Tianyi Tang, Xiaolei Wang, Yupeng Hou,
+Yingqian Min, Beichen Zhang, Junjie Zhang, Zican Dong, et al.
+    </span>
+    <span class="ltx_bibblock">
+     A survey of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2303.18223
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Pei Zhou, Andrew Zhu, Jennifer Hu, Jay Pujara, Xiang Ren, Chris Callison-Burch,
+Yejin Choi, and Prithviraj Ammanabrolu.
+    </span>
+    <span class="ltx_bibblock">
+     An ai dungeon master’s guide: Learning to converse and guide with
+intents and theory-of-mind in dungeons and dragons.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2212.10060
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Andrew Zhu, Karmanya Aggarwal, Alexander Feng, Lara J Martin, and Chris
+Callison-Burch.
+    </span>
+    <span class="ltx_bibblock">
+     Fireball: A dataset of dungeons and dragons actual-play with
+structured game state information.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2305.01528
+     </span>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

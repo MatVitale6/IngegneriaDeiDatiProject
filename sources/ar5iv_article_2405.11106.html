@@ -1,0 +1,3705 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Chuanneng Sun, , Songjun Huang, ,
+    <br class="ltx_break"/>
+    and Dario Pompili
+   </span>
+   <span class="ltx_author_notes">
+    The authors are with the Department of Electrical and Computer Engineering, Rutgers University–New Brunswick, NJ, USA. Emails:
+    <em class="ltx_emph ltx_font_italic" id="id1.1.id1">
+     <span class="ltx_text ltx_font_upright" id="id1.1.id1.1">
+      {
+     </span>
+     chuanneng.sun, songjun.huang, pompili
+     <span class="ltx_text ltx_font_upright" id="id1.1.id1.2">
+      }
+     </span>
+     @rutgers.edu
+    </em>
+    This work was supported by the NSF RTML Award No. CCF-1937403.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   In recent years, Large Language Models (LLMs) have shown great abilities in various tasks, including question answering, arithmetic problem solving, and poem writing, among others. Although research on LLM-as-an-agent has shown that LLM can be applied to Reinforcement Learning (RL) and achieve decent results, the extension of LLM-based RL to Multi-Agent System (MAS) is not trivial, as many aspects, such as coordination and communication between agents, are not considered in the RL frameworks of a single agent.
+To inspire more research on LLM-based MARL, in this letter, we survey the existing LLM-based single-agent and multi-agent RL frameworks and provide potential research directions for future research. In particular, we focus on the cooperative tasks of multiple agents with a common goal and communication among them. We also consider human-in/on-the-loop scenarios enabled by the language component in the framework.
+  </p>
+ </div>
+ <div class="ltx_keywords">
+  <h6 class="ltx_title ltx_title_keywords">
+   Index Terms:
+  </h6>
+  Multi-Agent Reinforcement Learning, Language Models, Multi-Agent Systems.
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    I
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S1.1.1">
+    Introduction
+   </span>
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Multi-Agent Reinforcement Learning (MARL) has emerged as a popular approach to address the coordination problem in Multi-Agent Systems (MAS). As opposed to Individual Reinforcement Learning (IRL)-based or traditional optimization-based solutions, MARL has shown a significant improvement in scalability and robustness to uncertainty and dynamicity
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    .
+This improvement is largely attributed to the communication and coordination among agents inherent in MARL, where multiple agents learn and adapt their policies simultaneously while interacting within a shared environment and communicating with others.
+However, how and what to communicate among the agents in the MAS remains to be explored. Representative examples include MARL frameworks that learn to generate numerical messages using neural networks, formulate neural communication protocols, and learn targeted ad hoc communications. Despite the decent performance of the MARL frameworks achieved in various applications, they still underperform human experts. As a result, it is reasonable to think
+    <em class="ltx_emph ltx_font_italic" id="S1.p1.1.1">
+     why not leveraging human knowledge and human languages in MARL?
+    </em>
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="160" id="S1.F1.g1" src="/html/2405.11106/assets/x1.png" width="230"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S1.F1.2.1.1" style="font-size:90%;">
+      Figure 1
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S1.F1.3.2" style="font-size:90%;">
+     Well-known Large Language Models (LLMs) over the past three years. Among them, only PaLM-E from Google is trained specifically for embodied applications, e.g., robot control.
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    As recent advances in Natural Language Processing (NLP) demonstrate great abilities in multi-modal tasks, language-conditioned MARL becomes a promising research problem. NLP has been an active research topic for decades and many famous models have been proposed for language modeling such as Recurrent Neural Network (RNN)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , Long-Short Term Memory networks (LSTM)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , and transformers
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    .
+These foundational models have greatly improved the ability of machines to understand and generate human language, setting the stage for more complex applications.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    In recent years, the integration of NLP with single-agent RL has led to the development of language-conditioned RL frameworks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    , especially as Large Language Models (LLMs)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    emerged as the rising star in the artificial intelligence community (see Fig.
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ I Introduction ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    ) and has been successfully applied in various fields
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ]
+    </cite>
+    . Pre-trained LLMs contain general human knowledge about the world and can easily adapt to RL problems without the need for retraining.
+This integration not only leverages the semantic richness of language
+but also allows for the dynamic adjustment of agent behaviors based on linguistic input. In particular, LLM is able to generate new information that it has not seen before on the basis of a few examples. For example, in Reflexion
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    , the authors showed that the LLM agent could generate decent reflections on its decisions without any reward/feedback from the environment. Such capabilities are particularly valuable in multi-agent systems, where agents must coordinate and cooperate based on shared goals communicated through language.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Due to the need for communication and coordination, the problem of MARL becomes more complex than simply multiplying the RL of a single agent by the number of agents. As opposed to conventional MARL, LLMs-based MARL can leverage linguistic cues to facilitate inter-agent communication and collaboration, further boosting system performance. For example, agents can use shared language to negotiate roles, coordinate actions, or exchange information about the environment or their internal states, thereby aligning their objectives more effectively. This language-enhanced coordination becomes critical in complex scenarios where agents must handle ambiguous or evolving tasks that require continual communication and mutual understanding. The exploration of these capabilities opens up new possibilities for designing more intelligent and flexible multi-agent systems capable of operating in unpredictable, real-world environments.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Guo et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    reviewed LLM-based multi-agent frameworks, but the emphasis of that paper was not on MARL. Unlike their paper, this letter focuses more on the MAS that tries to accomplish a task cooperatively. In addition to that, there are several surveys on the topic of MARL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    and single agent LLM-based RL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    , but none of them is dedicated to LLM-based MARL. Therefore,
+    <em class="ltx_emph ltx_font_italic" id="S1.p5.1.1">
+     we claim that we are among the first to provide a systematic overview of the LLM-based MARL problem and provide potential future research directions.
+    </em>
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    The remainder of this letter is organized as follows. We first introduce the problem of MARL and provide a brief overview of conventional, i.e., non-LLM-based, MARL, and single-agent LLM-based RL, in Sect.
+    <a class="ltx_ref" href="#S2" title="II Preliminaries ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      II
+     </span>
+    </a>
+    . Then, we will survey the existing LLM-based MARL frameworks in Sect.
+    <a class="ltx_ref" href="#S3" title="III Existing LLM-based MARL ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      III
+     </span>
+    </a>
+    . After that, we will discuss the challenges and future research directions for this field in Sect.
+    <a class="ltx_ref" href="#S4" title="IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      IV
+     </span>
+    </a>
+    . Finally, we will conclude the letter in Sect.
+    <a class="ltx_ref" href="#S5" title="V Conclusion ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      V
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    II
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S2.1.1">
+    Preliminaries
+   </span>
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    In this section, we will first introduce the problem of MARL (Sect.
+    <a class="ltx_ref" href="#S2.SS1" title="II-A MARL Problem Definition ‣ II Preliminaries ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       II-A
+      </span>
+     </span>
+    </a>
+    ). Then, we will briefly discuss conventional non-LLM-based MARL in Sect.
+    <a class="ltx_ref" href="#S2.SS2" title="II-B Traditional MARL ‣ II Preliminaries ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       II-B
+      </span>
+     </span>
+    </a>
+    . To prepare the ground for LLM-based MARL, we will introduce LLM-based single-agent RL in Sect.
+    <a class="ltx_ref" href="#S2.SS3" title="II-C LLM-based Single-Agent RL ‣ II Preliminaries ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       II-C
+      </span>
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS1.5.1.1">
+      II-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS1.6.2">
+     MARL Problem Definition
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.14">
+     MARL can be modeled with the Decentralized Partially Observable Markov Decision Process (Dec-POMDP)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     , an extension to a multi-agent manner of the Markov Decision Process (MDP).
+An MDP for
+     <math alttext="N" class="ltx_Math" display="inline" id="S2.SS1.p1.1.m1.1">
+      <semantics id="S2.SS1.p1.1.m1.1a">
+       <mi id="S2.SS1.p1.1.m1.1.1" xref="S2.SS1.p1.1.m1.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.1.m1.1b">
+        <ci id="S2.SS1.p1.1.m1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.1.m1.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+     agents consists of a set of states
+     <math alttext="\mathbf{s}\in\mathcal{S}" class="ltx_Math" display="inline" id="S2.SS1.p1.2.m2.1">
+      <semantics id="S2.SS1.p1.2.m2.1a">
+       <mrow id="S2.SS1.p1.2.m2.1.1" xref="S2.SS1.p1.2.m2.1.1.cmml">
+        <mi id="S2.SS1.p1.2.m2.1.1.2" xref="S2.SS1.p1.2.m2.1.1.2.cmml">
+         𝐬
+        </mi>
+        <mo id="S2.SS1.p1.2.m2.1.1.1" xref="S2.SS1.p1.2.m2.1.1.1.cmml">
+         ∈
+        </mo>
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.2.m2.1.1.3" xref="S2.SS1.p1.2.m2.1.1.3.cmml">
+         𝒮
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.2.m2.1b">
+        <apply id="S2.SS1.p1.2.m2.1.1.cmml" xref="S2.SS1.p1.2.m2.1.1">
+         <in id="S2.SS1.p1.2.m2.1.1.1.cmml" xref="S2.SS1.p1.2.m2.1.1.1">
+         </in>
+         <ci id="S2.SS1.p1.2.m2.1.1.2.cmml" xref="S2.SS1.p1.2.m2.1.1.2">
+          𝐬
+         </ci>
+         <ci id="S2.SS1.p1.2.m2.1.1.3.cmml" xref="S2.SS1.p1.2.m2.1.1.3">
+          𝒮
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.2.m2.1c">
+        \mathbf{s}\in\mathcal{S}
+       </annotation>
+      </semantics>
+     </math>
+     , which describes all the configurations for the participating agents, a set of actions
+     <math alttext="\mathcal{A}_{1},...,\mathcal{A}_{N}" class="ltx_Math" display="inline" id="S2.SS1.p1.3.m3.3">
+      <semantics id="S2.SS1.p1.3.m3.3a">
+       <mrow id="S2.SS1.p1.3.m3.3.3.2" xref="S2.SS1.p1.3.m3.3.3.3.cmml">
+        <msub id="S2.SS1.p1.3.m3.2.2.1.1" xref="S2.SS1.p1.3.m3.2.2.1.1.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.3.m3.2.2.1.1.2" xref="S2.SS1.p1.3.m3.2.2.1.1.2.cmml">
+          𝒜
+         </mi>
+         <mn id="S2.SS1.p1.3.m3.2.2.1.1.3" xref="S2.SS1.p1.3.m3.2.2.1.1.3.cmml">
+          1
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p1.3.m3.3.3.2.3" xref="S2.SS1.p1.3.m3.3.3.3.cmml">
+         ,
+        </mo>
+        <mi id="S2.SS1.p1.3.m3.1.1" mathvariant="normal" xref="S2.SS1.p1.3.m3.1.1.cmml">
+         …
+        </mi>
+        <mo id="S2.SS1.p1.3.m3.3.3.2.4" xref="S2.SS1.p1.3.m3.3.3.3.cmml">
+         ,
+        </mo>
+        <msub id="S2.SS1.p1.3.m3.3.3.2.2" xref="S2.SS1.p1.3.m3.3.3.2.2.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.3.m3.3.3.2.2.2" xref="S2.SS1.p1.3.m3.3.3.2.2.2.cmml">
+          𝒜
+         </mi>
+         <mi id="S2.SS1.p1.3.m3.3.3.2.2.3" xref="S2.SS1.p1.3.m3.3.3.2.2.3.cmml">
+          N
+         </mi>
+        </msub>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.3.m3.3b">
+        <list id="S2.SS1.p1.3.m3.3.3.3.cmml" xref="S2.SS1.p1.3.m3.3.3.2">
+         <apply id="S2.SS1.p1.3.m3.2.2.1.1.cmml" xref="S2.SS1.p1.3.m3.2.2.1.1">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.2.2.1.1.1.cmml" xref="S2.SS1.p1.3.m3.2.2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.3.m3.2.2.1.1.2.cmml" xref="S2.SS1.p1.3.m3.2.2.1.1.2">
+           𝒜
+          </ci>
+          <cn id="S2.SS1.p1.3.m3.2.2.1.1.3.cmml" type="integer" xref="S2.SS1.p1.3.m3.2.2.1.1.3">
+           1
+          </cn>
+         </apply>
+         <ci id="S2.SS1.p1.3.m3.1.1.cmml" xref="S2.SS1.p1.3.m3.1.1">
+          …
+         </ci>
+         <apply id="S2.SS1.p1.3.m3.3.3.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.2.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.2.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.2.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.3.m3.3.3.2.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.2.2.2">
+           𝒜
+          </ci>
+          <ci id="S2.SS1.p1.3.m3.3.3.2.2.3.cmml" xref="S2.SS1.p1.3.m3.3.3.2.2.3">
+           𝑁
+          </ci>
+         </apply>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.3.m3.3c">
+        \mathcal{A}_{1},...,\mathcal{A}_{N}
+       </annotation>
+      </semantics>
+     </math>
+     and a set of observations
+     <math alttext="\mathcal{O}_{1},...,\mathcal{O}_{N}" class="ltx_Math" display="inline" id="S2.SS1.p1.4.m4.3">
+      <semantics id="S2.SS1.p1.4.m4.3a">
+       <mrow id="S2.SS1.p1.4.m4.3.3.2" xref="S2.SS1.p1.4.m4.3.3.3.cmml">
+        <msub id="S2.SS1.p1.4.m4.2.2.1.1" xref="S2.SS1.p1.4.m4.2.2.1.1.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.4.m4.2.2.1.1.2" xref="S2.SS1.p1.4.m4.2.2.1.1.2.cmml">
+          𝒪
+         </mi>
+         <mn id="S2.SS1.p1.4.m4.2.2.1.1.3" xref="S2.SS1.p1.4.m4.2.2.1.1.3.cmml">
+          1
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p1.4.m4.3.3.2.3" xref="S2.SS1.p1.4.m4.3.3.3.cmml">
+         ,
+        </mo>
+        <mi id="S2.SS1.p1.4.m4.1.1" mathvariant="normal" xref="S2.SS1.p1.4.m4.1.1.cmml">
+         …
+        </mi>
+        <mo id="S2.SS1.p1.4.m4.3.3.2.4" xref="S2.SS1.p1.4.m4.3.3.3.cmml">
+         ,
+        </mo>
+        <msub id="S2.SS1.p1.4.m4.3.3.2.2" xref="S2.SS1.p1.4.m4.3.3.2.2.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.4.m4.3.3.2.2.2" xref="S2.SS1.p1.4.m4.3.3.2.2.2.cmml">
+          𝒪
+         </mi>
+         <mi id="S2.SS1.p1.4.m4.3.3.2.2.3" xref="S2.SS1.p1.4.m4.3.3.2.2.3.cmml">
+          N
+         </mi>
+        </msub>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.4.m4.3b">
+        <list id="S2.SS1.p1.4.m4.3.3.3.cmml" xref="S2.SS1.p1.4.m4.3.3.2">
+         <apply id="S2.SS1.p1.4.m4.2.2.1.1.cmml" xref="S2.SS1.p1.4.m4.2.2.1.1">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.4.m4.2.2.1.1.1.cmml" xref="S2.SS1.p1.4.m4.2.2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.4.m4.2.2.1.1.2.cmml" xref="S2.SS1.p1.4.m4.2.2.1.1.2">
+           𝒪
+          </ci>
+          <cn id="S2.SS1.p1.4.m4.2.2.1.1.3.cmml" type="integer" xref="S2.SS1.p1.4.m4.2.2.1.1.3">
+           1
+          </cn>
+         </apply>
+         <ci id="S2.SS1.p1.4.m4.1.1.cmml" xref="S2.SS1.p1.4.m4.1.1">
+          …
+         </ci>
+         <apply id="S2.SS1.p1.4.m4.3.3.2.2.cmml" xref="S2.SS1.p1.4.m4.3.3.2.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.4.m4.3.3.2.2.1.cmml" xref="S2.SS1.p1.4.m4.3.3.2.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.4.m4.3.3.2.2.2.cmml" xref="S2.SS1.p1.4.m4.3.3.2.2.2">
+           𝒪
+          </ci>
+          <ci id="S2.SS1.p1.4.m4.3.3.2.2.3.cmml" xref="S2.SS1.p1.4.m4.3.3.2.2.3">
+           𝑁
+          </ci>
+         </apply>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.4.m4.3c">
+        \mathcal{O}_{1},...,\mathcal{O}_{N}
+       </annotation>
+      </semantics>
+     </math>
+     . Each agent
+     <math alttext="i" class="ltx_Math" display="inline" id="S2.SS1.p1.5.m5.1">
+      <semantics id="S2.SS1.p1.5.m5.1a">
+       <mi id="S2.SS1.p1.5.m5.1.1" xref="S2.SS1.p1.5.m5.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.5.m5.1b">
+        <ci id="S2.SS1.p1.5.m5.1.1.cmml" xref="S2.SS1.p1.5.m5.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.5.m5.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     has a policy
+     <math alttext="\boldsymbol{\pi}_{i}:\mathcal{O}_{i}\times\mathcal{A}_{i}\mapsto[0,1]" class="ltx_Math" display="inline" id="S2.SS1.p1.6.m6.2">
+      <semantics id="S2.SS1.p1.6.m6.2a">
+       <mrow id="S2.SS1.p1.6.m6.2.3" xref="S2.SS1.p1.6.m6.2.3.cmml">
+        <msub id="S2.SS1.p1.6.m6.2.3.2" xref="S2.SS1.p1.6.m6.2.3.2.cmml">
+         <mi id="S2.SS1.p1.6.m6.2.3.2.2" xref="S2.SS1.p1.6.m6.2.3.2.2.cmml">
+          𝝅
+         </mi>
+         <mi id="S2.SS1.p1.6.m6.2.3.2.3" xref="S2.SS1.p1.6.m6.2.3.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S2.SS1.p1.6.m6.2.3.1" lspace="0.278em" rspace="0.278em" xref="S2.SS1.p1.6.m6.2.3.1.cmml">
+         :
+        </mo>
+        <mrow id="S2.SS1.p1.6.m6.2.3.3" xref="S2.SS1.p1.6.m6.2.3.3.cmml">
+         <mrow id="S2.SS1.p1.6.m6.2.3.3.2" xref="S2.SS1.p1.6.m6.2.3.3.2.cmml">
+          <msub id="S2.SS1.p1.6.m6.2.3.3.2.2" xref="S2.SS1.p1.6.m6.2.3.3.2.2.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.6.m6.2.3.3.2.2.2" xref="S2.SS1.p1.6.m6.2.3.3.2.2.2.cmml">
+            𝒪
+           </mi>
+           <mi id="S2.SS1.p1.6.m6.2.3.3.2.2.3" xref="S2.SS1.p1.6.m6.2.3.3.2.2.3.cmml">
+            i
+           </mi>
+          </msub>
+          <mo id="S2.SS1.p1.6.m6.2.3.3.2.1" lspace="0.222em" rspace="0.222em" xref="S2.SS1.p1.6.m6.2.3.3.2.1.cmml">
+           ×
+          </mo>
+          <msub id="S2.SS1.p1.6.m6.2.3.3.2.3" xref="S2.SS1.p1.6.m6.2.3.3.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.6.m6.2.3.3.2.3.2" xref="S2.SS1.p1.6.m6.2.3.3.2.3.2.cmml">
+            𝒜
+           </mi>
+           <mi id="S2.SS1.p1.6.m6.2.3.3.2.3.3" xref="S2.SS1.p1.6.m6.2.3.3.2.3.3.cmml">
+            i
+           </mi>
+          </msub>
+         </mrow>
+         <mo id="S2.SS1.p1.6.m6.2.3.3.1" stretchy="false" xref="S2.SS1.p1.6.m6.2.3.3.1.cmml">
+          ↦
+         </mo>
+         <mrow id="S2.SS1.p1.6.m6.2.3.3.3.2" xref="S2.SS1.p1.6.m6.2.3.3.3.1.cmml">
+          <mo id="S2.SS1.p1.6.m6.2.3.3.3.2.1" stretchy="false" xref="S2.SS1.p1.6.m6.2.3.3.3.1.cmml">
+           [
+          </mo>
+          <mn id="S2.SS1.p1.6.m6.1.1" xref="S2.SS1.p1.6.m6.1.1.cmml">
+           0
+          </mn>
+          <mo id="S2.SS1.p1.6.m6.2.3.3.3.2.2" xref="S2.SS1.p1.6.m6.2.3.3.3.1.cmml">
+           ,
+          </mo>
+          <mn id="S2.SS1.p1.6.m6.2.2" xref="S2.SS1.p1.6.m6.2.2.cmml">
+           1
+          </mn>
+          <mo id="S2.SS1.p1.6.m6.2.3.3.3.2.3" stretchy="false" xref="S2.SS1.p1.6.m6.2.3.3.3.1.cmml">
+           ]
+          </mo>
+         </mrow>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.6.m6.2b">
+        <apply id="S2.SS1.p1.6.m6.2.3.cmml" xref="S2.SS1.p1.6.m6.2.3">
+         <ci id="S2.SS1.p1.6.m6.2.3.1.cmml" xref="S2.SS1.p1.6.m6.2.3.1">
+          :
+         </ci>
+         <apply id="S2.SS1.p1.6.m6.2.3.2.cmml" xref="S2.SS1.p1.6.m6.2.3.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.2.3.2.1.cmml" xref="S2.SS1.p1.6.m6.2.3.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.6.m6.2.3.2.2.cmml" xref="S2.SS1.p1.6.m6.2.3.2.2">
+           𝝅
+          </ci>
+          <ci id="S2.SS1.p1.6.m6.2.3.2.3.cmml" xref="S2.SS1.p1.6.m6.2.3.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S2.SS1.p1.6.m6.2.3.3.cmml" xref="S2.SS1.p1.6.m6.2.3.3">
+          <csymbol cd="latexml" id="S2.SS1.p1.6.m6.2.3.3.1.cmml" xref="S2.SS1.p1.6.m6.2.3.3.1">
+           maps-to
+          </csymbol>
+          <apply id="S2.SS1.p1.6.m6.2.3.3.2.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2">
+           <times id="S2.SS1.p1.6.m6.2.3.3.2.1.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.1">
+           </times>
+           <apply id="S2.SS1.p1.6.m6.2.3.3.2.2.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.2">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.2.3.3.2.2.1.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.2">
+             subscript
+            </csymbol>
+            <ci id="S2.SS1.p1.6.m6.2.3.3.2.2.2.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.2.2">
+             𝒪
+            </ci>
+            <ci id="S2.SS1.p1.6.m6.2.3.3.2.2.3.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.2.3">
+             𝑖
+            </ci>
+           </apply>
+           <apply id="S2.SS1.p1.6.m6.2.3.3.2.3.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.3">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.2.3.3.2.3.1.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.3">
+             subscript
+            </csymbol>
+            <ci id="S2.SS1.p1.6.m6.2.3.3.2.3.2.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.3.2">
+             𝒜
+            </ci>
+            <ci id="S2.SS1.p1.6.m6.2.3.3.2.3.3.cmml" xref="S2.SS1.p1.6.m6.2.3.3.2.3.3">
+             𝑖
+            </ci>
+           </apply>
+          </apply>
+          <interval closure="closed" id="S2.SS1.p1.6.m6.2.3.3.3.1.cmml" xref="S2.SS1.p1.6.m6.2.3.3.3.2">
+           <cn id="S2.SS1.p1.6.m6.1.1.cmml" type="integer" xref="S2.SS1.p1.6.m6.1.1">
+            0
+           </cn>
+           <cn id="S2.SS1.p1.6.m6.2.2.cmml" type="integer" xref="S2.SS1.p1.6.m6.2.2">
+            1
+           </cn>
+          </interval>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.6.m6.2c">
+        \boldsymbol{\pi}_{i}:\mathcal{O}_{i}\times\mathcal{A}_{i}\mapsto[0,1]
+       </annotation>
+      </semantics>
+     </math>
+     parameterized by
+     <math alttext="\theta_{i}" class="ltx_Math" display="inline" id="S2.SS1.p1.7.m7.1">
+      <semantics id="S2.SS1.p1.7.m7.1a">
+       <msub id="S2.SS1.p1.7.m7.1.1" xref="S2.SS1.p1.7.m7.1.1.cmml">
+        <mi id="S2.SS1.p1.7.m7.1.1.2" xref="S2.SS1.p1.7.m7.1.1.2.cmml">
+         θ
+        </mi>
+        <mi id="S2.SS1.p1.7.m7.1.1.3" xref="S2.SS1.p1.7.m7.1.1.3.cmml">
+         i
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.7.m7.1b">
+        <apply id="S2.SS1.p1.7.m7.1.1.cmml" xref="S2.SS1.p1.7.m7.1.1">
+         <csymbol cd="ambiguous" id="S2.SS1.p1.7.m7.1.1.1.cmml" xref="S2.SS1.p1.7.m7.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS1.p1.7.m7.1.1.2.cmml" xref="S2.SS1.p1.7.m7.1.1.2">
+          𝜃
+         </ci>
+         <ci id="S2.SS1.p1.7.m7.1.1.3.cmml" xref="S2.SS1.p1.7.m7.1.1.3">
+          𝑖
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.7.m7.1c">
+        \theta_{i}
+       </annotation>
+      </semantics>
+     </math>
+     . We denote deterministic policies by
+     <math alttext="\boldsymbol{\mu}_{i}:\mathcal{O}_{i}\mapsto\mathcal{A}_{i}" class="ltx_Math" display="inline" id="S2.SS1.p1.8.m8.1">
+      <semantics id="S2.SS1.p1.8.m8.1a">
+       <mrow id="S2.SS1.p1.8.m8.1.1" xref="S2.SS1.p1.8.m8.1.1.cmml">
+        <msub id="S2.SS1.p1.8.m8.1.1.2" xref="S2.SS1.p1.8.m8.1.1.2.cmml">
+         <mi id="S2.SS1.p1.8.m8.1.1.2.2" xref="S2.SS1.p1.8.m8.1.1.2.2.cmml">
+          𝝁
+         </mi>
+         <mi id="S2.SS1.p1.8.m8.1.1.2.3" xref="S2.SS1.p1.8.m8.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S2.SS1.p1.8.m8.1.1.1" lspace="0.278em" rspace="0.278em" xref="S2.SS1.p1.8.m8.1.1.1.cmml">
+         :
+        </mo>
+        <mrow id="S2.SS1.p1.8.m8.1.1.3" xref="S2.SS1.p1.8.m8.1.1.3.cmml">
+         <msub id="S2.SS1.p1.8.m8.1.1.3.2" xref="S2.SS1.p1.8.m8.1.1.3.2.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.8.m8.1.1.3.2.2" xref="S2.SS1.p1.8.m8.1.1.3.2.2.cmml">
+           𝒪
+          </mi>
+          <mi id="S2.SS1.p1.8.m8.1.1.3.2.3" xref="S2.SS1.p1.8.m8.1.1.3.2.3.cmml">
+           i
+          </mi>
+         </msub>
+         <mo id="S2.SS1.p1.8.m8.1.1.3.1" stretchy="false" xref="S2.SS1.p1.8.m8.1.1.3.1.cmml">
+          ↦
+         </mo>
+         <msub id="S2.SS1.p1.8.m8.1.1.3.3" xref="S2.SS1.p1.8.m8.1.1.3.3.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.8.m8.1.1.3.3.2" xref="S2.SS1.p1.8.m8.1.1.3.3.2.cmml">
+           𝒜
+          </mi>
+          <mi id="S2.SS1.p1.8.m8.1.1.3.3.3" xref="S2.SS1.p1.8.m8.1.1.3.3.3.cmml">
+           i
+          </mi>
+         </msub>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.8.m8.1b">
+        <apply id="S2.SS1.p1.8.m8.1.1.cmml" xref="S2.SS1.p1.8.m8.1.1">
+         <ci id="S2.SS1.p1.8.m8.1.1.1.cmml" xref="S2.SS1.p1.8.m8.1.1.1">
+          :
+         </ci>
+         <apply id="S2.SS1.p1.8.m8.1.1.2.cmml" xref="S2.SS1.p1.8.m8.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.8.m8.1.1.2.1.cmml" xref="S2.SS1.p1.8.m8.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.8.m8.1.1.2.2.cmml" xref="S2.SS1.p1.8.m8.1.1.2.2">
+           𝝁
+          </ci>
+          <ci id="S2.SS1.p1.8.m8.1.1.2.3.cmml" xref="S2.SS1.p1.8.m8.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S2.SS1.p1.8.m8.1.1.3.cmml" xref="S2.SS1.p1.8.m8.1.1.3">
+          <csymbol cd="latexml" id="S2.SS1.p1.8.m8.1.1.3.1.cmml" xref="S2.SS1.p1.8.m8.1.1.3.1">
+           maps-to
+          </csymbol>
+          <apply id="S2.SS1.p1.8.m8.1.1.3.2.cmml" xref="S2.SS1.p1.8.m8.1.1.3.2">
+           <csymbol cd="ambiguous" id="S2.SS1.p1.8.m8.1.1.3.2.1.cmml" xref="S2.SS1.p1.8.m8.1.1.3.2">
+            subscript
+           </csymbol>
+           <ci id="S2.SS1.p1.8.m8.1.1.3.2.2.cmml" xref="S2.SS1.p1.8.m8.1.1.3.2.2">
+            𝒪
+           </ci>
+           <ci id="S2.SS1.p1.8.m8.1.1.3.2.3.cmml" xref="S2.SS1.p1.8.m8.1.1.3.2.3">
+            𝑖
+           </ci>
+          </apply>
+          <apply id="S2.SS1.p1.8.m8.1.1.3.3.cmml" xref="S2.SS1.p1.8.m8.1.1.3.3">
+           <csymbol cd="ambiguous" id="S2.SS1.p1.8.m8.1.1.3.3.1.cmml" xref="S2.SS1.p1.8.m8.1.1.3.3">
+            subscript
+           </csymbol>
+           <ci id="S2.SS1.p1.8.m8.1.1.3.3.2.cmml" xref="S2.SS1.p1.8.m8.1.1.3.3.2">
+            𝒜
+           </ci>
+           <ci id="S2.SS1.p1.8.m8.1.1.3.3.3.cmml" xref="S2.SS1.p1.8.m8.1.1.3.3.3">
+            𝑖
+           </ci>
+          </apply>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.8.m8.1c">
+        \boldsymbol{\mu}_{i}:\mathcal{O}_{i}\mapsto\mathcal{A}_{i}
+       </annotation>
+      </semantics>
+     </math>
+     . The environment will generate the next state based on the state transition function
+     <math alttext="\mathcal{T}:\mathcal{S}\times\mathcal{A}_{1}\times...\times\mathcal{A}_{N}\mapsto\mathcal{S}" class="ltx_Math" display="inline" id="S2.SS1.p1.9.m9.1">
+      <semantics id="S2.SS1.p1.9.m9.1a">
+       <mrow id="S2.SS1.p1.9.m9.1.1" xref="S2.SS1.p1.9.m9.1.1.cmml">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.9.m9.1.1.2" xref="S2.SS1.p1.9.m9.1.1.2.cmml">
+         𝒯
+        </mi>
+        <mo id="S2.SS1.p1.9.m9.1.1.1" lspace="0.278em" rspace="0.278em" xref="S2.SS1.p1.9.m9.1.1.1.cmml">
+         :
+        </mo>
+        <mrow id="S2.SS1.p1.9.m9.1.1.3" xref="S2.SS1.p1.9.m9.1.1.3.cmml">
+         <mrow id="S2.SS1.p1.9.m9.1.1.3.2" xref="S2.SS1.p1.9.m9.1.1.3.2.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.9.m9.1.1.3.2.2" xref="S2.SS1.p1.9.m9.1.1.3.2.2.cmml">
+           𝒮
+          </mi>
+          <mo id="S2.SS1.p1.9.m9.1.1.3.2.1" lspace="0.222em" rspace="0.222em" xref="S2.SS1.p1.9.m9.1.1.3.2.1.cmml">
+           ×
+          </mo>
+          <msub id="S2.SS1.p1.9.m9.1.1.3.2.3" xref="S2.SS1.p1.9.m9.1.1.3.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.9.m9.1.1.3.2.3.2" xref="S2.SS1.p1.9.m9.1.1.3.2.3.2.cmml">
+            𝒜
+           </mi>
+           <mn id="S2.SS1.p1.9.m9.1.1.3.2.3.3" xref="S2.SS1.p1.9.m9.1.1.3.2.3.3.cmml">
+            1
+           </mn>
+          </msub>
+          <mo id="S2.SS1.p1.9.m9.1.1.3.2.1a" lspace="0.222em" rspace="0.222em" xref="S2.SS1.p1.9.m9.1.1.3.2.1.cmml">
+           ×
+          </mo>
+          <mi id="S2.SS1.p1.9.m9.1.1.3.2.4" mathvariant="normal" xref="S2.SS1.p1.9.m9.1.1.3.2.4.cmml">
+           …
+          </mi>
+          <mo id="S2.SS1.p1.9.m9.1.1.3.2.1b" lspace="0.222em" rspace="0.222em" xref="S2.SS1.p1.9.m9.1.1.3.2.1.cmml">
+           ×
+          </mo>
+          <msub id="S2.SS1.p1.9.m9.1.1.3.2.5" xref="S2.SS1.p1.9.m9.1.1.3.2.5.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.9.m9.1.1.3.2.5.2" xref="S2.SS1.p1.9.m9.1.1.3.2.5.2.cmml">
+            𝒜
+           </mi>
+           <mi id="S2.SS1.p1.9.m9.1.1.3.2.5.3" xref="S2.SS1.p1.9.m9.1.1.3.2.5.3.cmml">
+            N
+           </mi>
+          </msub>
+         </mrow>
+         <mo id="S2.SS1.p1.9.m9.1.1.3.1" stretchy="false" xref="S2.SS1.p1.9.m9.1.1.3.1.cmml">
+          ↦
+         </mo>
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.9.m9.1.1.3.3" xref="S2.SS1.p1.9.m9.1.1.3.3.cmml">
+          𝒮
+         </mi>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.9.m9.1b">
+        <apply id="S2.SS1.p1.9.m9.1.1.cmml" xref="S2.SS1.p1.9.m9.1.1">
+         <ci id="S2.SS1.p1.9.m9.1.1.1.cmml" xref="S2.SS1.p1.9.m9.1.1.1">
+          :
+         </ci>
+         <ci id="S2.SS1.p1.9.m9.1.1.2.cmml" xref="S2.SS1.p1.9.m9.1.1.2">
+          𝒯
+         </ci>
+         <apply id="S2.SS1.p1.9.m9.1.1.3.cmml" xref="S2.SS1.p1.9.m9.1.1.3">
+          <csymbol cd="latexml" id="S2.SS1.p1.9.m9.1.1.3.1.cmml" xref="S2.SS1.p1.9.m9.1.1.3.1">
+           maps-to
+          </csymbol>
+          <apply id="S2.SS1.p1.9.m9.1.1.3.2.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2">
+           <times id="S2.SS1.p1.9.m9.1.1.3.2.1.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.1">
+           </times>
+           <ci id="S2.SS1.p1.9.m9.1.1.3.2.2.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.2">
+            𝒮
+           </ci>
+           <apply id="S2.SS1.p1.9.m9.1.1.3.2.3.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.3">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.9.m9.1.1.3.2.3.1.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.3">
+             subscript
+            </csymbol>
+            <ci id="S2.SS1.p1.9.m9.1.1.3.2.3.2.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.3.2">
+             𝒜
+            </ci>
+            <cn id="S2.SS1.p1.9.m9.1.1.3.2.3.3.cmml" type="integer" xref="S2.SS1.p1.9.m9.1.1.3.2.3.3">
+             1
+            </cn>
+           </apply>
+           <ci id="S2.SS1.p1.9.m9.1.1.3.2.4.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.4">
+            …
+           </ci>
+           <apply id="S2.SS1.p1.9.m9.1.1.3.2.5.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.5">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.9.m9.1.1.3.2.5.1.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.5">
+             subscript
+            </csymbol>
+            <ci id="S2.SS1.p1.9.m9.1.1.3.2.5.2.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.5.2">
+             𝒜
+            </ci>
+            <ci id="S2.SS1.p1.9.m9.1.1.3.2.5.3.cmml" xref="S2.SS1.p1.9.m9.1.1.3.2.5.3">
+             𝑁
+            </ci>
+           </apply>
+          </apply>
+          <ci id="S2.SS1.p1.9.m9.1.1.3.3.cmml" xref="S2.SS1.p1.9.m9.1.1.3.3">
+           𝒮
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.9.m9.1c">
+        \mathcal{T}:\mathcal{S}\times\mathcal{A}_{1}\times...\times\mathcal{A}_{N}\mapsto\mathcal{S}
+       </annotation>
+      </semantics>
+     </math>
+     . Each agent will receive a reward from the environment as a function of state and action
+     <math alttext="r_{i}:\mathcal{S}\times\mathcal{A}_{i}\mapsto\mathbb{R}" class="ltx_Math" display="inline" id="S2.SS1.p1.10.m10.1">
+      <semantics id="S2.SS1.p1.10.m10.1a">
+       <mrow id="S2.SS1.p1.10.m10.1.1" xref="S2.SS1.p1.10.m10.1.1.cmml">
+        <msub id="S2.SS1.p1.10.m10.1.1.2" xref="S2.SS1.p1.10.m10.1.1.2.cmml">
+         <mi id="S2.SS1.p1.10.m10.1.1.2.2" xref="S2.SS1.p1.10.m10.1.1.2.2.cmml">
+          r
+         </mi>
+         <mi id="S2.SS1.p1.10.m10.1.1.2.3" xref="S2.SS1.p1.10.m10.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S2.SS1.p1.10.m10.1.1.1" lspace="0.278em" rspace="0.278em" xref="S2.SS1.p1.10.m10.1.1.1.cmml">
+         :
+        </mo>
+        <mrow id="S2.SS1.p1.10.m10.1.1.3" xref="S2.SS1.p1.10.m10.1.1.3.cmml">
+         <mrow id="S2.SS1.p1.10.m10.1.1.3.2" xref="S2.SS1.p1.10.m10.1.1.3.2.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.10.m10.1.1.3.2.2" xref="S2.SS1.p1.10.m10.1.1.3.2.2.cmml">
+           𝒮
+          </mi>
+          <mo id="S2.SS1.p1.10.m10.1.1.3.2.1" lspace="0.222em" rspace="0.222em" xref="S2.SS1.p1.10.m10.1.1.3.2.1.cmml">
+           ×
+          </mo>
+          <msub id="S2.SS1.p1.10.m10.1.1.3.2.3" xref="S2.SS1.p1.10.m10.1.1.3.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.10.m10.1.1.3.2.3.2" xref="S2.SS1.p1.10.m10.1.1.3.2.3.2.cmml">
+            𝒜
+           </mi>
+           <mi id="S2.SS1.p1.10.m10.1.1.3.2.3.3" xref="S2.SS1.p1.10.m10.1.1.3.2.3.3.cmml">
+            i
+           </mi>
+          </msub>
+         </mrow>
+         <mo id="S2.SS1.p1.10.m10.1.1.3.1" stretchy="false" xref="S2.SS1.p1.10.m10.1.1.3.1.cmml">
+          ↦
+         </mo>
+         <mi id="S2.SS1.p1.10.m10.1.1.3.3" xref="S2.SS1.p1.10.m10.1.1.3.3.cmml">
+          ℝ
+         </mi>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.10.m10.1b">
+        <apply id="S2.SS1.p1.10.m10.1.1.cmml" xref="S2.SS1.p1.10.m10.1.1">
+         <ci id="S2.SS1.p1.10.m10.1.1.1.cmml" xref="S2.SS1.p1.10.m10.1.1.1">
+          :
+         </ci>
+         <apply id="S2.SS1.p1.10.m10.1.1.2.cmml" xref="S2.SS1.p1.10.m10.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.10.m10.1.1.2.1.cmml" xref="S2.SS1.p1.10.m10.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.10.m10.1.1.2.2.cmml" xref="S2.SS1.p1.10.m10.1.1.2.2">
+           𝑟
+          </ci>
+          <ci id="S2.SS1.p1.10.m10.1.1.2.3.cmml" xref="S2.SS1.p1.10.m10.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S2.SS1.p1.10.m10.1.1.3.cmml" xref="S2.SS1.p1.10.m10.1.1.3">
+          <csymbol cd="latexml" id="S2.SS1.p1.10.m10.1.1.3.1.cmml" xref="S2.SS1.p1.10.m10.1.1.3.1">
+           maps-to
+          </csymbol>
+          <apply id="S2.SS1.p1.10.m10.1.1.3.2.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2">
+           <times id="S2.SS1.p1.10.m10.1.1.3.2.1.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.1">
+           </times>
+           <ci id="S2.SS1.p1.10.m10.1.1.3.2.2.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.2">
+            𝒮
+           </ci>
+           <apply id="S2.SS1.p1.10.m10.1.1.3.2.3.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.3">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.10.m10.1.1.3.2.3.1.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.3">
+             subscript
+            </csymbol>
+            <ci id="S2.SS1.p1.10.m10.1.1.3.2.3.2.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.3.2">
+             𝒜
+            </ci>
+            <ci id="S2.SS1.p1.10.m10.1.1.3.2.3.3.cmml" xref="S2.SS1.p1.10.m10.1.1.3.2.3.3">
+             𝑖
+            </ci>
+           </apply>
+          </apply>
+          <ci id="S2.SS1.p1.10.m10.1.1.3.3.cmml" xref="S2.SS1.p1.10.m10.1.1.3.3">
+           ℝ
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.10.m10.1c">
+        r_{i}:\mathcal{S}\times\mathcal{A}_{i}\mapsto\mathbb{R}
+       </annotation>
+      </semantics>
+     </math>
+     as well as an individual observation that is correlated with the state,
+     <math alttext="o_{i}:\mathcal{S}\mapsto\mathcal{O}_{i}" class="ltx_Math" display="inline" id="S2.SS1.p1.11.m11.1">
+      <semantics id="S2.SS1.p1.11.m11.1a">
+       <mrow id="S2.SS1.p1.11.m11.1.1" xref="S2.SS1.p1.11.m11.1.1.cmml">
+        <msub id="S2.SS1.p1.11.m11.1.1.2" xref="S2.SS1.p1.11.m11.1.1.2.cmml">
+         <mi id="S2.SS1.p1.11.m11.1.1.2.2" xref="S2.SS1.p1.11.m11.1.1.2.2.cmml">
+          o
+         </mi>
+         <mi id="S2.SS1.p1.11.m11.1.1.2.3" xref="S2.SS1.p1.11.m11.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S2.SS1.p1.11.m11.1.1.1" lspace="0.278em" rspace="0.278em" xref="S2.SS1.p1.11.m11.1.1.1.cmml">
+         :
+        </mo>
+        <mrow id="S2.SS1.p1.11.m11.1.1.3" xref="S2.SS1.p1.11.m11.1.1.3.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.11.m11.1.1.3.2" xref="S2.SS1.p1.11.m11.1.1.3.2.cmml">
+          𝒮
+         </mi>
+         <mo id="S2.SS1.p1.11.m11.1.1.3.1" stretchy="false" xref="S2.SS1.p1.11.m11.1.1.3.1.cmml">
+          ↦
+         </mo>
+         <msub id="S2.SS1.p1.11.m11.1.1.3.3" xref="S2.SS1.p1.11.m11.1.1.3.3.cmml">
+          <mi class="ltx_font_mathcaligraphic" id="S2.SS1.p1.11.m11.1.1.3.3.2" xref="S2.SS1.p1.11.m11.1.1.3.3.2.cmml">
+           𝒪
+          </mi>
+          <mi id="S2.SS1.p1.11.m11.1.1.3.3.3" xref="S2.SS1.p1.11.m11.1.1.3.3.3.cmml">
+           i
+          </mi>
+         </msub>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.11.m11.1b">
+        <apply id="S2.SS1.p1.11.m11.1.1.cmml" xref="S2.SS1.p1.11.m11.1.1">
+         <ci id="S2.SS1.p1.11.m11.1.1.1.cmml" xref="S2.SS1.p1.11.m11.1.1.1">
+          :
+         </ci>
+         <apply id="S2.SS1.p1.11.m11.1.1.2.cmml" xref="S2.SS1.p1.11.m11.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.11.m11.1.1.2.1.cmml" xref="S2.SS1.p1.11.m11.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.11.m11.1.1.2.2.cmml" xref="S2.SS1.p1.11.m11.1.1.2.2">
+           𝑜
+          </ci>
+          <ci id="S2.SS1.p1.11.m11.1.1.2.3.cmml" xref="S2.SS1.p1.11.m11.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S2.SS1.p1.11.m11.1.1.3.cmml" xref="S2.SS1.p1.11.m11.1.1.3">
+          <csymbol cd="latexml" id="S2.SS1.p1.11.m11.1.1.3.1.cmml" xref="S2.SS1.p1.11.m11.1.1.3.1">
+           maps-to
+          </csymbol>
+          <ci id="S2.SS1.p1.11.m11.1.1.3.2.cmml" xref="S2.SS1.p1.11.m11.1.1.3.2">
+           𝒮
+          </ci>
+          <apply id="S2.SS1.p1.11.m11.1.1.3.3.cmml" xref="S2.SS1.p1.11.m11.1.1.3.3">
+           <csymbol cd="ambiguous" id="S2.SS1.p1.11.m11.1.1.3.3.1.cmml" xref="S2.SS1.p1.11.m11.1.1.3.3">
+            subscript
+           </csymbol>
+           <ci id="S2.SS1.p1.11.m11.1.1.3.3.2.cmml" xref="S2.SS1.p1.11.m11.1.1.3.3.2">
+            𝒪
+           </ci>
+           <ci id="S2.SS1.p1.11.m11.1.1.3.3.3.cmml" xref="S2.SS1.p1.11.m11.1.1.3.3.3">
+            𝑖
+           </ci>
+          </apply>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.11.m11.1c">
+        o_{i}:\mathcal{S}\mapsto\mathcal{O}_{i}
+       </annotation>
+      </semantics>
+     </math>
+     . Each agent tries to maximize its total expected return
+     <math alttext="R_{i}=\sum_{t=0}^{T}\gamma^{t}r_{i}^{t}" class="ltx_Math" display="inline" id="S2.SS1.p1.12.m12.1">
+      <semantics id="S2.SS1.p1.12.m12.1a">
+       <mrow id="S2.SS1.p1.12.m12.1.1" xref="S2.SS1.p1.12.m12.1.1.cmml">
+        <msub id="S2.SS1.p1.12.m12.1.1.2" xref="S2.SS1.p1.12.m12.1.1.2.cmml">
+         <mi id="S2.SS1.p1.12.m12.1.1.2.2" xref="S2.SS1.p1.12.m12.1.1.2.2.cmml">
+          R
+         </mi>
+         <mi id="S2.SS1.p1.12.m12.1.1.2.3" xref="S2.SS1.p1.12.m12.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S2.SS1.p1.12.m12.1.1.1" rspace="0.111em" xref="S2.SS1.p1.12.m12.1.1.1.cmml">
+         =
+        </mo>
+        <mrow id="S2.SS1.p1.12.m12.1.1.3" xref="S2.SS1.p1.12.m12.1.1.3.cmml">
+         <msubsup id="S2.SS1.p1.12.m12.1.1.3.1" xref="S2.SS1.p1.12.m12.1.1.3.1.cmml">
+          <mo id="S2.SS1.p1.12.m12.1.1.3.1.2.2" xref="S2.SS1.p1.12.m12.1.1.3.1.2.2.cmml">
+           ∑
+          </mo>
+          <mrow id="S2.SS1.p1.12.m12.1.1.3.1.2.3" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.cmml">
+           <mi id="S2.SS1.p1.12.m12.1.1.3.1.2.3.2" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.2.cmml">
+            t
+           </mi>
+           <mo id="S2.SS1.p1.12.m12.1.1.3.1.2.3.1" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.1.cmml">
+            =
+           </mo>
+           <mn id="S2.SS1.p1.12.m12.1.1.3.1.2.3.3" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.3.cmml">
+            0
+           </mn>
+          </mrow>
+          <mi id="S2.SS1.p1.12.m12.1.1.3.1.3" xref="S2.SS1.p1.12.m12.1.1.3.1.3.cmml">
+           T
+          </mi>
+         </msubsup>
+         <mrow id="S2.SS1.p1.12.m12.1.1.3.2" xref="S2.SS1.p1.12.m12.1.1.3.2.cmml">
+          <msup id="S2.SS1.p1.12.m12.1.1.3.2.2" xref="S2.SS1.p1.12.m12.1.1.3.2.2.cmml">
+           <mi id="S2.SS1.p1.12.m12.1.1.3.2.2.2" xref="S2.SS1.p1.12.m12.1.1.3.2.2.2.cmml">
+            γ
+           </mi>
+           <mi id="S2.SS1.p1.12.m12.1.1.3.2.2.3" xref="S2.SS1.p1.12.m12.1.1.3.2.2.3.cmml">
+            t
+           </mi>
+          </msup>
+          <mo id="S2.SS1.p1.12.m12.1.1.3.2.1" lspace="0em" rspace="0em" xref="S2.SS1.p1.12.m12.1.1.3.2.1.cmml">
+           ​
+          </mo>
+          <msubsup id="S2.SS1.p1.12.m12.1.1.3.2.3" xref="S2.SS1.p1.12.m12.1.1.3.2.3.cmml">
+           <mi id="S2.SS1.p1.12.m12.1.1.3.2.3.2.2" xref="S2.SS1.p1.12.m12.1.1.3.2.3.2.2.cmml">
+            r
+           </mi>
+           <mi id="S2.SS1.p1.12.m12.1.1.3.2.3.2.3" xref="S2.SS1.p1.12.m12.1.1.3.2.3.2.3.cmml">
+            i
+           </mi>
+           <mi id="S2.SS1.p1.12.m12.1.1.3.2.3.3" xref="S2.SS1.p1.12.m12.1.1.3.2.3.3.cmml">
+            t
+           </mi>
+          </msubsup>
+         </mrow>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.12.m12.1b">
+        <apply id="S2.SS1.p1.12.m12.1.1.cmml" xref="S2.SS1.p1.12.m12.1.1">
+         <eq id="S2.SS1.p1.12.m12.1.1.1.cmml" xref="S2.SS1.p1.12.m12.1.1.1">
+         </eq>
+         <apply id="S2.SS1.p1.12.m12.1.1.2.cmml" xref="S2.SS1.p1.12.m12.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.2.1.cmml" xref="S2.SS1.p1.12.m12.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p1.12.m12.1.1.2.2.cmml" xref="S2.SS1.p1.12.m12.1.1.2.2">
+           𝑅
+          </ci>
+          <ci id="S2.SS1.p1.12.m12.1.1.2.3.cmml" xref="S2.SS1.p1.12.m12.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S2.SS1.p1.12.m12.1.1.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3">
+          <apply id="S2.SS1.p1.12.m12.1.1.3.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1">
+           <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.3.1.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1">
+            superscript
+           </csymbol>
+           <apply id="S2.SS1.p1.12.m12.1.1.3.1.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.3.1.2.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1">
+             subscript
+            </csymbol>
+            <sum id="S2.SS1.p1.12.m12.1.1.3.1.2.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1.2.2">
+            </sum>
+            <apply id="S2.SS1.p1.12.m12.1.1.3.1.2.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3">
+             <eq id="S2.SS1.p1.12.m12.1.1.3.1.2.3.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.1">
+             </eq>
+             <ci id="S2.SS1.p1.12.m12.1.1.3.1.2.3.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.2">
+              𝑡
+             </ci>
+             <cn id="S2.SS1.p1.12.m12.1.1.3.1.2.3.3.cmml" type="integer" xref="S2.SS1.p1.12.m12.1.1.3.1.2.3.3">
+              0
+             </cn>
+            </apply>
+           </apply>
+           <ci id="S2.SS1.p1.12.m12.1.1.3.1.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.1.3">
+            𝑇
+           </ci>
+          </apply>
+          <apply id="S2.SS1.p1.12.m12.1.1.3.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2">
+           <times id="S2.SS1.p1.12.m12.1.1.3.2.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.1">
+           </times>
+           <apply id="S2.SS1.p1.12.m12.1.1.3.2.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.2">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.3.2.2.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.2">
+             superscript
+            </csymbol>
+            <ci id="S2.SS1.p1.12.m12.1.1.3.2.2.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.2.2">
+             𝛾
+            </ci>
+            <ci id="S2.SS1.p1.12.m12.1.1.3.2.2.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.2.3">
+             𝑡
+            </ci>
+           </apply>
+           <apply id="S2.SS1.p1.12.m12.1.1.3.2.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3">
+            <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.3.2.3.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3">
+             superscript
+            </csymbol>
+            <apply id="S2.SS1.p1.12.m12.1.1.3.2.3.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3">
+             <csymbol cd="ambiguous" id="S2.SS1.p1.12.m12.1.1.3.2.3.2.1.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3">
+              subscript
+             </csymbol>
+             <ci id="S2.SS1.p1.12.m12.1.1.3.2.3.2.2.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3.2.2">
+              𝑟
+             </ci>
+             <ci id="S2.SS1.p1.12.m12.1.1.3.2.3.2.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3.2.3">
+              𝑖
+             </ci>
+            </apply>
+            <ci id="S2.SS1.p1.12.m12.1.1.3.2.3.3.cmml" xref="S2.SS1.p1.12.m12.1.1.3.2.3.3">
+             𝑡
+            </ci>
+           </apply>
+          </apply>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.12.m12.1c">
+        R_{i}=\sum_{t=0}^{T}\gamma^{t}r_{i}^{t}
+       </annotation>
+      </semantics>
+     </math>
+     , where
+     <math alttext="\gamma" class="ltx_Math" display="inline" id="S2.SS1.p1.13.m13.1">
+      <semantics id="S2.SS1.p1.13.m13.1a">
+       <mi id="S2.SS1.p1.13.m13.1.1" xref="S2.SS1.p1.13.m13.1.1.cmml">
+        γ
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.13.m13.1b">
+        <ci id="S2.SS1.p1.13.m13.1.1.cmml" xref="S2.SS1.p1.13.m13.1.1">
+         𝛾
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.13.m13.1c">
+        \gamma
+       </annotation>
+      </semantics>
+     </math>
+     is a discount factor, and
+     <math alttext="T" class="ltx_Math" display="inline" id="S2.SS1.p1.14.m14.1">
+      <semantics id="S2.SS1.p1.14.m14.1a">
+       <mi id="S2.SS1.p1.14.m14.1.1" xref="S2.SS1.p1.14.m14.1.1.cmml">
+        T
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p1.14.m14.1b">
+        <ci id="S2.SS1.p1.14.m14.1.1.cmml" xref="S2.SS1.p1.14.m14.1.1">
+         𝑇
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p1.14.m14.1c">
+        T
+       </annotation>
+      </semantics>
+     </math>
+     is the total time length. A key difference between Dec-POMDP and normal MDP is the partial observability, i.e., for one agent, the actions of other agents and the subsequent outcomes are not directly observable, thereby increasing the difficulty of solving the problem. Due to this partial observability, individual uncoordinated learning frameworks will not work well. Typical deep MARL frameworks adopt the actor-critic structure, where actors are trained to output the action given the observation, and the critics output a score to judge whether these actions are good in the long-term horizon.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS2.5.1.1">
+      II-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS2.6.2">
+     Traditional MARL
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     To solve the problem of Dec-POMDP, many frameworks have been proposed.
+These frameworks can be roughly categorized into two classes: learning-to-cooperate and learning-to-communicate.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p2.1.1">
+      Learning to coordinate:
+     </span>
+     The first kind of approach, such as QMIX
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ]
+     </cite>
+     , QTRAN
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ]
+     </cite>
+     , MADDPG
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ]
+     </cite>
+     , MAPPO
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ]
+     </cite>
+     , and many others
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ]
+     </cite>
+     , assumes that through centralized training with ideal communication, agents can learn to work with each other during the centralized training; therefore, communication is not needed during execution. In other words, these approaches expect the agents to learn to adapt to other agents’ behavior patterns.
+These approaches can also be classified as policy-based and value-based approaches. Policy-based approaches typically adopt the actor-critic architecture where actors are trained to make decisions, and critics approximate the long-term return and provide feedback to the actors.
+Value-based approaches learn optimized joint Q values given the team’s observations and actions. A problem that often happens in this situation is the credit assignment problem, where the critic needs to determine the contribution of each agent to the performance.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p3.1.1">
+      Learning to communicate:
+     </span>
+     In communication-based approaches, agents are equipped with the capability to share information through various means, such as adjusting the content of the shared messages
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     or optimizing the structure of the communication network
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       38
+      </a>
+      ]
+     </cite>
+     . This explicit inter-agent communication facilitates coordinated strategies and is crucial in dynamic environments where conditions and objectives may frequently change
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ]
+     </cite>
+     . Effective communication enables agents to form coalitions to achieve common goals, adapt to peers’ actions, and optimize collective outcomes, improving system performance in tasks ranging from cooperative manipulation to competitive strategic games
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     . Protocols for communication, often learned during training, leverage advanced techniques such as differentiable interagent learning algorithms, which refine communication patterns based on environmental feedback
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       42
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ]
+     </cite>
+     . In addition, frameworks for learning emergent communication protocols/languages have also been proposed
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib44" title="">
+       44
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib45" title="">
+       45
+      </a>
+      ]
+     </cite>
+     . These frameworks encourage the agents to learn a certain “language” that is understandable by other agents and encodes certain information.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS3.5.1.1">
+      II-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS3.6.2">
+     LLM-based Single-Agent RL
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     As LLMs demonstrated their abilities in various tasks, several LLM-based decision-making frameworks have been proposed.
+These frameworks are not necessarily RL frameworks because many of them are open-loop, meaning that the feedback/reward from the environment is not used during the decision-making process. Instead, many frameworks simply leverage the generalizability of LLMs and the general knowledge they contain to solve problems. Typically, in these works, a few examples of how the LLMs are expected to solve the problem are provided, and the LLMs can generalize from these examples to new problems.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS3.p2.1.1">
+      Open-loop LLM-based RL:
+     </span>
+     Among these frameworks, we will summarize some significant contributions. Yao et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib46" title="">
+       46
+      </a>
+      ]
+     </cite>
+     proposed ReAct, in which the LLM is prompted to generate “thoughts” to solve the problem given the observation, allowing the model to dynamically adjust and refine its strategies in response to changing environmental cues and task demands. Based on ReAct, Shinn et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ]
+     </cite>
+     proposed Reflexion, which uses a few-shot verbal feedback to enhance decision-making capabilities. Reflexion processes feedback from interactions within task environments into textual summaries, which are then used to augment the model’s episodic memory.
+Prasad et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib47" title="">
+       47
+      </a>
+      ]
+     </cite>
+     proposed ADaPT, where LLMs learn to decompose the task into subtasks through short examples.
+Although these approaches can achieve decent performances in reasoning or word-based games, they are constrained by the knowledge the LLMs have and could be biased for certain problems. More importantly, the reward, one of the most important signals from the environment, is not considered.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p3">
+    <p class="ltx_p" id="S2.SS3.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS3.p3.1.1">
+      Closed-loop LLM-based RL:
+     </span>
+     There are also LLM-based RL frameworks that incorporate feedback for closed-loop control.
+Paul et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib48" title="">
+       48
+      </a>
+      ]
+     </cite>
+     proposed Refiner, in which a fine-tuned LLM is used to provide feedback on policy decisions. Zhang et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib49" title="">
+       49
+      </a>
+      ]
+     </cite>
+     introduced a framework that uses feedback from LLMs to enhance credit assignment in RL tasks. Their work targeted sparse reward environments and leveraged the rich domain knowledge available in LLMs to dynamically generate and refine reward functions. To improve sample efficiency, the authors proposed sequential, tree-based, and moving target feedback, facilitating more targeted exploration and reducing redundancy in state exploration. Yao et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib50" title="">
+       50
+      </a>
+      ]
+     </cite>
+     proposed Retroformer, where a frozen LLM is used as the policy, while another smaller LM is trained to provide verbal feedback on the decisions based on the reward. Murthy et al.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib51" title="">
+       51
+      </a>
+      ]
+     </cite>
+     proposed REX, adopting the Monte-Carlo Tree Search (MCTS) algorithm as the basis to solve problems. The Upper Confidence Bound (UCB) technique is adopted to guide the agent’s exploration.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p4">
+    <p class="ltx_p" id="S2.SS3.p4.1">
+     Besides the aforementioned work that uses LLMs as RL policies, multi-modal LLMs that are trained on RL tasks such as robot control (e.g., PaLM-E
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib52" title="">
+       52
+      </a>
+      ]
+     </cite>
+     ) and models for grounding languages to actions
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib53" title="">
+       53
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib54" title="">
+       54
+      </a>
+      ]
+     </cite>
+     have also been proposed. These models can achieve decent zero-shot performances in several robotic tasks because of their parameter scale.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    III
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S3.1.1">
+    Existing LLM-based MARL
+   </span>
+  </h2>
+  <figure class="ltx_table" id="S3.T1">
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     <span class="ltx_text" id="S3.T1.2.1.1" style="font-size:90%;">
+      TABLE I
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S3.T1.3.2" style="font-size:90%;">
+     Existing LLM for MARL frameworks with an emphasis on multi-agent coordination.
+    </span>
+   </figcaption>
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.4">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S3.T1.4.1.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T1.4.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.T1.4.1.1.1.1">
+        Framework
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T1.4.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S3.T1.4.1.1.2.1">
+        Application
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T1.4.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S3.T1.4.1.1.3.1">
+        Dataset/Simulator
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T1.4.1.1.4">
+       <span class="ltx_text ltx_font_bold" id="S3.T1.4.1.1.4.1">
+        Training
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T1.4.1.1.5">
+       <span class="ltx_text ltx_font_bold" id="S3.T1.4.1.1.5.1">
+        LLM Role
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S3.T1.4.2.1">
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.4.2.1.1">
+       DyLAN
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib55" title="">
+         55
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.4.2.1.2">
+       Reasoning, Coding
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.4.2.1.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/hendrycks/math/" target="_blank" title="">
+        MATH
+       </a>
+       ,
+       <a class="ltx_ref ltx_href" href="https://github.com/hendrycks/test" target="_blank" title="">
+        MMLU
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib56" title="">
+         56
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib57" title="">
+         57
+        </a>
+        ]
+       </cite>
+       ;
+       <a class="ltx_ref ltx_href" href="https://github.com/openai/human-eval" target="_blank" title="">
+        HumanEval
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib58" title="">
+         58
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.4.2.1.4">
+       <span class="ltx_text" id="S3.T1.4.2.1.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.4.2.1.5">
+       Decision, Communication
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.3.2">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.3.2.1">
+       FAMA
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib59" title="">
+         59
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.3.2.2">
+       Text Game, Driving
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.3.2.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/flowersteam/Grounding_LLMs_with_online_RL/tree/main/babyai-text" target="_blank" title="">
+        BabyAI-Text
+       </a>
+       , Traffic Junction
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib39" title="">
+         39
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.3.2.4">
+       <span class="ltx_text" id="S3.T1.4.3.2.4.1" style="color:#00FF00;">
+        ✓
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.3.2.5">
+       Decision, Communication
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.4.3">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.4.3.1">
+       Chen et al.
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib60" title="">
+         60
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.4.3.2">
+       Consensus Seeking
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.4.3.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/WestlakeIntelligentRobotics/ConsensusLLM-code/releases/tag/v1.0.1" target="_blank" title="">
+        Generated Data
+       </a>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.4.3.4">
+       <span class="ltx_text" id="S3.T1.4.4.3.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.4.3.5">
+       Decision
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.5.4">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.5.4.1">
+       Li et al.
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib61" title="">
+         61
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.5.4.2">
+       Path Planning
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.5.4.3">
+       Close-source simulator
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.5.4.4">
+       <span class="ltx_text" id="S3.T1.4.5.4.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.5.4.5">
+       Decision, Communication, Theory of Mind
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.6.5">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.6.5.1">
+       CoELA
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib62" title="">
+         62
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.6.5.2">
+       Multi-Agent Planning
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.6.5.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/threedworld-mit/tdw" target="_blank" title="">
+        TDW-MAT
+       </a>
+       ,
+       <a class="ltx_ref ltx_href" href="https://github.com/xavierpuigf/watch_and_help" target="_blank" title="">
+        C-WAH
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib63" title="">
+         63
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.6.5.4">
+       <span class="ltx_text" id="S3.T1.4.6.5.4.1" style="color:#00FF00;">
+        ✓
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.6.5.5">
+       Decision, Communication, Memory
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.7.6">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.7.6.1">
+       SMART-LLM
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib64" title="">
+         64
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.7.6.2">
+       Multi-Agent Planning
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.7.6.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/SMARTlab-Purdue/SMART-LLM/tree/master/data" target="_blank" title="">
+        Proposed Benchmark Dataset
+       </a>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.7.6.4">
+       <span class="ltx_text" id="S3.T1.4.7.6.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.7.6.5">
+       Decision, Planning
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.8.7">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.8.7.1">
+       RoCo
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib65" title="">
+         65
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.8.7.2">
+       Motion Planning
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.8.7.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/MandiZhao/robot-collab/tree/main/rocobench" target="_blank" title="">
+        RoCoBench
+       </a>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.8.7.4">
+       <span class="ltx_text" id="S3.T1.4.8.7.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.8.7.5">
+       Decision, Planning
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.9.8">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.9.8.1">
+       Co-NavGPT
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib66" title="">
+         66
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.9.8.2">
+       Semantic Navigation
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.9.8.3">
+       <a class="ltx_ref ltx_href" href="https://aihabitat.org/datasets/hm3d/" target="_blank" title="">
+        Habitat-Matterport 3D
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib67" title="">
+         67
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.9.8.4">
+       <span class="ltx_text" id="S3.T1.4.9.8.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.9.8.5">
+       Planning
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.10.9">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.4.10.9.1">
+       Guo et al.
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib68" title="">
+         68
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.10.9.2">
+       Multi-Agent Cooperation
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.10.9.3">
+       <a class="ltx_ref ltx_href" href="http://virtual-home.org/" target="_blank" title="">
+        VirtualHome-Social
+       </a>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T1.4.10.9.4">
+       <span class="ltx_text" id="S3.T1.4.10.9.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left" id="S3.T1.4.10.9.5">
+       Decision, Communication
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.11.10">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S3.T1.4.11.10.1">
+       MetaGPT
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib69" title="">
+         69
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b" id="S3.T1.4.11.10.2">
+       Coding
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S3.T1.4.11.10.3">
+       <a class="ltx_ref ltx_href" href="https://github.com/openai/human-eval" target="_blank" title="">
+        HumanEval
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib58" title="">
+         58
+        </a>
+        ]
+       </cite>
+       ,
+       <a class="ltx_ref ltx_href" href="https://github.com/google-research/google-research/tree/master/mbpp" target="_blank" title="">
+        MBPP
+       </a>
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib70" title="">
+         70
+        </a>
+        ]
+       </cite>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b" id="S3.T1.4.11.10.4">
+       <span class="ltx_text" id="S3.T1.4.11.10.4.1" style="color:#FF0000;">
+        ✗
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_b" id="S3.T1.4.11.10.5">
+       Code Generation, Communication
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </figure>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Although LLM-based MARL frameworks have not been widely studied, there is still some work focused on this topic.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S3.p2.1.1">
+     MARL for problem solving:
+    </span>
+    Huang et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib71" title="">
+      71
+     </a>
+     ]
+    </cite>
+    introduced
+    <math alttext="\gamma" class="ltx_Math" display="inline" id="S3.p2.1.m1.1">
+     <semantics id="S3.p2.1.m1.1a">
+      <mi id="S3.p2.1.m1.1.1" xref="S3.p2.1.m1.1.1.cmml">
+       γ
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.1.m1.1b">
+       <ci id="S3.p2.1.m1.1.1.cmml" xref="S3.p2.1.m1.1.1">
+        𝛾
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.1.m1.1c">
+       \gamma
+      </annotation>
+     </semantics>
+    </math>
+    -Bench, which encompasses a variety of multi-agent games to assess these models. Their work included a detailed analysis of different versions of the GPT models, which demonstrated a systematic improvement in their game ability. This framework demonstrated the enhanced performance of newer LLM versions, such as GPT-4, and the potential to augment these models with reasoning techniques such as CoT. Liu et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib55" title="">
+      55
+     </a>
+     ]
+    </cite>
+    proposed Dynamic LLM-Agent Network (DyLAN), a framework that studied the capabilities of LLM-agent collaborations for complex reasoning and code generation tasks. Unlike previous methods that used static architectures, DyLAN dynamically adjusted agent interactions based on real-time performance and task demands, incorporating features such as inference-time agent selection and an early stopping mechanism. This allowed DyLAN to enhance computational efficiency and optimize the contribution of individual agents through an unsupervised scoring metric, the agent importance score.
+Slumbers et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib59" title="">
+      59
+     </a>
+     ]
+    </cite>
+    introduced the Functionally-Aligned Multi-Agents (FAMA) framework by integrating a
+centralized critic architecture and allowing natural language communication between agents. The framework aligns LLMs to the functional needs of the environment through an online fine-tuning process, which adjusts the LLM’s pre-trained knowledge to better fit the specific task requirements. Additionally, FAMA allows for intuitive inter-agent communication in natural language, making the coordination more efficient and human-interpretable. Chen et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib60" title="">
+      60
+     </a>
+     ]
+    </cite>
+    present a study on the dynamics of consensus seeking in multi-agent systems driven by LLMs. The authors focused on the inter-agent negotiation processes, where each agent starts with a unique numerical state and negotiates to reach a unified consensus. They also provided insights on how different factors, such as agent personality (stubborn vs. suggestible), agent number, and network topology, influence the negotiation and consensus process. Li et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib61" title="">
+      61
+     </a>
+     ]
+    </cite>
+    explored Theory of Mind (ToM) modeling with LLMs generating communication messages and beliefs about the environment and other agents. Hong et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib69" title="">
+      69
+     </a>
+     ]
+    </cite>
+    proposed MetaGPT, where agents share messages with all other agents in a message pool and agents can subscribe to messages related to their task.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S3.p3.1.1">
+     MARL for embodied applications:
+    </span>
+    Other than the aforementioned MARL frameworks for problem solving, there are also LLM-based MARL frameworks for embodied application. Zhang et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib62" title="">
+      62
+     </a>
+     ]
+    </cite>
+    proposed a Cooperative Embodied Language Agent (CoELA), a modular framework that integrates LLM to improve communication and collaborative decision-making among multiple agents. The modular structure includes a perception module for interpreting sensory data, a memory module for retaining and recalling environmental and task-related information, a communication module to facilitate inter-agent dialogue, a planning module for strategic decision making, and an execution module for carrying out planned actions. By incorporating LLMs into the memory, communication, and planning modules, the framework enables agents to utilize natural language to improve both understanding and execution of cooperative tasks.
+Kannan et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib64" title="">
+      64
+     </a>
+     ]
+    </cite>
+    introduced SMART-LLM, a framework that integrated LLM with multi-agent robot task planning to translate high-level instructions into executable strategies for robot teams. By structuring task planning into sequential phases of decomposition, coalition formation, and allocation, SMART-LLM generates robot actions to achieve complex objectives. Their approach leveraged the cognitive processing power of LLMs to enhance the comprehension and execution capabilities of robot systems.
+Mandi et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib65" title="">
+      65
+     </a>
+     ]
+    </cite>
+    introduced RoCo, a multi-robot arm collaboration framework with each arm equipped with an LLM agent. The LLM agents are responsible for coordination among agents by communicating with other LLM agents and path planning.
+Yu et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib66" title="">
+      66
+     </a>
+     ]
+    </cite>
+    introduced Co-NavGPT, an LLM-based multi-agent navigation framework. However, unlike other frameworks where multiple LLMs are employed, in Co-NavGPT, only one LLM is used to assign frontiers to agents globally.
+Guo et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib68" title="">
+      68
+     </a>
+     ]
+    </cite>
+    studied the collaboration of multiple LLM-based agents on various tasks with a focus on communication and coordination among multiple agents. They proposed the Criticize-Reflect method with an LLM critic and an LLM coordinator. Table
+    <a class="ltx_ref" href="#S3.T1" title="TABLE I ‣ III Existing LLM-based MARL ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      I
+     </span>
+    </a>
+    provides more details on these works.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p4">
+   <p class="ltx_p" id="S3.p4.1">
+    In addition to LLM-based MARL, several works explored multi-agent interaction
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib72" title="">
+      72
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib73" title="">
+      73
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib74" title="">
+      74
+     </a>
+     ]
+    </cite>
+    , e.g., multi-agent conversation and gaming. However, these works
+fall out of the MARL scope;
+we will not use too much space on them.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p5">
+   <p class="ltx_p" id="S3.p5.1">
+    Overall, these studies illustrated that while the exploration into language-conditioned MARL is still nascent, it holds considerable promise for advancing the capabilities of MAS. Using natural language, these systems can achieve higher levels of coordination and understanding, which is essential for complex environments.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    IV
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S4.1.1">
+    Open Research Problems
+   </span>
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    Despite the research efforts mentioned above, language-conditioned MARL is still an unexplored field with many unexplored aspects. To inspire more research in this field, we provide several research directions in this section. Specifically, we discuss four potential research directions: i)
+    <em class="ltx_emph ltx_font_italic" id="S4.p1.1.1">
+     personality-enabled cooperation
+    </em>
+    (Sect.
+    <a class="ltx_ref" href="#S4.SS1" title="IV-A Personality-enabled Cooperation ‣ IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       IV-A
+      </span>
+     </span>
+    </a>
+    ), ii)
+    <em class="ltx_emph ltx_font_italic" id="S4.p1.1.2">
+     language-enabled human-in/on-the-loop frameworks
+    </em>
+    (Sect.
+    <a class="ltx_ref" href="#S4.SS2" title="IV-B Language-enabled Human-in/on-the-Loop Frameworks ‣ IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       IV-B
+      </span>
+     </span>
+    </a>
+    ), iii)
+    <em class="ltx_emph ltx_font_italic" id="S4.p1.1.3">
+     traditional MARL and LLM co-design
+    </em>
+    (Sect.
+    <a class="ltx_ref" href="#S4.SS3" title="IV-C Traditional MARL and LLM Co-Design ‣ IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       IV-C
+      </span>
+     </span>
+    </a>
+    ), and iv)
+    <em class="ltx_emph ltx_font_italic" id="S4.p1.1.4">
+     safety and security in MAS
+    </em>
+    (Sect.
+    <a class="ltx_ref" href="#S4.SS4" title="IV-D Safety and Security in MAS ‣ IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       IV-D
+      </span>
+     </span>
+    </a>
+    ). Fig.
+    <a class="ltx_ref" href="#S4.F2" title="Figure 2 ‣ IV Open Research Problems ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    also provides a more vivid demonstration of these research ideas.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S4.F2">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_centering ltx_figure_panel ltx_align_middle" id="S4.F2.2">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.F2.2.1.1">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.2.1.1.1">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.F2.2.2.2">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.2.2.2.1">
+         (a)
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F2.sf1">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="183" id="S4.F2.sf1.g1" src="/html/2405.11106/assets/x2.png" width="180"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        <span class="ltx_text" id="S4.F2.sf1.2.1.1" style="font-size:90%;">
+         (a)
+        </span>
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_centering ltx_figure_panel ltx_align_middle" id="S4.F2.3">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.F2.3.1.1">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.3.1.1.1">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.F2.3.2.2">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.3.2.2.1">
+         (b)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.F2.3.3.3">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.3.3.3.1">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.F2.3.4.4">
+        <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.F2.3.4.4.1">
+         (c)
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F2.sf2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="105" id="S4.F2.sf2.g1" src="/html/2405.11106/assets/x3.png" width="258"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        <span class="ltx_text" id="S4.F2.sf2.2.1.1" style="font-size:90%;">
+         (b)
+        </span>
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F2.sf3">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="68" id="S4.F2.sf3.g1" src="/html/2405.11106/assets/x4.png" width="253"/>
+      <figcaption class="ltx_caption">
+       <span class="ltx_tag ltx_tag_figure">
+        <span class="ltx_text" id="S4.F2.sf3.2.1.1" style="font-size:90%;">
+         (c)
+        </span>
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S4.F2.4.1.1" style="font-size:90%;">
+      Figure 2
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S4.F2.5.2" style="font-size:90%;">
+     Potential research directions for language-conditioned Multi-Agent Reinforcement Learning (MARL). (a) Personality-enabled cooperation, where different robots have different personalities defined by the commands. (b) Language-enabled human-on-the-loop frameworks, where humans supervise robots and provide feedback. (c) Traditional co-design of MARL and LLM, where knowledge about different aspects of LLM is distilled into smaller models that can be executed on board.
+    </span>
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS1.5.1.1">
+      IV-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS1.6.2">
+     Personality-enabled Cooperation
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     Previous work
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib75" title="">
+       75
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib60" title="">
+       60
+      </a>
+      ]
+     </cite>
+     has shown that different personalities in MARL frameworks can produce promising results. This idea can be naturally extended to language-conditioned MARL frameworks.
+In these frameworks, agents are distinguished by their assigned personalities. For example, an agent with a “curious” personality will tend to explore the environment, while an agent with a “conservative” personality will tend to stay in the safe areas. A team of agents with a combination of different personalities can often achieve better performance than those with the same personality.
+In traditional MARL frameworks, these personalities are encoded in the agents’ model parameters, i.e., the weights of their models. However, with LLMs as agents, personalities can be assigned to agents by prompts, in which narratives about the agent’s personality will be provided.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     Another potential advantage of language-conditioned MARL with personalized agents is the ability to handle conflicts and negotiate solutions more effectively. Agents can be trained to understand and generate language-based responses that consider the perspectives and goals of other agents, facilitating a negotiation process that mirrors human interaction. This capability is particularly useful in scenarios where agents must share resources or decide on joint actions that impact the collective outcome.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     However, implementing these personalized language behaviors in agents presents several challenges. The primary concern is ensuring that language models do not perpetuate or amplify undesirable biases that could lead to unfair or inefficient outcomes. Additionally, the complexity of training such models increases as they must not only understand and generate appropriate responses, but also adapt their linguistic style based on the evolving context of the interaction.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p4">
+    <p class="ltx_p" id="S4.SS1.p4.1">
+     Future research could focus on developing frameworks that can effectively integrate personality-driven language models into MARL systems. This integration involves creating robust prompts with memories that encode the information from past experiences in a wide range of interactive scenarios, allowing agents to learn from both their successes and failures. Furthermore, evaluating these systems will require new metrics that can assess not just the efficacy of task performance but also the appropriateness and effectiveness of communication between agents.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p5">
+    <p class="ltx_p" id="S4.SS1.p5.1">
+     Another direction of research is to explore competitive agents instead of cooperative agents. However, the competition here should be benign, which means that the agents compete to achieve the same goal.
+By addressing these challenges, language-conditioned MARL with diverse agent personalities has the potential to advance the field of artificial intelligence.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS2.5.1.1">
+      IV-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS2.6.2">
+     Language-enabled Human-in/on-the-Loop Frameworks
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     One of the direct advantages of language-conditioned MARL frameworks is the possibility of involving humans in or on the loop. To illustrate, human-in-the-loop frameworks
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib76" title="">
+       76
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib77" title="">
+       77
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib78" title="">
+       78
+      </a>
+      ]
+     </cite>
+     involve humans as agents that can generate actions to affect the environment, while human-on-the-loop frameworks
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib79" title="">
+       79
+      </a>
+      ]
+     </cite>
+     regard humans as supervisors without directly being involved in the decision-making process.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     In human-in-the-loop setups, humans actively participate in the learning process, often providing corrective feedback or rewards to shape agent behaviors in real time. This direct interaction helps in refining the agent’s actions and strategies, making them more aligned with human-like reasoning and ethical standards. For example, a human could guide an agent away from potential pitfalls in its learning process that might not be immediately apparent through algorithmic reinforcement signals alone.
+On the other hand, human-on-the-loop frameworks play a crucial oversight role. Here, humans monitor the system’s performance and intervene only when necessary. This approach is particularly valuable in applications where autonomous operations are preferable, but human oversight is necessary to ensure safety and compliance with regulatory standards. For example, in autonomous driving, while the system can handle most driving tasks, a human supervisor may only need to intervene in complex or hazardous road conditions, ensuring that the system operates within safe limits without requiring constant human control.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     Both of these human roles within language-conditioned MARL can benefit significantly from the integration of natural language. Language serves as a versatile interface that enables clearer and more intuitive communication between humans and agents. Agents can report their status, explain their decisions, or even ask for clarification in human-understandable language, improving the effectiveness of human interventions.
+Furthermore, the use of language can facilitate the transfer of knowledge between agents by allowing them to share insights or strategies in a comprehensible format. In scenarios involving multiple agents with varying roles, language can help maintain coherence and unity of purpose across the team, guiding less experienced agents through complex tasks or strategies articulated by more experienced ones or even by human supervisors.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p4">
+    <p class="ltx_p" id="S4.SS2.p4.1">
+     Future research could explore optimizing these interactions between human supervisors and agents, possibly by developing advanced language models that can understand and generate more context-aware, situation-specific dialogue. Furthermore, ensuring that language-based communications are not only informative, but also prompt and actionable will be crucial for the practical deployment of such systems in real-world applications. This balance between automation and human oversight, facilitated by natural language, promises to enhance the robustness and reliability of multi-agent systems, pushing the boundaries of what automated systems can achieve while ensuring they operate under safe and ethical guidelines.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS3.5.1.1">
+      IV-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS3.6.2">
+     Traditional MARL and LLM Co-Design
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Since LLMs tend to have large sizes, especially those pre-trained models, performing inference on-board on robot hardware is not practical. A popular way towards resource-efficient computing is through Parameter-Efficient Fine-Tuning (PEFT) techniques
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib80" title="">
+       80
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib81" title="">
+       81
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib82" title="">
+       82
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib83" title="">
+       83
+      </a>
+      ]
+     </cite>
+     combined with quantization. However, this kind of approach still requires inference through the large LLM network, which is impractical for small robots. To make this happen, we envision a co-design framework of traditional MARL policies and the LM models. A typical design for such systems could be to use the LLM model as a centralized critic to guide the training of the actors. This design follows the CTDE scheme introduced in Sect.
+     <a class="ltx_ref" href="#S2.SS2" title="II-B Traditional MARL ‣ II Preliminaries ‣ LLM-based Multi-Agent Reinforcement Learning: Current and Future Directions">
+      <span class="ltx_text ltx_ref_tag">
+       <span class="ltx_text">
+        II-B
+       </span>
+      </span>
+     </a>
+     , where the critic will be removed during execution. To leverage communication during execution, we can distill the knowledge from the LLMs about communication into smaller models that can be executed onboard.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     One potential development is the refinement of the distillation process, which aims to transfer knowledge from LLMs to more compact models suitable for deployment on less powerful hardware, such as robots or Internet of Things (IoT) devices.
+A promising direction in this direction would be in-context distillation
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib84" title="">
+       84
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib85" title="">
+       85
+      </a>
+      ]
+     </cite>
+     , where the teacher model is an LLM with a pre-defined context. For example, for controlling warehouse robots, the context can be refined to tell the LLM to avoid people and collisions. By focusing on the essential features necessary for the communication and decision-making learned by the LLM, smaller models can execute complex tasks effectively with a fraction of the computational overhead. In addition, to facilitate effective communication between agents during execution, specialized communication protocols could be designed. These protocols would utilize the distilled models to ensure that critical information, as understood and processed by the LLM during the training phase, is efficiently conveyed between agents. This approach not only conserves bandwidth, but also optimizes the real-time decision-making process, allowing for dynamic adjustments based on the operational environment and agent states.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     Additionally, the co-design framework can be enhanced by integrating adaptive mechanisms that allow the MARL system to recalibrate its strategies based on feedback from the operational environment. Such adaptive systems could dynamically adjust the compression level of the distilled models or modify the communication protocols based on the complexity of the tasks and the computational capabilities available at that time. This flexibility would be particularly useful in environments where conditions change rapidly or unpredictably, requiring swift responses from the agent collective. Furthermore, the implementation of this co-design framework would benefit significantly from the development of specialized hardware tailored to the execution of compressed models. This hardware could optimize the execution of neural network operations, potentially in a power-efficient manner, which is critical for mobile or embedded systems.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS4.5.1.1">
+      IV-D
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS4.6.2">
+     Safety and Security in MAS
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     Ensuring the safety and security of MAS is critical, especially as these systems are increasingly deployed in diverse and potentially high-stakes environments. The integration of language models into MARL introduces unique challenges and vulnerabilities, from the manipulation of agent communication to the exploitation of model biases.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS4.p2">
+    <p class="ltx_p" id="S4.SS4.p2.1">
+     Many robotic operations have continuous action spaces, where the output of each agent’s policy is a set of continuous values. Unlike discrete action spaces, which can be reformulated as multi-choice problems and solved by prompting the multi-choice question to the LLM, continuous action space is more tricky, especially in high-stake environments, for example, operation robots. Existing methods replace the last few layers of the LLMs with new layers that map the observation in languages to continuous action spaces. However, this kind of approach requires training the new layers in the desired environment, which might be inaccessible. Therefore, exploring alternative methods for integrating LLMs into the control loop of robots operating in continuous action spaces without the need for substantial retraining or modification of the LLMs is promising.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS4.p3">
+    <p class="ltx_p" id="S4.SS4.p3.1">
+     In addition to safety in actions, safety and security against potential attacks are also crucial in MAS. One way towards safety is through proactive measures. This includes the development of secure communication protocols between agents to prevent eavesdropping or the injection of malicious data that could lead to compromised decision-making. Communications encryption can be a fundamental aspect of this, ensuring that even if data transmissions are intercepted, the information remains protected. In addition, securing the language model training process against adversarial attacks is crucial. Adversarial training, which involves exposing the system to a wide range of attack vectors during the training phase, can help models learn to resist or mitigate these attacks in deployment. In addition, input validation techniques can be employed to filter out potentially harmful or misleading inputs that could cause the system to behave unpredictably. This is particularly important in scenarios where agents interact with humans or systems outside the controlled environment and are exposed to a broader range of language inputs and behaviors.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS4.p4">
+    <p class="ltx_p" id="S4.SS4.p4.1">
+     Despite the best proactive defenses, systems may still encounter unforeseen vulnerabilities post-deployment. Thus, reactive strategies are necessary to quickly address any breaches or failures. This can involve real-time monitoring of agent behaviors and communications to detect anomalies that may indicate a security breach or a failure in safety protocols. Once an anomaly is detected, the systems should be able to isolate affected agents and roll back their states to secure configurations.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    V
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S5.1.1">
+    Conclusion
+   </span>
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this letter, we provide a brief overview of Multi-Agent Reinforcement Learning (MARL) based on conventional non-Large Language Model (LLM)-based Multi-Agent Reinforcement Learning (MARL), LLM-based single-agent RL, and existing LLM-based MARL frameworks.
+These works paved the way for new ideas that we discuss in later sections. Specifically, we discussed potential research directions ranging from multi-agent personality to safety and security in the LLM-based Multi-Agent System (MAS).
+Although works are studying LLM-based MARL, the field is still to be explored and has significant potential because of the great ability of LLMs and their in-context and interpretable nature. With LLMs, designing MARL frameworks becomes more analogous to modeling the group learning process of animals or even humans, where knowledge is transferred or exchanged via natural languages. We hope, with this letter, that more research works can be enlightened and the boundary of multi-agent intelligence could be pushed further.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     C. Sun, S. Huang, and D. Pompili, “Hmaac: Hierarchical multi-agent
+actor-critic for aerial search with explicit coordination modeling,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      2023 IEEE International Conference on Robotics and Automation (ICRA)
+     </span>
+     ,
+pp. 7728–7734, IEEE, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     S. Shalev-Shwartz, S. Shammah, and A. Shashua, “Safe, multi-agent,
+reinforcement learning for autonomous driving,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint
+arXiv:1610.03295
+     </span>
+     , 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     V. Sadhu, C. Sun, A. Karimian, R. Tron, and D. Pompili, “Aerial-deepsearch:
+Distributed multi-agent deep reinforcement learning for search missions,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      2020 IEEE 17th International Conference on Mobile Ad Hoc and Sensor
+Systems (MASS)
+     </span>
+     , pp. 165–173, IEEE, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     J. A. Calvo and I. Dusparic, “Heterogeneous multi-agent deep reinforcement
+learning for traffic lights control.,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      AICS
+     </span>
+     , pp. 2–13, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     D. E. Rumelhart, G. E. Hinton, and R. J. Williams, “Learning internal
+representations by error propagation, parallel distributed processing,
+explorations in the microstructure of cognition, ed. de rumelhart and j.
+mcclelland. vol. 1. 1986,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Biometrika
+     </span>
+     , vol. 71, pp. 599–607, 1986.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     M. I. Jordan, “Serial order: A parallel distributed processing approach,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      Advances in psychology
+     </span>
+     , vol. 121, pp. 471–495, Elsevier, 1997.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     S. Hochreiter and J. Schmidhuber, “Long short-term memory,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Neural
+computation
+     </span>
+     , vol. 9, no. 8, pp. 1735–1780, 1997.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+Ł. Kaiser, and I. Polosukhin, “Attention is all you need,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      Advances
+in neural information processing systems
+     </span>
+     , vol. 30, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     S. Peng, X. Hu, R. Zhang, J. Guo, Q. Yi, R. Chen, Z. Du, L. Li, Q. Guo, and
+Y. Chen, “Conceptual reinforcement learning for language-conditioned
+tasks,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the AAAI Conference on Artificial
+Intelligence
+     </span>
+     , vol. 37, pp. 9426–9434, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Jiang, S. S. Gu, K. P. Murphy, and C. Finn, “Language as an abstraction for
+hierarchical deep reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      Advances in Neural
+Information Processing Systems
+     </span>
+     , vol. 32, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     L. Zhou and K. Small, “Inverse reinforcement learning with natural language
+goals,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      Proceedings of the AAAI Conference on Artificial
+Intelligence
+     </span>
+     , vol. 35, pp. 11116–11124, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI, “ChatGPT: Optimizing Language Models for Dialogue.”
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.openai.com/chatgpt" target="_blank" title="">
+      https://www.openai.com/chatgpt
+     </a>
+     , 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Accessed: 2024-04-22.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     H. Touvron, L. Martin, K. Stone, P. Albert, A. Almahairi, Y. Babaei,
+N. Bashlykov, S. Batra, P. Bhargava, S. Bhosale,
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      et al.
+     </span>
+     , “Llama 2:
+Open foundation and fine-tuned chat models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.2.2">
+      arXiv preprint
+arXiv:2307.09288
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     A. Chowdhery, S. Narang, J. Devlin, M. Bosma, G. Mishra, A. Roberts, P. Barham,
+H. W. Chung, C. Sutton, S. Gehrmann,
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      et al.
+     </span>
+     , “Palm: Scaling language
+modeling with pathways,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.2.2">
+      Journal of Machine Learning Research
+     </span>
+     ,
+vol. 24, no. 240, pp. 1–113, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     R. Anil, S. Borgeaud, Y. Wu, J.-B. Alayrac, J. Yu, R. Soricut, J. Schalkwyk,
+A. M. Dai, A. Hauth,
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      et al.
+     </span>
+     , “Gemini: a family of highly capable
+multimodal models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.2.2">
+      arXiv preprint arXiv:2312.11805
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wu, Z. Lai, S. Chen, R. Tao, P. Zhao, and N. Hovakimyan, “The new
+agronomists: Language models are experts in crop management,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv
+preprint arXiv:2403.19839
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Lai, J. Wu, S. Chen, Y. Zhou, A. Hovakimyan, and N. Hovakimyan, “Language
+models are free boosters for biomedical imaging tasks,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      arXiv preprint
+arXiv:2403.17343
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     G. Han, W. Liu, X. Huang, and B. Borsari, “Chain-of-interaction: Enhancing
+large language models for psychiatric behavior understanding by dyadic
+contexts,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      arXiv preprint arXiv:2403.13786
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     N. Shinn, F. Cassano, A. Gopinath, K. Narasimhan, and S. Yao, “Reflexion:
+Language agents with verbal reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      Advances in Neural
+Information Processing Systems
+     </span>
+     , vol. 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     T. Guo, X. Chen, Y. Wang, R. Chang, S. Pei, N. V. Chawla, O. Wiest, and
+X. Zhang, “Large language model based multi-agents: A survey of progress and
+challenges,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2402.01680
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     T. T. Nguyen, N. D. Nguyen, and S. Nahavandi, “Deep reinforcement learning for
+multiagent systems: A review of challenges, solutions, and applications,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      IEEE transactions on cybernetics
+     </span>
+     , vol. 50, no. 9, pp. 3826–3839, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     P. Hernandez-Leal, B. Kartal, and M. E. Taylor, “A survey and critique of
+multiagent deep reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      Autonomous Agents and
+Multi-Agent Systems
+     </span>
+     , vol. 33, no. 6, pp. 750–797, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     S. Gronauer and K. Diepold, “Multi-agent deep reinforcement learning: a
+survey,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Artificial Intelligence Review
+     </span>
+     , pp. 1–49, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     J. Luketina, N. Nardelli, G. Farquhar, J. Foerster, J. Andreas,
+E. Grefenstette, S. Whiteson, and T. Rocktäschel, “A survey of
+reinforcement learning informed by natural language,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint
+arXiv:1906.03926
+     </span>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Cao, H. Zhao, Y. Cheng, T. Shu, G. Liu, G. Liang, J. Zhao, and Y. Li,
+“Survey on large language model-enhanced reinforcement learning: Concept,
+taxonomy, and methods,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2404.00282
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     F. A. Oliehoek, C. Amato,
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      et al.
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.2.2">
+      A concise introduction to
+decentralized POMDPs
+     </span>
+     , vol. 1.
+    </span>
+    <span class="ltx_bibblock">
+     Springer, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     T. Rashid, M. Samvelyan, C. S. De Witt, G. Farquhar, J. Foerster, and
+S. Whiteson, “Monotonic value function factorisation for deep multi-agent
+reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      The Journal of Machine Learning Research
+     </span>
+     ,
+vol. 21, no. 1, pp. 7234–7284, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     K. Son, D. Kim, W. J. Kang, D. E. Hostallero, and Y. Yi, “Qtran: Learning to
+factorize with transformation for cooperative multi-agent reinforcement
+learning,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      International conference on machine learning
+     </span>
+     ,
+pp. 5887–5896, PMLR, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     R. Lowe, Y. I. Wu, A. Tamar, J. Harb, O. Pieter Abbeel, and I. Mordatch,
+“Multi-agent actor-critic for mixed cooperative-competitive environments,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      Advances in neural information processing systems
+     </span>
+     , vol. 30, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen, and Y. Wu, “The
+surprising effectiveness of ppo in cooperative multi-agent games,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , vol. 35,
+pp. 24611–24624, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     P. Sunehag, G. Lever, A. Gruslys, W. M. Czarnecki, V. Zambaldi, M. Jaderberg,
+M. Lanctot, N. Sonnerat, J. Z. Leibo, K. Tuyls,
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.1.1">
+      et al.
+     </span>
+     ,
+“Value-decomposition networks for cooperative multi-agent learning based on
+team reward,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.2.2">
+      Proceedings of the 17th International Conference on
+Autonomous Agents and MultiAgent Systems
+     </span>
+     , pp. 2085–2087, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     T. Rashid, G. Farquhar, B. Peng, and S. Whiteson, “Weighted qmix: Expanding
+monotonic value function factorisation for deep multi-agent reinforcement
+learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Advances in neural information processing systems
+     </span>
+     , vol. 33,
+pp. 10199–10210, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wang, Z. Ren, T. Liu, Y. Yu, and C. Zhang, “Qplex: Duplex dueling
+multi-agent q-learning,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      International Conference on Learning
+Representations
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     J. Ackermann, V. Gabler, T. Osa, and M. Sugiyama, “Reducing overestimation
+bias in multi-agent domains using double centralized critics,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      arXiv
+preprint arXiv:1910.01465
+     </span>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Wang, B. Han, T. Wang, H. Dong, and C. Zhang, “Dop: Off-policy multi-agent
+decomposed policy gradients,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      International conference on learning
+representations
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     T. Zhang, Y. Li, C. Wang, G. Xie, and Z. Lu, “Fop: Factorizing optimal joint
+policy of maximum-entropy multi-agent reinforcement learning,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      International Conference on Machine Learning
+     </span>
+     , pp. 12491–12500, PMLR, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     J. Foerster, I. A. Assael, N. De Freitas, and S. Whiteson, “Learning to
+communicate with deep multi-agent reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.1.1">
+      Advances in
+neural information processing systems
+     </span>
+     , vol. 29, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     A. Das, T. Gervet, J. Romoff, D. Batra, D. Parikh, M. Rabbat, and J. Pineau,
+“Tarmac: Targeted multi-agent communication,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.1.1">
+      International
+Conference on machine learning
+     </span>
+     , pp. 1538–1546, PMLR, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     S. Sukhbaatar, R. Fergus,
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      et al.
+     </span>
+     , “Learning multiagent communication
+with backpropagation,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.2.2">
+      Advances in neural information processing
+systems
+     </span>
+     , vol. 29, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Hoshen, “Vain: Attentional multi-agent predictive modeling,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      Advances
+in neural information processing systems
+     </span>
+     , vol. 30, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     J. Jiang and Z. Lu, “Learning attentional communication for multi-agent
+cooperation,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.1.1">
+      Advances in neural information processing systems
+     </span>
+     ,
+vol. 31, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     I. Mordatch and P. Abbeel, “Emergence of grounded compositional language in
+multi-agent populations,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib42.1.1">
+      Proceedings of the AAAI conference on
+artificial intelligence
+     </span>
+     , vol. 32, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [43]
+    </span>
+    <span class="ltx_bibblock">
+     S. Shen, Y. Fu, H. Su, H. Pan, P. Qiao, Y. Dou, and C. Wang, “Graphcomm: A
+graph neural network based method for multi-agent reinforcement learning,”
+in
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.1.1">
+      ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech
+and Signal Processing (ICASSP)
+     </span>
+     , pp. 3510–3514, IEEE, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [44]
+    </span>
+    <span class="ltx_bibblock">
+     S. Gupta, R. Hazra, and A. Dukkipati, “Networked multi-agent reinforcement
+learning with emergent communication,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.1.1">
+      arXiv preprint
+arXiv:2004.02780
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib45">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [45]
+    </span>
+    <span class="ltx_bibblock">
+     A. Lazaridou and M. Baroni, “Emergent multi-agent communication in the deep
+learning era,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib45.1.1">
+      arXiv preprint arXiv:2006.02419
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib46">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [46]
+    </span>
+    <span class="ltx_bibblock">
+     S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. R. Narasimhan, and Y. Cao,
+“React: Synergizing reasoning and acting in language models,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib46.1.1">
+      The
+Eleventh International Conference on Learning Representations
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib47">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [47]
+    </span>
+    <span class="ltx_bibblock">
+     A. Prasad, A. Koller, M. Hartmann, P. Clark, A. Sabharwal, M. Bansal, and
+T. Khot, “Adapt: As-needed decomposition and planning with language
+models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib47.1.1">
+      arXiv preprint arXiv:2311.05772
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib48">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [48]
+    </span>
+    <span class="ltx_bibblock">
+     D. Paul, M. Ismayilzada, M. Peyrard, B. Borges, A. Bosselut, R. West, and
+B. Faltings, “Refiner: Reasoning feedback on intermediate representations,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib48.1.1">
+      arXiv preprint arXiv:2304.01904
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib49">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [49]
+    </span>
+    <span class="ltx_bibblock">
+     A. Zhang, A. Parashar, and D. Saha, “A simple framework for intrinsic
+reward-shaping for rl using llm feedback,”
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib50">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [50]
+    </span>
+    <span class="ltx_bibblock">
+     W. Yao, S. Heinecke, J. C. Niebles, Z. Liu, Y. Feng, L. Xue, R. R. N, Z. Chen,
+J. Zhang, D. Arpit, R. Xu, P. L. Mui, H. Wang, C. Xiong, and S. Savarese,
+“Retroformer: Retrospective large language agents with policy gradient
+optimization,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib50.1.1">
+      The Twelfth International Conference on Learning
+Representations
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib51">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [51]
+    </span>
+    <span class="ltx_bibblock">
+     R. Murthy, S. Heinecke, J. C. Niebles, Z. Liu, L. Xue, W. Yao, Y. Feng,
+Z. Chen, A. Gokul, D. Arpit,
+     <span class="ltx_text ltx_font_italic" id="bib.bib51.1.1">
+      et al.
+     </span>
+     , “Rex: Rapid exploration and
+exploitation for ai agents,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib51.2.2">
+      arXiv preprint arXiv:2307.08962
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib52">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [52]
+    </span>
+    <span class="ltx_bibblock">
+     D. Driess, F. Xia, M. S. Sajjadi, C. Lynch, A. Chowdhery, B. Ichter, A. Wahid,
+J. Tompson, Q. Vuong, T. Yu,
+     <span class="ltx_text ltx_font_italic" id="bib.bib52.1.1">
+      et al.
+     </span>
+     , “Palm-e: An embodied multimodal
+language model,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib52.2.2">
+      International Conference on Machine Learning
+     </span>
+     ,
+pp. 8469–8488, PMLR, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib53">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [53]
+    </span>
+    <span class="ltx_bibblock">
+     W. Huang, P. Abbeel, D. Pathak, and I. Mordatch, “Language models as zero-shot
+planners: Extracting actionable knowledge for embodied agents,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib53.1.1">
+      International Conference on Machine Learning
+     </span>
+     , pp. 9118–9147, PMLR, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib54">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [54]
+    </span>
+    <span class="ltx_bibblock">
+     A. Brohan, Y. Chebotar, C. Finn, K. Hausman, A. Herzog, D. Ho, J. Ibarz,
+A. Irpan, E. Jang, R. Julian,
+     <span class="ltx_text ltx_font_italic" id="bib.bib54.1.1">
+      et al.
+     </span>
+     , “Do as i can, not as i say:
+Grounding language in robotic affordances,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib54.2.2">
+      Conference on robot
+learning
+     </span>
+     , pp. 287–318, PMLR, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib55">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [55]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Liu, Y. Zhang, P. Li, Y. Liu, and D. Yang, “Dynamic llm-agent network: An
+llm-agent collaboration framework with agent team optimization,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib55.1.1">
+      arXiv
+preprint arXiv:2310.02170
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib56">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [56]
+    </span>
+    <span class="ltx_bibblock">
+     D. Hendrycks, C. Burns, S. Kadavath, A. Arora, S. Basart, E. Tang, D. Song, and
+J. Steinhardt, “Measuring mathematical problem solving with the math
+dataset,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib56.1.1">
+      NeurIPS
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib57">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [57]
+    </span>
+    <span class="ltx_bibblock">
+     D. Hendrycks, C. Burns, S. Basart, A. Critch, J. Li, D. Song, and
+J. Steinhardt, “Aligning ai with shared human values,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib57.1.1">
+      Proceedings of
+the International Conference on Learning Representations (ICLR)
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib58">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [58]
+    </span>
+    <span class="ltx_bibblock">
+     M. Chen, J. Tworek, H. Jun, Q. Yuan, H. P. de Oliveira Pinto, J. Kaplan,
+H. Edwards, Y. Burda, N. Joseph, G. Brockman, A. Ray, R. Puri, G. Krueger,
+M. Petrov, H. Khlaaf, G. Sastry, P. Mishkin, B. Chan, S. Gray, N. Ryder,
+M. Pavlov, A. Power, L. Kaiser, M. Bavarian, C. Winter, P. Tillet, F. P.
+Such, D. Cummings, M. Plappert, F. Chantzis, E. Barnes, A. Herbert-Voss,
+W. H. Guss, A. Nichol, A. Paino, N. Tezak, J. Tang, I. Babuschkin, S. Balaji,
+S. Jain, W. Saunders, C. Hesse, A. N. Carr, J. Leike, J. Achiam, V. Misra,
+E. Morikawa, A. Radford, M. Knight, M. Brundage, M. Murati, K. Mayer,
+P. Welinder, B. McGrew, D. Amodei, S. McCandlish, I. Sutskever, and
+W. Zaremba, “Evaluating large language models trained on code,” 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib59">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [59]
+    </span>
+    <span class="ltx_bibblock">
+     O. Slumbers, D. H. Mguni, K. Shao, and J. Wang, “Leveraging large language
+models for optimised coordination in textual multi-agent reinforcement
+learning,” 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib60">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [60]
+    </span>
+    <span class="ltx_bibblock">
+     H. Chen, W. Ji, L. Xu, and S. Zhao, “Multi-agent consensus seeking via large
+language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib60.1.1">
+      arXiv preprint arXiv:2310.20151
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib61">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [61]
+    </span>
+    <span class="ltx_bibblock">
+     H. Li, Y. Chong, S. Stepputtis, J. P. Campbell, D. Hughes, C. Lewis, and
+K. Sycara, “Theory of mind for multi-agent collaboration via large language
+models,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib61.1.1">
+      Proceedings of the 2023 Conference on Empirical Methods in
+Natural Language Processing
+     </span>
+     , pp. 180–192, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib62">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [62]
+    </span>
+    <span class="ltx_bibblock">
+     H. Zhang, W. Du, J. Shan, Q. Zhou, Y. Du, J. B. Tenenbaum, T. Shu, and C. Gan,
+“Building cooperative embodied agents modularly with large language
+models,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib62.1.1">
+      The Twelfth International Conference on Learning
+Representations
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib63">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [63]
+    </span>
+    <span class="ltx_bibblock">
+     X. Puig, T. Shu, S. Li, Z. Wang, Y.-H. Liao, J. B. Tenenbaum, S. Fidler, and
+A. Torralba, “Watch-and-help: A challenge for social perception and human-ai
+collaboration,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib63.1.1">
+      arXiv preprint arXiv:2010.09890
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib64">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [64]
+    </span>
+    <span class="ltx_bibblock">
+     S. S. Kannan, V. L. Venkatesh, and B.-C. Min, “Smart-llm: Smart multi-agent
+robot task planning using large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib64.1.1">
+      arXiv preprint
+arXiv:2309.10062
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib65">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [65]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Mandi, S. Jain, and S. Song, “Roco: Dialectic multi-robot collaboration
+with large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib65.1.1">
+      arXiv preprint arXiv:2307.04738
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib66">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [66]
+    </span>
+    <span class="ltx_bibblock">
+     B. Yu, H. Kasaei, and M. Cao, “Co-navgpt: Multi-robot cooperative visual
+semantic navigation using large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib66.1.1">
+      arXiv preprint
+arXiv:2310.07937
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib67">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [67]
+    </span>
+    <span class="ltx_bibblock">
+     S. K. Ramakrishnan, A. Gokaslan, E. Wijmans, O. Maksymets, A. Clegg, J. M.
+Turner, E. Undersander, W. Galuba, A. Westbury, A. X. Chang, M. Savva,
+Y. Zhao, and D. Batra, “Habitat-matterport 3d dataset (HM3d): 1000
+large-scale 3d environments for embodied AI,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib67.1.1">
+      Thirty-fifth
+Conference on Neural Information Processing Systems Datasets and Benchmarks
+Track
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib68">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [68]
+    </span>
+    <span class="ltx_bibblock">
+     X. Guo, K. Huang, J. Liu, W. Fan, N. Vélez, Q. Wu, H. Wang, T. L.
+Griffiths, and M. Wang, “Embodied llm agents learn to cooperate in organized
+teams,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib68.1.1">
+      arXiv preprint arXiv:2403.12482
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib69">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [69]
+    </span>
+    <span class="ltx_bibblock">
+     S. Hong, M. Zhuge, J. Chen, X. Zheng, Y. Cheng, J. Wang, C. Zhang, Z. Wang,
+S. K. S. Yau, Z. Lin,
+     <span class="ltx_text ltx_font_italic" id="bib.bib69.1.1">
+      et al.
+     </span>
+     , “Metagpt: Meta programming for
+multi-agent collaborative framework,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib69.2.2">
+      The Twelfth International
+Conference on Learning Representations
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib70">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [70]
+    </span>
+    <span class="ltx_bibblock">
+     J. Austin, A. Odena, M. Nye, M. Bosma, H. Michalewski, D. Dohan, E. Jiang,
+C. Cai, M. Terry, Q. Le,
+     <span class="ltx_text ltx_font_italic" id="bib.bib70.1.1">
+      et al.
+     </span>
+     , “Program synthesis with large
+language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib70.2.2">
+      arXiv preprint arXiv:2108.07732
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib71">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [71]
+    </span>
+    <span class="ltx_bibblock">
+     J.-t. Huang, E. J. Li, M. H. Lam, T. Liang, W. Wang, Y. Yuan, W. Jiao, X. Wang,
+Z. Tu, and M. R. Lyu, “How far are we on the decision-making of llms?
+evaluating llms’ gaming ability in multi-agent environments,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib71.1.1">
+      arXiv
+preprint arXiv:2403.11807
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib72">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [72]
+    </span>
+    <span class="ltx_bibblock">
+     Q. Wu, G. Bansal, J. Zhang, Y. Wu, S. Zhang, E. Zhu, B. Li, L. Jiang, X. Zhang,
+and C. Wang, “Autogen: Enabling next-gen llm applications via multi-agent
+conversation framework,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib72.1.1">
+      arXiv preprint arXiv:2308.08155
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib73">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [73]
+    </span>
+    <span class="ltx_bibblock">
+     J. S. Park, J. O’Brien, C. J. Cai, M. R. Morris, P. Liang, and M. S. Bernstein,
+“Generative agents: Interactive simulacra of human behavior,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib73.1.1">
+      Proceedings of the 36th Annual ACM Symposium on User Interface Software and
+Technology
+     </span>
+     , pp. 1–22, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib74">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [74]
+    </span>
+    <span class="ltx_bibblock">
+     G. Li, H. Hammoud, H. Itani, D. Khizbullin, and B. Ghanem, “Camel:
+Communicative agents for “mind” exploration of large language model
+society,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib74.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , vol. 36,
+2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib75">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [75]
+    </span>
+    <span class="ltx_bibblock">
+     A. Szot, U. Jain, D. Batra, Z. Kira, R. Desai, and A. Rai, “Adaptive
+coordination in social embodied rearrangement,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib75.1.1">
+      International
+Conference on Machine Learning
+     </span>
+     , pp. 33365–33380, PMLR, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib76">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [76]
+    </span>
+    <span class="ltx_bibblock">
+     D. Abel, J. Salvatier, A. Stuhlmüller, and O. Evans, “Agent-agnostic
+human-in-the-loop reinforcement learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib76.1.1">
+      arXiv preprint
+arXiv:1701.04079
+     </span>
+     , 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib77">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [77]
+    </span>
+    <span class="ltx_bibblock">
+     H. Liang, L. Yang, H. Cheng, W. Tu, and M. Xu, “Human-in-the-loop
+reinforcement learning,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib77.1.1">
+      2017 Chinese Automation Congress (CAC)
+     </span>
+     ,
+pp. 4511–4518, IEEE, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib78">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [78]
+    </span>
+    <span class="ltx_bibblock">
+     B. Luo, Z. Wu, F. Zhou, and B.-C. Wang, “Human-in-the-loop reinforcement
+learning in continuous-action space,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib78.1.1">
+      IEEE Transactions on Neural
+Networks and Learning Systems
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib79">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [79]
+    </span>
+    <span class="ltx_bibblock">
+     P. F. Christiano, J. Leike, T. Brown, M. Martic, S. Legg, and D. Amodei, “Deep
+reinforcement learning from human preferences,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib79.1.1">
+      Advances in neural
+information processing systems
+     </span>
+     , vol. 30, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib80">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [80]
+    </span>
+    <span class="ltx_bibblock">
+     E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, and
+W. Chen, “Lora: Low-rank adaptation of large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib80.1.1">
+      arXiv
+preprint arXiv:2106.09685
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib81">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [81]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Xin, J. Du, Q. Wang, K. Yan, and S. Ding, “Mmap: Multi-modal alignment
+prompt for cross-domain multi-task learning,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib81.1.1">
+      Proceedings of the
+AAAI Conference on Artificial Intelligence
+     </span>
+     , vol. 38, pp. 16076–16084, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib82">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [82]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Xin, J. Du, Q. Wang, Z. Lin, and K. Yan, “Vmt-adapter: Parameter-efficient
+transfer learning for multi-task dense scene understanding,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib82.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence
+     </span>
+     , vol. 38,
+pp. 16085–16093, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib83">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [83]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Xin, S. Luo, H. Zhou, J. Du, X. Liu, Y. Fan, Q. Li, and Y. Du,
+“Parameter-efficient fine-tuning for pre-trained vision models: A survey,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib83.1.1">
+      arXiv preprint arXiv:2402.02242
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib84">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [84]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Huang, Y. Chen, Z. Yu, and K. McKeown, “In-context learning distillation:
+Transferring few-shot learning ability of pre-trained language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib84.1.1">
+      arXiv preprint arXiv:2212.10670
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib85">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [85]
+    </span>
+    <span class="ltx_bibblock">
+     C. Snell, D. Klein, and R. Zhong, “Learning by distilling context,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib85.1.1">
+      arXiv preprint arXiv:2209.15189
+     </span>
+     , 2022.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

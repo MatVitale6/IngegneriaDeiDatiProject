@@ -1,0 +1,4414 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Tianyidan Xie
+    <br class="ltx_break"/>
+    State Key Laboratory of Novel Software Technology
+    <br class="ltx_break"/>
+    Nanjing University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id1">
+     sealical@outlook.com
+    </span>
+    <br class="ltx_break"/>
+    &amp;Rui Ma
+    <br class="ltx_break"/>
+    Jilin University
+    <br class="ltx_break"/>
+    &amp;Qian Wang
+    <sup class="ltx_sup" id="id3.3.id2">
+     <span class="ltx_text ltx_font_italic" id="id3.3.id2.1">
+      ∗
+     </span>
+    </sup>
+    <br class="ltx_break"/>
+    China Mobile Communications Group Co.,Ltd
+    <br class="ltx_break"/>
+    &amp;Xiaoqian Ye
+    <br class="ltx_break"/>
+    China Mobile Communications Group Co.,Ltd
+    <br class="ltx_break"/>
+    &amp;Feixuan Liu
+    <br class="ltx_break"/>
+    Larkagent AI
+    <br class="ltx_break"/>
+    &amp;Ying Tai
+    <br class="ltx_break"/>
+    State Key Laboratory of Novel Software Technology
+    <br class="ltx_break"/>
+    Nanjing University
+    <br class="ltx_break"/>
+    &amp;Zhenyu Zhang
+    <br class="ltx_break"/>
+    State Key Laboratory of Novel Software Technology
+    <br class="ltx_break"/>
+    Nanjing University
+    <br class="ltx_break"/>
+    &amp;Zili Yi
+    <br class="ltx_break"/>
+    State Key Laboratory of Novel Software Technology
+    <br class="ltx_break"/>
+    Nanjing University
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    Corresponding author
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id4.id1">
+   Recent advancements in image inpainting, particularly through diffusion modeling, have yielded promising outcomes. However, when tested in scenarios involving the completion of images based on the foreground objects, current methods that aim to inpaint an image in an end-to-end manner encounter challenges such as “over-imagination”, inconsistency between foreground and background, and limited diversity. In response, we introduce Anywhere, a pioneering multi-agent framework designed to address these issues. Anywhere utilizes a sophisticated pipeline framework comprising various agents such as Visual Language Model (VLM), Large Language Model (LLM), and image generation models. This framework consists of three principal components: the prompt generation module, the image generation module, and the outcome analyzer. The prompt generation module conducts a semantic analysis of the input foreground image, leveraging VLM to predict relevant language descriptions and LLM to recommend optimal language prompts. In the image generation module, we employ a text-guided canny-to-image generation model to create a template image based on the edge map of the foreground image and language prompts, and an image refiner to produce the outcome by blending the input foreground and the template image. The outcome analyzer employs VLM to evaluate image content rationality, aesthetic score, and foreground-background relevance, triggering prompt and image regeneration as needed. Extensive experiments demonstrate that our Anywhere framework excels in foreground-conditioned image inpainting, mitigating “over-imagination”, resolving foreground-background discrepancies, and enhancing diversity. It successfully elevates foreground-conditioned image inpainting to produce more reliable and diverse results. See our project page at
+   <span class="ltx_text" id="id4.id1.1" style="color:#0000FF;">
+    https://anywheremultiagent.github.io
+   </span>
+   .
+  </p>
+ </div>
+ <figure class="ltx_figure" id="S0.F1">
+  <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="299" id="S0.F1.g1" src="/html/2404.18598/assets/teaser.jpg" width="598"/>
+  <figcaption class="ltx_caption ltx_centering">
+   <span class="ltx_tag ltx_tag_figure">
+    Figure 1:
+   </span>
+   Left: Three issues faced by existing approaches for foreground-conditioned image inpainting: limited diversity, “over-imagination”, and foreground-background inconsistency. Please note that the red circles highlight the regions with “over-imagination”. Right: the outcomes of our multi-agent framework.
+  </figcaption>
+ </figure>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The rapid advancement of diffusion models has revolutionized image inpainting
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    . Text-to-image generation models enable users to control the diffusion process with textual or multi-modal information
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    , thus allowing for more personalized image inpainting by incorporating text or other modalities as additional cues
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    . Meanwhile, researchers are tackling more challenging inpainting tasks such as background-conditioned object hallucination or foreground-conditioned image completion
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    . Specifically, HD-painter
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    introduces a training-free method that precisely adheres to prompts and seamlessly scales to high-resolution image inpainting, by introducing a novel Prompt-Aware Introverted Attention (PAIntA) layer. BrushNet
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    presents a novel plug-and-play dual-branch model designed to integrate pixel-level masked image features into any pre-trained diffusion model, ensuring coherent and improved image inpainting results. LayerDiffussion
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    facilitates large-scale pre-trained latent diffusion models to generate single transparent images or multiple transparent layers by learning a “latent transparency”, which enables foreground- or background-conditioned image inpainting.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    However, with regards to foreground-conditioned image inpainting, existing methods still encounter issues such as “over-imagination”, foreground-background inconsistency, and limited diversity: see Figure
+    <a class="ltx_ref" href="#S0.F1" title="Figure 1 ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . “Over-imagination” refers to the generation of redundant or excessive contents around the foreground object, compromising foreground integrity (e.g., adding unnecessary area to a chair). Secondly, foreground-background inconsistency involves placing the foreground object in an inappropriate or irrelevant environment (e.g., slippers on a campfire), inconsistent viewpoint or spatial relations (e.g., a bird’s-eye-view object in a horizontal-view background, a floating watch in a room), and inappropriate relative size of the foreground object and background setting (e.g., a cup is bigger than the desk). Thirdly, limited diversity refers to the inability of the inpainting model to generate diverse results, resulting in predominantly uniform or visually similar backgrounds.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    When tackling these challenges, we note that end-to-end models often struggle to comprehend foreground contents accurately, lack the capability to fill in missing information creatively, and lack mechanisms to prevent “over-imagination”. To address these challenges, we introduce Anywhere, a novel multi-agent framework that employs a sophisticated pipeline comprising various agents such as VLM
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    , LLM
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    , SDXL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , and ControlNet
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    . This framework consists of three components: the prompt generation module, the image generation module, and the outcome analyzer. The prompt generation module conducts semantic analysis of the input foreground image, utilizing VLM to predict relevant language descriptions and LLM to recommend optimal language prompts. These prompts are further used to guide the image generation module, ensuring the avoidance of irrelevant content generation and promoting diversity. In the image generation module, we utilize a text-guided canny-to-image generation model, such as the ControlNet Canny model
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , to create a template image based on the edge map of the foreground image and language prompts.
+Additionally, we employ a copy-and-paste tool to preserve foreground integrity and image blending agents to ensure foreground-background harmony. Moreover, a text-guided image inpainting model is used as a re-inpainting agent to address instances of “over-imagination”, when “over-imagination” is detected by the auto-detection tool. The outcome analyzer utilizes VLM to assess image content rationality, aesthetic score, and foreground-background relevance, triggering prompt and image regeneration as needed. The outcome analyzer can be used through multiple rounds of iteration, ensuring more reliable results with the feedback mechanism.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Extensive experiments demonstrate the effectiveness of our Anywhere framework in foreground-conditioned image inpainting, mitigating “over-imagination” and foreground-background discrepancies, and enhancing diversity. Qualitative and quantitative evaluations demonstrate that our multi-agent framework are significantly more reliable and diverse than existing end-to-end image inpainting approaches.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    To sum up, the major contributions of this paper include:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We introduce a novel multi-agent framework that incorporates advanced VLM, LLM, and image generation models to address the task of foreground-conditioned image inpainting, significantly surpassing existing end-to-end approaches in generating reliable and diverse inpainting results.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       We introduce a novel mechanism for the auto-detection of “over-imagination” and image template re-inpainting to mitigate the “over-imagination” issue.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       We employ a novel multi-round iterable outcome analyzer to trigger regeneration of the language prompts and inpainting results for more reliable outputs.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Diffusion-based Controllable Image Generation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Stable diffusion, a prominent open-source text-to-image (T2I) model, has witnessed rapid advancements recently. However, user requirements often extend beyond textual descriptions. Researchers have attempted to add additional control signals to influence the diffusion process, such as adding subject images
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ]
+     </cite>
+     and style
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     . Some studies focus on extra specific control signals such as layout condition
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ]
+     </cite>
+     , edge map
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ]
+     </cite>
+     , segmentation mask
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2
+      </a>
+      ]
+     </cite>
+     , viewpoint
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ]
+     </cite>
+     . LayerDiffusion
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     is concerned with generating images on transparent layers, and the resulting foreground or background can be used as a control condition to guide the text-to-image diffusion process.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Diffusion-based Image Inpainting
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Image inpainting is a pivotal task in computer vision, focusing on the restoration of masked regions based on surrounding unmasked content. Recent advancements in diffusion modeling have significantly propelled the field of inpainting forward. Notable techniques include Palette
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ]
+     </cite>
+     and Repaint
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     , which leverage the original image alongside the unmasked regions to enhance denoising. Blended Diffusion
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ]
+     </cite>
+     uses the known region to replace the unmasked region in the diffusion process. Additionally, Stable Diffusion Inpainting
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ]
+     </cite>
+     introduces random masking during the text-to-image (T2I) process for training, augmented by supplementary textual inputs for precise control. Smartbrush
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       8
+      </a>
+      ]
+     </cite>
+     exhibits the capability to tailor image results by manipulating mask types, while HD-Painter
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ]
+     </cite>
+     and PowerPaint
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     further refine the capabilities of SDI through additional training. BrushNet
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     stands out as a cutting-edge inpainting model, boasting plug-and-play functionality. Although these methods have yielded good results, there are still many difficulties in foreground-conditioned image inpainting.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Large Language Model for Vision Task
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     The field of natural language processing has experienced a dramatic transformation in the past time, with a record number of various large language model parameters and model capabilities approaching or even exceeding the human level
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ]
+     </cite>
+     . A number of high-performance models have also emerged in the field of visual question answering (VQA)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ]
+     </cite>
+     . However, the high training costs have impeded the further advancement of visual language models. Leveraging existing large language models for visual tasks has become an important research direction
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ]
+     </cite>
+     , LLaVA
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     , Bliva
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ]
+     </cite>
+     made some attempts to align LLMs with visual features, and some researches
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       38
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ]
+     </cite>
+     employ LLMs as planners to assign downstream visual tasks based on different prompts. Woodpecker
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ]
+     </cite>
+     , SIRI
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       42
+      </a>
+      ]
+     </cite>
+     enhance the reasoning ability of VLMs through the knowledge of LLMs. There has been a trend to apply the capabilities of large models to multi-modality tasks.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="319" id="S2.F2.g1" src="/html/2404.18598/assets/framework_latest.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Illustration of our framework. Our framework consists of three modules, the prompt generation module, the image generation module and the outcome analyzer. The repainting agent processes auto-detection of “over-imagination” and re-inpainting the regions indicated by the non-overlapped mask with a text-guided image inpainting model.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Method
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Anywhere is a multi-agent image generation framework comprising agents of various modalities, such as large language model, visual language model, controlled image generation model, and inpainting model. Its workflow encompasses three modules: the prompt generation module, the image generation module, and the outcome analyzer, as illustrated in Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.3 Large Language Model for Vision Task ‣ 2 Related work ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    . Anywhere achieves background generation by processing images through modules utilizing diverse agents.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Prompt Generation Module
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     The prompt generation module aims to comprehend and associate the foreground to derive the background prompt. Firstly, the image narrator, embodied by a Vision-Language Model (VLM) agent, provides a textual description of the foreground’s appearance attributes, encompassing color, texture, type, and viewpoint. We uphold a list of inquiries used as prompts of the VLM to gather valuable insights about the foreground objects. Secondly, the divergent thinker, portrayed by a Large Language Model (LLM), acts as a creative brainstormer, envisioning potential scenes in which the foreground could be situated based on the provided description. It generates a set of scene descriptions relevant to the foreground. We curate a repository of prompt templates for efficient brainstorming with the LLM.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Following this, the Prompt Generator, represented by LLM, assesses the relevance between scene descriptions and foreground descriptions, ranking the compatibility likelihood between the scene and foreground description. Ultimately, it selects the top-ranked scene description as the prompt. Furthermore, the type and viewpoint words of the foreground are integrated into the prompt as the final prompt. The process of prompt generation is outlined in Algorithm
+     <a class="ltx_ref" href="#alg1" title="Algorithm 1 ‣ 3.1 Prompt Generation Module ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_float">
+      <span class="ltx_text ltx_font_bold" id="alg1.2.1.1">
+       Algorithm 1
+      </span>
+     </span>
+     Prompt generation
+    </figcaption>
+    <div class="ltx_listing ltx_listing" id="alg1.3">
+     <div class="ltx_listingline" id="alg1.l0">
+      <span class="ltx_tag ltx_tag_listingline">
+       0:
+      </span>
+      Foreground image
+      <math alttext="i" class="ltx_Math" display="inline" id="alg1.l0.m1.1">
+       <semantics id="alg1.l0.m1.1a">
+        <mi id="alg1.l0.m1.1.1" xref="alg1.l0.m1.1.1.cmml">
+         i
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l0.m1.1b">
+         <ci id="alg1.l0.m1.1.1.cmml" xref="alg1.l0.m1.1.1">
+          𝑖
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l0.m1.1c">
+         i
+        </annotation>
+       </semantics>
+      </math>
+      , vision language model
+      <math alttext="f_{\mathcal{V}}(x)" class="ltx_Math" display="inline" id="alg1.l0.m2.1">
+       <semantics id="alg1.l0.m2.1a">
+        <mrow id="alg1.l0.m2.1.2" xref="alg1.l0.m2.1.2.cmml">
+         <msub id="alg1.l0.m2.1.2.2" xref="alg1.l0.m2.1.2.2.cmml">
+          <mi id="alg1.l0.m2.1.2.2.2" xref="alg1.l0.m2.1.2.2.2.cmml">
+           f
+          </mi>
+          <mi class="ltx_font_mathcaligraphic" id="alg1.l0.m2.1.2.2.3" xref="alg1.l0.m2.1.2.2.3.cmml">
+           𝒱
+          </mi>
+         </msub>
+         <mo id="alg1.l0.m2.1.2.1" lspace="0em" rspace="0em" xref="alg1.l0.m2.1.2.1.cmml">
+          ​
+         </mo>
+         <mrow id="alg1.l0.m2.1.2.3.2" xref="alg1.l0.m2.1.2.cmml">
+          <mo id="alg1.l0.m2.1.2.3.2.1" stretchy="false" xref="alg1.l0.m2.1.2.cmml">
+           (
+          </mo>
+          <mi id="alg1.l0.m2.1.1" xref="alg1.l0.m2.1.1.cmml">
+           x
+          </mi>
+          <mo id="alg1.l0.m2.1.2.3.2.2" stretchy="false" xref="alg1.l0.m2.1.2.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l0.m2.1b">
+         <apply id="alg1.l0.m2.1.2.cmml" xref="alg1.l0.m2.1.2">
+          <times id="alg1.l0.m2.1.2.1.cmml" xref="alg1.l0.m2.1.2.1">
+          </times>
+          <apply id="alg1.l0.m2.1.2.2.cmml" xref="alg1.l0.m2.1.2.2">
+           <csymbol cd="ambiguous" id="alg1.l0.m2.1.2.2.1.cmml" xref="alg1.l0.m2.1.2.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l0.m2.1.2.2.2.cmml" xref="alg1.l0.m2.1.2.2.2">
+            𝑓
+           </ci>
+           <ci id="alg1.l0.m2.1.2.2.3.cmml" xref="alg1.l0.m2.1.2.2.3">
+            𝒱
+           </ci>
+          </apply>
+          <ci id="alg1.l0.m2.1.1.cmml" xref="alg1.l0.m2.1.1">
+           𝑥
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l0.m2.1c">
+         f_{\mathcal{V}}(x)
+        </annotation>
+       </semantics>
+      </math>
+      (Image Narrator), large language model
+      <math alttext="f_{\mathcal{M}_{1}}(x)" class="ltx_Math" display="inline" id="alg1.l0.m3.1">
+       <semantics id="alg1.l0.m3.1a">
+        <mrow id="alg1.l0.m3.1.2" xref="alg1.l0.m3.1.2.cmml">
+         <msub id="alg1.l0.m3.1.2.2" xref="alg1.l0.m3.1.2.2.cmml">
+          <mi id="alg1.l0.m3.1.2.2.2" xref="alg1.l0.m3.1.2.2.2.cmml">
+           f
+          </mi>
+          <msub id="alg1.l0.m3.1.2.2.3" xref="alg1.l0.m3.1.2.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="alg1.l0.m3.1.2.2.3.2" xref="alg1.l0.m3.1.2.2.3.2.cmml">
+            ℳ
+           </mi>
+           <mn id="alg1.l0.m3.1.2.2.3.3" xref="alg1.l0.m3.1.2.2.3.3.cmml">
+            1
+           </mn>
+          </msub>
+         </msub>
+         <mo id="alg1.l0.m3.1.2.1" lspace="0em" rspace="0em" xref="alg1.l0.m3.1.2.1.cmml">
+          ​
+         </mo>
+         <mrow id="alg1.l0.m3.1.2.3.2" xref="alg1.l0.m3.1.2.cmml">
+          <mo id="alg1.l0.m3.1.2.3.2.1" stretchy="false" xref="alg1.l0.m3.1.2.cmml">
+           (
+          </mo>
+          <mi id="alg1.l0.m3.1.1" xref="alg1.l0.m3.1.1.cmml">
+           x
+          </mi>
+          <mo id="alg1.l0.m3.1.2.3.2.2" stretchy="false" xref="alg1.l0.m3.1.2.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l0.m3.1b">
+         <apply id="alg1.l0.m3.1.2.cmml" xref="alg1.l0.m3.1.2">
+          <times id="alg1.l0.m3.1.2.1.cmml" xref="alg1.l0.m3.1.2.1">
+          </times>
+          <apply id="alg1.l0.m3.1.2.2.cmml" xref="alg1.l0.m3.1.2.2">
+           <csymbol cd="ambiguous" id="alg1.l0.m3.1.2.2.1.cmml" xref="alg1.l0.m3.1.2.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l0.m3.1.2.2.2.cmml" xref="alg1.l0.m3.1.2.2.2">
+            𝑓
+           </ci>
+           <apply id="alg1.l0.m3.1.2.2.3.cmml" xref="alg1.l0.m3.1.2.2.3">
+            <csymbol cd="ambiguous" id="alg1.l0.m3.1.2.2.3.1.cmml" xref="alg1.l0.m3.1.2.2.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l0.m3.1.2.2.3.2.cmml" xref="alg1.l0.m3.1.2.2.3.2">
+             ℳ
+            </ci>
+            <cn id="alg1.l0.m3.1.2.2.3.3.cmml" type="integer" xref="alg1.l0.m3.1.2.2.3.3">
+             1
+            </cn>
+           </apply>
+          </apply>
+          <ci id="alg1.l0.m3.1.1.cmml" xref="alg1.l0.m3.1.1">
+           𝑥
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l0.m3.1c">
+         f_{\mathcal{M}_{1}}(x)
+        </annotation>
+       </semantics>
+      </math>
+      (Divergent Thinker),
+      <math alttext="f_{\mathcal{M}_{2}}(x)" class="ltx_Math" display="inline" id="alg1.l0.m4.1">
+       <semantics id="alg1.l0.m4.1a">
+        <mrow id="alg1.l0.m4.1.2" xref="alg1.l0.m4.1.2.cmml">
+         <msub id="alg1.l0.m4.1.2.2" xref="alg1.l0.m4.1.2.2.cmml">
+          <mi id="alg1.l0.m4.1.2.2.2" xref="alg1.l0.m4.1.2.2.2.cmml">
+           f
+          </mi>
+          <msub id="alg1.l0.m4.1.2.2.3" xref="alg1.l0.m4.1.2.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="alg1.l0.m4.1.2.2.3.2" xref="alg1.l0.m4.1.2.2.3.2.cmml">
+            ℳ
+           </mi>
+           <mn id="alg1.l0.m4.1.2.2.3.3" xref="alg1.l0.m4.1.2.2.3.3.cmml">
+            2
+           </mn>
+          </msub>
+         </msub>
+         <mo id="alg1.l0.m4.1.2.1" lspace="0em" rspace="0em" xref="alg1.l0.m4.1.2.1.cmml">
+          ​
+         </mo>
+         <mrow id="alg1.l0.m4.1.2.3.2" xref="alg1.l0.m4.1.2.cmml">
+          <mo id="alg1.l0.m4.1.2.3.2.1" stretchy="false" xref="alg1.l0.m4.1.2.cmml">
+           (
+          </mo>
+          <mi id="alg1.l0.m4.1.1" xref="alg1.l0.m4.1.1.cmml">
+           x
+          </mi>
+          <mo id="alg1.l0.m4.1.2.3.2.2" stretchy="false" xref="alg1.l0.m4.1.2.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l0.m4.1b">
+         <apply id="alg1.l0.m4.1.2.cmml" xref="alg1.l0.m4.1.2">
+          <times id="alg1.l0.m4.1.2.1.cmml" xref="alg1.l0.m4.1.2.1">
+          </times>
+          <apply id="alg1.l0.m4.1.2.2.cmml" xref="alg1.l0.m4.1.2.2">
+           <csymbol cd="ambiguous" id="alg1.l0.m4.1.2.2.1.cmml" xref="alg1.l0.m4.1.2.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l0.m4.1.2.2.2.cmml" xref="alg1.l0.m4.1.2.2.2">
+            𝑓
+           </ci>
+           <apply id="alg1.l0.m4.1.2.2.3.cmml" xref="alg1.l0.m4.1.2.2.3">
+            <csymbol cd="ambiguous" id="alg1.l0.m4.1.2.2.3.1.cmml" xref="alg1.l0.m4.1.2.2.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l0.m4.1.2.2.3.2.cmml" xref="alg1.l0.m4.1.2.2.3.2">
+             ℳ
+            </ci>
+            <cn id="alg1.l0.m4.1.2.2.3.3.cmml" type="integer" xref="alg1.l0.m4.1.2.2.3.3">
+             2
+            </cn>
+           </apply>
+          </apply>
+          <ci id="alg1.l0.m4.1.1.cmml" xref="alg1.l0.m4.1.1">
+           𝑥
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l0.m4.1c">
+         f_{\mathcal{M}_{2}}(x)
+        </annotation>
+       </semantics>
+      </math>
+      (Prompt Generator)
+     </div>
+     <div class="ltx_listingline" id="alg1.l1">
+      <span class="ltx_tag ltx_tag_listingline">
+       1:
+      </span>
+      <math alttext="t_{i}\leftarrow f_{\mathcal{V}}(i)" class="ltx_Math" display="inline" id="alg1.l1.m1.1">
+       <semantics id="alg1.l1.m1.1a">
+        <mrow id="alg1.l1.m1.1.2" xref="alg1.l1.m1.1.2.cmml">
+         <msub id="alg1.l1.m1.1.2.2" xref="alg1.l1.m1.1.2.2.cmml">
+          <mi id="alg1.l1.m1.1.2.2.2" xref="alg1.l1.m1.1.2.2.2.cmml">
+           t
+          </mi>
+          <mi id="alg1.l1.m1.1.2.2.3" xref="alg1.l1.m1.1.2.2.3.cmml">
+           i
+          </mi>
+         </msub>
+         <mo id="alg1.l1.m1.1.2.1" stretchy="false" xref="alg1.l1.m1.1.2.1.cmml">
+          ←
+         </mo>
+         <mrow id="alg1.l1.m1.1.2.3" xref="alg1.l1.m1.1.2.3.cmml">
+          <msub id="alg1.l1.m1.1.2.3.2" xref="alg1.l1.m1.1.2.3.2.cmml">
+           <mi id="alg1.l1.m1.1.2.3.2.2" xref="alg1.l1.m1.1.2.3.2.2.cmml">
+            f
+           </mi>
+           <mi class="ltx_font_mathcaligraphic" id="alg1.l1.m1.1.2.3.2.3" xref="alg1.l1.m1.1.2.3.2.3.cmml">
+            𝒱
+           </mi>
+          </msub>
+          <mo id="alg1.l1.m1.1.2.3.1" lspace="0em" rspace="0em" xref="alg1.l1.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l1.m1.1.2.3.3.2" xref="alg1.l1.m1.1.2.3.cmml">
+           <mo id="alg1.l1.m1.1.2.3.3.2.1" stretchy="false" xref="alg1.l1.m1.1.2.3.cmml">
+            (
+           </mo>
+           <mi id="alg1.l1.m1.1.1" xref="alg1.l1.m1.1.1.cmml">
+            i
+           </mi>
+           <mo id="alg1.l1.m1.1.2.3.3.2.2" stretchy="false" xref="alg1.l1.m1.1.2.3.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l1.m1.1b">
+         <apply id="alg1.l1.m1.1.2.cmml" xref="alg1.l1.m1.1.2">
+          <ci id="alg1.l1.m1.1.2.1.cmml" xref="alg1.l1.m1.1.2.1">
+           ←
+          </ci>
+          <apply id="alg1.l1.m1.1.2.2.cmml" xref="alg1.l1.m1.1.2.2">
+           <csymbol cd="ambiguous" id="alg1.l1.m1.1.2.2.1.cmml" xref="alg1.l1.m1.1.2.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m1.1.2.2.2.cmml" xref="alg1.l1.m1.1.2.2.2">
+            𝑡
+           </ci>
+           <ci id="alg1.l1.m1.1.2.2.3.cmml" xref="alg1.l1.m1.1.2.2.3">
+            𝑖
+           </ci>
+          </apply>
+          <apply id="alg1.l1.m1.1.2.3.cmml" xref="alg1.l1.m1.1.2.3">
+           <times id="alg1.l1.m1.1.2.3.1.cmml" xref="alg1.l1.m1.1.2.3.1">
+           </times>
+           <apply id="alg1.l1.m1.1.2.3.2.cmml" xref="alg1.l1.m1.1.2.3.2">
+            <csymbol cd="ambiguous" id="alg1.l1.m1.1.2.3.2.1.cmml" xref="alg1.l1.m1.1.2.3.2">
+             subscript
+            </csymbol>
+            <ci id="alg1.l1.m1.1.2.3.2.2.cmml" xref="alg1.l1.m1.1.2.3.2.2">
+             𝑓
+            </ci>
+            <ci id="alg1.l1.m1.1.2.3.2.3.cmml" xref="alg1.l1.m1.1.2.3.2.3">
+             𝒱
+            </ci>
+           </apply>
+           <ci id="alg1.l1.m1.1.1.cmml" xref="alg1.l1.m1.1.1">
+            𝑖
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l1.m1.1c">
+         t_{i}\leftarrow f_{\mathcal{V}}(i)
+        </annotation>
+       </semantics>
+      </math>
+      {get foreground description}
+     </div>
+     <div class="ltx_listingline" id="alg1.l2">
+      <span class="ltx_tag ltx_tag_listingline">
+       2:
+      </span>
+      <math alttext="S\leftarrow f_{\mathcal{M}_{1}(t_{i})}" class="ltx_Math" display="inline" id="alg1.l2.m1.1">
+       <semantics id="alg1.l2.m1.1a">
+        <mrow id="alg1.l2.m1.1.2" xref="alg1.l2.m1.1.2.cmml">
+         <mi id="alg1.l2.m1.1.2.2" xref="alg1.l2.m1.1.2.2.cmml">
+          S
+         </mi>
+         <mo id="alg1.l2.m1.1.2.1" stretchy="false" xref="alg1.l2.m1.1.2.1.cmml">
+          ←
+         </mo>
+         <msub id="alg1.l2.m1.1.2.3" xref="alg1.l2.m1.1.2.3.cmml">
+          <mi id="alg1.l2.m1.1.2.3.2" xref="alg1.l2.m1.1.2.3.2.cmml">
+           f
+          </mi>
+          <mrow id="alg1.l2.m1.1.1.1" xref="alg1.l2.m1.1.1.1.cmml">
+           <msub id="alg1.l2.m1.1.1.1.3" xref="alg1.l2.m1.1.1.1.3.cmml">
+            <mi class="ltx_font_mathcaligraphic" id="alg1.l2.m1.1.1.1.3.2" xref="alg1.l2.m1.1.1.1.3.2.cmml">
+             ℳ
+            </mi>
+            <mn id="alg1.l2.m1.1.1.1.3.3" xref="alg1.l2.m1.1.1.1.3.3.cmml">
+             1
+            </mn>
+           </msub>
+           <mo id="alg1.l2.m1.1.1.1.2" lspace="0em" rspace="0em" xref="alg1.l2.m1.1.1.1.2.cmml">
+            ​
+           </mo>
+           <mrow id="alg1.l2.m1.1.1.1.1.1" xref="alg1.l2.m1.1.1.1.1.1.1.cmml">
+            <mo id="alg1.l2.m1.1.1.1.1.1.2" stretchy="false" xref="alg1.l2.m1.1.1.1.1.1.1.cmml">
+             (
+            </mo>
+            <msub id="alg1.l2.m1.1.1.1.1.1.1" xref="alg1.l2.m1.1.1.1.1.1.1.cmml">
+             <mi id="alg1.l2.m1.1.1.1.1.1.1.2" xref="alg1.l2.m1.1.1.1.1.1.1.2.cmml">
+              t
+             </mi>
+             <mi id="alg1.l2.m1.1.1.1.1.1.1.3" xref="alg1.l2.m1.1.1.1.1.1.1.3.cmml">
+              i
+             </mi>
+            </msub>
+            <mo id="alg1.l2.m1.1.1.1.1.1.3" stretchy="false" xref="alg1.l2.m1.1.1.1.1.1.1.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </msub>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l2.m1.1b">
+         <apply id="alg1.l2.m1.1.2.cmml" xref="alg1.l2.m1.1.2">
+          <ci id="alg1.l2.m1.1.2.1.cmml" xref="alg1.l2.m1.1.2.1">
+           ←
+          </ci>
+          <ci id="alg1.l2.m1.1.2.2.cmml" xref="alg1.l2.m1.1.2.2">
+           𝑆
+          </ci>
+          <apply id="alg1.l2.m1.1.2.3.cmml" xref="alg1.l2.m1.1.2.3">
+           <csymbol cd="ambiguous" id="alg1.l2.m1.1.2.3.1.cmml" xref="alg1.l2.m1.1.2.3">
+            subscript
+           </csymbol>
+           <ci id="alg1.l2.m1.1.2.3.2.cmml" xref="alg1.l2.m1.1.2.3.2">
+            𝑓
+           </ci>
+           <apply id="alg1.l2.m1.1.1.1.cmml" xref="alg1.l2.m1.1.1.1">
+            <times id="alg1.l2.m1.1.1.1.2.cmml" xref="alg1.l2.m1.1.1.1.2">
+            </times>
+            <apply id="alg1.l2.m1.1.1.1.3.cmml" xref="alg1.l2.m1.1.1.1.3">
+             <csymbol cd="ambiguous" id="alg1.l2.m1.1.1.1.3.1.cmml" xref="alg1.l2.m1.1.1.1.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l2.m1.1.1.1.3.2.cmml" xref="alg1.l2.m1.1.1.1.3.2">
+              ℳ
+             </ci>
+             <cn id="alg1.l2.m1.1.1.1.3.3.cmml" type="integer" xref="alg1.l2.m1.1.1.1.3.3">
+              1
+             </cn>
+            </apply>
+            <apply id="alg1.l2.m1.1.1.1.1.1.1.cmml" xref="alg1.l2.m1.1.1.1.1.1">
+             <csymbol cd="ambiguous" id="alg1.l2.m1.1.1.1.1.1.1.1.cmml" xref="alg1.l2.m1.1.1.1.1.1">
+              subscript
+             </csymbol>
+             <ci id="alg1.l2.m1.1.1.1.1.1.1.2.cmml" xref="alg1.l2.m1.1.1.1.1.1.1.2">
+              𝑡
+             </ci>
+             <ci id="alg1.l2.m1.1.1.1.1.1.1.3.cmml" xref="alg1.l2.m1.1.1.1.1.1.1.3">
+              𝑖
+             </ci>
+            </apply>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l2.m1.1c">
+         S\leftarrow f_{\mathcal{M}_{1}(t_{i})}
+        </annotation>
+       </semantics>
+      </math>
+      {get a set of scene descriptions}
+     </div>
+     <div class="ltx_listingline" id="alg1.l3">
+      <span class="ltx_tag ltx_tag_listingline">
+       3:
+      </span>
+      <math alttext="P\leftarrow f_{\mathcal{M}_{2}}(t_{i},S)" class="ltx_Math" display="inline" id="alg1.l3.m1.2">
+       <semantics id="alg1.l3.m1.2a">
+        <mrow id="alg1.l3.m1.2.2" xref="alg1.l3.m1.2.2.cmml">
+         <mi id="alg1.l3.m1.2.2.3" xref="alg1.l3.m1.2.2.3.cmml">
+          P
+         </mi>
+         <mo id="alg1.l3.m1.2.2.2" stretchy="false" xref="alg1.l3.m1.2.2.2.cmml">
+          ←
+         </mo>
+         <mrow id="alg1.l3.m1.2.2.1" xref="alg1.l3.m1.2.2.1.cmml">
+          <msub id="alg1.l3.m1.2.2.1.3" xref="alg1.l3.m1.2.2.1.3.cmml">
+           <mi id="alg1.l3.m1.2.2.1.3.2" xref="alg1.l3.m1.2.2.1.3.2.cmml">
+            f
+           </mi>
+           <msub id="alg1.l3.m1.2.2.1.3.3" xref="alg1.l3.m1.2.2.1.3.3.cmml">
+            <mi class="ltx_font_mathcaligraphic" id="alg1.l3.m1.2.2.1.3.3.2" xref="alg1.l3.m1.2.2.1.3.3.2.cmml">
+             ℳ
+            </mi>
+            <mn id="alg1.l3.m1.2.2.1.3.3.3" xref="alg1.l3.m1.2.2.1.3.3.3.cmml">
+             2
+            </mn>
+           </msub>
+          </msub>
+          <mo id="alg1.l3.m1.2.2.1.2" lspace="0em" rspace="0em" xref="alg1.l3.m1.2.2.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l3.m1.2.2.1.1.1" xref="alg1.l3.m1.2.2.1.1.2.cmml">
+           <mo id="alg1.l3.m1.2.2.1.1.1.2" stretchy="false" xref="alg1.l3.m1.2.2.1.1.2.cmml">
+            (
+           </mo>
+           <msub id="alg1.l3.m1.2.2.1.1.1.1" xref="alg1.l3.m1.2.2.1.1.1.1.cmml">
+            <mi id="alg1.l3.m1.2.2.1.1.1.1.2" xref="alg1.l3.m1.2.2.1.1.1.1.2.cmml">
+             t
+            </mi>
+            <mi id="alg1.l3.m1.2.2.1.1.1.1.3" xref="alg1.l3.m1.2.2.1.1.1.1.3.cmml">
+             i
+            </mi>
+           </msub>
+           <mo id="alg1.l3.m1.2.2.1.1.1.3" xref="alg1.l3.m1.2.2.1.1.2.cmml">
+            ,
+           </mo>
+           <mi id="alg1.l3.m1.1.1" xref="alg1.l3.m1.1.1.cmml">
+            S
+           </mi>
+           <mo id="alg1.l3.m1.2.2.1.1.1.4" stretchy="false" xref="alg1.l3.m1.2.2.1.1.2.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m1.2b">
+         <apply id="alg1.l3.m1.2.2.cmml" xref="alg1.l3.m1.2.2">
+          <ci id="alg1.l3.m1.2.2.2.cmml" xref="alg1.l3.m1.2.2.2">
+           ←
+          </ci>
+          <ci id="alg1.l3.m1.2.2.3.cmml" xref="alg1.l3.m1.2.2.3">
+           𝑃
+          </ci>
+          <apply id="alg1.l3.m1.2.2.1.cmml" xref="alg1.l3.m1.2.2.1">
+           <times id="alg1.l3.m1.2.2.1.2.cmml" xref="alg1.l3.m1.2.2.1.2">
+           </times>
+           <apply id="alg1.l3.m1.2.2.1.3.cmml" xref="alg1.l3.m1.2.2.1.3">
+            <csymbol cd="ambiguous" id="alg1.l3.m1.2.2.1.3.1.cmml" xref="alg1.l3.m1.2.2.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l3.m1.2.2.1.3.2.cmml" xref="alg1.l3.m1.2.2.1.3.2">
+             𝑓
+            </ci>
+            <apply id="alg1.l3.m1.2.2.1.3.3.cmml" xref="alg1.l3.m1.2.2.1.3.3">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.2.2.1.3.3.1.cmml" xref="alg1.l3.m1.2.2.1.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.2.2.1.3.3.2.cmml" xref="alg1.l3.m1.2.2.1.3.3.2">
+              ℳ
+             </ci>
+             <cn id="alg1.l3.m1.2.2.1.3.3.3.cmml" type="integer" xref="alg1.l3.m1.2.2.1.3.3.3">
+              2
+             </cn>
+            </apply>
+           </apply>
+           <interval closure="open" id="alg1.l3.m1.2.2.1.1.2.cmml" xref="alg1.l3.m1.2.2.1.1.1">
+            <apply id="alg1.l3.m1.2.2.1.1.1.1.cmml" xref="alg1.l3.m1.2.2.1.1.1.1">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.2.2.1.1.1.1.1.cmml" xref="alg1.l3.m1.2.2.1.1.1.1">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.2.2.1.1.1.1.2.cmml" xref="alg1.l3.m1.2.2.1.1.1.1.2">
+              𝑡
+             </ci>
+             <ci id="alg1.l3.m1.2.2.1.1.1.1.3.cmml" xref="alg1.l3.m1.2.2.1.1.1.1.3">
+              𝑖
+             </ci>
+            </apply>
+            <ci id="alg1.l3.m1.1.1.cmml" xref="alg1.l3.m1.1.1">
+             𝑆
+            </ci>
+           </interval>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m1.2c">
+         P\leftarrow f_{\mathcal{M}_{2}}(t_{i},S)
+        </annotation>
+       </semantics>
+      </math>
+      {determine the rank based on the relevance score between the foreground and scene description.
+}
+     </div>
+     <div class="ltx_listingline" id="alg1.l4">
+      <span class="ltx_tag ltx_tag_listingline">
+       4:
+      </span>
+      prompt
+      <math alttext="\leftarrow f_{Top1}(P)" class="ltx_Math" display="inline" id="alg1.l4.m1.1">
+       <semantics id="alg1.l4.m1.1a">
+        <mrow id="alg1.l4.m1.1.2" xref="alg1.l4.m1.1.2.cmml">
+         <mi id="alg1.l4.m1.1.2.2" xref="alg1.l4.m1.1.2.2.cmml">
+         </mi>
+         <mo id="alg1.l4.m1.1.2.1" stretchy="false" xref="alg1.l4.m1.1.2.1.cmml">
+          ←
+         </mo>
+         <mrow id="alg1.l4.m1.1.2.3" xref="alg1.l4.m1.1.2.3.cmml">
+          <msub id="alg1.l4.m1.1.2.3.2" xref="alg1.l4.m1.1.2.3.2.cmml">
+           <mi id="alg1.l4.m1.1.2.3.2.2" xref="alg1.l4.m1.1.2.3.2.2.cmml">
+            f
+           </mi>
+           <mrow id="alg1.l4.m1.1.2.3.2.3" xref="alg1.l4.m1.1.2.3.2.3.cmml">
+            <mi id="alg1.l4.m1.1.2.3.2.3.2" xref="alg1.l4.m1.1.2.3.2.3.2.cmml">
+             T
+            </mi>
+            <mo id="alg1.l4.m1.1.2.3.2.3.1" lspace="0em" rspace="0em" xref="alg1.l4.m1.1.2.3.2.3.1.cmml">
+             ​
+            </mo>
+            <mi id="alg1.l4.m1.1.2.3.2.3.3" xref="alg1.l4.m1.1.2.3.2.3.3.cmml">
+             o
+            </mi>
+            <mo id="alg1.l4.m1.1.2.3.2.3.1a" lspace="0em" rspace="0em" xref="alg1.l4.m1.1.2.3.2.3.1.cmml">
+             ​
+            </mo>
+            <mi id="alg1.l4.m1.1.2.3.2.3.4" xref="alg1.l4.m1.1.2.3.2.3.4.cmml">
+             p
+            </mi>
+            <mo id="alg1.l4.m1.1.2.3.2.3.1b" lspace="0em" rspace="0em" xref="alg1.l4.m1.1.2.3.2.3.1.cmml">
+             ​
+            </mo>
+            <mn id="alg1.l4.m1.1.2.3.2.3.5" xref="alg1.l4.m1.1.2.3.2.3.5.cmml">
+             1
+            </mn>
+           </mrow>
+          </msub>
+          <mo id="alg1.l4.m1.1.2.3.1" lspace="0em" rspace="0em" xref="alg1.l4.m1.1.2.3.1.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l4.m1.1.2.3.3.2" xref="alg1.l4.m1.1.2.3.cmml">
+           <mo id="alg1.l4.m1.1.2.3.3.2.1" stretchy="false" xref="alg1.l4.m1.1.2.3.cmml">
+            (
+           </mo>
+           <mi id="alg1.l4.m1.1.1" xref="alg1.l4.m1.1.1.cmml">
+            P
+           </mi>
+           <mo id="alg1.l4.m1.1.2.3.3.2.2" stretchy="false" xref="alg1.l4.m1.1.2.3.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m1.1b">
+         <apply id="alg1.l4.m1.1.2.cmml" xref="alg1.l4.m1.1.2">
+          <ci id="alg1.l4.m1.1.2.1.cmml" xref="alg1.l4.m1.1.2.1">
+           ←
+          </ci>
+          <csymbol cd="latexml" id="alg1.l4.m1.1.2.2.cmml" xref="alg1.l4.m1.1.2.2">
+           absent
+          </csymbol>
+          <apply id="alg1.l4.m1.1.2.3.cmml" xref="alg1.l4.m1.1.2.3">
+           <times id="alg1.l4.m1.1.2.3.1.cmml" xref="alg1.l4.m1.1.2.3.1">
+           </times>
+           <apply id="alg1.l4.m1.1.2.3.2.cmml" xref="alg1.l4.m1.1.2.3.2">
+            <csymbol cd="ambiguous" id="alg1.l4.m1.1.2.3.2.1.cmml" xref="alg1.l4.m1.1.2.3.2">
+             subscript
+            </csymbol>
+            <ci id="alg1.l4.m1.1.2.3.2.2.cmml" xref="alg1.l4.m1.1.2.3.2.2">
+             𝑓
+            </ci>
+            <apply id="alg1.l4.m1.1.2.3.2.3.cmml" xref="alg1.l4.m1.1.2.3.2.3">
+             <times id="alg1.l4.m1.1.2.3.2.3.1.cmml" xref="alg1.l4.m1.1.2.3.2.3.1">
+             </times>
+             <ci id="alg1.l4.m1.1.2.3.2.3.2.cmml" xref="alg1.l4.m1.1.2.3.2.3.2">
+              𝑇
+             </ci>
+             <ci id="alg1.l4.m1.1.2.3.2.3.3.cmml" xref="alg1.l4.m1.1.2.3.2.3.3">
+              𝑜
+             </ci>
+             <ci id="alg1.l4.m1.1.2.3.2.3.4.cmml" xref="alg1.l4.m1.1.2.3.2.3.4">
+              𝑝
+             </ci>
+             <cn id="alg1.l4.m1.1.2.3.2.3.5.cmml" type="integer" xref="alg1.l4.m1.1.2.3.2.3.5">
+              1
+             </cn>
+            </apply>
+           </apply>
+           <ci id="alg1.l4.m1.1.1.cmml" xref="alg1.l4.m1.1.1">
+            𝑃
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m1.1c">
+         \leftarrow f_{Top1}(P)
+        </annotation>
+       </semantics>
+      </math>
+      {select top-ranked scene description}
+     </div>
+     <div class="ltx_listingline" id="alg1.l5">
+      <span class="ltx_tag ltx_tag_listingline">
+       5:
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l5.1">
+       return
+      </span>
+      prompt
+     </div>
+    </div>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Image Generation Module
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     This module takes the foreground image and the prompt as inputs to generate a suitable scene for the foreground image. The template generator, implemented by the text-guided canny-to-image diffusion model, creates a scene image (template image) based on the prompt in a foreground-conditioned manner. Typically, the template image includes a similar subject (pseudo-foreground) to the foreground, serving as a mapping of the foreground in the scene.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     Subsequently, the template image undergoes processing through the repainting agent, which inpaints the extraneous content surrounding the foreground, ensuring harmony between the foreground and template images after synthesis. The template image is segmented to obtain the pseudo-foreground, representing the foreground image in the new scene under the edge map condition. Usually, the pseudo-foreground image and the input foreground image do not perfectly overlap, and the area not covered will be repainted with the template image as input for the inpainting model. This process is illustrated in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.3 Large Language Model for Vision Task ‣ 2 Related work ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     However, the result from the repainting agent, after the copy-and-paste operation of the input foreground image, often exhibits blurring issues and edge artifacts, making it unsuitable as a final outcome. Thus, the image refiner, operated by the image-to-image diffusion model, corrects imperfections in the composite image, such as color discrepancies, shadow inconsistencies, or resolution adjustments.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p4">
+    <p class="ltx_p" id="S3.SS2.p4.1">
+     Notably, our pipeline-based design of the image generation module prioritizes the use of an end-to-end text-guided image inpainting model, resulting in higher-quality outcomes and improved mitigation of “over-imagination”.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Tool Agents
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     The tool agents refer to the tools or models employed in the framework, which target on various tasks. Our framework encompasses three types of tools, each serving specific responsibilities (as depicted in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.3 Large Language Model for Vision Task ‣ 2 Related work ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ). The segmentation tool is tasked with segmenting the foreground image, serving a dual role. Firstly, during the prompt generation module, it removes the background from the foreground image, resulting in a foreground-only image. Secondly, during the image generation module, it aids in comparing the foreground image with the pseudo-foreground segmented from the template image.
+The auto-detection tool is utilized to identify extraneous content surrounding the foreground in the template image. It achieves this by assessing the overlap between the pseudo-mask of the template image and the mask of the input foreground image. Ideally, complete overlap between the two masks indicates the absence of “over-imagination”. The image inpainting model is then applied to restore the non-overlapping regions of the template image, when needed.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="438" id="S3.F3.g1" src="/html/2404.18598/assets/opensource_comparison.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Comparisons of our approach with the state-of-the-art open-source inpainting models. As shown, HD-painter and LayerDiffusion tend to produce results with artifacts or irrational contents: see Rows 2-6. BrushNet yields relatively satisfactory outcomes but lacks diversity, which can be observed from the frequent occurrence of photographic studios: see Rows 1, 3, and 6. In contrast, our methods produce high-quality and diverse results.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Outcome Analyzer
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     The outcome analyzer, operated by VLM, analyzes the outcomes of the image generation module, offering feedback for the next iteration. It assesses perspective consistency, foreground-background relevance, aesthetic score, and image content rationality. We curate a list of pertinent questions to serve as prompts for soliciting valuable feedback. This facilitates a comprehensive analysis of the outcomes. This feedback acts as the foundation for iterative refinement, with the divergent thinker incorporating feedback from previous rounds to enhance scene associations. This iterative feedback mechanism progressively improves the quality of prompts, thereby impacting the final outcome.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="438" id="S3.F4.g1" src="/html/2404.18598/assets/business_comparison.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Comparisons between our framework with pioneering commercial systems. As shown, while commercial systems often prioritize avoiding poor generation results at the expense of diversity, our approach ensures both reliability and diversity.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Setup
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p1.1.1">
+      Settings
+     </span>
+     : In our framework, we use Gemini-Pro
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ]
+     </cite>
+     as the LLM and Gemini-Pro-Vision
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ]
+     </cite>
+     as the VLM. We chooses RMBG-1.4
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         1
+        </span>
+        https://huggingface.co/briaai/RMBG-1.4
+       </span>
+      </span>
+     </span>
+     as the segmentation tool, and LaMa
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib44" title="">
+       44
+      </a>
+      ]
+     </cite>
+     is also available. We utilize ControlNet_sdxl_canny
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        https://huggingface.co/diffusers/controlnet-canny-sdxl-1.0
+       </span>
+      </span>
+     </span>
+     as the template generator and SDXL_inpainting
+     <span class="ltx_note ltx_role_footnote" id="footnote3">
+      <sup class="ltx_note_mark">
+       3
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         3
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         3
+        </span>
+        https://huggingface.co/diffusers/stable-diffusion-xl-1.0-inpainting-0.1
+       </span>
+      </span>
+     </span>
+     as the inpainting model used in the repainting agent. We choose SDXL refiner
+     <span class="ltx_note ltx_role_footnote" id="footnote4">
+      <sup class="ltx_note_mark">
+       4
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         4
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         4
+        </span>
+        https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0
+       </span>
+      </span>
+     </span>
+     as the image refiner.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.1">
+      Dataset
+     </span>
+     :To assess our framework, we gathered photos of various entities from the internet, including common entities like cats, dogs, cars, boats, shoes, people, books, watches, etc. We prioritized selecting images with clear and distinct foregrounds to avoid incorrect foreground segmentation. Ultimately, we collected foreground images of 25 entities for experimentation. For the open-source model, we utilized these 25 foreground images to generate 4 results per foreground, totaling 100 result images. For the commercial model, we uploaded the foreground images to the corresponding website to generate 2 results per foreground, resulting in a total of 50 results.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="411" id="S4.F5.g1" src="/html/2404.18598/assets/ablation_prompt_latest.jpg" width="323"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     Ablation studies on the prompt generation module (PG). It reveals that without the prompt generation module, our system tends to produce less diverse results with uniform empty backgrounds.
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p3.1.1">
+      Baseline
+     </span>
+     : We compared our method with current SOTA inpainting models: BrushNet
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     , HD-Painter
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ]
+     </cite>
+     , LayerDiffusion
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     . Additionally, for a broader comparison, we experimented with some commercial products, including Phot.ai
+     <span class="ltx_note ltx_role_footnote" id="footnote5">
+      <sup class="ltx_note_mark">
+       5
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         5
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         5
+        </span>
+        https://www.phot.ai/
+       </span>
+      </span>
+     </span>
+     , Mokker.ai
+     <span class="ltx_note ltx_role_footnote" id="footnote6">
+      <sup class="ltx_note_mark">
+       6
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         6
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         6
+        </span>
+        https://app.mokker.ai/
+       </span>
+      </span>
+     </span>
+     , Flair.ai
+     <span class="ltx_note ltx_role_footnote" id="footnote7">
+      <sup class="ltx_note_mark">
+       7
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         7
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         7
+        </span>
+        https://app.flair.ai/
+       </span>
+      </span>
+     </span>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p4">
+    <p class="ltx_p" id="S4.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p4.1.1">
+      Metrics
+     </span>
+     :
+To assess the quality of the results, we established three metrics: aesthetic score, diversity score, and bad case rate.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p5">
+    <ul class="ltx_itemize" id="S4.I1">
+     <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i1.p1">
+       <p class="ltx_p" id="S4.I1.i1.p1.1">
+        The aesthetic score evaluates the satisfaction level of the results on a scale of 1 to 5 points. A score of 1 indicates multiple evident issues in the image, such as foreground-background inconsistency or evident “over-imagination”. A score of 2 indicates one noticeable issue in the image, while 3 indicates no significant issues overall but minor flaws in details, like unnatural lightening, shadowing, or edge boundaries, or slight “over-imagination”. A score of 4 suggests good quality suitable for display, and 5 denotes an exceptionally visually compelling image with astonishing effects.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i2.p1">
+       <p class="ltx_p" id="S4.I1.i2.p1.1">
+        The diversity score gauges the variety of results generated while maintaining consistency between foreground and background. It ranges from 1 to 3 points, with 1 indicating a single scene generated in the results, such as monochrome or similar scenes. A score of 2 indicates some similarity among scenes in the results, while 3 signifies that all scenes in the results are highly novel.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S4.I1.i3.p1">
+       <p class="ltx_p" id="S4.I1.i3.p1.1">
+        The bad case ratio measures the usability of the results. Each result is assessed to determine whether it is a bad case, marked as yes or no. If there are one or more evident issues in the result, it is considered a bad case.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Qualitative Result
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     Comparison results with open-source models are depicted in Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.3 Tool Agents ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     . Our framework excels in several aspects: it produces backgrounds more suitable for foregrounds, offers diversity in background generation, and effectively addresses “over-imagination” issues during the inpainting process. In the third rows of Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.3 Tool Agents ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , other methods exhibit instances of “over-imagination” with chairs displaying additional “legs” or extra components. Our method successfully avoids such occurrences.
+In the first rows of Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.3 Tool Agents ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , while other approaches struggle to generate relevant background scenes for the kitchen blender, our framework adeptly comprehends the kitchen scenario.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     Comparison results with commercial products are displayed in Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.4 Outcome Analyzer ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     . For these commercial systems, only foreground image information is provided. It is evident from the results that these commercial products can only generate a single background under a given template scene, and instances of mental imagery phenomena are observed. For instance, as illustrated in Columns 6 and 7 of the blender rows in Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.4 Outcome Analyzer ‣ 3 Method ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , legs or stands are erroneously added to the blender. Similarly, in Columns 3, 4, and 5 of the chair rows, unwanted accessories are imposed upon the chairs. In contrast, our framework excels in generating imaginative backgrounds while adapting to diverse foreground types and preserving foreground integrity.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T1">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T1.3">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T1.3.3">
+       <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.3.3.4">
+        Method
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.1.1.1">
+        Aesthetic score
+        <math alttext="\uparrow" class="ltx_Math" display="inline" id="S4.T1.1.1.1.m1.1">
+         <semantics id="S4.T1.1.1.1.m1.1a">
+          <mo id="S4.T1.1.1.1.m1.1.1" stretchy="false" xref="S4.T1.1.1.1.m1.1.1.cmml">
+           ↑
+          </mo>
+          <annotation-xml encoding="MathML-Content" id="S4.T1.1.1.1.m1.1b">
+           <ci id="S4.T1.1.1.1.m1.1.1.cmml" xref="S4.T1.1.1.1.m1.1.1">
+            ↑
+           </ci>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S4.T1.1.1.1.m1.1c">
+           \uparrow
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.2.2.2">
+        Diversity score
+        <math alttext="\uparrow" class="ltx_Math" display="inline" id="S4.T1.2.2.2.m1.1">
+         <semantics id="S4.T1.2.2.2.m1.1a">
+          <mo id="S4.T1.2.2.2.m1.1.1" stretchy="false" xref="S4.T1.2.2.2.m1.1.1.cmml">
+           ↑
+          </mo>
+          <annotation-xml encoding="MathML-Content" id="S4.T1.2.2.2.m1.1b">
+           <ci id="S4.T1.2.2.2.m1.1.1.cmml" xref="S4.T1.2.2.2.m1.1.1">
+            ↑
+           </ci>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S4.T1.2.2.2.m1.1c">
+           \uparrow
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.3.3.3">
+        bad case rate
+        <math alttext="\downarrow" class="ltx_Math" display="inline" id="S4.T1.3.3.3.m1.1">
+         <semantics id="S4.T1.3.3.3.m1.1a">
+          <mo id="S4.T1.3.3.3.m1.1.1" stretchy="false" xref="S4.T1.3.3.3.m1.1.1.cmml">
+           ↓
+          </mo>
+          <annotation-xml encoding="MathML-Content" id="S4.T1.3.3.3.m1.1b">
+           <ci id="S4.T1.3.3.3.m1.1.1.cmml" xref="S4.T1.3.3.3.m1.1.1">
+            ↓
+           </ci>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S4.T1.3.3.3.m1.1c">
+           \downarrow
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.4.1">
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.4.1.1">
+        BrushNet
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.4.1.2">
+        2.98
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.4.1.3">
+        2.36
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.4.1.4">
+        0.33
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.5.2">
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.5.2.1">
+        HD-Painter
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.5.2.2">
+        1.91
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.5.2.3">
+        2.12
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.5.2.4">
+        0.64
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.6.3">
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.6.3.1">
+        LayerDiffusion
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.6.3.2">
+        1.93
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.6.3.3">
+        1.96
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.6.3.4">
+        0.50
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.7.4">
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.7.4.1">
+        Phot.ai
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.7.4.2">
+        3.05
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.7.4.3">
+        1.20
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.7.4.4">
+        0.30
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.8.5">
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.8.5.1">
+        Mokker.ai
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.8.5.2">
+        3.40
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.8.5.3">
+        1.55
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.8.5.4">
+        0.34
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.9.6">
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.9.6.1">
+        Flair.ai
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.9.6.2">
+        3.32
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.9.6.3">
+        1.25
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.3.9.6.4">
+        0.20
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.3.10.7">
+       <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T1.3.10.7.1">
+        Ours
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T1.3.10.7.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.3.10.7.2.1">
+         3.52
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T1.3.10.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.3.10.7.3.1">
+         2.52
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T1.3.10.7.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.3.10.7.4.1">
+         0.18
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Quantitative analysis of our framework, state-of-the-art open-source inpainting models, and pioneering commercial systems. It indicates that while the selected commercial systems generate results with less diversity, they exhibit relatively high reliability and quality. Among all the open-source models, BrushNet performs the best on average but demonstrates lower diversity and quality compared to ours.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Quantitative Result
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     We utilize human evaluators to assess the generation results based on the aforementioned standards. Subsequently, we calculate the average scores for aesthetic and diversity across all test cases. The bad case rate is determined by tallying the occurrences of bad cases among all generation samples. The quantitative results on the dataset are presented in Table
+     <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.2 Qualitative Result ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="209" id="S4.F6.g1" src="/html/2404.18598/assets/ablation_inpaint.jpg" width="329"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Ablation studies on the repainting agent (RA). The red circles highlight the regions with “over-imagination”. As shown, the repainting agent contributes to mitigating the “over-imagination” issue.
+     <span class="ltx_text" id="S4.F6.2.1" style="color:#FFFFFF;">
+      laskdff dasadadfdffdas dfdfsd asdf fdsdsf dfd dfs sdfa sdfa fsfsad dal 123 344 556 666 555 445 dfd dfs sdfa sdfa fsfsad dal 123 344 556 666 dfd dfs sdfa sdfa fsfsad dal 123 344 556 666
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     As shown in Table
+     <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.2 Qualitative Result ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , the aesthetic score and diversity score achived with our framework outperform those of both open-source models and commercial products, while also achieving the lowest bad case rate. Notably, commercial products exhibit lower scores in diversity, possibly attributed to their utilization of fixed templates for reliable results, albeit at the expense of diversity. On the other hand, open-source models can offer relatively high diversity but often yield unreliable results. Our method strikes a balance by delivering diversified results while ensuring reliability.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="422" id="S4.F7.g1" src="/html/2404.18598/assets/ablation_feedback.jpg" width="329"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     Ablation studies on the use of the outcome analyzer. As shown, the mechanism of feedback-based regeneration significantly improves the quality of the final outcomes. Rows 1 and 4 indicates instances of view inconsistency without the feedback-loop. Rows 2, 3 and 6 indicates foreground-background irrelevance without the feedback-loop. Rows 5 indicates content irrationality due to erroneous relative size without the regeneration mechanism.
+     <span class="ltx_text" id="S4.F7.2.1" style="color:#FFFFFF;">
+      laskdff dasadffdas a
+     </span>
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.4
+    </span>
+    Ablation Study
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     To assess the effectiveness of the design of our framework, we conducted ablation studies on three different modules and functionalities, the prompt generation module, the repainting module, and the outcome analyzer.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p2">
+    <p class="ltx_p" id="S4.SS4.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS4.p2.1.1">
+      Prompt Generation Module
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p3">
+    <p class="ltx_p" id="S4.SS4.p3.1">
+     To assess the impact of removing the prompt generation module, we deactivate the module and provide the image generation module with a generic description, such as “a photograph” or “an imaginary scene”. Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ 4.1 Setup ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     showcases the results with and without the prompt generation module, which indicates the impact of removing the prompt generation module. We can conclude from Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ 4.1 Setup ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     that the prompt generation module not only introduces diversity into the results but also helps mitigate the occurrence of “over-imagination” to some extent: see the bow in the fourth rows of Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ 4.1 Setup ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p4">
+    <p class="ltx_p" id="S4.SS4.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS4.p4.1.1">
+      Repainting Agent
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p5">
+    <p class="ltx_p" id="S4.SS4.p5.1">
+     To evaluate the significance of the repainting agent, we exclude it from the process and directly feed the template image to the image refiner. Figure
+     <a class="ltx_ref" href="#S4.F6" title="Figure 6 ‣ 4.3 Quantitative Result ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     illustrates the results with and without the repainting agent. As shown, results without the repainting agent may exhibit “over-imagination”, whereas this tool effectively addresses inconsistencies arising from such occurrences.
+    </p>
+   </div>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p6">
+    <p class="ltx_p" id="S4.SS4.p6.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS4.p6.1.1">
+      Feedback Mechanism
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS4.p7">
+    <p class="ltx_p" id="S4.SS4.p7.1">
+     To assess the impact of the outcome analyzer’s feedback loop, we’ll bypass it and directly evaluate the raw output of the image generation module in a single pass. Figure
+     <a class="ltx_ref" href="#S4.F7" title="Figure 7 ‣ 4.3 Quantitative Result ‣ 4 Experiments ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     demonstrates the results with and without the feedback mechanism of the outcome analyzer. As shown, initially, issues like foreground-background inconsistency or improper viewpoints may be present. However, results after iterative feedback from the outcome analyzer learn from previous problems and yield improved outcomes.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion and Future Work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we introduce a novel multi-agent framework for robust and diverse foreground-conditioned image inpainting.
+Our method demonstrates a 12% decrease in bad case rate, along with a 0.16 increase in diversity score and a 0.54 increase in aesthetic score compared to the leading state-of-the-art approach. Additionally, our framework achieves a 2% reduction in bad case rate, with a 0.12 increase in aesthetic score and a 0.97 increase in diversity score compared to the pioneering commercial system, representing a significant advancement in the field of foreground-conditioned image inpainting.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    However, our approach faces certain limitations. Firstly, it struggles with foreground objects containing transparent or semi-transparent components (e.g., glass cup, magnifier). Secondly, the outcome analyzer encounters challenges in predicting image rationality related to lighting and shadowing, leading to some unsatisfactory outcomes. With advancements in VLM, LLM, and image generators, the results of our framework could be further improved. Meanwhile, we will attempt to enhance our approach’s capabilities in addressing these challenges by optimizing the pipeline design in future research.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+    </span>
+    <span class="ltx_bibblock">
+     Denoising diffusion probabilistic models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Advances in neural information processing systems
+     </span>
+     , 33:6840–6851, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Lvmin Zhang, Anyi Rao, and Maneesh Agrawala.
+    </span>
+    <span class="ltx_bibblock">
+     Adding conditional control to text-to-image diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </span>
+     , pages 3836–3847, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Lianghua Huang, Di Chen, Yu Liu, Yujun Shen, Deli Zhao, and Jingren Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Composer: Creative and controllable image synthesis with composable conditions.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2302.09778
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Omri Avrahami, Thomas Hayes, Oran Gafni, Sonal Gupta, Yaniv Taigman, Devi Parikh, Dani Lischinski, Ohad Fried, and Xi Yin.
+    </span>
+    <span class="ltx_bibblock">
+     Spatext: Spatio-textual representation for controllable image generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </span>
+     , pages 18370–18380, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Yuheng Li, Haotian Liu, Qingyang Wu, Fangzhou Mu, Jianwei Yang, Jianfeng Gao, Chunyuan Li, and Yong Jae Lee.
+    </span>
+    <span class="ltx_bibblock">
+     Gligen: Open-set grounded text-to-image generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </span>
+     , pages 22511–22521, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer.
+    </span>
+    <span class="ltx_bibblock">
+     High-resolution image synthesis with latent diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      Proceedings of the IEEE/CVF conference on computer vision and pattern recognition
+     </span>
+     , pages 10684–10695, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach.
+    </span>
+    <span class="ltx_bibblock">
+     Sdxl: Improving latent diffusion models for high-resolution image synthesis.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2307.01952
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Shaoan Xie, Zhifei Zhang, Zhe Lin, Tobias Hinz, and Kun Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Smartbrush: Text and shape guided object inpainting with diffusion model.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </span>
+     , pages 22428–22437, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Hayk Manukyan, Andranik Sargsyan, Barsegh Atanyan, Zhangyang Wang, Shant Navasardyan, and Humphrey Shi.
+    </span>
+    <span class="ltx_bibblock">
+     Hd-painter: High-resolution and prompt-faithful text-guided image inpainting with diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2312.14091
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Junhao Zhuang, Yanhong Zeng, Wenran Liu, Chun Yuan, and Kai Chen.
+    </span>
+    <span class="ltx_bibblock">
+     A task is worth one word: Learning with task prompts for high-quality versatile image inpainting.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2312.03594
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Xuan Ju, Xian Liu, Xintao Wang, Yuxuan Bian, Ying Shan, and Qiang Xu.
+    </span>
+    <span class="ltx_bibblock">
+     Brushnet: A plug-and-play image inpainting model with decomposed dual-branch diffusion.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2403.06976
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Lvmin Zhang and Maneesh Agrawala.
+    </span>
+    <span class="ltx_bibblock">
+     Transparent image layer diffusion using latent transparency.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2402.17113
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Yongsheng Yu, Hao Wang, Tiejian Luo, Heng Fan, and Libo Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Magic: Multi-modality guided image completion.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2305.11818
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Flamingo: a visual language model for few-shot learning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      Advances in neural information processing systems
+     </span>
+     , 35:23716–23736, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi.
+    </span>
+    <span class="ltx_bibblock">
+     Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      International conference on machine learning
+     </span>
+     , pages 12888–12900. PMLR, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2303.08774
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee.
+    </span>
+    <span class="ltx_bibblock">
+     Visual instruction tuning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      Advances in neural information processing systems
+     </span>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Llama: Open and efficient foundation language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      arXiv preprint arXiv:2302.13971
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit H Bermano, Gal Chechik, and Daniel Cohen-Or.
+    </span>
+    <span class="ltx_bibblock">
+     An image is worth one word: Personalizing text-to-image generation using textual inversion.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2208.01618
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman.
+    </span>
+    <span class="ltx_bibblock">
+     Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </span>
+     , pages 22500–22510, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo.
+    </span>
+    <span class="ltx_bibblock">
+     Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation–supplementary materials–.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Wenhu Chen, Hexiang Hu, Yandong Li, Nataniel Ruiz, Xuhui Jia, Ming-Wei Chang, and William W Cohen.
+    </span>
+    <span class="ltx_bibblock">
+     Subject-driven text-to-image generation via apprenticeship learning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Xi Chen, Lianghua Huang, Yu Liu, Yujun Shen, Deli Zhao, and Hengshuang Zhao.
+    </span>
+    <span class="ltx_bibblock">
+     Anydoor: Zero-shot object-level image customization.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      arXiv preprint arXiv:2307.09481
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Guangxuan Xiao, Tianwei Yin, William T Freeman, Frédo Durand, and Song Han.
+    </span>
+    <span class="ltx_bibblock">
+     Fastcomposer: Tuning-free multi-subject image generation with localized attention.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2305.10431
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Kihyuk Sohn, Nataniel Ruiz, Kimin Lee, Daniel Castro Chin, Irina Blok, Huiwen Chang, Jarred Barber, Lu Jiang, Glenn Entis, Yuanzhen Li, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Styledrop: Text-to-image generation in any style.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2306.00983
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Michelle Shu, Charles Herrmann, Richard Strong Bowen, Forrester Cole, and Ramin Zabih.
+    </span>
+    <span class="ltx_bibblock">
+     Dreamwalk: Style space exploration using diffusion guidance.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2404.03145
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     Guillaume Couairon, Marlène Careil, Matthieu Cord, Stéphane Lathuilière, and Jakob Verbeek.
+    </span>
+    <span class="ltx_bibblock">
+     Zero-shot spatial layout conditioning for text-to-image diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </span>
+     , pages 2174–2183, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Ruoshi Liu, Rundi Wu, Basile Van Hoorick, Pavel Tokmakov, Sergey Zakharov, and Carl Vondrick.
+    </span>
+    <span class="ltx_bibblock">
+     Zero-1-to-3: Zero-shot one image to 3d object.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </span>
+     , pages 9298–9309, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     Jeong-gi Kwak, Erqun Dong, Yuhe Jin, Hanseok Ko, Shweta Mahajan, and Kwang Moo Yi.
+    </span>
+    <span class="ltx_bibblock">
+     Vivid-1-to-3: Novel view synthesis with video diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2312.01305
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     Ziyang Yuan, Mingdeng Cao, Xintao Wang, Zhongang Qi, Chun Yuan, and Ying Shan.
+    </span>
+    <span class="ltx_bibblock">
+     Customnet: Zero-shot object customization with variable-viewpoints in text-to-image diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      arXiv preprint arXiv:2310.19784
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Chitwan Saharia, William Chan, Huiwen Chang, Chris Lee, Jonathan Ho, Tim Salimans, David Fleet, and Mohammad Norouzi.
+    </span>
+    <span class="ltx_bibblock">
+     Palette: Image-to-image diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.1.1">
+      ACM SIGGRAPH 2022 conference proceedings
+     </span>
+     , pages 1–10, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and Luc Van Gool.
+    </span>
+    <span class="ltx_bibblock">
+     Repaint: Inpainting using denoising diffusion probabilistic models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Proceedings of the IEEE/CVF conference on computer vision and pattern recognition
+     </span>
+     , pages 11461–11471, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Omri Avrahami, Dani Lischinski, and Ohad Fried.
+    </span>
+    <span class="ltx_bibblock">
+     Blended diffusion for text-driven editing of natural images.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </span>
+     , pages 18208–18218, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     Omri Avrahami, Ohad Fried, and Dani Lischinski.
+    </span>
+    <span class="ltx_bibblock">
+     Blended latent diffusion.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      ACM Transactions on Graphics (TOG)
+     </span>
+     , 42(4):1–11, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      Advances in neural information processing systems
+     </span>
+     , 33:1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     Wenbo Hu, Yifan Xu, Yi Li, Weiyue Li, Zeyuan Chen, and Zhuowen Tu.
+    </span>
+    <span class="ltx_bibblock">
+     Bliva: A simple multimodal llm for better handling of text-rich visual questions.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence
+     </span>
+     , volume 38, pages 2256–2264, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Chenfei Wu, Shengming Yin, Weizhen Qi, Xiaodong Wang, Zecheng Tang, and Nan Duan.
+    </span>
+    <span class="ltx_bibblock">
+     Visual chatgpt: Talking, drawing and editing with visual foundation models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.1.1">
+      arXiv preprint arXiv:2303.04671
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     Difei Gao, Lei Ji, Luowei Zhou, Kevin Qinghong Lin, Joya Chen, Zihan Fan, and Mike Zheng Shou.
+    </span>
+    <span class="ltx_bibblock">
+     Assistgpt: A general multi-modal assistant that can plan, execute, inspect, and learn.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.1.1">
+      arXiv preprint arXiv:2306.08640
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting Zhuang.
+    </span>
+    <span class="ltx_bibblock">
+     Hugginggpt: Solving ai tasks with chatgpt and its friends in hugging face.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Dídac Surís, Sachit Menon, and Carl Vondrick.
+    </span>
+    <span class="ltx_bibblock">
+     Vipergpt: Visual inference via python execution for reasoning.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </span>
+     , pages 11888–11898, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     Shukang Yin, Chaoyou Fu, Sirui Zhao, Tong Xu, Hao Wang, Dianbo Sui, Yunhang Shen, Ke Li, Xing Sun, and Enhong Chen.
+    </span>
+    <span class="ltx_bibblock">
+     Woodpecker: Hallucination correction for multimodal large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.1.1">
+      arXiv preprint arXiv:2310.16045
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     Zeqing Wang, Wentao Wan, Runmeng Chen, Qiqing Lao, Minjie Lang, and Keze Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Towards top-down reasoning: An explainable multi-agent approach for visual question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib42.1.1">
+      arXiv preprint arXiv:2311.17331
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [43]
+    </span>
+    <span class="ltx_bibblock">
+     Gemini Team, Rohan Anil, Sebastian Borgeaud, Yonghui Wu, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gemini: a family of highly capable multimodal models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.1.1">
+      arXiv preprint arXiv:2312.11805
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [44]
+    </span>
+    <span class="ltx_bibblock">
+     Roman Suvorov, Elizaveta Logacheva, Anton Mashikhin, Anastasia Remizova, Arsenii Ashukha, Aleksei Silvestrov, Naejin Kong, Harshith Goka, Kiwoong Park, and Victor Lempitsky.
+    </span>
+    <span class="ltx_bibblock">
+     Resolution-robust large mask inpainting with fourier convolutions.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.1.1">
+      Proceedings of the IEEE/CVF winter conference on applications of computer vision
+     </span>
+     , pages 2149–2159, 2022.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Detailed prompt template of LLM and VLM
+  </h2>
+  <div class="ltx_para ltx_noindent" id="A1.p1">
+   <p class="ltx_p" id="A1.p1.1">
+    There are different prompt template in our framework (see Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.3 Large Language Model for Vision Task ‣ 2 Related work ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    ).
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p2">
+   <p class="ltx_p" id="A1.p2.1">
+    The image narrator receives input image, which are processed by the following prompt template to get a image description, we use the following prompt template:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p3">
+   <div class="ltx_listing ltx_lst_numbers_left ltx_lstlisting ltx_framed ltx_framed_rectangle ltx_listing" id="A1.p3.1">
+    <div class="ltx_listing_data">
+     <a download="" href="data:text/plain;base64,WW91IGFyZSBhbiBhbmFseXN0IGFuZCBvYnNlcnZlciwgeW91IGNhbiBnaXZlIGEgZGV0YWlsZWQgZGVzY3JpcHRpb24gb2YgYW55IG9iamVjdCBhbmQgZGlzY292ZXIgdGhlIGNoYXJhY3RlcmlzdGljcyBvZiAgdGhhdCBvYmplY3QuIFBsZWFzZSBnaXZlIGEgZGV0YWlsIGRlc2NyaXB0aW9uIG9mIHRoaXMgaW1hZ2UsIGFzIHdlbGwgYXMgZGVzY3JpYmluZyB0aGUgaW1wb3J0YW50IGZlYXR1cmVzIGluIHRoYXQgaW1hZ2UsIGFuZCB0aGVuIGdpdmUgdGhlIG5hbWUgYW5kIHRoZSB2aWV3cG9pbnQgb2YgdGhpcyBvYmplY3QuIFBsZWFzZSBwcm92aWRlIGEgcmVzcG9uc2UgaW4gYSBzdHJ1Y3R1cmVkIEpTT04gZm9ybWF0IHRoYXQgbWF0Y2hlcyB0aGUgZm9sbG93aW5nIG1vZGVsOiB7WU9VUl9KU09OX0ZPUk1BVH0u">
+      ⬇
+     </a>
+    </div>
+    <div class="ltx_listingline" id="lstnumberx1">
+     <span class="ltx_tag ltx_tag_listingline">
+      1
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.1">
+      You
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.2">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.3">
+      are
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.4">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.5">
+      an
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.6">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.7">
+      analyst
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.8">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.9">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.10">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.11">
+      observer
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.12">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.13">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.14">
+      you
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.15">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.16">
+      can
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.17">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.18">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.19">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.20">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.21">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.22">
+      detailed
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.23">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.24">
+      description
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.25">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.26">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.27">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.28">
+      any
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.29">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.30">
+      object
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.31">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.32">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.33">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.34">
+      discover
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.35">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.36">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.37">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.38">
+      characteristics
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.39">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.40">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.41">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.42">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.43">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.44">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.45">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.46">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.47">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.48">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.49">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.50">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.51">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.52">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.53">
+      detail
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.54">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.55">
+      description
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.56">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.57">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.58">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.59">
+      this
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.60">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.61">
+      image
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.62">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.63">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.64">
+      as
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.65">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.66">
+      well
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.67">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.68">
+      as
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.69">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.70">
+      describing
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.71">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.72">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.73">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.74">
+      important
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.75">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.76">
+      features
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.77">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.78">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.79">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.80">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.81">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.82">
+      image
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.83">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.84">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.85">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.86">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.87">
+      then
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.88">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.89">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.90">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.91">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.92">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.93">
+      name
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.94">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.95">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.96">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.97">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.98">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.99">
+      viewpoint
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.100">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.101">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.102">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.103">
+      this
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.104">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.105">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.106">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.107">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.108">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.109">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.110">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.111">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.112">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.113">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.114">
+      response
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.115">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.116">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.117">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.118">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.119">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.120">
+      structured
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.121">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.122">
+      JSON
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.123">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.124">
+      format
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.125">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.126">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.127">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.128">
+      matches
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.129">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.130">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.131">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.132">
+      following
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.133">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.134">
+      model
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.135">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx1.136">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.137">
+      {
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx1.138">
+      YOUR_JSON_FORMAT
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx1.139">
+      }.
+     </span>
+    </div>
+   </div>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p4">
+   <p class="ltx_p" id="A1.p4.1">
+    The divergent thinker receives image description for scene association and gets a candidate set of scene (size
+    <math alttext="N" class="ltx_Math" display="inline" id="A1.p4.1.m1.1">
+     <semantics id="A1.p4.1.m1.1a">
+      <mi id="A1.p4.1.m1.1.1" xref="A1.p4.1.m1.1.1.cmml">
+       N
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="A1.p4.1.m1.1b">
+       <ci id="A1.p4.1.m1.1.1.cmml" xref="A1.p4.1.m1.1.1">
+        𝑁
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="A1.p4.1.m1.1c">
+       N
+      </annotation>
+     </semantics>
+    </math>
+    ). The prompt template is as follow:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p5">
+   <div class="ltx_listing ltx_lst_numbers_left ltx_lstlisting ltx_framed ltx_framed_rectangle ltx_listing" id="A1.p5.1">
+    <div class="ltx_listing_data">
+     <a download="" href="data:text/plain;base64,WW91IGFyZSBhbiBleHBlcnQgaW1hZ2luYXRpdmUgcGhvdG9ncmFwaGVyLCB5b3UgY2FuIGNob29zZSBhIHZhcmlldHkgb2Ygc3VpdGFibGUgc2NlbmVzIGZvciBhbnkgb2JqZWN0LiBJJ2xsIGFza2luZyB5b3UgdG8gcHJvdmlkZSBtZSB3aXRoIHNjZW5lIGRlc2NyaXB0aW9ucywgdGhlbiBJJ2xsIHByb3ZpZGUgc29tZSB1c2VmdWwgaW5mb3JtYXRpb24gZm9yIHlvdTogdGhlIG9iamVjdCBpbmZvbWF0aW9uOiBbe29iamVjdF9uYW1lfV0sIHRoZSB2aWV3cG9pbnQ6IFt7dmlld3BvaW50fV0gbXVzdCBhcHBlYXIgaW4gc2NlbmUgZGVzY3JpcHRpb24sIGFuZCBmZWVkYmFjayBhYm91dCB0aGUgb2JqZWN0J3MgcHJldmlvdXMgc2NlbmUgcmVzdWx0IGlzOiBbe2ZlZWRiYWNrfV0uIFBsZWFzZSBnaXZlIDUgc2V0cyBvZiByZWxldmFudCBzY2VuZSBkZXNjcmlwdGlvbnMgZm9yIHRoaXMgb2JqZWN0OiBbe3Byb21wdH1dLiBQbGVhc2UgcHJvdmlkZSBhIHJlc3BvbnNlIGluIGEgc3RydWN0dXJlZCBKU09OIGZvcm1hdCB0aGF0IG1hdGNoZXMgdGhlIGZvbGxvd2luZyBtb2RlbDoge1lPVVJfSlNPTl9GT1JNQVR9Lg==">
+      ⬇
+     </a>
+    </div>
+    <div class="ltx_listingline" id="lstnumberx2">
+     <span class="ltx_tag ltx_tag_listingline">
+      1
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.1">
+      You
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.2">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.3">
+      are
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.4">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.5">
+      an
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.6">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.7">
+      expert
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.8">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.9">
+      imaginative
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.10">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.11">
+      photographer
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.12">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.13">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.14">
+      you
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.15">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.16">
+      can
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.17">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.18">
+      choose
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.19">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.20">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.21">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.22">
+      variety
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.23">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.24">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.25">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.26">
+      suitable
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.27">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.28">
+      scenes
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.29">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.30">
+      for
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.31">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.32">
+      any
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.33">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.34">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.35">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.36">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.37">
+      I
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.38">
+      ’
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.39">
+      ll
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.40">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.41">
+      asking
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.42">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.43">
+      you
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.44">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.45">
+      to
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.46">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.47">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.48">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.49">
+      me
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.50">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.51">
+      with
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.52">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.53">
+      scene
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.54">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.55">
+      descriptions
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.56">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.57">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.58">
+      then
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.59">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.60">
+      I
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.61">
+      ’
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.62">
+      ll
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.63">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.64">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.65">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.66">
+      some
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.67">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.68">
+      useful
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.69">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.70">
+      information
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.71">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.72">
+      for
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.73">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.74">
+      you
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.75">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.76">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.77">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.78">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.79">
+      object
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.80">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.81">
+      infomation
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.82">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.83">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.84">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.85">
+      object_name
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.86">
+      }],
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.87">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.88">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.89">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.90">
+      viewpoint
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.91">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.92">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.93">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.94">
+      viewpoint
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.95">
+      }]
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.96">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.97">
+      must
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.98">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.99">
+      appear
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.100">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.101">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.102">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.103">
+      scene
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.104">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.105">
+      description
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.106">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.107">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.108">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.109">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.110">
+      feedback
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.111">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.112">
+      about
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.113">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.114">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.115">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.116">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.117">
+      ’
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.118">
+      s
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.119">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.120">
+      previous
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.121">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.122">
+      scene
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.123">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.124">
+      result
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.125">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.126">
+      is
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.127">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.128">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.129">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.130">
+      feedback
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.131">
+      }].
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.132">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.133">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.134">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.135">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.136">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.137">
+      5
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.138">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.139">
+      sets
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.140">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.141">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.142">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.143">
+      relevant
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.144">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.145">
+      scene
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.146">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.147">
+      descriptions
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.148">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.149">
+      for
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.150">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.151">
+      this
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.152">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.153">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.154">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.155">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.156">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.157">
+      prompt
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.158">
+      }].
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.159">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.160">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.161">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.162">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.163">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.164">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.165">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.166">
+      response
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.167">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.168">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.169">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.170">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.171">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.172">
+      structured
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.173">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.174">
+      JSON
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.175">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.176">
+      format
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.177">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.178">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.179">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.180">
+      matches
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.181">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.182">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.183">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.184">
+      following
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.185">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.186">
+      model
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.187">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx2.188">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.189">
+      {
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx2.190">
+      YOUR_JSON_FORMAT
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx2.191">
+      }.
+     </span>
+    </div>
+   </div>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p6">
+   <p class="ltx_p" id="A1.p6.1">
+    The prompt generation receives the image descriptions and candidate set of scene for sorting, which is used to get the best scene description, the prompt template is:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p7">
+   <div class="ltx_listing ltx_lst_numbers_left ltx_lstlisting ltx_framed ltx_framed_rectangle ltx_listing" id="A1.p7.1">
+    <div class="ltx_listing_data">
+     <a download="" href="data:text/plain;base64,WW91IGFyZSBhbiBleGNlbGxlbnQgYW5hbHlzdCwgYWJsZSB0byBzZWUgdGhlIGNvcnJlbGF0aW9uIGJldHdlZW4gZGlmZmVyZW50IHRleHRzLiBOb3cgd2UgaGF2ZSBhIG9iamVjdCBkZXNjcmlwdGlvbjpbe2ltZ19kZXNjfV0uIFBsZWFzZSBnaXZlIG1lIHRoZSBzb3J0IG51bWJlciAoZnJvbSAxIHRvIDUpIGFib3V0IHRoZXNlIDUgc2NlbmUgZGVzY3JpcHRpb246IFt7c2NlbmVfZGVzY3N9XSB0aGF0IG1vc3QgYXBwcm9wcmlhdGUgd2l0aCB0aGUgb2JqZWN0LiBQbGVhc2UgcHJvdmlkZSBhIHJlc3BvbnNlICBpbiBhIHN0cnVjdHVyZWQgSlNPTiBmb3JtYXQgdGhhdCBtYXRjaGVzIHRoZSBmb2xsb3dpbmcgbW9kZWw6IHtqc29uX2Zvcm1hdH0u">
+      ⬇
+     </a>
+    </div>
+    <div class="ltx_listingline" id="lstnumberx3">
+     <span class="ltx_tag ltx_tag_listingline">
+      1
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.1">
+      You
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.2">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.3">
+      are
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.4">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.5">
+      an
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.6">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.7">
+      excellent
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.8">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.9">
+      analyst
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.10">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.11">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.12">
+      able
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.13">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.14">
+      to
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.15">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.16">
+      see
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.17">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.18">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.19">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.20">
+      correlation
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.21">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.22">
+      between
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.23">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.24">
+      different
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.25">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.26">
+      texts
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.27">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.28">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.29">
+      Now
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.30">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.31">
+      we
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.32">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.33">
+      have
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.34">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.35">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.36">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.37">
+      object
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.38">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.39">
+      description
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.40">
+      :[{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.41">
+      img_desc
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.42">
+      }].
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.43">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.44">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.45">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.46">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.47">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.48">
+      me
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.49">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.50">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.51">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.52">
+      sort
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.53">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.54">
+      number
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.55">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.56">
+      (
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.57">
+      from
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.58">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.59">
+      1
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.60">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.61">
+      to
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.62">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.63">
+      5)
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.64">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.65">
+      about
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.66">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.67">
+      these
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.68">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.69">
+      5
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.70">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.71">
+      scene
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.72">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.73">
+      description
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.74">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.75">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.76">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.77">
+      scene_descs
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.78">
+      }]
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.79">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.80">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.81">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.82">
+      most
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.83">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.84">
+      appropriate
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.85">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.86">
+      with
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.87">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.88">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.89">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.90">
+      object
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.91">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.92">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.93">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.94">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.95">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.96">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.97">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.98">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.99">
+      response
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.100">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.101">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.102">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.103">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.104">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.105">
+      structured
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.106">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.107">
+      JSON
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.108">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.109">
+      format
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.110">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.111">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.112">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.113">
+      matches
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.114">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.115">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.116">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.117">
+      following
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.118">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.119">
+      model
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.120">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx3.121">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.122">
+      {
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx3.123">
+      json_format
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx3.124">
+      }.
+     </span>
+    </div>
+   </div>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p8">
+   <p class="ltx_p" id="A1.p8.1">
+    The outcome analyzer analyze of the problems in the resultant image is used to feed back into the divergent thinker so that the unconsistency results of the previous round can be considered in the next round, we use the following prompt template:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="A1.p9">
+   <div class="ltx_listing ltx_lst_numbers_left ltx_lstlisting ltx_framed ltx_framed_rectangle ltx_listing" id="A1.p9.1">
+    <div class="ltx_listing_data">
+     <a download="" href="data:text/plain;base64,WW91IGFyZSBhbiBhbmFseXN0IGV4cGVydCBhbmQgYW4gb2JzZXJ2ZXIgb2YgZGV0YWlsLiBQbGVhc2UgZ2l2ZSB0aGUgYW5zd2VyIG9mIHRoZXNlIHF1ZXN0aW9uczogIklzIGl0IGNvbW1vbiBmb3IgdGhlIFt7c3ViamVjdH1dIHRvIGJlIHBsYWNlZCBpbiB0aGlzICBjb250ZXh0PyIgLCBJcyBbe3N1YmplY3R9XSBwbGFjZWQgbm9ybWFsbHkgb24gYSBwbGF0Zm9ybSBvciBvbiB0aGUgZ3JvdW5kPy4gUGxlYXNlIHByb3ZpZGUgYSByZXNwb25zZSBpbiBhIHN0cnVjdHVyZWQgSlNPTiBmb3JtYXQgdGhhdCBtYXRjaGVzIHRoZSBmb2xsb3dpbmcgbW9kZWw6IHtqc29uX2Zvcm1hdH0u">
+      ⬇
+     </a>
+    </div>
+    <div class="ltx_listingline" id="lstnumberx4">
+     <span class="ltx_tag ltx_tag_listingline">
+      1
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.1">
+      You
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.2">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.3">
+      are
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.4">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.5">
+      an
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.6">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.7">
+      analyst
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.8">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.9">
+      expert
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.10">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.11">
+      and
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.12">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.13">
+      an
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.14">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.15">
+      observer
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.16">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.17">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.18">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.19">
+      detail
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.20">
+      .
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.21">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.22">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.23">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.24">
+      give
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.25">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.26">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.27">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.28">
+      answer
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.29">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.30">
+      of
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.31">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.32">
+      these
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.33">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.34">
+      questions
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.35">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.36">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.37">
+      "
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.38">
+      Is
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.39">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.40">
+      it
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.41">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.42">
+      common
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.43">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.44">
+      for
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.45">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.46">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.47">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.48">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.49">
+      subject
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.50">
+      }]
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.51">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.52">
+      to
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.53">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.54">
+      be
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.55">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.56">
+      placed
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.57">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.58">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.59">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.60">
+      this
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.61">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.62">
+      context
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.63">
+      ?"
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.64">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.65">
+      ,
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.66">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.67">
+      Is
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.68">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.69">
+      [{
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.70">
+      subject
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.71">
+      }]
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.72">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.73">
+      placed
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.74">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.75">
+      normally
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.76">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.77">
+      on
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.78">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.79">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.80">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.81">
+      platform
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.82">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.83">
+      or
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.84">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.85">
+      on
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.86">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.87">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.88">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.89">
+      ground
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.90">
+      ?.
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.91">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.92">
+      Please
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.93">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.94">
+      provide
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.95">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.96">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.97">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.98">
+      response
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.99">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.100">
+      in
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.101">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.102">
+      a
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.103">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.104">
+      structured
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.105">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.106">
+      JSON
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.107">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.108">
+      format
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.109">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.110">
+      that
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.111">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.112">
+      matches
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.113">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.114">
+      the
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.115">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.116">
+      following
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.117">
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.118">
+      model
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.119">
+      :
+     </span>
+     <span class="ltx_text ltx_lst_space ltx_font_typewriter" id="lstnumberx4.120">
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.121">
+      {
+     </span>
+     <span class="ltx_text ltx_lst_identifier ltx_font_typewriter" id="lstnumberx4.122">
+      json_format
+     </span>
+     <span class="ltx_text ltx_font_typewriter" id="lstnumberx4.123">
+      }.
+     </span>
+    </div>
+   </div>
+  </div>
+ </section>
+ <section class="ltx_appendix" id="A2">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix B
+   </span>
+   More qualitative results
+  </h2>
+  <div class="ltx_para ltx_noindent" id="A2.p1">
+   <p class="ltx_p" id="A2.p1.1">
+    There are more comparisons of SOTA open-source inpainting models in Figure
+    <a class="ltx_ref" href="#A2.F1" title="Figure A1 ‣ Appendix B More qualitative results ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+     <span class="ltx_text ltx_ref_tag">
+      A1
+     </span>
+    </a>
+    and Figure
+    <a class="ltx_ref" href="#A2.F2" title="Figure A2 ‣ Appendix B More qualitative results ‣ Anywhere: A Multi-Agent Framework for Reliable and Diverse Foreground-Conditioned Image Inpainting">
+     <span class="ltx_text ltx_ref_tag">
+      A2
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="A2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="379" id="A2.F1.g1" src="/html/2404.18598/assets/opensource_comparison_appendix1.jpg" width="538"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure A1:
+    </span>
+    Comparisons of SOTA inpanting model.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="A2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="729" id="A2.F2.g1" src="/html/2404.18598/assets/opensource_comparison_appendix2.jpg" width="538"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure A2:
+    </span>
+    Comparisons of SOTA inpanting model.
+   </figcaption>
+  </figure>
+ </section>
+</article>

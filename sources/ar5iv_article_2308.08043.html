@@ -1,0 +1,1381 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Lang Cao
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id1.id1">
+   Large Language Models (LLMs), such as ChatGPT, are becoming increasingly sophisticated, demonstrating capabilities that closely resemble those of humans. These AI models are playing an essential role in assisting humans with a wide array of tasks in daily life. A significant application of AI is its use as a chat agent, responding to human inquiries across various domains. Current LLMs have shown proficiency in answering general questions. However, basic question-answering dialogue often falls short in complex diagnostic scenarios, such as legal or medical consultations. These scenarios typically necessitate Task-Oriented Dialogue (TOD), wherein an AI chat agent needs to proactively pose questions and guide users towards specific task completion. Previous fine-tuning models have underperformed in TOD, and current LLMs do not inherently possess this capability. In this paper, we introduce DiagGPT (Dialogue in Diagnosis GPT), an innovative method that extends LLMs to TOD scenarios. Our experiments reveal that DiagGPT exhibits outstanding performance in conducting TOD with users, demonstrating its potential for practical applications.
+  </p>
+ </div>
+ <section class="ltx_section" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Introduction
+  </h2>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    Large language models (LLMs), such as ChatGPT, have demonstrated remarkable performance on various natural language processing (NLP) tasks
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Brown et al.
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2020
+     </a>
+     ; Chowdhery et al.
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2022
+     </a>
+     ; Wei et al.
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2022a
+     </a>
+     ; OpenAI
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Leveraging large-scale pre-training on massive text corpora and reinforcement learning from human feedback (RLHF), LLMs not only possess a wide range of knowledge but also exhibit superior capabilities in language understanding, generation, interaction, and reasoning. In many cases, OpenAI GPT-4 even outperforms human performance
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (OpenAI
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . With the use of prompt engineering techniques (e.g., chain-of-thought prompting
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Brown et al.
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2020
+     </a>
+     ; Wei et al.
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2022b
+     </a>
+     )
+    </cite>
+    , in-context learning
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Brown et al.
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2020
+     </a>
+     ; Xie et al.
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2022
+     </a>
+     ; Min et al.
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , etc.), we can unlock the unlimited potential of LLMs to complete complex tasks in our daily life. LLMs have attracted enormous attention from both academia and industry, inspiring more people to build fantastic applications based on them.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p2">
+   <p class="ltx_p" id="Sx1.p2.1">
+    One popular application of LLMs is in chatbots, which build conversational systems around these models. ChatGPT
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       https://openai.com/blog/chatgpt
+      </span>
+     </span>
+    </span>
+    is a successful example of such an application, where the AI model has the ability to analyze context and respond to user queries based on knowledge derived from extensive training data. By supplementing its background knowledge and providing context and appropriate prompts, ChatGPT has been able to form robust question-answering models for specialized fields. It can understand users’ questions and provide precise answers effectively.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p3">
+   <p class="ltx_p" id="Sx1.p3.1">
+    However, dialogue scenarios in our daily life can be more complex. For instance, in specialized professional consultation scenarios like legal or medical diagnosis, the AI model needs to consider the user’s unique situation or information. In the process of obtaining user information, the interactive experience provided by the AI model is also crucial. The system need to proactively ask questions. Therefore, we need a consultation process from the AI model that better simulates real medical experts and legal professionals. The AI model should conduct question-answering, topic management, and guiding users towards specific goals or task completion. This type of dialogue is known as Task-Oriented Dialogue (TOD). TOD helps users achieve their specific goals, focusing on understanding users, tracking states, and generating next actions
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Balaraman, Sheikhalishahi, and
+Magnini
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2021
+     </a>
+     )
+    </cite>
+    . It is substantially different from light-conversational scenarios. Despite much research in this area, it remains challenging due to issues such as a lack of training data, inefficiency, and drawbacks of fine-tuning small models, including an inability to fully understand user meaning and poor generative performance. The existing research on this topic is not ideal. On the other side, a traditional LLM can no longer meet these needs, as it can only handle linear interaction and cannot effectively manage the above dialogue logic.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p4">
+   <p class="ltx_p" id="Sx1.p4.1">
+    Recent advancements have focused on using LLM as AI agents to form multi-agent systems or to teach AI how to use tools to accomplish more complex tasks
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Schick et al.
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023
+     </a>
+     ; Shen et al.
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . These systems typically have a core AI agent that oversees the entire task process. A prominent example is AutoGPT
+    <span class="ltx_note ltx_role_footnote" id="footnote2">
+     <sup class="ltx_note_mark">
+      2
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        2
+       </span>
+       https://github.com/Significant-Gravitas/Auto-GPT
+      </span>
+     </span>
+    </span>
+    , which employs multiple GPT models to strategize the responsibilities of each agent in order to complete complex tasks. In such multi-agent systems, the key lies in the division of tasks and the interaction between agents.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p5">
+   <p class="ltx_p" id="Sx1.p5.1">
+    Motivated by these considerations, we propose
+    <span class="ltx_text ltx_font_typewriter" id="Sx1.p5.1.1">
+     DiagGPT
+    </span>
+    in this paper.
+    <span class="ltx_text ltx_font_typewriter" id="Sx1.p5.1.2">
+     DiagGPT
+    </span>
+    stands for
+    <span class="ltx_text ltx_font_bold" id="Sx1.p5.1.3">
+     Dia
+    </span>
+    lo
+    <span class="ltx_text ltx_font_bold" id="Sx1.p5.1.4">
+     g
+    </span>
+    ue in
+    <span class="ltx_text ltx_font_bold" id="Sx1.p5.1.5">
+     Diag
+    </span>
+    nosis model Based on
+    <span class="ltx_text ltx_font_bold" id="Sx1.p5.1.6">
+     GPT
+    </span>
+    -4. This is a multi-agent AI system, which has automatic topic management ability to enhance its utility in task-oriented dialogue scenarios. In summary, our AI system
+    <span class="ltx_text ltx_font_typewriter" id="Sx1.p5.1.7">
+     DiagGPT
+    </span>
+    possesses the following features:
+   </p>
+   <ul class="ltx_itemize" id="Sx1.I1">
+    <li class="ltx_item" id="Sx1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i1.p1">
+      <p class="ltx_p" id="Sx1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i1.p1.1.1">
+        Task Guidance:
+       </span>
+       The system is designed to guide users towards a specific goal and assist them in accomplishing the task throughout the dialogue progression. This is achieved by advancing a sequence of predefined topics throughout the dialogue.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i2.p1">
+      <p class="ltx_p" id="Sx1.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i2.p1.1.1">
+        Proactive Asking:
+       </span>
+       The system has the ability to proactively pose questions based on a predefined checklist, thereby collecting necessary information from users.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i3.p1">
+      <p class="ltx_p" id="Sx1.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i3.p1.1.1">
+        Topic Management:
+       </span>
+       The system is capable of automatically managing topics throughout the dialogue, tracking topic progression, and effectively engaging in discussions centered around the current topic. It performs well in managing various topic changes in complex dialogues.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="Sx1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="Sx1.I1.i4.p1">
+      <p class="ltx_p" id="Sx1.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="Sx1.I1.i4.p1.1.1">
+        High Extendibility:
+       </span>
+       In this paper, we only introduce the basic framework of this AI system aimed at achieving task-oriented dialogue. We have designed the system with ample flexibility to incorporate additional functions to handle tasks in complex scenarios and to meet more needs of conversational systems.
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="Sx1.p5.2">
+    Given these features,
+    <span class="ltx_text ltx_font_typewriter" id="Sx1.p5.2.1">
+     DiagGPT
+    </span>
+    can meet the aforementioned needs and better engage in professional consultation conversations with users. It functions like a more intelligent and more professional chatbot.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx2">
+  <h2 class="ltx_title ltx_title_section">
+   Related Works
+  </h2>
+  <div class="ltx_para ltx_noindent" id="Sx2.p1">
+   <p class="ltx_p" id="Sx2.p1.1">
+    <span class="ltx_text ltx_font_bold" id="Sx2.p1.1.1">
+     Task-Oriented Dialogue
+    </span>
+    systems assist users in achieving specific goals, focusing on understanding users, tracking states, and generating subsequent actions. Recent work primarily focusing on fine-tuning small models.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wen et al.
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2017
+     </a>
+     )
+    </cite>
+    introduce a neural network-based text-in, text-out end-to-end trainable goal-oriented dialogue system along with a new way of collecting dialogue data based on a novel pipe-lined Wizard-of-Oz framework.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wu et al.
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2019
+     </a>
+     )
+    </cite>
+    propose a Transferable Dialogue State Generator (TRADE) that generates dialogue states from utterances using copy mechanism, facilitating transfer when predicting (domain, slot, value) triplets not encountered during training.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Feng et al.
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    propose SG-USM, a novel schema-guided user satisfaction modeling framework. It explicitly models the degree to which the user’s preferences regarding the task attributes are fulfilled by the system for predicting the user’s satisfaction level.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Liu et al.
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023
+     </a>
+     )
+    </cite>
+    propose a framework called MUST to optimize ToD systems via leveraging Multiple User Simulator.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Bang, Lee, and Koo
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    propose an End-to-end TOD system with Task-Optimized Adapters which learn independently per task, adding only small number of parameters after fixed layers of pre-trained network. All these methods require a considerable amount of data for training and have not yet attained a performance level that is ideal for real-world applications.
+    <br class="ltx_break"/>
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="Sx2.p2">
+   <p class="ltx_p" id="Sx2.p2.1">
+    <span class="ltx_text ltx_font_bold" id="Sx2.p2.1.1">
+     Conversational Systems with LLMs
+    </span>
+    have become popular as the robust capabilities of LLMs have been recognized.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Hudeček and Dušek
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2023
+     </a>
+     )
+    </cite>
+    evaluated the conversational ability of LLMs and found that, in explicit belief state tracking, LLMs underperform compared to specialized task-specific models. This suggests that simple LLMs do not have the ability to achieve task-oriented dialogue.
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Liang et al.
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     )
+    </cite>
+    proposed an interactive conversation visualization system called C5, which includes Global View, Topic View, and Context-associated QA View to better retain contextual information and provide comprehensive responses. From another perspective,
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Zhang, Naradowsky, and Miyao
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2023
+     </a>
+     )
+    </cite>
+    proposed the Ask an Expert framework in which the model is trained with access to an expert whom it can consult at each turn. This framework utilizes LLMs to improve fine-tuning small models in TOD. There is minimal work on improving the conversational ability of LLMs. To the best of our knowledge, we are the first to successfully use off-the-shelf LLMs in a multi-agent framework to build a task-oriented dialogue system.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx3">
+  <h2 class="ltx_title ltx_title_section">
+   Methodology
+  </h2>
+  <section class="ltx_subsection" id="Sx3.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx1.1.1">
+     DiagGPT
+    </span>
+    Framework
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx1.p1">
+    <p class="ltx_p" id="Sx3.SSx1.p1.1">
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx1.p1.1.1">
+      DiagGPT
+     </span>
+     is a multi-agent and collaborative system composed of several modules:
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p1.1.2">
+      Chat Agent
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p1.1.3">
+      Topic Manager
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p1.1.4">
+      Topic Enricher
+     </span>
+     , and
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p1.1.5">
+      Context Manager
+     </span>
+     . Each module is a LLM with specific prompts that guide their function and responsibility. Among these modules, the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p1.1.6">
+      Topic Manager
+     </span>
+     is particularly important as it tracks the dialogue state and automatically manages the dialogue topic.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx3.F1">
+    <p class="ltx_p ltx_align_center" id="Sx3.F1.1">
+     <span class="ltx_text" id="Sx3.F1.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx3.F1.1.1.1" style="width:505.9pt;height:254.8pt;vertical-align:-0.7pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-97.5pt,48.9pt) scale(0.721869054757808,0.721869054757808) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="376" id="Sx3.F1.1.1.1.g1" src="/html/2308.08043/assets/x1.png" width="620"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     The framework of
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.F1.4.1">
+      DiagGPT
+     </span>
+     . The workflow of
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.F1.5.2">
+      DiagGPT
+     </span>
+     consists of four stages: Thinking Topic Development, Maintaining Topic Stack, Enriching Topic, Generating Response.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx3.SSx1.p2">
+    <p class="ltx_p" id="Sx3.SSx1.p2.1">
+     As shown in Figure
+     <a class="ltx_ref" href="#Sx3.F1" title="Figure 1 ‣ DiagGPT Framework ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , the workflow of
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx1.p2.1.1">
+      DiagGPT
+     </span>
+     consists of four stages: 1) Thinking Topic Development:
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p2.1.2">
+      Topic Manager
+     </span>
+     obtain the user query, then analyze and predict the topic development in current round of dialogue; 2) Maintaining Topic Stack: maintain the topic stack of the entire dialogue according to action commands from
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p2.1.3">
+      Topic Manager
+     </span>
+     ; 3) Enriching Topic: retrieve the current topic and enrich it based on dialogue context; 4) Generating Response: based on specific guidance prompt and combined it with enriched topic and context to generate response for users.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx1.p3">
+    <p class="ltx_p" id="Sx3.SSx1.p3.1">
+     Besides, we define a topic as the main subject of a round of dialogue, which determines the primary focus of communication. We also define a task as a specific goal that needs to be completed in a task-oriented dialogue. After going through all the predefined topics in a dialogue, this specific task should be accomplished.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx3.F2">
+    <p class="ltx_p ltx_align_center" id="Sx3.F2.1">
+     <span class="ltx_text" id="Sx3.F2.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx3.F2.1.1.1" style="width:505.9pt;height:606.6pt;vertical-align:-0.9pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-40.7pt,48.7pt) scale(0.861419364393513,0.861419364393513) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="751" id="Sx3.F2.1.1.1.g1" src="/html/2308.08043/assets/x2.png" width="623"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     The prompts of
+     <span class="ltx_text ltx_font_italic" id="Sx3.F2.5.1">
+      Chat Agent
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx3.F2.6.2">
+      Topic Manager
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx3.F2.7.3">
+      Topic Enricher
+     </span>
+     . We have included instructions to guide the AI in becoming a knowledgeable medical expert, making it applicable in medical dialogue scenarios. These instructions can be modified to suit other scenarios.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Thinking Topic Development
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx2.p1">
+    <p class="ltx_p" id="Sx3.SSx2.p1.1">
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p1.1.1">
+      Topic Manager
+     </span>
+     serves as the main module in
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx2.p1.1.2">
+      DiagGPT
+     </span>
+     and is responsible for determining the topic development based on the user’s query. In each round of dialogue, the system needs to adjust the current dialogue topic before providing its response. Therefore, the user’s query is first fed into
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p1.1.3">
+      Topic Manager
+     </span>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx2.p2">
+    <p class="ltx_p" id="Sx3.SSx2.p2.1">
+     The input to the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p2.1.1">
+      Topic Manager
+     </span>
+     includes the current user query, action list, the current status of the topic stack, and the chat history. It is logical for an AI agent to analyze and predict the topic development based on this information. Of particular importance is the action list stored in the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p2.1.2">
+      Topic Manager
+     </span>
+     . This action list contains various actions that serve as tools for the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p2.1.3">
+      Topic Manager
+     </span>
+     to execute. The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p2.1.4">
+      Topic Manager
+     </span>
+     has knowledge about the details of each action, how to plan and execute them. Each action corresponds to a program function that executes a specific command. In Python, we use decorator functions to implement this. Whenever
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx2.p2.1.5">
+      Topic Manager
+     </span>
+     receives a user query, it analyzes all the available information and decides which action to execute based on the prompts associated with each action.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx2.p3">
+    <p class="ltx_p" id="Sx3.SSx2.p3.1">
+     With the strong understanding and reasoning abilities of LLMs, this AI agent can accurately comprehend the user’s intentions and help to effectively engage in communication with the user.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx3.F3">
+    <p class="ltx_p ltx_align_center" id="Sx3.F3.1">
+     <span class="ltx_text" id="Sx3.F3.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx3.F3.1.1.1" style="width:505.9pt;height:281.9pt;vertical-align:-0.9pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-15.8pt,8.8pt) scale(0.941350716754063,0.941350716754063) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="318" id="Sx3.F3.1.1.1.g1" src="/html/2308.08043/assets/x3.png" width="570"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     The prompts for different actions are used to define specific program functions that correspond to their respective actions and instruct when to execute them.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Maintaining Topic Stack
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx3.p1">
+    <p class="ltx_p" id="Sx3.SSx3.p1.1">
+     After obtaining the output of the action from the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p1.1.1">
+      Topic Manager
+     </span>
+     , the system will execute the corresponding command to process and control the topic change, which involves maintaining the topic stack.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p2">
+    <p class="ltx_p" id="Sx3.SSx3.p2.1">
+     The topic stack is a data structure in this AI system that stores and tracks the dialogue state. We consider the progress of a dialogue to have multiple stages or states, and these states follow a first-in, first-out (FIFO) order, which can be effectively modeled using a stack.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p3">
+    <p class="ltx_p" id="Sx3.SSx3.p3.1">
+     In a diagnosis scenario, a consultant typically has a checklist stored in their mind. In many common cases, if users do not propose any new questions, the dialogue development will follow this checklist. After going through all the items in the checklist, the consultant can provide reports and comprehensive analysis to the users and complete the specific task. The action
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p3.1.1">
+      load topics from a predefined task
+     </span>
+     is designed to facilitate this process. When the function decorated by this action prompt is executed, a list of topics from the checklist, will be loaded into the topic stack.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx3.F4">
+    <p class="ltx_p ltx_align_center" id="Sx3.F4.1">
+     <span class="ltx_text" id="Sx3.F4.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx3.F4.1.1.1" style="width:126.5pt;height:87.7pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-103.1pt,71.4pt) scale(0.380249045317414,0.380249045317414) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="246" id="Sx3.F4.1.1.1.g1" src="/html/2308.08043/assets/x4.png" width="348"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     The action of creating a new topic.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="Sx3.F5">
+    <p class="ltx_p ltx_align_center" id="Sx3.F5.1">
+     <span class="ltx_text" id="Sx3.F5.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx3.F5.1.1.1" style="width:126.5pt;height:88.8pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-103.1pt,72.3pt) scale(0.380249045317414,0.380249045317414) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="249" id="Sx3.F5.1.1.1.g1" src="/html/2308.08043/assets/x5.png" width="348"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     The action of finishing the current topic.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="Sx3.SSx3.p4">
+    <p class="ltx_p" id="Sx3.SSx3.p4.1">
+     Furthermore, there are other actions commonly used to manipulate the topic stack. These actions include
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.1">
+      create a new topic
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.2">
+      finish the current topic
+     </span>
+     , and
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.3">
+      stay at the current topic
+     </span>
+     . The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.4">
+      create a new topic
+     </span>
+     action, as shown in Figure
+     <a class="ltx_ref" href="#Sx3.F4" title="Figure 4 ‣ Maintaining Topic Stack ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , adds a new topic to the stack when the user wants to start a new topic. The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.5">
+      finish the current topic
+     </span>
+     action, shown in Figure
+     <a class="ltx_ref" href="#Sx3.F5" title="Figure 5 ‣ Maintaining Topic Stack ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     , removes the top topic from the stack when the user no longer wishes to discuss it or the system considers this topic to be closed. The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p4.1.6">
+      stay at the current topic
+     </span>
+     action indicates that the system determines that it still requires information and needs continuous discussing the current topic, so the topic stack does not change at all. These three basic operations cover most topic change scenarios. Since we only allow one-step reasoning for LLMs, they must select and execute only one action. Other actions are complex changes based on these three basic operations.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p5">
+    <p class="ltx_p" id="Sx3.SSx3.p5.1">
+     This action list can be expanded to accommodate more complex scenarios in task-oriented dialogues. We have also implemented a mechanism to automatically remove redundant topics. After several rounds of dialogue, if a newly generated topic is not recalled, it will be removed. However, this removal does not affect any predefined topics from checklist.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx4">
+   <h3 class="ltx_title ltx_title_subsection">
+    Enriching Topic
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx4.p1">
+    <p class="ltx_p" id="Sx3.SSx4.p1.1">
+     We select the top item in the topic stack as the current topic. However, it cannot be directly used as a chat topic for the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.1">
+      Chat Agent
+     </span>
+     to interact with the user. The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.2">
+      Topic Enricher
+     </span>
+     is designed to bridge this gap and assist in better organizing the language for use. We initially categorize the topic into
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.3">
+      Ask user
+     </span>
+     and
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.4">
+      Answer user
+     </span>
+     . Typically, newly generated topics fall under
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.5">
+      Answer user
+     </span>
+     , while predefined topics are categorized as
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.6">
+      Ask user
+     </span>
+     . This distinction helps the system determine whether to answer a user’s question or ask a question in the current round of dialogue. The
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.7">
+      Topic Enricher
+     </span>
+     takes the output of the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.8">
+      Context Manager
+     </span>
+     and the current topic to enrich it into a topic that contains ample information and is contextually appropriate. This enriched topic is then provided to the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx4.p1.1.9">
+      Chat Agent
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx5">
+   <h3 class="ltx_title ltx_title_subsection">
+    Generating Response
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx5.p1">
+    <p class="ltx_p" id="Sx3.SSx5.p1.1">
+     With the final topic, the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx5.p1.1.1">
+      Chat Agent
+     </span>
+     recognizes it as the primary topic in this round of dialogue. Thus, with context from the
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx5.p1.1.2">
+      Context Manager
+     </span>
+     , it can finally generate responses for users. In addition, as shown in Figure
+     <a class="ltx_ref" href="#Sx3.F2" title="Figure 2 ‣ DiagGPT Framework ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , some retrieved background knowledge, instructions, and encouragements will also be added into prompts here to further improve the response quality.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx6">
+   <h3 class="ltx_title ltx_title_subsection">
+    Extendibility
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx6.p1">
+    <p class="ltx_p" id="Sx3.SSx6.p1.1">
+     We have only extracted the most important modules in
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx6.p1.1.1">
+      DiagGPT
+     </span>
+     to form a basic framework of a system. These four modules can already implement the basic functions of task-oriented dialogue. In a multi-agent AI system, there is a large extendibility. For example, an information collector can monitor user input and organize information into structured data for better future utilization. After achieving the target task, the system can call more complex programs to meet needs. Some tool API calls can also be added into the action list for execution, which means the action list is the interface of
+     <span class="ltx_text ltx_font_typewriter" id="Sx3.SSx6.p1.1.2">
+      DiagGPT
+     </span>
+     and can provide many plugins to enrich the functions of this AI system.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx4">
+  <h2 class="ltx_title ltx_title_section">
+   Experiments
+  </h2>
+  <figure class="ltx_figure" id="Sx4.F6">
+   <p class="ltx_p ltx_align_center" id="Sx4.F6.1">
+    <span class="ltx_text" id="Sx4.F6.1.1">
+     <span class="ltx_inline-block ltx_transformed_outer" id="Sx4.F6.1.1.1" style="width:230.7pt;height:589.6pt;vertical-align:-0.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-39.0pt,99.8pt) scale(0.747137475126743,0.747137475126743) ;">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="842" id="Sx4.F6.1.1.1.g1" src="/html/2308.08043/assets/x6.png" width="322"/>
+      </span>
+     </span>
+    </span>
+   </p>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 6:
+    </span>
+    A dialogue example in the medical consulting scenario. The AI system acts as a real doctor in our daily life.
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="Sx4.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Setups
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx1.p1">
+    <p class="ltx_p" id="Sx4.SSx1.p1.1">
+     We conduct experiments to demonstrate the performance of
+     <span class="ltx_text ltx_font_typewriter" id="Sx4.SSx1.p1.1.1">
+      DiagGPT
+     </span>
+     . We first present a complete dialogue in the medical consulting process to show qualitative results of our AI system. This is then followed by a case study of automatic topic management, which details the changes in the topic stack during the dialogue process.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx1.p2">
+    <p class="ltx_p" id="Sx4.SSx1.p2.1">
+     In the implementation of our AI system, we employed
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx1.p2.1.1">
+      gpt-4
+     </span>
+     as the base LLM, leveraging its strong understanding and reasoning abilities to achieve ideal results. We set the decoding temperature of all LLMs in our AI system to 0 to ensure more stable task execution. We provide detailed prompts in our AI system. The main prompts of the AI agent are shown in Figure
+     <a class="ltx_ref" href="#Sx3.F2" title="Figure 2 ‣ DiagGPT Framework ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , while Figure
+     <a class="ltx_ref" href="#Sx3.F3" title="Figure 3 ‣ Thinking Topic Development ‣ Methodology ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     displays the prompts for all actions in the action list. In these prompts, {
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx1.p2.1.2">
+      variable
+     </span>
+     } in blue indicates that the slot needs to be filled with the corresponding variable text. Once filled, these prompts can be fed into the LLMs to generate responses. Some of these slots facilitate information interaction between AI systems.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx1.p3">
+    <p class="ltx_p" id="Sx4.SSx1.p3.1">
+     The test data for user queries is generated by another
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx1.p3.1.1">
+      gpt-4
+     </span>
+     model, which we design some prompts to guide. We do not evaluate our system using any task-oriented dialogue datasets, like DialoGLUE
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Yadav et al.
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2019
+      </a>
+      ; Moghe et al.
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , as
+     <span class="ltx_text ltx_font_typewriter" id="Sx4.SSx1.p3.1.2">
+      DiagGPT
+     </span>
+     is an open system that largely depends on AI consciousness combined with prompt instruction for output. We do not need to train our systems like fine-tuning models. Instead, we only need to provide a topic checklist and improve the instruction of the AI system to achieve ideal results, which are difficult to compare using quantitative metrics.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx4.F7">
+    <p class="ltx_p ltx_align_center" id="Sx4.F7.1">
+     <span class="ltx_text" id="Sx4.F7.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx4.F7.1.1.1" style="width:230.7pt;height:246.2pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-39.0pt,41.7pt) scale(0.747137475126743,0.747137475126743) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="352" id="Sx4.F7.1.1.1.g1" src="/html/2308.08043/assets/x7.png" width="322"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <br class="ltx_break ltx_break"/>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     The continued dialogue example in the medical consulting scenario.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="Sx4.F8">
+    <p class="ltx_p ltx_align_center" id="Sx4.F8.1">
+     <span class="ltx_text" id="Sx4.F8.1.1">
+      <span class="ltx_inline-block ltx_transformed_outer" id="Sx4.F8.1.1.1" style="width:230.7pt;height:159.8pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-39.0pt,27.0pt) scale(0.747137475126743,0.747137475126743) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="228" id="Sx4.F8.1.1.1.g1" src="/html/2308.08043/assets/x8.png" width="322"/>
+       </span>
+      </span>
+     </span>
+    </p>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 8:
+     </span>
+     A dialogue example in the medical consulting scenario when user ask some questions about COVID-19.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Qualitative Results
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx2.p1">
+    <p class="ltx_p" id="Sx4.SSx2.p1.1">
+     Figure
+     <a class="ltx_ref" href="#Sx4.F6" title="Figure 6 ‣ Experiments ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     and Figure
+     <a class="ltx_ref" href="#Sx4.F7" title="Figure 7 ‣ Setups ‣ Experiments ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     present a complete dialogue demonstration in the medical consulting process. This is a medical diagnosis where the task is to help the patient identify the cause and give advice. The user acts as a patient, while the AI emulates a doctor, initially collecting information and gradually providing advice to the patient. The main dialogue development follows the checklist:
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx2.p1.1.1">
+      Basic information
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx2.p1.1.2">
+      Chief complaint
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx2.p1.1.3">
+      Duration of symptoms
+     </span>
+     ,
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx2.p1.1.4">
+      Severity of symptoms
+     </span>
+     , which are also predefined topics.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx2.p2">
+    <p class="ltx_p" id="Sx4.SSx2.p2.1">
+     Due to space constraints in this paper, we cannot present more dialogue examples. However, this demonstration has already showcased the robust conversational ability of the
+     <span class="ltx_text ltx_font_typewriter" id="Sx4.SSx2.p2.1.1">
+      DiagGPT
+     </span>
+     , which can actively ask questions and guide the user to the final goal of the task, thereby achieving task-oriented dialogue. It simulates many real consulting scenarios. Other chat models, such as ChatGPT, cannot achieve this performance. They usually just answer user questions and find it challenging to complete specific goals, even with elaborated prompts.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Case Study of Automatic Topic Management
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx3.p1">
+    <p class="ltx_p" id="Sx4.SSx3.p1.1">
+     The core capability of
+     <span class="ltx_text ltx_font_typewriter" id="Sx4.SSx3.p1.1.1">
+      DiagGPT
+     </span>
+     is to automatically manage topics throughout the dialogue. Figure
+     <a class="ltx_ref" href="#Sx4.F6" title="Figure 6 ‣ Experiments ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     and Figure
+     <a class="ltx_ref" href="#Sx4.F7" title="Figure 7 ‣ Setups ‣ Experiments ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     illustrate the primary checklist progression. The topics from the checklist are retrieved and discussed sequentially, demonstrating the action of
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx3.p1.1.2">
+      finishing the current topic
+     </span>
+     . When the conversation reaches the severity of symptoms, we observe that the dialogue topic remains here in several rounds of dialogue, allowing the system to have time on understanding the user’s conditions. This mirrors real-world scenarios where users do not provide enough information for the doctor. The action of
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx3.p1.1.3">
+      creating a new topic
+     </span>
+     is shown in Figure
+     <a class="ltx_ref" href="#Sx4.F8" title="Figure 8 ‣ Setups ‣ Experiments ‣ DiagGPT: An LLM-based Chatbot with Automatic Topic Management for Task-Oriented Dialogue">
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     . Here, the user actively consults the system with some information about COVID-19 to check symptoms. We observe that the AI generates a new topic about COVID-19 and discusses this, rather than rigidly following the checklist. These case studies fully embody the AI’s flexible understanding ability, demonstrating its adept handling of different situations, closely mirroring real-world interactions.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx5">
+  <h2 class="ltx_title ltx_title_section">
+   Limitations
+  </h2>
+  <div class="ltx_para ltx_noindent" id="Sx5.p1">
+   <p class="ltx_p" id="Sx5.p1.1">
+    <span class="ltx_text ltx_font_bold" id="Sx5.p1.1.1">
+     Cost and Efficiency.
+    </span>
+    <span class="ltx_text ltx_font_typewriter" id="Sx5.p1.1.2">
+     DiagGPT
+    </span>
+    involves multiple LLMs. In just one round of dialogue with a single user query, all of these LLMs need to run with elaborated prompts, which is quite costly. Compared to simpler dialogue systems that involve just one LLM interacting with users,
+    <span class="ltx_text ltx_font_typewriter" id="Sx5.p1.1.3">
+     DiagGPT
+    </span>
+    requires internal interactions among AI agents, thus taking more time to provide user feedback. Furthermore, AI agent in our system requires strong understanding and reasoning abilities, necessitating a robust and large-scale AI to maintain these capabilities. This also increases the overall system cost. However, we believe that with the future development of AI infrastructure, these issues could be mitigated.
+    <br class="ltx_break"/>
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="Sx5.p2">
+   <p class="ltx_p" id="Sx5.p2.1">
+    <span class="ltx_text ltx_font_bold" id="Sx5.p2.1.1">
+     Stability.
+    </span>
+    The performance of
+    <span class="ltx_text ltx_font_typewriter" id="Sx5.p2.1.2">
+     DiagGPT
+    </span>
+    is not as stable as some rule-based or fine-tuned dialogue models. The main issue arises when the
+    <span class="ltx_text ltx_font_italic" id="Sx5.p2.1.3">
+     Topic Manager
+    </span>
+    decides the direction of dialogue development. It requires a strong understanding and reasoning ability from the AI, or else it may lead to system instability. Additionally, for every different applied scenario, meticulous and detailed prompt adjustments of the AI system are needed. Given the risk of LLMs’ output, some post-processing of responses is also required. Nevertheless,
+    <span class="ltx_text ltx_font_typewriter" id="Sx5.p2.1.4">
+     DiagGPT
+    </span>
+    maintains unlimited potential for dialogue systems. With stronger AI in the future, dialogue systems could improve significantly and become more human-like.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx6">
+  <h2 class="ltx_title ltx_title_section">
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="Sx6.p1">
+   <p class="ltx_p" id="Sx6.p1.1">
+    In this paper, we propose
+    <span class="ltx_text ltx_font_typewriter" id="Sx6.p1.1.1">
+     DiagGPT
+    </span>
+    , a multi-agent and collaborative AI system designed to complete task-oriented dialogue tasks. The principle of our system is to leverage the strong understanding and reasoning capabilities of Large Language Models to design an AI agent that can automatically manage topics and track dialogue state. Therefore, our system can accurately understand users’ intentions and help them to complete some specific tasks.
+    <span class="ltx_text ltx_font_typewriter" id="Sx6.p1.1.2">
+     DiagGPT
+    </span>
+    demonstrates the unlimited potential of LLMs in more complex dialogue scenarios, such as task-oriented dialogues, benefiting society by applying AI in various scenarios.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx6.p2">
+   <p class="ltx_p" id="Sx6.p2.1">
+    As previously mentioned,
+    <span class="ltx_text ltx_font_typewriter" id="Sx6.p2.1.1">
+     DiagGPT
+    </span>
+    has ample room for extending its functionality. We aim to explore how to better serve users by combining the robust capabilities of LLMs. Moreover, we believe that the construction of LLM-based multi-agent systems signifies the future of AI development. We hope that the design of our system can inspire the development of more sophisticated AI applications and pave the way for LLMs towards more advanced AI systems.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Balaraman, Sheikhalishahi, and
+Magnini (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Balaraman, V.; Sheikhalishahi, S.; and Magnini, B. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Recent Neural Methods on Dialogue State Tracking for Task-Oriented
+Dialogue Systems: A Survey.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Proceedings of the 22nd Annual Meeting of the Special
+Interest Group on Discourse and Dialogue
+     </em>
+     , 239–251. Singapore and Online:
+Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bang, Lee, and Koo (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Bang, N.; Lee, J.; and Koo, M.-W. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Task-Optimized Adapters for an End-to-End Task-Oriented Dialogue
+System.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Findings of the Association for Computational Linguistics:
+ACL 2023
+     </em>
+     , 7355–7369. Toronto, Canada: Association for Computational
+Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Brown, T.; Mann, B.; Ryder, N.; Subbiah, M.; Kaplan, J. D.; Dhariwal, P.;
+Neelakantan, A.; Shyam, P.; Sastry, G.; Askell, A.; Agarwal, S.;
+Herbert-Voss, A.; Krueger, G.; Henighan, T.; Child, R.; Ramesh, A.; Ziegler,
+D.; Wu, J.; Winter, C.; Hesse, C.; Chen, M.; Sigler, E.; Litwin, M.; Gray,
+S.; Chess, B.; Clark, J.; Berner, C.; McCandlish, S.; Radford, A.; Sutskever,
+I.; and Amodei, D. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Language Models are Few-Shot Learners.
+    </span>
+    <span class="ltx_bibblock">
+     In Larochelle, H.; Ranzato, M.; Hadsell, R.; Balcan, M.; and Lin, H.,
+eds.,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 33,
+1877–1901. Curran Associates, Inc.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chowdhery et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Chowdhery, A.; Narang, S.; Devlin, J.; Bosma, M.; Mishra, G.; Roberts, A.;
+Barham, P.; Chung, H. W.; Sutton, C.; Gehrmann, S.; Schuh, P.; Shi, K.;
+Tsvyashchenko, S.; Maynez, J.; Rao, A.; Barnes, P.; Tay, Y.; Shazeer, N.;
+Prabhakaran, V.; Reif, E.; Du, N.; Hutchinson, B.; Pope, R.; Bradbury, J.;
+Austin, J.; Isard, M.; Gur-Ari, G.; Yin, P.; Duke, T.; Levskaya, A.;
+Ghemawat, S.; Dev, S.; Michalewski, H.; Garcia, X.; Misra, V.; Robinson, K.;
+Fedus, L.; Zhou, D.; Ippolito, D.; Luan, D.; Lim, H.; Zoph, B.; Spiridonov,
+A.; Sepassi, R.; Dohan, D.; Agrawal, S.; Omernick, M.; Dai, A. M.; Pillai,
+T. S.; Pellat, M.; Lewkowycz, A.; Moreira, E.; Child, R.; Polozov, O.; Lee,
+K.; Zhou, Z.; Wang, X.; Saeta, B.; Diaz, M.; Firat, O.; Catasta, M.; Wei, J.;
+Meier-Hellstern, K.; Eck, D.; Dean, J.; Petrov, S.; and Fiedel, N. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     PaLM: Scaling Language Modeling with Pathways.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2204.02311.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Feng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Feng, Y.; Jiao, Y.; Prasad, A.; Aletras, N.; Yilmaz, E.; and Kazai, G. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Schema-Guided User Satisfaction Modeling for Task-Oriented Dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Proceedings of the 61st Annual Meeting of the Association
+for Computational Linguistics (Volume 1: Long Papers)
+     </em>
+     , 2079–2091. Toronto,
+Canada: Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hudeček and Dušek (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hudeček, V.; and Dušek, O. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Are LLMs All You Need for Task-Oriented Dialogue?
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2304.06556.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Liang, P.; Ye, D.; Zhu, Z.; Wang, Y.; Xia, W.; Liang, R.; and Sun, G. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     C5: Towards Better Conversation Comprehension and Contextual
+Continuity for ChatGPT.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2308.05567.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Liu, Y.; Jiang, X.; Yin, Y.; Wang, Y.; Mi, F.; Liu, Q.; Wan, X.; and Wang, B.
+2023.
+    </span>
+    <span class="ltx_bibblock">
+     One Cannot Stand for Everyone! Leveraging Multiple User Simulators to
+train Task-oriented Dialogue Systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 61st Annual Meeting of the Association
+for Computational Linguistics (Volume 1: Long Papers)
+     </em>
+     , 1–21. Toronto,
+Canada: Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Min et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Min, S.; Lyu, X.; Holtzman, A.; Artetxe, M.; Lewis, M.; Hajishirzi, H.; and
+Zettlemoyer, L. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Rethinking the Role of Demonstrations: What Makes In-Context Learning
+Work?
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the 2022 Conference on Empirical Methods in
+Natural Language Processing
+     </em>
+     , 11048–11064. Abu Dhabi, United Arab Emirates:
+Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Moghe et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Moghe, N.; Razumovskaia, E.; Guillou, L.; Vulić, I.; Korhonen, A.; and
+Birch, A. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Multi3NLU++: A Multilingual, Multi-Intent, Multi-Domain Dataset
+for Natural Language Understanding in Task-Oriented Dialogue.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Findings of the Association for Computational Linguistics:
+ACL 2023
+     </em>
+     , 3732–3755. Toronto, Canada: Association for Computational
+Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     GPT-4 Technical Report.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2303.08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Schick et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Schick, T.; Dwivedi-Yu, J.; Dessì, R.; Raileanu, R.; Lomeli, M.; Zettlemoyer,
+L.; Cancedda, N.; and Scialom, T. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Toolformer: Language Models Can Teach Themselves to Use Tools.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2302.04761.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shen, Y.; Song, K.; Tan, X.; Li, D.; Lu, W.; and Zhuang, Y. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging
+Face.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2303.17580.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022a)
+    </span>
+    <span class="ltx_bibblock">
+     Wei, J.; Tay, Y.; Bommasani, R.; Raffel, C.; Zoph, B.; Borgeaud, S.; Yogatama,
+D.; Bosma, M.; Zhou, D.; Metzler, D.; Chi, E. H.; Hashimoto, T.; Vinyals, O.;
+Liang, P.; Dean, J.; and Fedus, W. 2022a.
+    </span>
+    <span class="ltx_bibblock">
+     Emergent Abilities of Large Language Models.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2206.07682.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022b)
+    </span>
+    <span class="ltx_bibblock">
+     Wei, J.; Wang, X.; Schuurmans, D.; Bosma, M.; Xia, F.; Chi, E.; Le, Q. V.;
+Zhou, D.; et al. 2022b.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:
+24824–24837.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wen et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Wen, T.-H.; Vandyke, D.; Mrkšić, N.; Gašić, M.;
+Rojas-Barahona, L. M.; Su, P.-H.; Ultes, S.; and Young, S. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     A Network-based End-to-End Trainable Task-oriented Dialogue System.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      Proceedings of the 15th Conference of the European Chapter
+of the Association for Computational Linguistics: Volume 1, Long Papers
+     </em>
+     ,
+438–449. Valencia, Spain: Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Wu, C.-S.; Madotto, A.; Hosseini-Asl, E.; Xiong, C.; Socher, R.; and Fung, P.
+2019.
+    </span>
+    <span class="ltx_bibblock">
+     Transferable Multi-Domain State Generator for Task-Oriented Dialogue
+Systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 57th Annual Meeting of the Association
+for Computational Linguistics
+     </em>
+     , 808–819. Florence, Italy: Association for
+Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xie et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Xie, S. M.; Raghunathan, A.; Liang, P.; and Ma, T. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     An Explanation of In-context Learning as Implicit Bayesian Inference.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yadav et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Yadav, D.; Jain, R.; Agrawal, H.; Chattopadhyay, P.; Singh, T.; Jain, A.;
+Singh, S. B.; Lee, S.; and Batra, D. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     EvalAI: Towards Better Evaluation Systems for AI Agents.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang, Naradowsky, and Miyao (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhang, Q.; Naradowsky, J.; and Miyao, Y. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Ask an Expert: Leveraging Language Models to Improve Strategic
+Reasoning in Goal-Oriented Dialogue Models.
+    </span>
+    <span class="ltx_bibblock">
+     arXiv:2305.17878.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

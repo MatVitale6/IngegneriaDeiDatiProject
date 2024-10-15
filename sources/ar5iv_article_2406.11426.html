@@ -1,0 +1,3841 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <a class="ltx_ref ltx_href" href="https://orcid.org/0000-0002-4774-1506" target="_blank" title="">
+     <img alt="[Uncaptioned image]" class="ltx_graphics ltx_img_square" height="5" id="id1.1.1.g1" src="/html/2406.11426/assets/x1.png" width="5"/>
+     Ayato Kitadai
+    </a>
+    <br class="ltx_break"/>
+    School of Engineering
+    <br class="ltx_break"/>
+    The University of Tokyo
+    <br class="ltx_break"/>
+    &amp;
+    <a class="ltx_ref ltx_href" href="https://orcid.org/0000-0002-6863-5139" target="_blank" title="">
+     <img alt="[Uncaptioned image]" class="ltx_graphics ltx_img_square" height="5" id="id2.2.2.g1" src="/html/2406.11426/assets/x1.png" width="5"/>
+     Sinndy Dayana Rico Lugo
+    </a>
+    <br class="ltx_break"/>
+    School of Engineering
+    <br class="ltx_break"/>
+    The University of Tokyo
+    <br class="ltx_break"/>
+    &amp;Yudai Tsurusaki
+    <br class="ltx_break"/>
+    School of Engineering
+    <br class="ltx_break"/>
+    The University of Tokyo
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id4.4.id1">
+     \AND
+    </span>
+    Yusuke Fukasawa
+    <br class="ltx_break"/>
+    School of Engineering
+    <br class="ltx_break"/>
+    The University of Tokyo
+    <br class="ltx_break"/>
+    &amp;
+    <a class="ltx_ref ltx_href" href="https://orcid.org/0000-0002-6411-8716" target="_blank" title="">
+     <img alt="[Uncaptioned image]" class="ltx_graphics ltx_img_square" height="5" id="id3.3.3.g1" src="/html/2406.11426/assets/x1.png" width="5"/>
+     Nariaki Nishino
+    </a>
+    <br class="ltx_break"/>
+    School of Engineering
+    <br class="ltx_break"/>
+    The University of Tokyo
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_text ltx_font_typewriter" id="id5.5.id1">
+     a.kitadai@css.t.u-tokyo.ac.jp
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id6.id1">
+   Economic experiments offer a controlled setting for researchers to observe human decision-making and test diverse theories and hypotheses; however, substantial costs and efforts are incurred to gather many individuals as experimental participants. To address this, with the development of large language models (LLMs), some researchers have recently attempted to develop simulated economic experiments using LLMs-driven agents, called generative agents. If generative agents can replicate human-like decision-making in economic experiments, the cost problem of economic experiments can be alleviated. However, such a simulation framework has not been yet established. Considering the previous research and the current evolutionary stage of LLMs, this study focuses on the reasoning ability of generative agents as a key factor toward establishing a framework for such a new methodology. A multi-agent simulation, designed to improve the reasoning ability of generative agents through prompting methods, was developed to reproduce the result of an actual economic experiment on the ultimatum game. The results demonstrated that the higher the reasoning ability of the agents, the closer the results were to the theoretical solution than to the real experimental result. The results also suggest that setting the personas of the generative agents may be important for reproducing the results of real economic experiments. These findings are valuable for the future definition of a framework for replacing human participants with generative agents in economic experiments when LLMs are further developed.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Economic experiments are a relevant approach in economics to provide researchers with a controlled environment to observe and analyze human behavior in response to various economic conditions to test theories and hypotheses, assess the impact of policy changes, and understand decision-making processes. However, it is necessary to gather many individuals as subjects to get sufficient experimental data that can be judged as valuable and reproducible
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    for such testing, commonly incurring huge costs and efforts to provide the subjects with enough motivation to participate and provide serious responses
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Considering this problem, a novel simulation approach called “Large Language Models-driven multi-agent simulation (LLMs-driven MAS)” has recently received the attention of some researchers in economics and behavioral fields. In LLMs-driven MAS, each agent, called a generative agent, makes decisions using LLMs, making it different from conventional MAS where agents follow completely predefined rules. Especially, the most recent LLMs-driven MAS that can generate human-like responses using natural languages are becoming more attractive
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Particularly, some researchers have recently worked on utilizing LLMs-driven MAS in economic experiments, but they are still under challenges. On the one hand, some studies succeeded in observing the same tendency of well-known classical results of some economic experiments in LLMs-driven MAS
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    . On the other hand, some articles report that LLMs-driven MAS had shown both consistent and inconsistent data with real economic experiments
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    . In addition, some researchers affirm that the result of LLMs-driven MAS for economic experiments depends on the setting of the simulation such as the persona of generative agents and the instructions to agents as subjects
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    . Thus, it can be said that the way to apply LLMs-drive MAS into economic experiments has not been established and further study is necessary on this topic.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    As a first step to establishing a framework for such a new methodology, in Kitadai et al. (2023), we conducted LLMs-driven MAS to explore the reproducibility of the outcome of the economic experiment on the one-shot ultimatum game published by Lin et al. (2020). The ultimatum game is a well-known classical theme of economic experiments which suggests the gap between theoretical equilibrium and actual human behavior
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    . In the study, various settings of prompt and parameter were used to analyze a general proper configuration of LLMs-driven MAS for economic experiments. As a result, we found a suitable setting to reproduce the distribution of the original data for the proposer side, but could not for the responder side
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Based on that, this paper presents the next step of our research toward establishing the general way of applying LLMs-driven MAS into economic experiments. As we explain in detail later, it was considered that the reasoning ability of the generative agents in our previous simulation was insufficient to reproduce the original result for the responder side. Therefore, this research aims to clarify if LLMs-driven MAS can reproduce the result of economic experiments by improving the reasoning ability of generative agents. In particular, we conducted LLMs-driven MAS, using an updated version of the framework based on Kitadai et al. (2023) and compared the results of simulations through various methods to improve the reasoning ability of agents to reproduce the outcome of the one-shot ultimatum game shown in Lin et al. (2020).
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    The contribution of this research will be valuable for utilizing LLMs-driven MAS in economic experiments even in the future when LLMs with higher reasoning abilities are in widespread use. With the rapid development of the computer science field, models of LLMs with higher reasoning abilities are appearing and are going to prevail. Considering this trend, it can be said that taking the level of reasoning ability of LLMs into account is important to establish the way to apply LLMs-driven MAS into economic experiments.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    The reminder of this paper consists of the theoretical background presented in Section
+    <a class="ltx_ref" href="#S2" title="2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    , the research methodology in Section
+    <a class="ltx_ref" href="#S3" title="3 Methodology ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    , the results shown in Section
+    <a class="ltx_ref" href="#S4" title="4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    , and the discussion and conclusions presented in Section
+    <a class="ltx_ref" href="#S5" title="5 Discussion and Conclusion ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Theoretical Background
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Ultimatum Game
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The ultimatum game involves a sequential decision-making process in which two players determine the distribution of a divisible good. Although there are both one-shot and repeated variations of this game, our investigation specifically concentrated on the one-shot game ultimatum game. It comprises the following two steps
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ]
+     </cite>
+     :
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p2">
+    <ol class="ltx_enumerate" id="S2.I1">
+     <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1.
+      </span>
+      <div class="ltx_para" id="S2.I1.i1.p1">
+       <p class="ltx_p" id="S2.I1.i1.p1.3">
+        The player making the offer suggests a partition of divisible the good. As an example, with a total of
+        <math alttext="100" class="ltx_Math" display="inline" id="S2.I1.i1.p1.1.m1.1">
+         <semantics id="S2.I1.i1.p1.1.m1.1a">
+          <mn id="S2.I1.i1.p1.1.m1.1.1" xref="S2.I1.i1.p1.1.m1.1.1.cmml">
+           100
+          </mn>
+          <annotation-xml encoding="MathML-Content" id="S2.I1.i1.p1.1.m1.1b">
+           <cn id="S2.I1.i1.p1.1.m1.1.1.cmml" type="integer" xref="S2.I1.i1.p1.1.m1.1.1">
+            100
+           </cn>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.I1.i1.p1.1.m1.1c">
+           100
+          </annotation>
+         </semantics>
+        </math>
+        coins in play, the offering player may propose taking
+        <math alttext="70" class="ltx_Math" display="inline" id="S2.I1.i1.p1.2.m2.1">
+         <semantics id="S2.I1.i1.p1.2.m2.1a">
+          <mn id="S2.I1.i1.p1.2.m2.1.1" xref="S2.I1.i1.p1.2.m2.1.1.cmml">
+           70
+          </mn>
+          <annotation-xml encoding="MathML-Content" id="S2.I1.i1.p1.2.m2.1b">
+           <cn id="S2.I1.i1.p1.2.m2.1.1.cmml" type="integer" xref="S2.I1.i1.p1.2.m2.1.1">
+            70
+           </cn>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.I1.i1.p1.2.m2.1c">
+           70
+          </annotation>
+         </semantics>
+        </math>
+        coins for himself, leaving the responding player with
+        <math alttext="30" class="ltx_Math" display="inline" id="S2.I1.i1.p1.3.m3.1">
+         <semantics id="S2.I1.i1.p1.3.m3.1a">
+          <mn id="S2.I1.i1.p1.3.m3.1.1" xref="S2.I1.i1.p1.3.m3.1.1.cmml">
+           30
+          </mn>
+          <annotation-xml encoding="MathML-Content" id="S2.I1.i1.p1.3.m3.1b">
+           <cn id="S2.I1.i1.p1.3.m3.1.1.cmml" type="integer" xref="S2.I1.i1.p1.3.m3.1.1">
+            30
+           </cn>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.I1.i1.p1.3.m3.1c">
+           30
+          </annotation>
+         </semantics>
+        </math>
+        coins.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2.
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I1.i2.p1">
+       <p class="ltx_p" id="S2.I1.i2.p1.1">
+        The player responding has the choice to either accept or reject the proposed division. Upon acceptance, the suggested distribution is implemented; however, in the case of rejection, both players receive nothing.
+       </p>
+      </div>
+     </li>
+    </ol>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.6">
+     In a mathematical form, the divisible good is defined as
+     <math alttext="R\in\mathbb{R}" class="ltx_Math" display="inline" id="S2.SS1.p3.1.m1.1">
+      <semantics id="S2.SS1.p3.1.m1.1a">
+       <mrow id="S2.SS1.p3.1.m1.1.1" xref="S2.SS1.p3.1.m1.1.1.cmml">
+        <mi id="S2.SS1.p3.1.m1.1.1.2" xref="S2.SS1.p3.1.m1.1.1.2.cmml">
+         R
+        </mi>
+        <mo id="S2.SS1.p3.1.m1.1.1.1" xref="S2.SS1.p3.1.m1.1.1.1.cmml">
+         ∈
+        </mo>
+        <mi id="S2.SS1.p3.1.m1.1.1.3" xref="S2.SS1.p3.1.m1.1.1.3.cmml">
+         ℝ
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.1.m1.1b">
+        <apply id="S2.SS1.p3.1.m1.1.1.cmml" xref="S2.SS1.p3.1.m1.1.1">
+         <in id="S2.SS1.p3.1.m1.1.1.1.cmml" xref="S2.SS1.p3.1.m1.1.1.1">
+         </in>
+         <ci id="S2.SS1.p3.1.m1.1.1.2.cmml" xref="S2.SS1.p3.1.m1.1.1.2">
+          𝑅
+         </ci>
+         <ci id="S2.SS1.p3.1.m1.1.1.3.cmml" xref="S2.SS1.p3.1.m1.1.1.3">
+          ℝ
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.1.m1.1c">
+        R\in\mathbb{R}
+       </annotation>
+      </semantics>
+     </math>
+     . The strategies of players are:
+     <math alttext="1" class="ltx_Math" display="inline" id="S2.SS1.p3.2.m2.1">
+      <semantics id="S2.SS1.p3.2.m2.1a">
+       <mn id="S2.SS1.p3.2.m2.1.1" xref="S2.SS1.p3.2.m2.1.1.cmml">
+        1
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.2.m2.1b">
+        <cn id="S2.SS1.p3.2.m2.1.1.cmml" type="integer" xref="S2.SS1.p3.2.m2.1.1">
+         1
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.2.m2.1c">
+        1
+       </annotation>
+      </semantics>
+     </math>
+     is
+     <math alttext="s_{1}\in[0,1]" class="ltx_Math" display="inline" id="S2.SS1.p3.3.m3.2">
+      <semantics id="S2.SS1.p3.3.m3.2a">
+       <mrow id="S2.SS1.p3.3.m3.2.3" xref="S2.SS1.p3.3.m3.2.3.cmml">
+        <msub id="S2.SS1.p3.3.m3.2.3.2" xref="S2.SS1.p3.3.m3.2.3.2.cmml">
+         <mi id="S2.SS1.p3.3.m3.2.3.2.2" xref="S2.SS1.p3.3.m3.2.3.2.2.cmml">
+          s
+         </mi>
+         <mn id="S2.SS1.p3.3.m3.2.3.2.3" xref="S2.SS1.p3.3.m3.2.3.2.3.cmml">
+          1
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p3.3.m3.2.3.1" xref="S2.SS1.p3.3.m3.2.3.1.cmml">
+         ∈
+        </mo>
+        <mrow id="S2.SS1.p3.3.m3.2.3.3.2" xref="S2.SS1.p3.3.m3.2.3.3.1.cmml">
+         <mo id="S2.SS1.p3.3.m3.2.3.3.2.1" stretchy="false" xref="S2.SS1.p3.3.m3.2.3.3.1.cmml">
+          [
+         </mo>
+         <mn id="S2.SS1.p3.3.m3.1.1" xref="S2.SS1.p3.3.m3.1.1.cmml">
+          0
+         </mn>
+         <mo id="S2.SS1.p3.3.m3.2.3.3.2.2" xref="S2.SS1.p3.3.m3.2.3.3.1.cmml">
+          ,
+         </mo>
+         <mn id="S2.SS1.p3.3.m3.2.2" xref="S2.SS1.p3.3.m3.2.2.cmml">
+          1
+         </mn>
+         <mo id="S2.SS1.p3.3.m3.2.3.3.2.3" stretchy="false" xref="S2.SS1.p3.3.m3.2.3.3.1.cmml">
+          ]
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.3.m3.2b">
+        <apply id="S2.SS1.p3.3.m3.2.3.cmml" xref="S2.SS1.p3.3.m3.2.3">
+         <in id="S2.SS1.p3.3.m3.2.3.1.cmml" xref="S2.SS1.p3.3.m3.2.3.1">
+         </in>
+         <apply id="S2.SS1.p3.3.m3.2.3.2.cmml" xref="S2.SS1.p3.3.m3.2.3.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p3.3.m3.2.3.2.1.cmml" xref="S2.SS1.p3.3.m3.2.3.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p3.3.m3.2.3.2.2.cmml" xref="S2.SS1.p3.3.m3.2.3.2.2">
+           𝑠
+          </ci>
+          <cn id="S2.SS1.p3.3.m3.2.3.2.3.cmml" type="integer" xref="S2.SS1.p3.3.m3.2.3.2.3">
+           1
+          </cn>
+         </apply>
+         <interval closure="closed" id="S2.SS1.p3.3.m3.2.3.3.1.cmml" xref="S2.SS1.p3.3.m3.2.3.3.2">
+          <cn id="S2.SS1.p3.3.m3.1.1.cmml" type="integer" xref="S2.SS1.p3.3.m3.1.1">
+           0
+          </cn>
+          <cn id="S2.SS1.p3.3.m3.2.2.cmml" type="integer" xref="S2.SS1.p3.3.m3.2.2">
+           1
+          </cn>
+         </interval>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.3.m3.2c">
+        s_{1}\in[0,1]
+       </annotation>
+      </semantics>
+     </math>
+     for player
+     <math alttext="1" class="ltx_Math" display="inline" id="S2.SS1.p3.4.m4.1">
+      <semantics id="S2.SS1.p3.4.m4.1a">
+       <mn id="S2.SS1.p3.4.m4.1.1" xref="S2.SS1.p3.4.m4.1.1.cmml">
+        1
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.4.m4.1b">
+        <cn id="S2.SS1.p3.4.m4.1.1.cmml" type="integer" xref="S2.SS1.p3.4.m4.1.1">
+         1
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.4.m4.1c">
+        1
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="s_{2}\in\{\rm{accept},\rm{reject}\}" class="ltx_Math" display="inline" id="S2.SS1.p3.5.m5.2">
+      <semantics id="S2.SS1.p3.5.m5.2a">
+       <mrow id="S2.SS1.p3.5.m5.2.3" xref="S2.SS1.p3.5.m5.2.3.cmml">
+        <msub id="S2.SS1.p3.5.m5.2.3.2" xref="S2.SS1.p3.5.m5.2.3.2.cmml">
+         <mi id="S2.SS1.p3.5.m5.2.3.2.2" xref="S2.SS1.p3.5.m5.2.3.2.2.cmml">
+          s
+         </mi>
+         <mn id="S2.SS1.p3.5.m5.2.3.2.3" xref="S2.SS1.p3.5.m5.2.3.2.3.cmml">
+          2
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p3.5.m5.2.3.1" xref="S2.SS1.p3.5.m5.2.3.1.cmml">
+         ∈
+        </mo>
+        <mrow id="S2.SS1.p3.5.m5.2.3.3.2" xref="S2.SS1.p3.5.m5.2.3.3.1.cmml">
+         <mo id="S2.SS1.p3.5.m5.2.3.3.2.1" stretchy="false" xref="S2.SS1.p3.5.m5.2.3.3.1.cmml">
+          {
+         </mo>
+         <mi id="S2.SS1.p3.5.m5.1.1" xref="S2.SS1.p3.5.m5.1.1.cmml">
+          accept
+         </mi>
+         <mo id="S2.SS1.p3.5.m5.2.3.3.2.2" xref="S2.SS1.p3.5.m5.2.3.3.1.cmml">
+          ,
+         </mo>
+         <mi id="S2.SS1.p3.5.m5.2.2" xref="S2.SS1.p3.5.m5.2.2.cmml">
+          reject
+         </mi>
+         <mo id="S2.SS1.p3.5.m5.2.3.3.2.3" stretchy="false" xref="S2.SS1.p3.5.m5.2.3.3.1.cmml">
+          }
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.5.m5.2b">
+        <apply id="S2.SS1.p3.5.m5.2.3.cmml" xref="S2.SS1.p3.5.m5.2.3">
+         <in id="S2.SS1.p3.5.m5.2.3.1.cmml" xref="S2.SS1.p3.5.m5.2.3.1">
+         </in>
+         <apply id="S2.SS1.p3.5.m5.2.3.2.cmml" xref="S2.SS1.p3.5.m5.2.3.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p3.5.m5.2.3.2.1.cmml" xref="S2.SS1.p3.5.m5.2.3.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p3.5.m5.2.3.2.2.cmml" xref="S2.SS1.p3.5.m5.2.3.2.2">
+           𝑠
+          </ci>
+          <cn id="S2.SS1.p3.5.m5.2.3.2.3.cmml" type="integer" xref="S2.SS1.p3.5.m5.2.3.2.3">
+           2
+          </cn>
+         </apply>
+         <set id="S2.SS1.p3.5.m5.2.3.3.1.cmml" xref="S2.SS1.p3.5.m5.2.3.3.2">
+          <ci id="S2.SS1.p3.5.m5.1.1.cmml" xref="S2.SS1.p3.5.m5.1.1">
+           accept
+          </ci>
+          <ci id="S2.SS1.p3.5.m5.2.2.cmml" xref="S2.SS1.p3.5.m5.2.2">
+           reject
+          </ci>
+         </set>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.5.m5.2c">
+        s_{2}\in\{\rm{accept},\rm{reject}\}
+       </annotation>
+      </semantics>
+     </math>
+     for player
+     <math alttext="2" class="ltx_Math" display="inline" id="S2.SS1.p3.6.m6.1">
+      <semantics id="S2.SS1.p3.6.m6.1a">
+       <mn id="S2.SS1.p3.6.m6.1.1" xref="S2.SS1.p3.6.m6.1.1.cmml">
+        2
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.6.m6.1b">
+        <cn id="S2.SS1.p3.6.m6.1.1.cmml" type="integer" xref="S2.SS1.p3.6.m6.1.1">
+         2
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.6.m6.1c">
+        2
+       </annotation>
+      </semantics>
+     </math>
+     . The payoffs of players are:
+    </p>
+    <table class="ltx_equation ltx_eqn_table" id="S2.Ex1">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="(u_{1},u_{2})=\left\{\begin{aligned} &amp;(R(1-s_{1}),Rs_{1})\quad&amp;&amp;\text{if $s_{2}=\rm{accept}$},\\
+&amp;(0,0)&amp;&amp;\text{if $s_{2}=\rm{reject}$}.\end{aligned}\right." class="ltx_math_unparsed" display="block" id="S2.Ex1.m1.5">
+         <semantics id="S2.Ex1.m1.5a">
+          <mrow id="S2.Ex1.m1.5b">
+           <mrow id="S2.Ex1.m1.5.6">
+            <mo id="S2.Ex1.m1.5.6.1" stretchy="false">
+             (
+            </mo>
+            <msub id="S2.Ex1.m1.5.6.2">
+             <mi id="S2.Ex1.m1.5.6.2.2">
+              u
+             </mi>
+             <mn id="S2.Ex1.m1.5.6.2.3">
+              1
+             </mn>
+            </msub>
+            <mo id="S2.Ex1.m1.5.6.3">
+             ,
+            </mo>
+            <msub id="S2.Ex1.m1.5.6.4">
+             <mi id="S2.Ex1.m1.5.6.4.2">
+              u
+             </mi>
+             <mn id="S2.Ex1.m1.5.6.4.3">
+              2
+             </mn>
+            </msub>
+            <mo id="S2.Ex1.m1.5.6.5" stretchy="false">
+             )
+            </mo>
+           </mrow>
+           <mo id="S2.Ex1.m1.5.7">
+            =
+           </mo>
+           <mrow id="S2.Ex1.m1.5.8">
+            <mo id="S2.Ex1.m1.5.8.1">
+             {
+            </mo>
+            <mtable columnspacing="0pt" displaystyle="true" id="S2.Ex1.m1.5.5" rowspacing="0pt">
+             <mtr id="S2.Ex1.m1.5.5a">
+              <mtd id="S2.Ex1.m1.5.5b">
+              </mtd>
+              <mtd class="ltx_align_left" columnalign="left" id="S2.Ex1.m1.5.5c">
+               <mrow id="S2.Ex1.m1.3.3.3.2.1.1">
+                <mrow id="S2.Ex1.m1.3.3.3.2.1.1.1.2">
+                 <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.2.3" stretchy="false">
+                  (
+                 </mo>
+                 <mrow id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1">
+                  <mi id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.3">
+                   R
+                  </mi>
+                  <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.2" lspace="0em" rspace="0em">
+                   ​
+                  </mo>
+                  <mrow id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1">
+                   <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.2" stretchy="false">
+                    (
+                   </mo>
+                   <mrow id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1">
+                    <mn id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1.2">
+                     1
+                    </mn>
+                    <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1.1">
+                     −
+                    </mo>
+                    <msub id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1.3">
+                     <mi id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1.3.2">
+                      s
+                     </mi>
+                     <mn id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.1.3.3">
+                      1
+                     </mn>
+                    </msub>
+                   </mrow>
+                   <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.1.1.1.1.3" stretchy="false">
+                    )
+                   </mo>
+                  </mrow>
+                 </mrow>
+                 <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.2.4">
+                  ,
+                 </mo>
+                 <mrow id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2">
+                  <mi id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2.2">
+                   R
+                  </mi>
+                  <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2.1" lspace="0em" rspace="0em">
+                   ​
+                  </mo>
+                  <msub id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2.3">
+                   <mi id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2.3.2">
+                    s
+                   </mi>
+                   <mn id="S2.Ex1.m1.3.3.3.2.1.1.1.2.2.3.3">
+                    1
+                   </mn>
+                  </msub>
+                 </mrow>
+                 <mo id="S2.Ex1.m1.3.3.3.2.1.1.1.2.5" stretchy="false">
+                  )
+                 </mo>
+                </mrow>
+                <mspace id="S2.Ex1.m1.3.3.3.2.1.1.2" width="1em">
+                </mspace>
+               </mrow>
+              </mtd>
+              <mtd id="S2.Ex1.m1.5.5d">
+              </mtd>
+              <mtd class="ltx_align_left" columnalign="left" id="S2.Ex1.m1.5.5e">
+               <mrow id="S2.Ex1.m1.1.1.1.1.1.3">
+                <mrow id="S2.Ex1.m1.1.1.1.1.1.1.1">
+                 <mtext id="S2.Ex1.m1.1.1.1.1.1.1.1a">
+                  if
+                 </mtext>
+                 <mrow id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1">
+                  <msub id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1.2">
+                   <mi id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1.2.2">
+                    s
+                   </mi>
+                   <mn id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1.2.3">
+                    2
+                   </mn>
+                  </msub>
+                  <mo id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1.1">
+                   =
+                  </mo>
+                  <mi id="S2.Ex1.m1.1.1.1.1.1.1.1.m1.1.1.3">
+                   accept
+                  </mi>
+                 </mrow>
+                </mrow>
+                <mo id="S2.Ex1.m1.1.1.1.1.1.3.1">
+                 ,
+                </mo>
+               </mrow>
+              </mtd>
+             </mtr>
+             <mtr id="S2.Ex1.m1.5.5f">
+              <mtd id="S2.Ex1.m1.5.5g">
+              </mtd>
+              <mtd class="ltx_align_left" columnalign="left" id="S2.Ex1.m1.5.5h">
+               <mrow id="S2.Ex1.m1.5.5.5.3.2.4">
+                <mo id="S2.Ex1.m1.5.5.5.3.2.4.1" stretchy="false">
+                 (
+                </mo>
+                <mn id="S2.Ex1.m1.4.4.4.2.1.1">
+                 0
+                </mn>
+                <mo id="S2.Ex1.m1.5.5.5.3.2.4.2">
+                 ,
+                </mo>
+                <mn id="S2.Ex1.m1.5.5.5.3.2.2">
+                 0
+                </mn>
+                <mo id="S2.Ex1.m1.5.5.5.3.2.4.3" stretchy="false">
+                 )
+                </mo>
+               </mrow>
+              </mtd>
+              <mtd id="S2.Ex1.m1.5.5i">
+              </mtd>
+              <mtd class="ltx_align_left" columnalign="left" id="S2.Ex1.m1.5.5j">
+               <mrow id="S2.Ex1.m1.2.2.2.1.1.3">
+                <mrow id="S2.Ex1.m1.2.2.2.1.1.1.1">
+                 <mtext id="S2.Ex1.m1.2.2.2.1.1.1.1a">
+                  if
+                 </mtext>
+                 <mrow id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1">
+                  <msub id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1.2">
+                   <mi id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1.2.2">
+                    s
+                   </mi>
+                   <mn id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1.2.3">
+                    2
+                   </mn>
+                  </msub>
+                  <mo id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1.1">
+                   =
+                  </mo>
+                  <mi id="S2.Ex1.m1.2.2.2.1.1.1.1.m1.1.1.3">
+                   reject
+                  </mi>
+                 </mrow>
+                </mrow>
+                <mo id="S2.Ex1.m1.2.2.2.1.1.3.1" lspace="0em">
+                 .
+                </mo>
+               </mrow>
+              </mtd>
+             </mtr>
+            </mtable>
+           </mrow>
+          </mrow>
+          <annotation encoding="application/x-tex" id="S2.Ex1.m1.5c">
+           (u_{1},u_{2})=\left\{\begin{aligned} &amp;(R(1-s_{1}),Rs_{1})\quad&amp;&amp;\text{if $s_{2}=\rm{accept}$},\\
+&amp;(0,0)&amp;&amp;\text{if $s_{2}=\rm{reject}$}.\end{aligned}\right.
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <p class="ltx_p" id="S2.SS1.p3.8">
+     where
+     <math alttext="u_{i}" class="ltx_Math" display="inline" id="S2.SS1.p3.7.m1.1">
+      <semantics id="S2.SS1.p3.7.m1.1a">
+       <msub id="S2.SS1.p3.7.m1.1.1" xref="S2.SS1.p3.7.m1.1.1.cmml">
+        <mi id="S2.SS1.p3.7.m1.1.1.2" xref="S2.SS1.p3.7.m1.1.1.2.cmml">
+         u
+        </mi>
+        <mi id="S2.SS1.p3.7.m1.1.1.3" xref="S2.SS1.p3.7.m1.1.1.3.cmml">
+         i
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.7.m1.1b">
+        <apply id="S2.SS1.p3.7.m1.1.1.cmml" xref="S2.SS1.p3.7.m1.1.1">
+         <csymbol cd="ambiguous" id="S2.SS1.p3.7.m1.1.1.1.cmml" xref="S2.SS1.p3.7.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS1.p3.7.m1.1.1.2.cmml" xref="S2.SS1.p3.7.m1.1.1.2">
+          𝑢
+         </ci>
+         <ci id="S2.SS1.p3.7.m1.1.1.3.cmml" xref="S2.SS1.p3.7.m1.1.1.3">
+          𝑖
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.7.m1.1c">
+        u_{i}
+       </annotation>
+      </semantics>
+     </math>
+     is the payoff of player
+     <math alttext="i" class="ltx_Math" display="inline" id="S2.SS1.p3.8.m2.1">
+      <semantics id="S2.SS1.p3.8.m2.1a">
+       <mi id="S2.SS1.p3.8.m2.1.1" xref="S2.SS1.p3.8.m2.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p3.8.m2.1b">
+        <ci id="S2.SS1.p3.8.m2.1.1.cmml" xref="S2.SS1.p3.8.m2.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p3.8.m2.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.4">
+     Although
+     <math alttext="s_{2}=\rm{accept}" class="ltx_Math" display="inline" id="S2.SS1.p4.1.m1.1">
+      <semantics id="S2.SS1.p4.1.m1.1a">
+       <mrow id="S2.SS1.p4.1.m1.1.1" xref="S2.SS1.p4.1.m1.1.1.cmml">
+        <msub id="S2.SS1.p4.1.m1.1.1.2" xref="S2.SS1.p4.1.m1.1.1.2.cmml">
+         <mi id="S2.SS1.p4.1.m1.1.1.2.2" xref="S2.SS1.p4.1.m1.1.1.2.2.cmml">
+          s
+         </mi>
+         <mn id="S2.SS1.p4.1.m1.1.1.2.3" xref="S2.SS1.p4.1.m1.1.1.2.3.cmml">
+          2
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p4.1.m1.1.1.1" xref="S2.SS1.p4.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mi id="S2.SS1.p4.1.m1.1.1.3" xref="S2.SS1.p4.1.m1.1.1.3.cmml">
+         accept
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p4.1.m1.1b">
+        <apply id="S2.SS1.p4.1.m1.1.1.cmml" xref="S2.SS1.p4.1.m1.1.1">
+         <eq id="S2.SS1.p4.1.m1.1.1.1.cmml" xref="S2.SS1.p4.1.m1.1.1.1">
+         </eq>
+         <apply id="S2.SS1.p4.1.m1.1.1.2.cmml" xref="S2.SS1.p4.1.m1.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p4.1.m1.1.1.2.1.cmml" xref="S2.SS1.p4.1.m1.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p4.1.m1.1.1.2.2.cmml" xref="S2.SS1.p4.1.m1.1.1.2.2">
+           𝑠
+          </ci>
+          <cn id="S2.SS1.p4.1.m1.1.1.2.3.cmml" type="integer" xref="S2.SS1.p4.1.m1.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <ci id="S2.SS1.p4.1.m1.1.1.3.cmml" xref="S2.SS1.p4.1.m1.1.1.3">
+          accept
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p4.1.m1.1c">
+        s_{2}=\rm{accept}
+       </annotation>
+      </semantics>
+     </math>
+     is the weakly dominant strategy of player
+     <math alttext="2" class="ltx_Math" display="inline" id="S2.SS1.p4.2.m2.1">
+      <semantics id="S2.SS1.p4.2.m2.1a">
+       <mn id="S2.SS1.p4.2.m2.1.1" xref="S2.SS1.p4.2.m2.1.1.cmml">
+        2
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p4.2.m2.1b">
+        <cn id="S2.SS1.p4.2.m2.1.1.cmml" type="integer" xref="S2.SS1.p4.2.m2.1.1">
+         2
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p4.2.m2.1c">
+        2
+       </annotation>
+      </semantics>
+     </math>
+     , in economic experiments, it is common to observe decisions of
+     <math alttext="s_{2}=\rm{reject}" class="ltx_Math" display="inline" id="S2.SS1.p4.3.m3.1">
+      <semantics id="S2.SS1.p4.3.m3.1a">
+       <mrow id="S2.SS1.p4.3.m3.1.1" xref="S2.SS1.p4.3.m3.1.1.cmml">
+        <msub id="S2.SS1.p4.3.m3.1.1.2" xref="S2.SS1.p4.3.m3.1.1.2.cmml">
+         <mi id="S2.SS1.p4.3.m3.1.1.2.2" xref="S2.SS1.p4.3.m3.1.1.2.2.cmml">
+          s
+         </mi>
+         <mn id="S2.SS1.p4.3.m3.1.1.2.3" xref="S2.SS1.p4.3.m3.1.1.2.3.cmml">
+          2
+         </mn>
+        </msub>
+        <mo id="S2.SS1.p4.3.m3.1.1.1" xref="S2.SS1.p4.3.m3.1.1.1.cmml">
+         =
+        </mo>
+        <mi id="S2.SS1.p4.3.m3.1.1.3" xref="S2.SS1.p4.3.m3.1.1.3.cmml">
+         reject
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p4.3.m3.1b">
+        <apply id="S2.SS1.p4.3.m3.1.1.cmml" xref="S2.SS1.p4.3.m3.1.1">
+         <eq id="S2.SS1.p4.3.m3.1.1.1.cmml" xref="S2.SS1.p4.3.m3.1.1.1">
+         </eq>
+         <apply id="S2.SS1.p4.3.m3.1.1.2.cmml" xref="S2.SS1.p4.3.m3.1.1.2">
+          <csymbol cd="ambiguous" id="S2.SS1.p4.3.m3.1.1.2.1.cmml" xref="S2.SS1.p4.3.m3.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S2.SS1.p4.3.m3.1.1.2.2.cmml" xref="S2.SS1.p4.3.m3.1.1.2.2">
+           𝑠
+          </ci>
+          <cn id="S2.SS1.p4.3.m3.1.1.2.3.cmml" type="integer" xref="S2.SS1.p4.3.m3.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <ci id="S2.SS1.p4.3.m3.1.1.3.cmml" xref="S2.SS1.p4.3.m3.1.1.3">
+          reject
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p4.3.m3.1c">
+        s_{2}=\rm{reject}
+       </annotation>
+      </semantics>
+     </math>
+     when the value of
+     <math alttext="s_{1}" class="ltx_Math" display="inline" id="S2.SS1.p4.4.m4.1">
+      <semantics id="S2.SS1.p4.4.m4.1a">
+       <msub id="S2.SS1.p4.4.m4.1.1" xref="S2.SS1.p4.4.m4.1.1.cmml">
+        <mi id="S2.SS1.p4.4.m4.1.1.2" xref="S2.SS1.p4.4.m4.1.1.2.cmml">
+         s
+        </mi>
+        <mn id="S2.SS1.p4.4.m4.1.1.3" xref="S2.SS1.p4.4.m4.1.1.3.cmml">
+         1
+        </mn>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p4.4.m4.1b">
+        <apply id="S2.SS1.p4.4.m4.1.1.cmml" xref="S2.SS1.p4.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S2.SS1.p4.4.m4.1.1.1.cmml" xref="S2.SS1.p4.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS1.p4.4.m4.1.1.2.cmml" xref="S2.SS1.p4.4.m4.1.1.2">
+          𝑠
+         </ci>
+         <cn id="S2.SS1.p4.4.m4.1.1.3.cmml" type="integer" xref="S2.SS1.p4.4.m4.1.1.3">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p4.4.m4.1c">
+        s_{1}
+       </annotation>
+      </semantics>
+     </math>
+     is low
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     . A commonly proposed explanation for this phenomenon is that responders may choose to sacrifice their payoffs to resist perceived unfairness, particularly when their potential earnings are lower than those of the proposer.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p5">
+    <p class="ltx_p" id="S2.SS1.p5.1">
+     To analyze economic experiments conducted globally during classes, Lin et al. (2020) employed data from MobLab, a well-known educational platform for such experiments. Specifically, the study focused on double auction and ultimatum games, revealing consistent insights across different cultures and regions
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     . Our current investigation concentrates on two outcomes derived from the one-shot ultimatum game, which are different from the theoretical solution, subgame perfect equilibrium, of this game:
+     <math alttext="(s_{1},s_{2})=(0,\rm{accept})" class="ltx_Math" display="inline" id="S2.SS1.p5.1.m1.4">
+      <semantics id="S2.SS1.p5.1.m1.4a">
+       <mrow id="S2.SS1.p5.1.m1.4.4" xref="S2.SS1.p5.1.m1.4.4.cmml">
+        <mrow id="S2.SS1.p5.1.m1.4.4.2.2" xref="S2.SS1.p5.1.m1.4.4.2.3.cmml">
+         <mo id="S2.SS1.p5.1.m1.4.4.2.2.3" stretchy="false" xref="S2.SS1.p5.1.m1.4.4.2.3.cmml">
+          (
+         </mo>
+         <msub id="S2.SS1.p5.1.m1.3.3.1.1.1" xref="S2.SS1.p5.1.m1.3.3.1.1.1.cmml">
+          <mi id="S2.SS1.p5.1.m1.3.3.1.1.1.2" xref="S2.SS1.p5.1.m1.3.3.1.1.1.2.cmml">
+           s
+          </mi>
+          <mn id="S2.SS1.p5.1.m1.3.3.1.1.1.3" xref="S2.SS1.p5.1.m1.3.3.1.1.1.3.cmml">
+           1
+          </mn>
+         </msub>
+         <mo id="S2.SS1.p5.1.m1.4.4.2.2.4" xref="S2.SS1.p5.1.m1.4.4.2.3.cmml">
+          ,
+         </mo>
+         <msub id="S2.SS1.p5.1.m1.4.4.2.2.2" xref="S2.SS1.p5.1.m1.4.4.2.2.2.cmml">
+          <mi id="S2.SS1.p5.1.m1.4.4.2.2.2.2" xref="S2.SS1.p5.1.m1.4.4.2.2.2.2.cmml">
+           s
+          </mi>
+          <mn id="S2.SS1.p5.1.m1.4.4.2.2.2.3" xref="S2.SS1.p5.1.m1.4.4.2.2.2.3.cmml">
+           2
+          </mn>
+         </msub>
+         <mo id="S2.SS1.p5.1.m1.4.4.2.2.5" stretchy="false" xref="S2.SS1.p5.1.m1.4.4.2.3.cmml">
+          )
+         </mo>
+        </mrow>
+        <mo id="S2.SS1.p5.1.m1.4.4.3" xref="S2.SS1.p5.1.m1.4.4.3.cmml">
+         =
+        </mo>
+        <mrow id="S2.SS1.p5.1.m1.4.4.4.2" xref="S2.SS1.p5.1.m1.4.4.4.1.cmml">
+         <mo id="S2.SS1.p5.1.m1.4.4.4.2.1" stretchy="false" xref="S2.SS1.p5.1.m1.4.4.4.1.cmml">
+          (
+         </mo>
+         <mn id="S2.SS1.p5.1.m1.1.1" xref="S2.SS1.p5.1.m1.1.1.cmml">
+          0
+         </mn>
+         <mo id="S2.SS1.p5.1.m1.4.4.4.2.2" xref="S2.SS1.p5.1.m1.4.4.4.1.cmml">
+          ,
+         </mo>
+         <mi id="S2.SS1.p5.1.m1.2.2" xref="S2.SS1.p5.1.m1.2.2.cmml">
+          accept
+         </mi>
+         <mo id="S2.SS1.p5.1.m1.4.4.4.2.3" stretchy="false" xref="S2.SS1.p5.1.m1.4.4.4.1.cmml">
+          )
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p5.1.m1.4b">
+        <apply id="S2.SS1.p5.1.m1.4.4.cmml" xref="S2.SS1.p5.1.m1.4.4">
+         <eq id="S2.SS1.p5.1.m1.4.4.3.cmml" xref="S2.SS1.p5.1.m1.4.4.3">
+         </eq>
+         <interval closure="open" id="S2.SS1.p5.1.m1.4.4.2.3.cmml" xref="S2.SS1.p5.1.m1.4.4.2.2">
+          <apply id="S2.SS1.p5.1.m1.3.3.1.1.1.cmml" xref="S2.SS1.p5.1.m1.3.3.1.1.1">
+           <csymbol cd="ambiguous" id="S2.SS1.p5.1.m1.3.3.1.1.1.1.cmml" xref="S2.SS1.p5.1.m1.3.3.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S2.SS1.p5.1.m1.3.3.1.1.1.2.cmml" xref="S2.SS1.p5.1.m1.3.3.1.1.1.2">
+            𝑠
+           </ci>
+           <cn id="S2.SS1.p5.1.m1.3.3.1.1.1.3.cmml" type="integer" xref="S2.SS1.p5.1.m1.3.3.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <apply id="S2.SS1.p5.1.m1.4.4.2.2.2.cmml" xref="S2.SS1.p5.1.m1.4.4.2.2.2">
+           <csymbol cd="ambiguous" id="S2.SS1.p5.1.m1.4.4.2.2.2.1.cmml" xref="S2.SS1.p5.1.m1.4.4.2.2.2">
+            subscript
+           </csymbol>
+           <ci id="S2.SS1.p5.1.m1.4.4.2.2.2.2.cmml" xref="S2.SS1.p5.1.m1.4.4.2.2.2.2">
+            𝑠
+           </ci>
+           <cn id="S2.SS1.p5.1.m1.4.4.2.2.2.3.cmml" type="integer" xref="S2.SS1.p5.1.m1.4.4.2.2.2.3">
+            2
+           </cn>
+          </apply>
+         </interval>
+         <interval closure="open" id="S2.SS1.p5.1.m1.4.4.4.1.cmml" xref="S2.SS1.p5.1.m1.4.4.4.2">
+          <cn id="S2.SS1.p5.1.m1.1.1.cmml" type="integer" xref="S2.SS1.p5.1.m1.1.1">
+           0
+          </cn>
+          <ci id="S2.SS1.p5.1.m1.2.2.cmml" xref="S2.SS1.p5.1.m1.2.2">
+           accept
+          </ci>
+         </interval>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p5.1.m1.4c">
+        (s_{1},s_{2})=(0,\rm{accept})
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p6">
+    <p class="ltx_p" id="S2.SS1.p6.2">
+     Based on a sample of
+     <math alttext="1000" class="ltx_Math" display="inline" id="S2.SS1.p6.1.m1.1">
+      <semantics id="S2.SS1.p6.1.m1.1a">
+       <mn id="S2.SS1.p6.1.m1.1.1" xref="S2.SS1.p6.1.m1.1.1.cmml">
+        1000
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p6.1.m1.1b">
+        <cn id="S2.SS1.p6.1.m1.1.1.cmml" type="integer" xref="S2.SS1.p6.1.m1.1.1">
+         1000
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p6.1.m1.1c">
+        1000
+       </annotation>
+      </semantics>
+     </math>
+     experimental data for the proposer side published by Lin et al. (2020), we plot Figure
+     <a class="ltx_ref" href="#S2.F1.sf1" title="In Figure 1 ‣ 2.1 Ultimatum Game ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       1(a)
+      </span>
+     </a>
+     . The horizontal axis shows the proposer values and the vertical axis displays their normalized frequency. The distribution peaks at a
+     <math alttext="50" class="ltx_Math" display="inline" id="S2.SS1.p6.2.m2.1">
+      <semantics id="S2.SS1.p6.2.m2.1a">
+       <mn id="S2.SS1.p6.2.m2.1.1" xref="S2.SS1.p6.2.m2.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p6.2.m2.1b">
+        <cn id="S2.SS1.p6.2.m2.1.1.cmml" type="integer" xref="S2.SS1.p6.2.m2.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p6.2.m2.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer, with few proposals beyond.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p7">
+    <p class="ltx_p" id="S2.SS1.p7.2">
+     Similarly, in Figure
+     <a class="ltx_ref" href="#S2.F1.sf2" title="In Figure 1 ‣ 2.1 Ultimatum Game ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       1(b)
+      </span>
+     </a>
+     , the horizontal axis represents the proposer values, while the vertical axis indicates the corresponding acceptance rate. The straight line represents the outcomes of piecewise linear regression, while the shaded area indicates the confidence interval. A notable abrupt increase is evident at the
+     <math alttext="50" class="ltx_Math" display="inline" id="S2.SS1.p7.1.m1.1">
+      <semantics id="S2.SS1.p7.1.m1.1a">
+       <mn id="S2.SS1.p7.1.m1.1.1" xref="S2.SS1.p7.1.m1.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p7.1.m1.1b">
+        <cn id="S2.SS1.p7.1.m1.1.1.cmml" type="integer" xref="S2.SS1.p7.1.m1.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p7.1.m1.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer. Moreover, there is a discernible upward trend in the acceptance rate up to
+     <math alttext="50" class="ltx_Math" display="inline" id="S2.SS1.p7.2.m2.1">
+      <semantics id="S2.SS1.p7.2.m2.1a">
+       <mn id="S2.SS1.p7.2.m2.1.1" xref="S2.SS1.p7.2.m2.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p7.2.m2.1b">
+        <cn id="S2.SS1.p7.2.m2.1.1.cmml" type="integer" xref="S2.SS1.p7.2.m2.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p7.2.m2.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     as the offer value increases.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F1">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S2.F1.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S2.F1.sf1.g1" src="/html/2406.11426/assets/x2.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        Proposer side
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S2.F1.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S2.F1.sf2.g1" src="/html/2406.11426/assets/x3.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        Responder side
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     Results of 1000 sample data of economic experiments for one-shot ultimatum game in Lin et al. (2020)
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Generative Pretrained Transformer
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Generative Pretrained Transformer (GPT) is a type of LLM developed by OpenAI®, which is the most famous and prevailing type at the moment of this research. After the announcement of GPT-3, a type of GPT, by Brown et al. (2020), the dizzying development of the Computer Science field was accelerated and is still rapidly developing
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ]
+     </cite>
+     . Even today, GPT is a standard of LLMs and widely used both in research and business fields and we also used a model of GPT in our research.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     There are various types of GPT. Kitadai et al. (2023) used “gpt-3.5-turbo-0613” which is the version of GPT-3.5 as of June 23, 2023. Although GPT-4 is known as a higher performance model of GPT-3.5, because “gpt-4-0613” was more time-consuming to make a response, it was not used in Kitadai et al. (2023).
+However, “gpt-4-1106-preview”, which is the version of GPT-4 as of November 11, 2023, responds quicker for a large sample of simulation and has higher reasoning ability than GPT-3.5.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     Not only the models but diverse prompting techniques are also being developed to increase the reasoning ability of LLMs. Because of the large number of such methods currently available, a selection was necessary. Specifically, the following two prompting methods were chosen in this study, because they are widely known and established as valid methodologies:
+    </p>
+    <ul class="ltx_itemize" id="S2.I2">
+     <li class="ltx_item" id="S2.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I2.i1.p1">
+       <p class="ltx_p" id="S2.I2.i1.p1.1">
+        Few-shot prompting
+        <cite class="ltx_cite ltx_citemacro_cite">
+         [
+         <a class="ltx_ref" href="#bib.bib14" title="">
+          14
+         </a>
+         ]
+        </cite>
+        :
+        <br class="ltx_break"/>
+        Putting some examples of outputs into the prompt.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I2.i2.p1">
+       <p class="ltx_p" id="S2.I2.i2.p1.1">
+        Chain of Thoughts (CoT)
+        <cite class="ltx_cite ltx_citemacro_cite">
+         [
+         <a class="ltx_ref" href="#bib.bib15" title="">
+          15
+         </a>
+         ]
+        </cite>
+        :
+        <br class="ltx_break"/>
+        Putting some examples of outputs with their corresponding reason into the prompt and making agents respond in the same way.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p4">
+    <p class="ltx_p" id="S2.SS2.p4.1">
+     In comparison to Few-shot prompting, usual prompts just putting simple instructions without any examples are called Zero-shot prompting. To analyze the improvement in reasoning ability, the prompting methods used in this study are, in the reasoning ability order: CoT, Few-shot prompting, and Zero-shot prompting.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Literature Review
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Many researchers are studying the application of generative agents in social science, including economics
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     and psychology
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ]
+     </cite>
+     . In particular, Aher et al. (2022) utilized generative agents as subjects in economic experiments at first. They proposed “Turing Experiments (TEs)” as an evaluating method to measure how much LLMs can simulate various human behavioral aspects. TEs consist of four classic social scientific experiments that are not only economic experiments but also include the ultimatum game’s responder side
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     After that, some researchers reported that LLMs-driven MAS can reproduce the results of real economic experiments. The most representative one is Horton (2023), who picked up three classical themes related to the preferences of people and researched the effect of the presence of a minimum wage
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p3">
+    <p class="ltx_p" id="S2.SS3.p3.1">
+     In contrast, other academics argue that caution should be taken when replacing human subjects with generative agents in such a type of experiment. Brookins et al. (2023) made generative agents play the dictator game and the prisoner’s dilemma. As a result, in both games, generative agents showed fair decision making more frequently than human subjects
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ]
+     </cite>
+     . Guo (2023) focused on the finitely repeated ultimatum and prisoner’s dilemma games, finding that generative agents can partly exhibit behavior consistent with human behavior by using well-crafted prompts
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       8
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p4">
+    <p class="ltx_p" id="S2.SS3.p4.1">
+     Phelps and Russell (2023) also simulated the finitely repeated prisoner’s dilemma. They used four kinds of bots as the opponent player of the generative agents: always cooperating bot, always defecting bot, and bots who cooperate/defect in the first round and after that imitate the choice of the generative agent in the previous round. As a result, generative agents could not appropriately behave in response to different strategies of the opponent
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ]
+     </cite>
+     . Tsuchihashi (2023) simulated the first price auction (FPA) and second price auction (SPA) using generative agents. Although it is known that human subjects tend to bid higher than their willingness to pay in both FPA and SPA, generative agents did not show such trends
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       7
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p5">
+    <p class="ltx_p" id="S2.SS3.p5.1">
+     Considering these, it can be said that how to apply LLMs-drive MAS into economic experiments has not been established yet and further study is necessary on this topic. Towards the establishment of such a methodology to reproduce the result of economic experiments, Kitadai et al. (2023) made the first contribution. This research is the next step of Kitadai et al. (2023) and explores the influence of the reasoning ability of generative agents to replicate the real economic experiments.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.4
+    </span>
+    Our Previous Study
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p1">
+    <p class="ltx_p" id="S2.SS4.p1.1">
+     In our previous study, Kitadai et al. (2023), we searched for reproducing the result of the ultimatum game of Lin et al. (2020) by using GPT-driven MAS focusing on the effects of the following three aspects:
+    </p>
+    <ul class="ltx_itemize" id="S2.I3">
+     <li class="ltx_item" id="S2.I3.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I3.i1.p1">
+       <p class="ltx_p" id="S2.I3.i1.p1.1">
+        How the amount of money subjects will receive at the end of the experiment is determined,
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I3.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I3.i2.p1">
+       <p class="ltx_p" id="S2.I3.i2.p1.1">
+        Whether explicit instructions aimed at maximizing rewards are given,
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I3.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I3.i3.p1">
+       <p class="ltx_p" id="S2.I3.i3.p1.1">
+        The setting of the parameter “temperature” in GPT.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p2">
+    <p class="ltx_p" id="S2.SS4.p2.2">
+     Herein, “temperature” is a parameter in GPT that influences the randomness and creativity of its output, ranging from
+     <math alttext="0" class="ltx_Math" display="inline" id="S2.SS4.p2.1.m1.1">
+      <semantics id="S2.SS4.p2.1.m1.1a">
+       <mn id="S2.SS4.p2.1.m1.1.1" xref="S2.SS4.p2.1.m1.1.1.cmml">
+        0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p2.1.m1.1b">
+        <cn id="S2.SS4.p2.1.m1.1.1.cmml" type="integer" xref="S2.SS4.p2.1.m1.1.1">
+         0
+        </cn>
+       </annotation-xml>
+      </semantics>
+     </math>
+     to
+     <math alttext="2" class="ltx_Math" display="inline" id="S2.SS4.p2.2.m2.1">
+      <semantics id="S2.SS4.p2.2.m2.1a">
+       <mn id="S2.SS4.p2.2.m2.1.1" xref="S2.SS4.p2.2.m2.1.1.cmml">
+        2
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p2.2.m2.1b">
+        <cn id="S2.SS4.p2.2.m2.1.1.cmml" type="integer" xref="S2.SS4.p2.2.m2.1.1">
+         2
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p2.2.m2.1c">
+        2
+       </annotation>
+      </semantics>
+     </math>
+     . Lower temperatures lead to more predictable, conservative outputs by favoring higher probability words, and higher temperatures increase creativity and variability, encouraging the model to choose less likely words, which can result in more novel and diverse responses but also raises the likelihood of irrelevant or nonsensical content.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p3">
+    <p class="ltx_p" id="S2.SS4.p3.4">
+     A set of
+     <math alttext="1000" class="ltx_Math" display="inline" id="S2.SS4.p3.1.m1.1">
+      <semantics id="S2.SS4.p3.1.m1.1a">
+       <mn id="S2.SS4.p3.1.m1.1.1" xref="S2.SS4.p3.1.m1.1.1.cmml">
+        1000
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p3.1.m1.1b">
+        <cn id="S2.SS4.p3.1.m1.1.1.cmml" type="integer" xref="S2.SS4.p3.1.m1.1.1">
+         1000
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p3.1.m1.1c">
+        1000
+       </annotation>
+      </semantics>
+     </math>
+     simulations was done based on
+     <math alttext="4\times 2\times 5=40" class="ltx_Math" display="inline" id="S2.SS4.p3.2.m2.1">
+      <semantics id="S2.SS4.p3.2.m2.1a">
+       <mrow id="S2.SS4.p3.2.m2.1.1" xref="S2.SS4.p3.2.m2.1.1.cmml">
+        <mrow id="S2.SS4.p3.2.m2.1.1.2" xref="S2.SS4.p3.2.m2.1.1.2.cmml">
+         <mn id="S2.SS4.p3.2.m2.1.1.2.2" xref="S2.SS4.p3.2.m2.1.1.2.2.cmml">
+          4
+         </mn>
+         <mo id="S2.SS4.p3.2.m2.1.1.2.1" lspace="0.222em" rspace="0.222em" xref="S2.SS4.p3.2.m2.1.1.2.1.cmml">
+          ×
+         </mo>
+         <mn id="S2.SS4.p3.2.m2.1.1.2.3" xref="S2.SS4.p3.2.m2.1.1.2.3.cmml">
+          2
+         </mn>
+         <mo id="S2.SS4.p3.2.m2.1.1.2.1a" lspace="0.222em" rspace="0.222em" xref="S2.SS4.p3.2.m2.1.1.2.1.cmml">
+          ×
+         </mo>
+         <mn id="S2.SS4.p3.2.m2.1.1.2.4" xref="S2.SS4.p3.2.m2.1.1.2.4.cmml">
+          5
+         </mn>
+        </mrow>
+        <mo id="S2.SS4.p3.2.m2.1.1.1" xref="S2.SS4.p3.2.m2.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S2.SS4.p3.2.m2.1.1.3" xref="S2.SS4.p3.2.m2.1.1.3.cmml">
+         40
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p3.2.m2.1b">
+        <apply id="S2.SS4.p3.2.m2.1.1.cmml" xref="S2.SS4.p3.2.m2.1.1">
+         <eq id="S2.SS4.p3.2.m2.1.1.1.cmml" xref="S2.SS4.p3.2.m2.1.1.1">
+         </eq>
+         <apply id="S2.SS4.p3.2.m2.1.1.2.cmml" xref="S2.SS4.p3.2.m2.1.1.2">
+          <times id="S2.SS4.p3.2.m2.1.1.2.1.cmml" xref="S2.SS4.p3.2.m2.1.1.2.1">
+          </times>
+          <cn id="S2.SS4.p3.2.m2.1.1.2.2.cmml" type="integer" xref="S2.SS4.p3.2.m2.1.1.2.2">
+           4
+          </cn>
+          <cn id="S2.SS4.p3.2.m2.1.1.2.3.cmml" type="integer" xref="S2.SS4.p3.2.m2.1.1.2.3">
+           2
+          </cn>
+          <cn id="S2.SS4.p3.2.m2.1.1.2.4.cmml" type="integer" xref="S2.SS4.p3.2.m2.1.1.2.4">
+           5
+          </cn>
+         </apply>
+         <cn id="S2.SS4.p3.2.m2.1.1.3.cmml" type="integer" xref="S2.SS4.p3.2.m2.1.1.3">
+          40
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p3.2.m2.1c">
+        4\times 2\times 5=40
+       </annotation>
+      </semantics>
+     </math>
+     variations in each of the points listed above. As a result, for the proposer side, it was found that not giving explicit instructions to maximize profits, specifying the amount to be received by the participants at the end of the experiment, and a higher value of “temperature” made the simulation result closer to the actual one. At the same time, however, any simulation settings reproduced the actual result for the responder side. Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     shows the result obtained when no instruction to maximize profits was given, telling that each coin obtained in the game would be redeemed
+     <math alttext="100" class="ltx_Math" display="inline" id="S2.SS4.p3.3.m3.1">
+      <semantics id="S2.SS4.p3.3.m3.1a">
+       <mn id="S2.SS4.p3.3.m3.1.1" xref="S2.SS4.p3.3.m3.1.1.cmml">
+        100
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p3.3.m3.1b">
+        <cn id="S2.SS4.p3.3.m3.1.1.cmml" type="integer" xref="S2.SS4.p3.3.m3.1.1">
+         100
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p3.3.m3.1c">
+        100
+       </annotation>
+      </semantics>
+     </math>
+     dollars
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ]
+     </cite>
+     . In the figure, the data from MobLab used by Lin et al. (2020) is plotted in blue, while the simulation results for the five temperature settings,
+     <math alttext="0,0.5,1.0,1.5,2.0" class="ltx_Math" display="inline" id="S2.SS4.p3.4.m4.5">
+      <semantics id="S2.SS4.p3.4.m4.5a">
+       <mrow id="S2.SS4.p3.4.m4.5.6.2" xref="S2.SS4.p3.4.m4.5.6.1.cmml">
+        <mn id="S2.SS4.p3.4.m4.1.1" xref="S2.SS4.p3.4.m4.1.1.cmml">
+         0
+        </mn>
+        <mo id="S2.SS4.p3.4.m4.5.6.2.1" xref="S2.SS4.p3.4.m4.5.6.1.cmml">
+         ,
+        </mo>
+        <mn id="S2.SS4.p3.4.m4.2.2" xref="S2.SS4.p3.4.m4.2.2.cmml">
+         0.5
+        </mn>
+        <mo id="S2.SS4.p3.4.m4.5.6.2.2" xref="S2.SS4.p3.4.m4.5.6.1.cmml">
+         ,
+        </mo>
+        <mn id="S2.SS4.p3.4.m4.3.3" xref="S2.SS4.p3.4.m4.3.3.cmml">
+         1.0
+        </mn>
+        <mo id="S2.SS4.p3.4.m4.5.6.2.3" xref="S2.SS4.p3.4.m4.5.6.1.cmml">
+         ,
+        </mo>
+        <mn id="S2.SS4.p3.4.m4.4.4" xref="S2.SS4.p3.4.m4.4.4.cmml">
+         1.5
+        </mn>
+        <mo id="S2.SS4.p3.4.m4.5.6.2.4" xref="S2.SS4.p3.4.m4.5.6.1.cmml">
+         ,
+        </mo>
+        <mn id="S2.SS4.p3.4.m4.5.5" xref="S2.SS4.p3.4.m4.5.5.cmml">
+         2.0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p3.4.m4.5b">
+        <list id="S2.SS4.p3.4.m4.5.6.1.cmml" xref="S2.SS4.p3.4.m4.5.6.2">
+         <cn id="S2.SS4.p3.4.m4.1.1.cmml" type="integer" xref="S2.SS4.p3.4.m4.1.1">
+          0
+         </cn>
+         <cn id="S2.SS4.p3.4.m4.2.2.cmml" type="float" xref="S2.SS4.p3.4.m4.2.2">
+          0.5
+         </cn>
+         <cn id="S2.SS4.p3.4.m4.3.3.cmml" type="float" xref="S2.SS4.p3.4.m4.3.3">
+          1.0
+         </cn>
+         <cn id="S2.SS4.p3.4.m4.4.4.cmml" type="float" xref="S2.SS4.p3.4.m4.4.4">
+          1.5
+         </cn>
+         <cn id="S2.SS4.p3.4.m4.5.5.cmml" type="float" xref="S2.SS4.p3.4.m4.5.5">
+          2.0
+         </cn>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p3.4.m4.5c">
+        0,0.5,1.0,1.5,2.0
+       </annotation>
+      </semantics>
+     </math>
+     , are depicted in different colors.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S2.F2.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S2.F2.sf1.g1" src="/html/2406.11426/assets/x4.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        Proposer side
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S2.F2.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S2.F2.sf2.g1" src="/html/2406.11426/assets/x5.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        Responder side
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     A result of simulations in Kitadai et al. (2023)
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p4">
+    <p class="ltx_p" id="S2.SS4.p4.1">
+     Figure
+     <a class="ltx_ref" href="#S2.F2.sf1" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(a)
+      </span>
+     </a>
+     presents the result for the proposer side, where the horizontal axis corresponds to the offer value and the vertical axis is the density. A peak at
+     <math alttext="50" class="ltx_Math" display="inline" id="S2.SS4.p4.1.m1.1">
+      <semantics id="S2.SS4.p4.1.m1.1a">
+       <mn id="S2.SS4.p4.1.m1.1.1" xref="S2.SS4.p4.1.m1.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S2.SS4.p4.1.m1.1b">
+        <cn id="S2.SS4.p4.1.m1.1.1.cmml" type="integer" xref="S2.SS4.p4.1.m1.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS4.p4.1.m1.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     value of the offer appeared, being consistent with the actual experimental result. Nevertheless, Figure
+     <a class="ltx_ref" href="#S2.F2.sf2" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(b)
+      </span>
+     </a>
+     shows the result for the responder side, where the offer value is on the horizontal axis and the acceptance rate is on the vertical one. In this case, the responses of generative agents are almost not sensitive to variations in the proposed values. In particular, low acceptance rates against offers greater than half are not expected and tend to be irrational. Therefore, we considered that the reasoning ability of agents was not enough high to reach the consistency with the actual economic experiment.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p5">
+    <p class="ltx_p" id="S2.SS4.p5.1">
+     Regarding the setting of persona, Kitadai et al. (2023) generated the information of gender, age, and personality at random by using “gpt-3.5-turbo-0613”. However, such random generation of persona can be noise to reveal the effect of the reasoning ability of generative agents because the result of LLMs-driven MAS for economic experiments depends on the persona configuration
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     . Subsequently, the step of the persona setting for each agent in the simulation of the current research was eliminated.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Methodology
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    The prompt of simulations conducted in this study followed the framework below which is the updated version of Kitadai et al. (2023) as mentioned in the previous section.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p2">
+   <ul class="ltx_itemize" id="S3.I1">
+    <li class="ltx_item" id="S3.I1.ix1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="S3.I1.ix1.p1">
+      <p class="ltx_p" id="S3.I1.ix1.p1.1">
+       Explanation of the ultimatum game
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.ix2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="S3.I1.ix2.p1">
+      <p class="ltx_p" id="S3.I1.ix2.p1.1">
+       Description of the situation in which the agent makes a decision and instructions for decision-making. Each prompting method (Few-shot, CoT, or Zero-shot) was introduced here
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.ix3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I1.ix3.p1">
+      <p class="ltx_p" id="S3.I1.ix3.p1.1">
+       Specification of the output format
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    All prompts used in this study were written in English. This choice was made due to known reductions in LLM performance when prompts are written in languages other than English
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    . Moreover, the descriptions for the ultimatum game and the scenario for decision-making were the same as in our previous work.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p4">
+   <p class="ltx_p" id="S3.p4.2">
+    Regarding the second item in the framework, based on the insights obtained in Kitadai et al. (2023), in the prompt, agents were tasked with deciding on the distribution of a non-real-world currency of
+    <math alttext="100" class="ltx_Math" display="inline" id="S3.p4.1.m1.1">
+     <semantics id="S3.p4.1.m1.1a">
+      <mn id="S3.p4.1.m1.1.1" xref="S3.p4.1.m1.1.1.cmml">
+       100
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p4.1.m1.1b">
+       <cn id="S3.p4.1.m1.1.1.cmml" type="integer" xref="S3.p4.1.m1.1.1">
+        100
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p4.1.m1.1c">
+       100
+      </annotation>
+     </semantics>
+    </math>
+    coins, and it was explained that each coin will be redeemed to
+    <math alttext="100" class="ltx_Math" display="inline" id="S3.p4.2.m2.1">
+     <semantics id="S3.p4.2.m2.1a">
+      <mn id="S3.p4.2.m2.1.1" xref="S3.p4.2.m2.1.1.cmml">
+       100
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p4.2.m2.1b">
+       <cn id="S3.p4.2.m2.1.1.cmml" type="integer" xref="S3.p4.2.m2.1.1">
+        100
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p4.2.m2.1c">
+       100
+      </annotation>
+     </semantics>
+    </math>
+    dollars at the end of the game, but the instruction to maximize their profit was not mentioned.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p5">
+   <p class="ltx_p" id="S3.p5.3">
+    Using this structure of prompt, we conducted the four patterns of simulations described in Table
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3 Methodology ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . Regarding the GPT model in the pattern A, the same combination of settings with Kitadai et al. (2023), we introduced the older one, gpt-3.5-turbo-0613, as a benchmark to compare the reasoning ability of generative agents. Regarding the temperature parameter, we considered five variations:
+    <math alttext="0,0.5,1.0,1.5,2.0" class="ltx_Math" display="inline" id="S3.p5.1.m1.5">
+     <semantics id="S3.p5.1.m1.5a">
+      <mrow id="S3.p5.1.m1.5.6.2" xref="S3.p5.1.m1.5.6.1.cmml">
+       <mn id="S3.p5.1.m1.1.1" xref="S3.p5.1.m1.1.1.cmml">
+        0
+       </mn>
+       <mo id="S3.p5.1.m1.5.6.2.1" xref="S3.p5.1.m1.5.6.1.cmml">
+        ,
+       </mo>
+       <mn id="S3.p5.1.m1.2.2" xref="S3.p5.1.m1.2.2.cmml">
+        0.5
+       </mn>
+       <mo id="S3.p5.1.m1.5.6.2.2" xref="S3.p5.1.m1.5.6.1.cmml">
+        ,
+       </mo>
+       <mn id="S3.p5.1.m1.3.3" xref="S3.p5.1.m1.3.3.cmml">
+        1.0
+       </mn>
+       <mo id="S3.p5.1.m1.5.6.2.3" xref="S3.p5.1.m1.5.6.1.cmml">
+        ,
+       </mo>
+       <mn id="S3.p5.1.m1.4.4" xref="S3.p5.1.m1.4.4.cmml">
+        1.5
+       </mn>
+       <mo id="S3.p5.1.m1.5.6.2.4" xref="S3.p5.1.m1.5.6.1.cmml">
+        ,
+       </mo>
+       <mn id="S3.p5.1.m1.5.5" xref="S3.p5.1.m1.5.5.cmml">
+        2.0
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S3.p5.1.m1.5b">
+       <list id="S3.p5.1.m1.5.6.1.cmml" xref="S3.p5.1.m1.5.6.2">
+        <cn id="S3.p5.1.m1.1.1.cmml" type="integer" xref="S3.p5.1.m1.1.1">
+         0
+        </cn>
+        <cn id="S3.p5.1.m1.2.2.cmml" type="float" xref="S3.p5.1.m1.2.2">
+         0.5
+        </cn>
+        <cn id="S3.p5.1.m1.3.3.cmml" type="float" xref="S3.p5.1.m1.3.3">
+         1.0
+        </cn>
+        <cn id="S3.p5.1.m1.4.4.cmml" type="float" xref="S3.p5.1.m1.4.4">
+         1.5
+        </cn>
+        <cn id="S3.p5.1.m1.5.5.cmml" type="float" xref="S3.p5.1.m1.5.5">
+         2.0
+        </cn>
+       </list>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p5.1.m1.5c">
+       0,0.5,1.0,1.5,2.0
+      </annotation>
+     </semantics>
+    </math>
+    as Kitadai et al. (2023) did for patterns A, B, and C. However, in pattern D, we did not consider the value
+    <math alttext="2.0" class="ltx_Math" display="inline" id="S3.p5.2.m2.1">
+     <semantics id="S3.p5.2.m2.1a">
+      <mn id="S3.p5.2.m2.1.1" xref="S3.p5.2.m2.1.1.cmml">
+       2.0
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p5.2.m2.1b">
+       <cn id="S3.p5.2.m2.1.1.cmml" type="float" xref="S3.p5.2.m2.1.1">
+        2.0
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p5.2.m2.1c">
+       2.0
+      </annotation>
+     </semantics>
+    </math>
+    . This is because, even with the latest model, only one response per hour was obtained by using CoT with temperature
+    <math alttext="2.0" class="ltx_Math" display="inline" id="S3.p5.3.m3.1">
+     <semantics id="S3.p5.3.m3.1a">
+      <mn id="S3.p5.3.m3.1.1" xref="S3.p5.3.m3.1.1.cmml">
+       2.0
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p5.3.m3.1b">
+       <cn id="S3.p5.3.m3.1.1.cmml" type="float" xref="S3.p5.3.m3.1.1">
+        2.0
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p5.3.m3.1c">
+       2.0
+      </annotation>
+     </semantics>
+    </math>
+    , becoming an excessively time-consuming simulation setting to be an alternative to economic experiments.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S3.T1">
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Four Patterns of Simulation Settings
+   </figcaption>
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.4">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S3.T1.4.5.1">
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S3.T1.4.5.1.1" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Pattern
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T1.4.5.1.2" style="padding-left:10.0pt;padding-right:10.0pt;">
+       GPT Model
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T1.4.5.1.3" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Prompt Method
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T1.4.5.1.4" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Temperature Range
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S3.T1.1.1">
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S3.T1.1.1.2" style="padding-left:10.0pt;padding-right:10.0pt;">
+       A
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S3.T1.1.1.3" style="padding-left:10.0pt;padding-right:10.0pt;">
+       gpt-3.5-turbo-0613
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S3.T1.1.1.4" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Zero-shot
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T1.1.1.1" style="padding-left:10.0pt;padding-right:10.0pt;">
+       <math alttext="0,0.5,1.0,1.5,2.0" class="ltx_Math" display="inline" id="S3.T1.1.1.1.m1.5">
+        <semantics id="S3.T1.1.1.1.m1.5a">
+         <mrow id="S3.T1.1.1.1.m1.5.6.2" xref="S3.T1.1.1.1.m1.5.6.1.cmml">
+          <mn id="S3.T1.1.1.1.m1.1.1" xref="S3.T1.1.1.1.m1.1.1.cmml">
+           0
+          </mn>
+          <mo id="S3.T1.1.1.1.m1.5.6.2.1" xref="S3.T1.1.1.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.1.1.1.m1.2.2" xref="S3.T1.1.1.1.m1.2.2.cmml">
+           0.5
+          </mn>
+          <mo id="S3.T1.1.1.1.m1.5.6.2.2" xref="S3.T1.1.1.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.1.1.1.m1.3.3" xref="S3.T1.1.1.1.m1.3.3.cmml">
+           1.0
+          </mn>
+          <mo id="S3.T1.1.1.1.m1.5.6.2.3" xref="S3.T1.1.1.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.1.1.1.m1.4.4" xref="S3.T1.1.1.1.m1.4.4.cmml">
+           1.5
+          </mn>
+          <mo id="S3.T1.1.1.1.m1.5.6.2.4" xref="S3.T1.1.1.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.1.1.1.m1.5.5" xref="S3.T1.1.1.1.m1.5.5.cmml">
+           2.0
+          </mn>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.T1.1.1.1.m1.5b">
+          <list id="S3.T1.1.1.1.m1.5.6.1.cmml" xref="S3.T1.1.1.1.m1.5.6.2">
+           <cn id="S3.T1.1.1.1.m1.1.1.cmml" type="integer" xref="S3.T1.1.1.1.m1.1.1">
+            0
+           </cn>
+           <cn id="S3.T1.1.1.1.m1.2.2.cmml" type="float" xref="S3.T1.1.1.1.m1.2.2">
+            0.5
+           </cn>
+           <cn id="S3.T1.1.1.1.m1.3.3.cmml" type="float" xref="S3.T1.1.1.1.m1.3.3">
+            1.0
+           </cn>
+           <cn id="S3.T1.1.1.1.m1.4.4.cmml" type="float" xref="S3.T1.1.1.1.m1.4.4">
+            1.5
+           </cn>
+           <cn id="S3.T1.1.1.1.m1.5.5.cmml" type="float" xref="S3.T1.1.1.1.m1.5.5">
+            2.0
+           </cn>
+          </list>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.T1.1.1.1.m1.5c">
+          0,0.5,1.0,1.5,2.0
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.2.2">
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S3.T1.2.2.2" style="padding-left:10.0pt;padding-right:10.0pt;">
+       B
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.2.2.3" style="padding-left:10.0pt;padding-right:10.0pt;">
+       gpt-4-1106-preview
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.2.2.4" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Zero-shot
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.2.2.1" style="padding-left:10.0pt;padding-right:10.0pt;">
+       <math alttext="0,0.5,1.0,1.5,2.0" class="ltx_Math" display="inline" id="S3.T1.2.2.1.m1.5">
+        <semantics id="S3.T1.2.2.1.m1.5a">
+         <mrow id="S3.T1.2.2.1.m1.5.6.2" xref="S3.T1.2.2.1.m1.5.6.1.cmml">
+          <mn id="S3.T1.2.2.1.m1.1.1" xref="S3.T1.2.2.1.m1.1.1.cmml">
+           0
+          </mn>
+          <mo id="S3.T1.2.2.1.m1.5.6.2.1" xref="S3.T1.2.2.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.2.2.1.m1.2.2" xref="S3.T1.2.2.1.m1.2.2.cmml">
+           0.5
+          </mn>
+          <mo id="S3.T1.2.2.1.m1.5.6.2.2" xref="S3.T1.2.2.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.2.2.1.m1.3.3" xref="S3.T1.2.2.1.m1.3.3.cmml">
+           1.0
+          </mn>
+          <mo id="S3.T1.2.2.1.m1.5.6.2.3" xref="S3.T1.2.2.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.2.2.1.m1.4.4" xref="S3.T1.2.2.1.m1.4.4.cmml">
+           1.5
+          </mn>
+          <mo id="S3.T1.2.2.1.m1.5.6.2.4" xref="S3.T1.2.2.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.2.2.1.m1.5.5" xref="S3.T1.2.2.1.m1.5.5.cmml">
+           2.0
+          </mn>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.T1.2.2.1.m1.5b">
+          <list id="S3.T1.2.2.1.m1.5.6.1.cmml" xref="S3.T1.2.2.1.m1.5.6.2">
+           <cn id="S3.T1.2.2.1.m1.1.1.cmml" type="integer" xref="S3.T1.2.2.1.m1.1.1">
+            0
+           </cn>
+           <cn id="S3.T1.2.2.1.m1.2.2.cmml" type="float" xref="S3.T1.2.2.1.m1.2.2">
+            0.5
+           </cn>
+           <cn id="S3.T1.2.2.1.m1.3.3.cmml" type="float" xref="S3.T1.2.2.1.m1.3.3">
+            1.0
+           </cn>
+           <cn id="S3.T1.2.2.1.m1.4.4.cmml" type="float" xref="S3.T1.2.2.1.m1.4.4">
+            1.5
+           </cn>
+           <cn id="S3.T1.2.2.1.m1.5.5.cmml" type="float" xref="S3.T1.2.2.1.m1.5.5">
+            2.0
+           </cn>
+          </list>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.T1.2.2.1.m1.5c">
+          0,0.5,1.0,1.5,2.0
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.3.3">
+      <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S3.T1.3.3.2" style="padding-left:10.0pt;padding-right:10.0pt;">
+       C
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.3.3.3" style="padding-left:10.0pt;padding-right:10.0pt;">
+       gpt-4-1106-preview
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.3.3.4" style="padding-left:10.0pt;padding-right:10.0pt;">
+       Few-shot
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.3.1" style="padding-left:10.0pt;padding-right:10.0pt;">
+       <math alttext="0,0.5,1.0,1.5,2.0" class="ltx_Math" display="inline" id="S3.T1.3.3.1.m1.5">
+        <semantics id="S3.T1.3.3.1.m1.5a">
+         <mrow id="S3.T1.3.3.1.m1.5.6.2" xref="S3.T1.3.3.1.m1.5.6.1.cmml">
+          <mn id="S3.T1.3.3.1.m1.1.1" xref="S3.T1.3.3.1.m1.1.1.cmml">
+           0
+          </mn>
+          <mo id="S3.T1.3.3.1.m1.5.6.2.1" xref="S3.T1.3.3.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.3.3.1.m1.2.2" xref="S3.T1.3.3.1.m1.2.2.cmml">
+           0.5
+          </mn>
+          <mo id="S3.T1.3.3.1.m1.5.6.2.2" xref="S3.T1.3.3.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.3.3.1.m1.3.3" xref="S3.T1.3.3.1.m1.3.3.cmml">
+           1.0
+          </mn>
+          <mo id="S3.T1.3.3.1.m1.5.6.2.3" xref="S3.T1.3.3.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.3.3.1.m1.4.4" xref="S3.T1.3.3.1.m1.4.4.cmml">
+           1.5
+          </mn>
+          <mo id="S3.T1.3.3.1.m1.5.6.2.4" xref="S3.T1.3.3.1.m1.5.6.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.3.3.1.m1.5.5" xref="S3.T1.3.3.1.m1.5.5.cmml">
+           2.0
+          </mn>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.T1.3.3.1.m1.5b">
+          <list id="S3.T1.3.3.1.m1.5.6.1.cmml" xref="S3.T1.3.3.1.m1.5.6.2">
+           <cn id="S3.T1.3.3.1.m1.1.1.cmml" type="integer" xref="S3.T1.3.3.1.m1.1.1">
+            0
+           </cn>
+           <cn id="S3.T1.3.3.1.m1.2.2.cmml" type="float" xref="S3.T1.3.3.1.m1.2.2">
+            0.5
+           </cn>
+           <cn id="S3.T1.3.3.1.m1.3.3.cmml" type="float" xref="S3.T1.3.3.1.m1.3.3">
+            1.0
+           </cn>
+           <cn id="S3.T1.3.3.1.m1.4.4.cmml" type="float" xref="S3.T1.3.3.1.m1.4.4">
+            1.5
+           </cn>
+           <cn id="S3.T1.3.3.1.m1.5.5.cmml" type="float" xref="S3.T1.3.3.1.m1.5.5">
+            2.0
+           </cn>
+          </list>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.T1.3.3.1.m1.5c">
+          0,0.5,1.0,1.5,2.0
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.4.4">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S3.T1.4.4.2" style="padding-left:10.0pt;padding-right:10.0pt;">
+       D
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S3.T1.4.4.3" style="padding-left:10.0pt;padding-right:10.0pt;">
+       gpt-4-1106-preview
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S3.T1.4.4.4" style="padding-left:10.0pt;padding-right:10.0pt;">
+       CoT
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S3.T1.4.4.1" style="padding-left:10.0pt;padding-right:10.0pt;">
+       <math alttext="0,0.5,1.0,1.5" class="ltx_Math" display="inline" id="S3.T1.4.4.1.m1.4">
+        <semantics id="S3.T1.4.4.1.m1.4a">
+         <mrow id="S3.T1.4.4.1.m1.4.5.2" xref="S3.T1.4.4.1.m1.4.5.1.cmml">
+          <mn id="S3.T1.4.4.1.m1.1.1" xref="S3.T1.4.4.1.m1.1.1.cmml">
+           0
+          </mn>
+          <mo id="S3.T1.4.4.1.m1.4.5.2.1" xref="S3.T1.4.4.1.m1.4.5.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.4.4.1.m1.2.2" xref="S3.T1.4.4.1.m1.2.2.cmml">
+           0.5
+          </mn>
+          <mo id="S3.T1.4.4.1.m1.4.5.2.2" xref="S3.T1.4.4.1.m1.4.5.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.4.4.1.m1.3.3" xref="S3.T1.4.4.1.m1.3.3.cmml">
+           1.0
+          </mn>
+          <mo id="S3.T1.4.4.1.m1.4.5.2.3" xref="S3.T1.4.4.1.m1.4.5.1.cmml">
+           ,
+          </mo>
+          <mn id="S3.T1.4.4.1.m1.4.4" xref="S3.T1.4.4.1.m1.4.4.cmml">
+           1.5
+          </mn>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.T1.4.4.1.m1.4b">
+          <list id="S3.T1.4.4.1.m1.4.5.1.cmml" xref="S3.T1.4.4.1.m1.4.5.2">
+           <cn id="S3.T1.4.4.1.m1.1.1.cmml" type="integer" xref="S3.T1.4.4.1.m1.1.1">
+            0
+           </cn>
+           <cn id="S3.T1.4.4.1.m1.2.2.cmml" type="float" xref="S3.T1.4.4.1.m1.2.2">
+            0.5
+           </cn>
+           <cn id="S3.T1.4.4.1.m1.3.3.cmml" type="float" xref="S3.T1.4.4.1.m1.3.3">
+            1.0
+           </cn>
+           <cn id="S3.T1.4.4.1.m1.4.4.cmml" type="float" xref="S3.T1.4.4.1.m1.4.4">
+            1.5
+           </cn>
+          </list>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.T1.4.4.1.m1.4c">
+          0,0.5,1.0,1.5
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S3.p6">
+   <p class="ltx_p" id="S3.p6.2">
+    To use Few-shot and CoT promptings, some examples put in prompt needed to be prepared. As for few-shot prompting, we used
+    <math alttext="10" class="ltx_Math" display="inline" id="S3.p6.1.m1.1">
+     <semantics id="S3.p6.1.m1.1a">
+      <mn id="S3.p6.1.m1.1.1" xref="S3.p6.1.m1.1.1.cmml">
+       10
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p6.1.m1.1b">
+       <cn id="S3.p6.1.m1.1.1.cmml" type="integer" xref="S3.p6.1.m1.1.1">
+        10
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p6.1.m1.1c">
+       10
+      </annotation>
+     </semantics>
+    </math>
+    data picked up from raw data in Lin et al. (2020). As for CoT, we respectively made a reason and added it to each sample data used in few-shot, and put them into the prompt. The prompts used in this research are put in the Appendix. For each combination of prompting method, temperature, and proposer or responder side,
+    <math alttext="1000" class="ltx_Math" display="inline" id="S3.p6.2.m2.1">
+     <semantics id="S3.p6.2.m2.1a">
+      <mn id="S3.p6.2.m2.1.1" xref="S3.p6.2.m2.1.1.cmml">
+       1000
+      </mn>
+      <annotation-xml encoding="MathML-Content" id="S3.p6.2.m2.1b">
+       <cn id="S3.p6.2.m2.1.1.cmml" type="integer" xref="S3.p6.2.m2.1.1">
+        1000
+       </cn>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p6.2.m2.1c">
+       1000
+      </annotation>
+     </semantics>
+    </math>
+    agents were generated and made decisions independently.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Proposer Side
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     Starting with the proposing player, Figure
+     <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     presents the results obtained from simulations. The horizontal axis represents the offered value, while the vertical axis represents the normalized count of agents offering each value. The blue histogram visualizes the data from MobLab used in Lin et al. (2020) and remains consistent across all graphs. The simulation results for the five (or four) temperature settings are depicted with histograms outlined in different colors. This figure is composed of four graphs, each one for each pattern setting.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.6">
+     First, Figure
+     <a class="ltx_ref" href="#S4.F3.sf1" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(a)
+      </span>
+     </a>
+     showed similar but a slightly different tendency from our previous study (see Figure
+     <a class="ltx_ref" href="#S2.F2.sf1" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(a)
+      </span>
+     </a>
+     ). In the case of
+     <math alttext="\text{temperature}=0" class="ltx_Math" display="inline" id="S4.SS1.p2.1.m1.1">
+      <semantics id="S4.SS1.p2.1.m1.1a">
+       <mrow id="S4.SS1.p2.1.m1.1.1" xref="S4.SS1.p2.1.m1.1.1.cmml">
+        <mtext id="S4.SS1.p2.1.m1.1.1.2" xref="S4.SS1.p2.1.m1.1.1.2a.cmml">
+         temperature
+        </mtext>
+        <mo id="S4.SS1.p2.1.m1.1.1.1" xref="S4.SS1.p2.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.1.m1.1.1.3" xref="S4.SS1.p2.1.m1.1.1.3.cmml">
+         0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.1.m1.1b">
+        <apply id="S4.SS1.p2.1.m1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1">
+         <eq id="S4.SS1.p2.1.m1.1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.1.m1.1.1.2a.cmml" xref="S4.SS1.p2.1.m1.1.1.2">
+          <mtext id="S4.SS1.p2.1.m1.1.1.2.cmml" xref="S4.SS1.p2.1.m1.1.1.2">
+           temperature
+          </mtext>
+         </ci>
+         <cn id="S4.SS1.p2.1.m1.1.1.3.cmml" type="integer" xref="S4.SS1.p2.1.m1.1.1.3">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.1.m1.1c">
+        \text{temperature}=0
+       </annotation>
+      </semantics>
+     </math>
+     to
+     <math alttext="1.5" class="ltx_Math" display="inline" id="S4.SS1.p2.2.m2.1">
+      <semantics id="S4.SS1.p2.2.m2.1a">
+       <mn id="S4.SS1.p2.2.m2.1.1" xref="S4.SS1.p2.2.m2.1.1.cmml">
+        1.5
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.2.m2.1b">
+        <cn id="S4.SS1.p2.2.m2.1.1.cmml" type="float" xref="S4.SS1.p2.2.m2.1.1">
+         1.5
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.2.m2.1c">
+        1.5
+       </annotation>
+      </semantics>
+     </math>
+     , the peak appears at
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS1.p2.3.m3.1">
+      <semantics id="S4.SS1.p2.3.m3.1a">
+       <mn id="S4.SS1.p2.3.m3.1.1" xref="S4.SS1.p2.3.m3.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.3.m3.1b">
+        <cn id="S4.SS1.p2.3.m3.1.1.cmml" type="integer" xref="S4.SS1.p2.3.m3.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.3.m3.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer, and the higher the temperature setting is, the closer to raw data the distribution is. However, when
+     <math alttext="\text{temperature}=2.0" class="ltx_Math" display="inline" id="S4.SS1.p2.4.m4.1">
+      <semantics id="S4.SS1.p2.4.m4.1a">
+       <mrow id="S4.SS1.p2.4.m4.1.1" xref="S4.SS1.p2.4.m4.1.1.cmml">
+        <mtext id="S4.SS1.p2.4.m4.1.1.2" xref="S4.SS1.p2.4.m4.1.1.2a.cmml">
+         temperature
+        </mtext>
+        <mo id="S4.SS1.p2.4.m4.1.1.1" xref="S4.SS1.p2.4.m4.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.4.m4.1.1.3" xref="S4.SS1.p2.4.m4.1.1.3.cmml">
+         2.0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.4.m4.1b">
+        <apply id="S4.SS1.p2.4.m4.1.1.cmml" xref="S4.SS1.p2.4.m4.1.1">
+         <eq id="S4.SS1.p2.4.m4.1.1.1.cmml" xref="S4.SS1.p2.4.m4.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.4.m4.1.1.2a.cmml" xref="S4.SS1.p2.4.m4.1.1.2">
+          <mtext id="S4.SS1.p2.4.m4.1.1.2.cmml" xref="S4.SS1.p2.4.m4.1.1.2">
+           temperature
+          </mtext>
+         </ci>
+         <cn id="S4.SS1.p2.4.m4.1.1.3.cmml" type="float" xref="S4.SS1.p2.4.m4.1.1.3">
+          2.0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.4.m4.1c">
+        \text{temperature}=2.0
+       </annotation>
+      </semantics>
+     </math>
+     , the distribution did not get closer, showing a higher peak at
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS1.p2.5.m5.1">
+      <semantics id="S4.SS1.p2.5.m5.1a">
+       <mn id="S4.SS1.p2.5.m5.1.1" xref="S4.SS1.p2.5.m5.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.5.m5.1b">
+        <cn id="S4.SS1.p2.5.m5.1.1.cmml" type="integer" xref="S4.SS1.p2.5.m5.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.5.m5.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer than when
+     <math alttext="\text{temperature}=1.5" class="ltx_Math" display="inline" id="S4.SS1.p2.6.m6.1">
+      <semantics id="S4.SS1.p2.6.m6.1a">
+       <mrow id="S4.SS1.p2.6.m6.1.1" xref="S4.SS1.p2.6.m6.1.1.cmml">
+        <mtext id="S4.SS1.p2.6.m6.1.1.2" xref="S4.SS1.p2.6.m6.1.1.2a.cmml">
+         temperature
+        </mtext>
+        <mo id="S4.SS1.p2.6.m6.1.1.1" xref="S4.SS1.p2.6.m6.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.6.m6.1.1.3" xref="S4.SS1.p2.6.m6.1.1.3.cmml">
+         1.5
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.6.m6.1b">
+        <apply id="S4.SS1.p2.6.m6.1.1.cmml" xref="S4.SS1.p2.6.m6.1.1">
+         <eq id="S4.SS1.p2.6.m6.1.1.1.cmml" xref="S4.SS1.p2.6.m6.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.6.m6.1.1.2a.cmml" xref="S4.SS1.p2.6.m6.1.1.2">
+          <mtext id="S4.SS1.p2.6.m6.1.1.2.cmml" xref="S4.SS1.p2.6.m6.1.1.2">
+           temperature
+          </mtext>
+         </ci>
+         <cn id="S4.SS1.p2.6.m6.1.1.3.cmml" type="float" xref="S4.SS1.p2.6.m6.1.1.3">
+          1.5
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.6.m6.1c">
+        \text{temperature}=1.5
+       </annotation>
+      </semantics>
+     </math>
+     . That implies a larger gap with the raw data in comparison with the previous one in Figure
+     <a class="ltx_ref" href="#S2.F2.sf1" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(a)
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     Second, Figure
+     <a class="ltx_ref" href="#S4.F3.sf2" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(b)
+      </span>
+     </a>
+     showed that in any temperature settings, almost all agents offered
+     <math alttext="50-50" class="ltx_Math" display="inline" id="S4.SS1.p3.1.m1.1">
+      <semantics id="S4.SS1.p3.1.m1.1a">
+       <mrow id="S4.SS1.p3.1.m1.1.1" xref="S4.SS1.p3.1.m1.1.1.cmml">
+        <mn id="S4.SS1.p3.1.m1.1.1.2" xref="S4.SS1.p3.1.m1.1.1.2.cmml">
+         50
+        </mn>
+        <mo id="S4.SS1.p3.1.m1.1.1.1" xref="S4.SS1.p3.1.m1.1.1.1.cmml">
+         −
+        </mo>
+        <mn id="S4.SS1.p3.1.m1.1.1.3" xref="S4.SS1.p3.1.m1.1.1.3.cmml">
+         50
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.1.m1.1b">
+        <apply id="S4.SS1.p3.1.m1.1.1.cmml" xref="S4.SS1.p3.1.m1.1.1">
+         <minus id="S4.SS1.p3.1.m1.1.1.1.cmml" xref="S4.SS1.p3.1.m1.1.1.1">
+         </minus>
+         <cn id="S4.SS1.p3.1.m1.1.1.2.cmml" type="integer" xref="S4.SS1.p3.1.m1.1.1.2">
+          50
+         </cn>
+         <cn id="S4.SS1.p3.1.m1.1.1.3.cmml" type="integer" xref="S4.SS1.p3.1.m1.1.1.3">
+          50
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.1.m1.1c">
+        50-50
+       </annotation>
+      </semantics>
+     </math>
+     division of coins. This is the most frequent offer in the raw data, but the disappearance of other offers in the simulation is a gap with the real economic experiment.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p4">
+    <p class="ltx_p" id="S4.SS1.p4.11">
+     Third, by introducing the other selected prompting methods, other tendencies can be found. When utilizing Few-shot prompting, Figure
+     <a class="ltx_ref" href="#S4.F3.sf3" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(c)
+      </span>
+     </a>
+     shows the most frequent peak at a
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS1.p4.1.m1.1">
+      <semantics id="S4.SS1.p4.1.m1.1a">
+       <mn id="S4.SS1.p4.1.m1.1.1" xref="S4.SS1.p4.1.m1.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.1.m1.1b">
+        <cn id="S4.SS1.p4.1.m1.1.1.cmml" type="integer" xref="S4.SS1.p4.1.m1.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.1.m1.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer and the second most frequent peak at a
+     <math alttext="40" class="ltx_Math" display="inline" id="S4.SS1.p4.2.m2.1">
+      <semantics id="S4.SS1.p4.2.m2.1a">
+       <mn id="S4.SS1.p4.2.m2.1.1" xref="S4.SS1.p4.2.m2.1.1.cmml">
+        40
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.2.m2.1b">
+        <cn id="S4.SS1.p4.2.m2.1.1.cmml" type="integer" xref="S4.SS1.p4.2.m2.1.1">
+         40
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.2.m2.1c">
+        40
+       </annotation>
+      </semantics>
+     </math>
+     offer, while there is almost no other offer value. When adapting CoT prompting, in Figure
+     <a class="ltx_ref" href="#S4.F3.sf4" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(d)
+      </span>
+     </a>
+     , the peak at
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS1.p4.3.m3.1">
+      <semantics id="S4.SS1.p4.3.m3.1a">
+       <mn id="S4.SS1.p4.3.m3.1.1" xref="S4.SS1.p4.3.m3.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.3.m3.1b">
+        <cn id="S4.SS1.p4.3.m3.1.1.cmml" type="integer" xref="S4.SS1.p4.3.m3.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.3.m3.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer disappears. Moreover, in the case of
+     <math alttext="\text{temperature}=0.5" class="ltx_Math" display="inline" id="S4.SS1.p4.4.m4.1">
+      <semantics id="S4.SS1.p4.4.m4.1a">
+       <mrow id="S4.SS1.p4.4.m4.1.1" xref="S4.SS1.p4.4.m4.1.1.cmml">
+        <mtext id="S4.SS1.p4.4.m4.1.1.2" xref="S4.SS1.p4.4.m4.1.1.2a.cmml">
+         temperature
+        </mtext>
+        <mo id="S4.SS1.p4.4.m4.1.1.1" xref="S4.SS1.p4.4.m4.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p4.4.m4.1.1.3" xref="S4.SS1.p4.4.m4.1.1.3.cmml">
+         0.5
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.4.m4.1b">
+        <apply id="S4.SS1.p4.4.m4.1.1.cmml" xref="S4.SS1.p4.4.m4.1.1">
+         <eq id="S4.SS1.p4.4.m4.1.1.1.cmml" xref="S4.SS1.p4.4.m4.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p4.4.m4.1.1.2a.cmml" xref="S4.SS1.p4.4.m4.1.1.2">
+          <mtext id="S4.SS1.p4.4.m4.1.1.2.cmml" xref="S4.SS1.p4.4.m4.1.1.2">
+           temperature
+          </mtext>
+         </ci>
+         <cn id="S4.SS1.p4.4.m4.1.1.3.cmml" type="float" xref="S4.SS1.p4.4.m4.1.1.3">
+          0.5
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.4.m4.1c">
+        \text{temperature}=0.5
+       </annotation>
+      </semantics>
+     </math>
+     to
+     <math alttext="1.5" class="ltx_Math" display="inline" id="S4.SS1.p4.5.m5.1">
+      <semantics id="S4.SS1.p4.5.m5.1a">
+       <mn id="S4.SS1.p4.5.m5.1.1" xref="S4.SS1.p4.5.m5.1.1.cmml">
+        1.5
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.5.m5.1b">
+        <cn id="S4.SS1.p4.5.m5.1.1.cmml" type="float" xref="S4.SS1.p4.5.m5.1.1">
+         1.5
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.5.m5.1c">
+        1.5
+       </annotation>
+      </semantics>
+     </math>
+     , the most frequent peak is at
+     <math alttext="40" class="ltx_Math" display="inline" id="S4.SS1.p4.6.m6.1">
+      <semantics id="S4.SS1.p4.6.m6.1a">
+       <mn id="S4.SS1.p4.6.m6.1.1" xref="S4.SS1.p4.6.m6.1.1.cmml">
+        40
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.6.m6.1b">
+        <cn id="S4.SS1.p4.6.m6.1.1.cmml" type="integer" xref="S4.SS1.p4.6.m6.1.1">
+         40
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.6.m6.1c">
+        40
+       </annotation>
+      </semantics>
+     </math>
+     offer, and the second most frequent peak appears at
+     <math alttext="45" class="ltx_Math" display="inline" id="S4.SS1.p4.7.m7.1">
+      <semantics id="S4.SS1.p4.7.m7.1a">
+       <mn id="S4.SS1.p4.7.m7.1.1" xref="S4.SS1.p4.7.m7.1.1.cmml">
+        45
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.7.m7.1b">
+        <cn id="S4.SS1.p4.7.m7.1.1.cmml" type="integer" xref="S4.SS1.p4.7.m7.1.1">
+         45
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.7.m7.1c">
+        45
+       </annotation>
+      </semantics>
+     </math>
+     offer. However, in the case
+     <math alttext="\text{temperature}=0" class="ltx_Math" display="inline" id="S4.SS1.p4.8.m8.1">
+      <semantics id="S4.SS1.p4.8.m8.1a">
+       <mrow id="S4.SS1.p4.8.m8.1.1" xref="S4.SS1.p4.8.m8.1.1.cmml">
+        <mtext id="S4.SS1.p4.8.m8.1.1.2" xref="S4.SS1.p4.8.m8.1.1.2a.cmml">
+         temperature
+        </mtext>
+        <mo id="S4.SS1.p4.8.m8.1.1.1" xref="S4.SS1.p4.8.m8.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p4.8.m8.1.1.3" xref="S4.SS1.p4.8.m8.1.1.3.cmml">
+         0
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.8.m8.1b">
+        <apply id="S4.SS1.p4.8.m8.1.1.cmml" xref="S4.SS1.p4.8.m8.1.1">
+         <eq id="S4.SS1.p4.8.m8.1.1.1.cmml" xref="S4.SS1.p4.8.m8.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p4.8.m8.1.1.2a.cmml" xref="S4.SS1.p4.8.m8.1.1.2">
+          <mtext id="S4.SS1.p4.8.m8.1.1.2.cmml" xref="S4.SS1.p4.8.m8.1.1.2">
+           temperature
+          </mtext>
+         </ci>
+         <cn id="S4.SS1.p4.8.m8.1.1.3.cmml" type="integer" xref="S4.SS1.p4.8.m8.1.1.3">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.8.m8.1c">
+        \text{temperature}=0
+       </annotation>
+      </semantics>
+     </math>
+     , the most frequent peak appears at
+     <math alttext="55" class="ltx_Math" display="inline" id="S4.SS1.p4.9.m9.1">
+      <semantics id="S4.SS1.p4.9.m9.1a">
+       <mn id="S4.SS1.p4.9.m9.1.1" xref="S4.SS1.p4.9.m9.1.1.cmml">
+        55
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.9.m9.1b">
+        <cn id="S4.SS1.p4.9.m9.1.1.cmml" type="integer" xref="S4.SS1.p4.9.m9.1.1">
+         55
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.9.m9.1c">
+        55
+       </annotation>
+      </semantics>
+     </math>
+     offer and the second and third most frequent peak is at
+     <math alttext="40" class="ltx_Math" display="inline" id="S4.SS1.p4.10.m10.1">
+      <semantics id="S4.SS1.p4.10.m10.1a">
+       <mn id="S4.SS1.p4.10.m10.1.1" xref="S4.SS1.p4.10.m10.1.1.cmml">
+        40
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.10.m10.1b">
+        <cn id="S4.SS1.p4.10.m10.1.1.cmml" type="integer" xref="S4.SS1.p4.10.m10.1.1">
+         40
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.10.m10.1c">
+        40
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="45" class="ltx_Math" display="inline" id="S4.SS1.p4.11.m11.1">
+      <semantics id="S4.SS1.p4.11.m11.1a">
+       <mn id="S4.SS1.p4.11.m11.1.1" xref="S4.SS1.p4.11.m11.1.1.cmml">
+        45
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p4.11.m11.1b">
+        <cn id="S4.SS1.p4.11.m11.1.1.cmml" type="integer" xref="S4.SS1.p4.11.m11.1.1">
+         45
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p4.11.m11.1c">
+        45
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F3">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F3.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F3.sf1.g1" src="/html/2406.11426/assets/x6.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        Pattern A
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F3.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F3.sf2.g1" src="/html/2406.11426/assets/x7.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        Pattern B
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F3.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F3.sf3.g1" src="/html/2406.11426/assets/x8.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (c)
+        </span>
+        Pattern C
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F3.sf4">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F3.sf4.g1" src="/html/2406.11426/assets/x9.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (d)
+        </span>
+        Pattern D
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Simulation results from the proposer side
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Responder Side
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     Regarding the responding player, Figure
+     <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     presents the results from simulations, with one graph for each settings pattern. The horizontal axis of each graph indicates the value offered by the proposer and the vertical axis denotes the acceptance rate for each offer. The blue line represents the data from
+     <math alttext="1000" class="ltx_Math" display="inline" id="S4.SS2.p1.1.m1.1">
+      <semantics id="S4.SS2.p1.1.m1.1a">
+       <mn id="S4.SS2.p1.1.m1.1.1" xref="S4.SS2.p1.1.m1.1.1.cmml">
+        1000
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.1.m1.1b">
+        <cn id="S4.SS2.p1.1.m1.1.1.cmml" type="integer" xref="S4.SS2.p1.1.m1.1.1">
+         1000
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.1.m1.1c">
+        1000
+       </annotation>
+      </semantics>
+     </math>
+     samples out of those used by Lin et al. (2020) and remains consistent across all figures. The simulation results for the five temperature settings are depicted using distinct colored graphs.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.10">
+     Figure
+     <a class="ltx_ref" href="#S4.F4.sf1" title="In Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4(a)
+      </span>
+     </a>
+     and Figure
+     <a class="ltx_ref" href="#S4.F4.sf2" title="In Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4(b)
+      </span>
+     </a>
+     showed similar tendency. In all patterns of temperature, the higher the offered value is from
+     <math alttext="0" class="ltx_Math" display="inline" id="S4.SS2.p2.1.m1.1">
+      <semantics id="S4.SS2.p2.1.m1.1a">
+       <mn id="S4.SS2.p2.1.m1.1.1" xref="S4.SS2.p2.1.m1.1.1.cmml">
+        0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.1.m1.1b">
+        <cn id="S4.SS2.p2.1.m1.1.1.cmml" type="integer" xref="S4.SS2.p2.1.m1.1.1">
+         0
+        </cn>
+       </annotation-xml>
+      </semantics>
+     </math>
+     to
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS2.p2.2.m2.1">
+      <semantics id="S4.SS2.p2.2.m2.1a">
+       <mn id="S4.SS2.p2.2.m2.1.1" xref="S4.SS2.p2.2.m2.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.2.m2.1b">
+        <cn id="S4.SS2.p2.2.m2.1.1.cmml" type="integer" xref="S4.SS2.p2.2.m2.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.2.m2.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     , the higher the acceptance rate is, a discontinuous jump appears at
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS2.p2.3.m3.1">
+      <semantics id="S4.SS2.p2.3.m3.1a">
+       <mn id="S4.SS2.p2.3.m3.1.1" xref="S4.SS2.p2.3.m3.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.3.m3.1b">
+        <cn id="S4.SS2.p2.3.m3.1.1.cmml" type="integer" xref="S4.SS2.p2.3.m3.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.3.m3.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     , and the higher the offered value is from
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS2.p2.4.m4.1">
+      <semantics id="S4.SS2.p2.4.m4.1a">
+       <mn id="S4.SS2.p2.4.m4.1.1" xref="S4.SS2.p2.4.m4.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.4.m4.1b">
+        <cn id="S4.SS2.p2.4.m4.1.1.cmml" type="integer" xref="S4.SS2.p2.4.m4.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.4.m4.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     to
+     <math alttext="100" class="ltx_Math" display="inline" id="S4.SS2.p2.5.m5.1">
+      <semantics id="S4.SS2.p2.5.m5.1a">
+       <mn id="S4.SS2.p2.5.m5.1.1" xref="S4.SS2.p2.5.m5.1.1.cmml">
+        100
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.5.m5.1b">
+        <cn id="S4.SS2.p2.5.m5.1.1.cmml" type="integer" xref="S4.SS2.p2.5.m5.1.1">
+         100
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.5.m5.1c">
+        100
+       </annotation>
+      </semantics>
+     </math>
+     , the lower the acceptance rate gets. Although this tendency is consistent with the original one, some differences were found. Regarding the left side, the increasing acceptance ratio is smaller than the blue line. At the
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS2.p2.6.m6.1">
+      <semantics id="S4.SS2.p2.6.m6.1a">
+       <mn id="S4.SS2.p2.6.m6.1.1" xref="S4.SS2.p2.6.m6.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.6.m6.1b">
+        <cn id="S4.SS2.p2.6.m6.1.1.cmml" type="integer" xref="S4.SS2.p2.6.m6.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.6.m6.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer, the acceptance rate of the left blue line is about
+     <math alttext="0.7" class="ltx_Math" display="inline" id="S4.SS2.p2.7.m7.1">
+      <semantics id="S4.SS2.p2.7.m7.1a">
+       <mn id="S4.SS2.p2.7.m7.1.1" xref="S4.SS2.p2.7.m7.1.1.cmml">
+        0.7
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.7.m7.1b">
+        <cn id="S4.SS2.p2.7.m7.1.1.cmml" type="float" xref="S4.SS2.p2.7.m7.1.1">
+         0.7
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.7.m7.1c">
+        0.7
+       </annotation>
+      </semantics>
+     </math>
+     and the rate of the other color lines is about
+     <math alttext="0.4" class="ltx_Math" display="inline" id="S4.SS2.p2.8.m8.1">
+      <semantics id="S4.SS2.p2.8.m8.1a">
+       <mn id="S4.SS2.p2.8.m8.1.1" xref="S4.SS2.p2.8.m8.1.1.cmml">
+        0.4
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.8.m8.1b">
+        <cn id="S4.SS2.p2.8.m8.1.1.cmml" type="float" xref="S4.SS2.p2.8.m8.1.1">
+         0.4
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.8.m8.1c">
+        0.4
+       </annotation>
+      </semantics>
+     </math>
+     or less. Regarding the right side, the acceptance rate of simulations is lower than the row data. In particular, at the
+     <math alttext="100" class="ltx_Math" display="inline" id="S4.SS2.p2.9.m9.1">
+      <semantics id="S4.SS2.p2.9.m9.1a">
+       <mn id="S4.SS2.p2.9.m9.1.1" xref="S4.SS2.p2.9.m9.1.1.cmml">
+        100
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.9.m9.1b">
+        <cn id="S4.SS2.p2.9.m9.1.1.cmml" type="integer" xref="S4.SS2.p2.9.m9.1.1">
+         100
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.9.m9.1c">
+        100
+       </annotation>
+      </semantics>
+     </math>
+     offer, the rates are lower than the one found in
+     <math alttext="50" class="ltx_Math" display="inline" id="S4.SS2.p2.10.m10.1">
+      <semantics id="S4.SS2.p2.10.m10.1a">
+       <mn id="S4.SS2.p2.10.m10.1.1" xref="S4.SS2.p2.10.m10.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.10.m10.1b">
+        <cn id="S4.SS2.p2.10.m10.1.1.cmml" type="integer" xref="S4.SS2.p2.10.m10.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.10.m10.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     . That implies a gap with the actual experimental result.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     Next, Figures
+     <a class="ltx_ref" href="#S4.F4.sf3" title="In Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4(c)
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S4.F4.sf4" title="In Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4(d)
+      </span>
+     </a>
+     showed a similar tendency between them but different from the other graphs. In each one, there are slight differences among simulation settings for various values of temperature. On the left side of each graph, simulation lines show a larger increasing acceptance rate against the value of the offer than that of the original one. On the right side, simulation lines are horizontal where the acceptance rate is equal to
+     <math alttext="1" class="ltx_Math" display="inline" id="S4.SS2.p3.1.m1.1">
+      <semantics id="S4.SS2.p3.1.m1.1a">
+       <mn id="S4.SS2.p3.1.m1.1.1" xref="S4.SS2.p3.1.m1.1.1.cmml">
+        1
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p3.1.m1.1b">
+        <cn id="S4.SS2.p3.1.m1.1.1.cmml" type="integer" xref="S4.SS2.p3.1.m1.1.1">
+         1
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p3.1.m1.1c">
+        1
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p4">
+    <p class="ltx_p" id="S4.SS2.p4.2">
+     The reason these lines were depicted can be understood by Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . This figure presents bubble plots derived from responder-side simulations. The axes and color schemes are consistent with those depicted in Figure
+     <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     . The center of each bubble represents the acceptance rate corresponding to a specific offer value, while the bubble size reflects the quantity of data points associated with that offer value. These figures reveal that the distributions of data points are skewed. This skewness acounts for the anomalies observed in the regression lines of Figure
+     <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , where acceptance rates exhibited extreme values, either exceeding
+     <math alttext="1.0" class="ltx_Math" display="inline" id="S4.SS2.p4.1.m1.1">
+      <semantics id="S4.SS2.p4.1.m1.1a">
+       <mn id="S4.SS2.p4.1.m1.1.1" xref="S4.SS2.p4.1.m1.1.1.cmml">
+        1.0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p4.1.m1.1b">
+        <cn id="S4.SS2.p4.1.m1.1.1.cmml" type="float" xref="S4.SS2.p4.1.m1.1.1">
+         1.0
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p4.1.m1.1c">
+        1.0
+       </annotation>
+      </semantics>
+     </math>
+     or falling below
+     <math alttext="0" class="ltx_Math" display="inline" id="S4.SS2.p4.2.m2.1">
+      <semantics id="S4.SS2.p4.2.m2.1a">
+       <mn id="S4.SS2.p4.2.m2.1.1" xref="S4.SS2.p4.2.m2.1.1.cmml">
+        0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p4.2.m2.1b">
+        <cn id="S4.SS2.p4.2.m2.1.1.cmml" type="integer" xref="S4.SS2.p4.2.m2.1.1">
+         0
+        </cn>
+       </annotation-xml>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F4">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F4.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F4.sf1.g1" src="/html/2406.11426/assets/x10.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        Pattern A
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F4.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F4.sf2.g1" src="/html/2406.11426/assets/x11.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        Pattern B
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F4.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F4.sf3.g1" src="/html/2406.11426/assets/x12.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (c)
+        </span>
+        Pattern C
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F4.sf4">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F4.sf4.g1" src="/html/2406.11426/assets/x13.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (d)
+        </span>
+        Pattern D
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Simulation results from the responder side
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S4.F5">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F5.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F5.sf1.g1" src="/html/2406.11426/assets/x14.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        Pattern A
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F5.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F5.sf2.g1" src="/html/2406.11426/assets/x15.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        Pattern B
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_break">
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F5.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F5.sf3.g1" src="/html/2406.11426/assets/x16.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (c)
+        </span>
+        Pattern C
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel" id="S4.F5.sf4">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="276" id="S4.F5.sf4.g1" src="/html/2406.11426/assets/x17.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         (d)
+        </span>
+        Pattern D
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     Bubble Plots of Responder-side Simulation Results
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Discussion and Conclusion
+  </h2>
+  <section class="ltx_subsection" id="S5.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.1
+    </span>
+    The Effects of Improving Reasoning Ability
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p1">
+    <p class="ltx_p" id="S5.SS1.p1.1">
+     In this research, we conducted four patterns of simulations as a variation of the GPT model and prompt method. Regarding the model of GPT, we used two kinds of models and found that gpt-4-1106-preview is superior to gpt-3.5-turbo-0613 in reasoning ability. As for the prompt method, in decreasing order of reasoning ability, the three methods we used are CoT, Few-shot prompting, and Zero-shot prompting. That is why the four patterns are listed in descending order of the reasoning ability of generative agents as follows: pattern D, pattern C, pattern B, and pattern A.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p2">
+    <p class="ltx_p" id="S5.SS1.p2.6">
+     Considering this, it can be said that the higher the reasoning ability of generative agents is, the closer to the theoretical solution their decision makings become. In the theoretical solution of the ultimatum game, the subgame perfect equilibrium is
+     <math alttext="(s_{1},s_{2})=(0,\text{accept})" class="ltx_Math" display="inline" id="S5.SS1.p2.1.m1.4">
+      <semantics id="S5.SS1.p2.1.m1.4a">
+       <mrow id="S5.SS1.p2.1.m1.4.4" xref="S5.SS1.p2.1.m1.4.4.cmml">
+        <mrow id="S5.SS1.p2.1.m1.4.4.2.2" xref="S5.SS1.p2.1.m1.4.4.2.3.cmml">
+         <mo id="S5.SS1.p2.1.m1.4.4.2.2.3" stretchy="false" xref="S5.SS1.p2.1.m1.4.4.2.3.cmml">
+          (
+         </mo>
+         <msub id="S5.SS1.p2.1.m1.3.3.1.1.1" xref="S5.SS1.p2.1.m1.3.3.1.1.1.cmml">
+          <mi id="S5.SS1.p2.1.m1.3.3.1.1.1.2" xref="S5.SS1.p2.1.m1.3.3.1.1.1.2.cmml">
+           s
+          </mi>
+          <mn id="S5.SS1.p2.1.m1.3.3.1.1.1.3" xref="S5.SS1.p2.1.m1.3.3.1.1.1.3.cmml">
+           1
+          </mn>
+         </msub>
+         <mo id="S5.SS1.p2.1.m1.4.4.2.2.4" xref="S5.SS1.p2.1.m1.4.4.2.3.cmml">
+          ,
+         </mo>
+         <msub id="S5.SS1.p2.1.m1.4.4.2.2.2" xref="S5.SS1.p2.1.m1.4.4.2.2.2.cmml">
+          <mi id="S5.SS1.p2.1.m1.4.4.2.2.2.2" xref="S5.SS1.p2.1.m1.4.4.2.2.2.2.cmml">
+           s
+          </mi>
+          <mn id="S5.SS1.p2.1.m1.4.4.2.2.2.3" xref="S5.SS1.p2.1.m1.4.4.2.2.2.3.cmml">
+           2
+          </mn>
+         </msub>
+         <mo id="S5.SS1.p2.1.m1.4.4.2.2.5" stretchy="false" xref="S5.SS1.p2.1.m1.4.4.2.3.cmml">
+          )
+         </mo>
+        </mrow>
+        <mo id="S5.SS1.p2.1.m1.4.4.3" xref="S5.SS1.p2.1.m1.4.4.3.cmml">
+         =
+        </mo>
+        <mrow id="S5.SS1.p2.1.m1.4.4.4.2" xref="S5.SS1.p2.1.m1.4.4.4.1.cmml">
+         <mo id="S5.SS1.p2.1.m1.4.4.4.2.1" stretchy="false" xref="S5.SS1.p2.1.m1.4.4.4.1.cmml">
+          (
+         </mo>
+         <mn id="S5.SS1.p2.1.m1.1.1" xref="S5.SS1.p2.1.m1.1.1.cmml">
+          0
+         </mn>
+         <mo id="S5.SS1.p2.1.m1.4.4.4.2.2" xref="S5.SS1.p2.1.m1.4.4.4.1.cmml">
+          ,
+         </mo>
+         <mtext id="S5.SS1.p2.1.m1.2.2" xref="S5.SS1.p2.1.m1.2.2a.cmml">
+          accept
+         </mtext>
+         <mo id="S5.SS1.p2.1.m1.4.4.4.2.3" stretchy="false" xref="S5.SS1.p2.1.m1.4.4.4.1.cmml">
+          )
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.1.m1.4b">
+        <apply id="S5.SS1.p2.1.m1.4.4.cmml" xref="S5.SS1.p2.1.m1.4.4">
+         <eq id="S5.SS1.p2.1.m1.4.4.3.cmml" xref="S5.SS1.p2.1.m1.4.4.3">
+         </eq>
+         <interval closure="open" id="S5.SS1.p2.1.m1.4.4.2.3.cmml" xref="S5.SS1.p2.1.m1.4.4.2.2">
+          <apply id="S5.SS1.p2.1.m1.3.3.1.1.1.cmml" xref="S5.SS1.p2.1.m1.3.3.1.1.1">
+           <csymbol cd="ambiguous" id="S5.SS1.p2.1.m1.3.3.1.1.1.1.cmml" xref="S5.SS1.p2.1.m1.3.3.1.1.1">
+            subscript
+           </csymbol>
+           <ci id="S5.SS1.p2.1.m1.3.3.1.1.1.2.cmml" xref="S5.SS1.p2.1.m1.3.3.1.1.1.2">
+            𝑠
+           </ci>
+           <cn id="S5.SS1.p2.1.m1.3.3.1.1.1.3.cmml" type="integer" xref="S5.SS1.p2.1.m1.3.3.1.1.1.3">
+            1
+           </cn>
+          </apply>
+          <apply id="S5.SS1.p2.1.m1.4.4.2.2.2.cmml" xref="S5.SS1.p2.1.m1.4.4.2.2.2">
+           <csymbol cd="ambiguous" id="S5.SS1.p2.1.m1.4.4.2.2.2.1.cmml" xref="S5.SS1.p2.1.m1.4.4.2.2.2">
+            subscript
+           </csymbol>
+           <ci id="S5.SS1.p2.1.m1.4.4.2.2.2.2.cmml" xref="S5.SS1.p2.1.m1.4.4.2.2.2.2">
+            𝑠
+           </ci>
+           <cn id="S5.SS1.p2.1.m1.4.4.2.2.2.3.cmml" type="integer" xref="S5.SS1.p2.1.m1.4.4.2.2.2.3">
+            2
+           </cn>
+          </apply>
+         </interval>
+         <interval closure="open" id="S5.SS1.p2.1.m1.4.4.4.1.cmml" xref="S5.SS1.p2.1.m1.4.4.4.2">
+          <cn id="S5.SS1.p2.1.m1.1.1.cmml" type="integer" xref="S5.SS1.p2.1.m1.1.1">
+           0
+          </cn>
+          <ci id="S5.SS1.p2.1.m1.2.2a.cmml" xref="S5.SS1.p2.1.m1.2.2">
+           <mtext id="S5.SS1.p2.1.m1.2.2.cmml" xref="S5.SS1.p2.1.m1.2.2">
+            accept
+           </mtext>
+          </ci>
+         </interval>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS1.p2.1.m1.4c">
+        (s_{1},s_{2})=(0,\text{accept})
+       </annotation>
+      </semantics>
+     </math>
+     . Regarding the proposer side, from Figure
+     <a class="ltx_ref" href="#S4.F3.sf1" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(a)
+      </span>
+     </a>
+     to Figure
+     <a class="ltx_ref" href="#S4.F3.sf4" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(d)
+      </span>
+     </a>
+     , the distribution changed toward the offer
+     <math alttext="0" class="ltx_Math" display="inline" id="S5.SS1.p2.2.m2.1">
+      <semantics id="S5.SS1.p2.2.m2.1a">
+       <mn id="S5.SS1.p2.2.m2.1.1" xref="S5.SS1.p2.2.m2.1.1.cmml">
+        0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.2.m2.1b">
+        <cn id="S5.SS1.p2.2.m2.1.1.cmml" type="integer" xref="S5.SS1.p2.2.m2.1.1">
+         0
+        </cn>
+       </annotation-xml>
+      </semantics>
+     </math>
+     . Regarding the responder side, by utilizing prompting methods to improve the reasoning ability of generative agents, the fluctuation of acceptance rate in response to an offered value becomes stable and generative agents almost always decide
+     <math alttext="s_{2}=\text{accept}" class="ltx_Math" display="inline" id="S5.SS1.p2.3.m3.1">
+      <semantics id="S5.SS1.p2.3.m3.1a">
+       <mrow id="S5.SS1.p2.3.m3.1.1" xref="S5.SS1.p2.3.m3.1.1.cmml">
+        <msub id="S5.SS1.p2.3.m3.1.1.2" xref="S5.SS1.p2.3.m3.1.1.2.cmml">
+         <mi id="S5.SS1.p2.3.m3.1.1.2.2" xref="S5.SS1.p2.3.m3.1.1.2.2.cmml">
+          s
+         </mi>
+         <mn id="S5.SS1.p2.3.m3.1.1.2.3" xref="S5.SS1.p2.3.m3.1.1.2.3.cmml">
+          2
+         </mn>
+        </msub>
+        <mo id="S5.SS1.p2.3.m3.1.1.1" xref="S5.SS1.p2.3.m3.1.1.1.cmml">
+         =
+        </mo>
+        <mtext id="S5.SS1.p2.3.m3.1.1.3" xref="S5.SS1.p2.3.m3.1.1.3a.cmml">
+         accept
+        </mtext>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.3.m3.1b">
+        <apply id="S5.SS1.p2.3.m3.1.1.cmml" xref="S5.SS1.p2.3.m3.1.1">
+         <eq id="S5.SS1.p2.3.m3.1.1.1.cmml" xref="S5.SS1.p2.3.m3.1.1.1">
+         </eq>
+         <apply id="S5.SS1.p2.3.m3.1.1.2.cmml" xref="S5.SS1.p2.3.m3.1.1.2">
+          <csymbol cd="ambiguous" id="S5.SS1.p2.3.m3.1.1.2.1.cmml" xref="S5.SS1.p2.3.m3.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S5.SS1.p2.3.m3.1.1.2.2.cmml" xref="S5.SS1.p2.3.m3.1.1.2.2">
+           𝑠
+          </ci>
+          <cn id="S5.SS1.p2.3.m3.1.1.2.3.cmml" type="integer" xref="S5.SS1.p2.3.m3.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <ci id="S5.SS1.p2.3.m3.1.1.3a.cmml" xref="S5.SS1.p2.3.m3.1.1.3">
+          <mtext id="S5.SS1.p2.3.m3.1.1.3.cmml" xref="S5.SS1.p2.3.m3.1.1.3">
+           accept
+          </mtext>
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS1.p2.3.m3.1c">
+        s_{2}=\text{accept}
+       </annotation>
+      </semantics>
+     </math>
+     when the offered value is larger than
+     <math alttext="20" class="ltx_Math" display="inline" id="S5.SS1.p2.4.m4.1">
+      <semantics id="S5.SS1.p2.4.m4.1a">
+       <mn id="S5.SS1.p2.4.m4.1.1" xref="S5.SS1.p2.4.m4.1.1.cmml">
+        20
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.4.m4.1b">
+        <cn id="S5.SS1.p2.4.m4.1.1.cmml" type="integer" xref="S5.SS1.p2.4.m4.1.1">
+         20
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS1.p2.4.m4.1c">
+        20
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="s_{2}=\text{reject}" class="ltx_Math" display="inline" id="S5.SS1.p2.5.m5.1">
+      <semantics id="S5.SS1.p2.5.m5.1a">
+       <mrow id="S5.SS1.p2.5.m5.1.1" xref="S5.SS1.p2.5.m5.1.1.cmml">
+        <msub id="S5.SS1.p2.5.m5.1.1.2" xref="S5.SS1.p2.5.m5.1.1.2.cmml">
+         <mi id="S5.SS1.p2.5.m5.1.1.2.2" xref="S5.SS1.p2.5.m5.1.1.2.2.cmml">
+          s
+         </mi>
+         <mn id="S5.SS1.p2.5.m5.1.1.2.3" xref="S5.SS1.p2.5.m5.1.1.2.3.cmml">
+          2
+         </mn>
+        </msub>
+        <mo id="S5.SS1.p2.5.m5.1.1.1" xref="S5.SS1.p2.5.m5.1.1.1.cmml">
+         =
+        </mo>
+        <mtext id="S5.SS1.p2.5.m5.1.1.3" xref="S5.SS1.p2.5.m5.1.1.3a.cmml">
+         reject
+        </mtext>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.5.m5.1b">
+        <apply id="S5.SS1.p2.5.m5.1.1.cmml" xref="S5.SS1.p2.5.m5.1.1">
+         <eq id="S5.SS1.p2.5.m5.1.1.1.cmml" xref="S5.SS1.p2.5.m5.1.1.1">
+         </eq>
+         <apply id="S5.SS1.p2.5.m5.1.1.2.cmml" xref="S5.SS1.p2.5.m5.1.1.2">
+          <csymbol cd="ambiguous" id="S5.SS1.p2.5.m5.1.1.2.1.cmml" xref="S5.SS1.p2.5.m5.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S5.SS1.p2.5.m5.1.1.2.2.cmml" xref="S5.SS1.p2.5.m5.1.1.2.2">
+           𝑠
+          </ci>
+          <cn id="S5.SS1.p2.5.m5.1.1.2.3.cmml" type="integer" xref="S5.SS1.p2.5.m5.1.1.2.3">
+           2
+          </cn>
+         </apply>
+         <ci id="S5.SS1.p2.5.m5.1.1.3a.cmml" xref="S5.SS1.p2.5.m5.1.1.3">
+          <mtext id="S5.SS1.p2.5.m5.1.1.3.cmml" xref="S5.SS1.p2.5.m5.1.1.3">
+           reject
+          </mtext>
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS1.p2.5.m5.1c">
+        s_{2}=\text{reject}
+       </annotation>
+      </semantics>
+     </math>
+     when the offered value is
+     <math alttext="10" class="ltx_Math" display="inline" id="S5.SS1.p2.6.m6.1">
+      <semantics id="S5.SS1.p2.6.m6.1a">
+       <mn id="S5.SS1.p2.6.m6.1.1" xref="S5.SS1.p2.6.m6.1.1.cmml">
+        10
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S5.SS1.p2.6.m6.1b">
+        <cn id="S5.SS1.p2.6.m6.1.1.cmml" type="integer" xref="S5.SS1.p2.6.m6.1.1">
+         10
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS1.p2.6.m6.1c">
+        10
+       </annotation>
+      </semantics>
+     </math>
+     or less. Therefore, it can be said that by improving the reasoning ability of generative agents, the result of LLMs-driven MAS does not get closer to the actual experimental result, but gets closer to the theoretical solution.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.2
+    </span>
+    Toward the Replication of Human-like Decision Making
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p1">
+    <p class="ltx_p" id="S5.SS2.p1.1">
+     In this research, we tried to reproduce the result of economic experiments found by Lin et al. (2020) through LLMs-driven MAS where the reasoning ability of generative agents was improved. However, as a result, we found that the higher the reasoning ability of generative agents is, the closer not to the experimental result but to the theoretical result the simulation result becomes. In the future, the reasoning ability of LLMs will be further improved following the rapid development of the computer science field. Considering this expectation, this study suggests that more research is needed on getting intelligent generative agents to make a human-like decision.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p2">
+    <p class="ltx_p" id="S5.SS2.p2.1">
+     Moreover, the comparison of this and our previous research suggests the importance of persona settings. We attribute the difference between Figures
+     <a class="ltx_ref" href="#S2.F2.sf1" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(a)
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S2.F2.sf2" title="In Figure 2 ‣ 2.4 Our Previous Study ‣ 2 Theoretical Background ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       2(b)
+      </span>
+     </a>
+     (a result in our previous work) and Figures
+     <a class="ltx_ref" href="#S4.F3.sf1" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(a)
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S4.F4.sf1" title="In Figure 4 ‣ 4.2 Responder Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       4(a)
+      </span>
+     </a>
+     (the result of simulation patterns in this study) to the existence of persona settings. That is because other settings of simulations were completely the same. Comparing these results, the disappearance of the persona setting in this study has negatively worked on the proposer side and positively worked on the responder side for reproducing the result of actual decision making in Lin et al. (2020). This difference suggests that the settings of the persona of generative agents are essential for applying LLMs-driven MAS into economic experiments, which is consistent with previous researches
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     and needs further investigation.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p3">
+    <p class="ltx_p" id="S5.SS2.p3.1">
+     Considering this, to get generative agents making human-like decisions how to set the persona of the agents is key. In this research, as an update from Kitadai et al. (2023), we eliminated the step of the persona settings for each agent in the simulation, which generated the discontinuous jump at
+     <math alttext="50" class="ltx_Math" display="inline" id="S5.SS2.p3.1.m1.1">
+      <semantics id="S5.SS2.p3.1.m1.1a">
+       <mn id="S5.SS2.p3.1.m1.1.1" xref="S5.SS2.p3.1.m1.1.1.cmml">
+        50
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S5.SS2.p3.1.m1.1b">
+        <cn id="S5.SS2.p3.1.m1.1.1.cmml" type="integer" xref="S5.SS2.p3.1.m1.1.1">
+         50
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S5.SS2.p3.1.m1.1c">
+        50
+       </annotation>
+      </semantics>
+     </math>
+     offer in Figure
+     <a class="ltx_ref" href="#S4.F3.sf1" title="In Figure 3 ‣ 4.1 Proposer Side ‣ 4 Results ‣ Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?">
+      <span class="ltx_text ltx_ref_tag">
+       3(a)
+      </span>
+     </a>
+     . However, when the reasoning ability of generative agents was improved, such elimination caused a larger difference in the results for the proposer side. By setting a proper persona for agents, the tendency of their decision making may get close to that of the actual people. Exploring the general framework to set such persona of generative agents is a future step toward the establishment of a general framework of LLMs-driven MAS to reproduce the result of economic experiments.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     M. Latuszynska and A. Borawska, “Economic experiments in virtual world,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Transformations in business &amp; economics
+     </span>
+     , vol. 14, no. 3C, pp. 495–506, 2015.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     J. Kunze, “Design problems of complex economic experiments,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      From Data and Information Analysis to Knowledge Engineering
+     </span>
+     , pp. 494–501, 2006.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     J. S. Park, J. O’Brien, C. J. Cai, M. R. Morris, P. Liang, and M. S. Bernstein, “Generative agents: Interactive simulacra of human behavior,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology
+     </span>
+     , pp. 1–22, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     G. V. Aher, R. I. Arriaga, and A. T. Kalai, “Using large language models to simulate multiple humans and replicate human subject studies,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      International Conference on Machine Learning
+     </span>
+     , pp. 337–371, PMLR, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     J. J. Horton, “Large language models as simulated economic agents: What can we learn from homo silicus?,” tech. rep., National Bureau of Economic Research, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     P. Brookins and J. M. DeBacker, “Playing games with GPT: What can we learn about a large language model from canonical strategic games?,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      SSRN
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     T. Tsuchihashi, “How much do you bid? answers from chatgpt in first-price and second-price auctions,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Journal of Digital Life
+     </span>
+     , vol. 3, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     F. Guo, “GPT agents in game theory experiments,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     S. Phelps and Y. Russell, “Investigating emergent goal-like behaviour in large language models using experimental economics,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     X. Han, Z. Wu, and C. Xiao, ““Guinea Pig Trials” utilizing gpt: A novel smart agent-based modeling approach for studying firm competition and collusion,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     W. GÃ¼th, R. Schmittberger, and B. Schwarze, “An experimental analysis of ultimatum bargaining,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      Journal of Economic Behavior &amp; Organization
+     </span>
+     , vol. 3, no. 4, pp. 367–388, 1982.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     P. Lin, A. Brown, T. Imai, J. Wang, S. Wang, and C. Camerer, “Evidence of general economic principles of bargaining and trade from 2,000 classroom experiments,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      Nature Human Behaviour
+     </span>
+     , vol. 4, pp. 917–927, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     A. Kitadai, Y. Tsurusaki, Y. Fukasawa, and N. Nishino, “Toward a novel methodology in economic experiments: Simulation of the ultimatum game with large language models,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      2023 IEEE International Conference on Big Data (BigData)
+     </span>
+     , pp. 3168–3175, IEEE, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell,
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      et al.
+     </span>
+     , “Language models are few-shot learners,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.2.2">
+      Advances in neural information processing systems
+     </span>
+     , vol. 33, pp. 1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wei, X. Wang, D. Schuurmans, M. Bosma, B. Ichter, F. Xia, E. Chi, Q. Le, and D. Zhou, “Chain-of-thought prompting elicits reasoning in large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , vol. 35, pp. 24824–24837, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     N. Li, C. Gao, Y. Li, and Q. Liao, “Large language model-empowered agents for simulating macroeconomic activities,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     J. Brand, A. Israeli, and D. Ngwe, “Using gpt for market research,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      SSRN
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     L. Bybee, “Surveying generative AI’s economic expectations,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     N. LorÃ¨ and B. Heydari, “Strategic behavior of large language models: Game structure vs. contextual framing,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     E. Akata, L. Schulz, J. Coda-Forno, S. Oh, M. Bethge, and E. Schulz, “Playing repeated games with large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     D. Dillion, N. Tandon, Y. Gu, and K. Gray, “Can ai language models replace human participants?,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      Trends in Cognitive Sciences
+     </span>
+     , vol. 27, no. 7, pp. 597–600, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     T. Hagendorff, “Machine psychology: Investigating emergent capabilities and behavior in large language models using psychological methods,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     J. Harding, W. D’Alessandro, N. Laskowski, and R. Long, “AI language models cannot replace human research participants,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      AI &amp; Society
+     </span>
+     , vol. 1, pp. 1–3, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     L. Argyle, E. Busby, N. Fulda, J. Gubler, C. Rytting, and D. Wingate, “Out of one, many: Using language models to simulate human samples,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      Political Analysis
+     </span>
+     , vol. 31, no. 3, pp. 337–351, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     M. Binz and E. Schulz, “Using cognitive psychology to understand GPT-3,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      Proceedings of the National Academy of Sciences
+     </span>
+     , vol. 120, no. 6, p. e2218523120, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     J. Etxaniz, G. Azkune, A. Soroa, O. Lopez de Lacalle, and M. Artetxe, “Do multilingual language models think better in english?,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      arXiv
+     </span>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div about="" class="ltx_rdf" content="Ayato Kitadai, Nariaki Nishino" property="dcterms:creator">
+ </div>
+ <div about="" class="ltx_rdf" content="large language models, economic experiment, multi agent simulation, ultimatum game, decision making" property="dcterms:subject">
+ </div>
+ <div about="" class="ltx_rdf" content="q-bio.NC, q-bio.QM" property="dcterms:subject">
+ </div>
+ <div about="" class="ltx_rdf" content="Can AI with High Reasoning Ability Replicate Human-like Decision Making in Economic Experiments?" property="dcterms:title">
+ </div>
+</article>

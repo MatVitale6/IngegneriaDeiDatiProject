@@ -1,0 +1,4235 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Tinghe Ding
+    <sup class="ltx_sup" id="id1.1.id1">
+    </sup>
+    ,
+Yang Wu
+    <sup class="ltx_sup" id="id2.2.id2">
+    </sup>
+    ,
+Chenyi Zhuang
+    <sup class="ltx_sup" id="id3.3.id3">
+    </sup>
+    ,
+Xiaodong Zheng
+    <sup class="ltx_sup" id="id4.4.id4">
+    </sup>
+    ,
+Guannan Zhang
+    <sup class="ltx_sup" id="id5.5.id5">
+    </sup>
+    <br class="ltx_break"/>
+    Ant Group
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id6.6.id6">
+     {
+    </span>
+    tinghe.dth, wy306396, chenyi.zcy, xiaodong.zxd, zgn138592}@antgroup.com
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id7.id1">
+   Agents centered around Large Language Models (LLMs) are now capable of automating mobile device operations for users. After fine-tuning to learn a user’s mobile operations, these agents can adhere to high-level user instructions online. They execute tasks such as goal decomposition, sequencing of sub-goals, and interactive environmental exploration, until the final objective is achieved. However, privacy concerns related to personalized user data arise during mobile operations, requiring user confirmation. Moreover, users’ real-world operations are exploratory, with action data being complex and redundant, posing challenges for agent learning. To address these issues, in our practical application, we have designed interactive tasks between agents and humans to identify sensitive information and align with personalized user needs. Additionally, we integrated Standard Operating Procedure (SOP) information within the model’s in-context learning to enhance the agent’s comprehension of complex task execution. Our approach is evaluated on the new device control benchmark AitW, which encompasses 30K unique instructions across multi-step tasks, including application operation, web searching, and web shopping. Experimental results show that the SOP-based agent achieves state-of-the-art performance in LLMs without incurring additional inference costs, boasting an overall action success rate of 66.92%. The code and data examples are available at https://github.com/alipay/mobile-agent.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <p class="ltx_p" id="p1.3">
+   <em class="ltx_emph ltx_font_bold ltx_font_italic" id="p1.3.1">
+    K
+   </em>
+   <span class="ltx_text ltx_font_bold" id="p1.3.2">
+    eywords
+   </span>
+   agent
+   <math alttext="\cdot" class="ltx_Math" display="inline" id="p1.1.m1.1">
+    <semantics id="p1.1.m1.1a">
+     <mo id="p1.1.m1.1.1" xref="p1.1.m1.1.1.cmml">
+      ⋅
+     </mo>
+     <annotation-xml encoding="MathML-Content" id="p1.1.m1.1b">
+      <ci id="p1.1.m1.1.1.cmml" xref="p1.1.m1.1.1">
+       ⋅
+      </ci>
+     </annotation-xml>
+     <annotation encoding="application/x-tex" id="p1.1.m1.1c">
+      \cdot
+     </annotation>
+    </semantics>
+   </math>
+   mobile control
+   <math alttext="\cdot" class="ltx_Math" display="inline" id="p1.2.m2.1">
+    <semantics id="p1.2.m2.1a">
+     <mo id="p1.2.m2.1.1" xref="p1.2.m2.1.1.cmml">
+      ⋅
+     </mo>
+     <annotation-xml encoding="MathML-Content" id="p1.2.m2.1b">
+      <ci id="p1.2.m2.1.1.cmml" xref="p1.2.m2.1.1">
+       ⋅
+      </ci>
+     </annotation-xml>
+     <annotation encoding="application/x-tex" id="p1.2.m2.1c">
+      \cdot
+     </annotation>
+    </semantics>
+   </math>
+   SOP
+   <math alttext="\cdot" class="ltx_Math" display="inline" id="p1.3.m3.1">
+    <semantics id="p1.3.m3.1a">
+     <mo id="p1.3.m3.1.1" xref="p1.3.m3.1.1.cmml">
+      ⋅
+     </mo>
+     <annotation-xml encoding="MathML-Content" id="p1.3.m3.1b">
+      <ci id="p1.3.m3.1.1.cmml" xref="p1.3.m3.1.1">
+       ⋅
+      </ci>
+     </annotation-xml>
+     <annotation encoding="application/x-tex" id="p1.3.m3.1c">
+      \cdot
+     </annotation>
+    </semantics>
+   </math>
+   human-machine interaction
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="162" id="S1.F1.g1" src="/html/2401.04124/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    The overview describes an automated operational tool app used in a chat scenario for scheduling hospital appointments. The process involves:
+(a) The user commanding the AI agent in the chat to schedule an appointment.
+(b) The AI agent navigating the hospital app to book an appointment.
+(c) The agent identifying different hospital branches, organizing this information, and displaying it in the chat.
+(d) The user selecting a branch in the chat, and the agent interacting with the app accordingly.
+(e) The agent recognizing and presenting essential pre-appointment details in the chat.
+(f) The user confirms, and the agent completes subsequent steps.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Due to the advanced capabilities and increasing popularity of LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , researchers are now using these models to develop AI agents with enhanced perceptual and action abilities, employing strategies such as multimodal perception and tool utilization
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    . These agents facilitate user interactions with electronic devices through clicks, gestures, and text, thereby streamlining complex tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    .
+Significant research in this domain includes web-based projects like WebGum
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    , Webagent
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    , Mind2Web
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    , Webshop
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , and mobile-focused initiatives such as Auto-UI
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    , BC agent
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    .
+The development of these intelligent agents typically involves task planning, environment perception, intent recognition, and understanding operation sequences to make execution decisions.
+These decisions encompass determining task statuses and generating operation types
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    .
+Current research highlights three critical factors influencing their practical application on user mobile.
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       Firstly, it is challenging for agents to establish a relationship between current page operations and task objectives from fragmented and redundant user operational behaviors. User operational behaviors available for agent learning are characterized by a degree of arbitrariness, necessitating that the agent comprehends historical user behavior to refine its automated execution skills
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib10" title="">
+         10
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib12" title="">
+         12
+        </a>
+        ]
+       </cite>
+       . Training samples often consist of complex or repetitive user actions. For example, a user’s persistent scrolling and browsing during a purchase, or their repeated searches and browsing for related queries, are typical of such behaviors. To efficiently process these intricate actions, the large model must accurately identify the essential task pipeline throughout the entire task execution.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Moreover, some privacy-related decisions cannot be fully automated, as they necessitate user awareness and confirmation. As agent capabilities advance, human involvement becomes increasingly crucial to guide and monitor agents’ actions, ensuring they align with human requirements and objectives
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib8" title="">
+         8
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib9" title="">
+         9
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib16" title="">
+         16
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib17" title="">
+         17
+        </a>
+        ]
+       </cite>
+       . Often, in real-world scenarios, machines do not need to perform certain tasks autonomously, particularly when handling sensitive information. As depicted in Figure
+       <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+        <span class="ltx_text ltx_ref_tag">
+         1
+        </span>
+       </a>
+       , our developed application automates operations based on user commands in a chat scenario. For instance, scheduling a hospital appointment via an app must involve user input for privacy authorization, clinic selection, and receiving pre-visit guidelines.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       The ultimate challenge in enhancing predictive methods often leads to increased computational demands during online deployment. For example, integrating smaller models to complement the LLM with additional information, or employing techniques such as planning and chaining actions for predictions, can significantly slow down the prediction process
+       <cite class="ltx_cite ltx_citemacro_cite">
+        [
+        <a class="ltx_ref" href="#bib.bib15" title="">
+         15
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib18" title="">
+         18
+        </a>
+        ,
+        <a class="ltx_ref" href="#bib.bib19" title="">
+         19
+        </a>
+        ]
+       </cite>
+       . This slowdown is contrary to the essential principle of rapid execution, which is crucial for large-scale automation models.
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="S1.p1.2">
+    In response, we have developed a more versatile range of execution types for practical applications. This involves identifying key information and structuring it for user interaction, aligning more closely with real-world scenarios.
+For more advanced task instructions, the agent must understand the intent and then decompose it into a series of subtasks, where their understanding of the tools significantly influences the decomposition process. Furthermore, SOP
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    , defined as detailed instructions for consistency and quality in complex tasks, are pivotal in automation. We have integrated a vital operation pipeline and the monitoring of sub-task execution statuses within the current environment. This approach has improved predictive performance without increasing online prediction costs.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    AI agent, leveraging a substantial language model as its core processing unit, is capable of engaging in dialogues, executing tasks, reasoning, and displaying a degree of independent action. To augment its autonomy, such an agent requires integration with extensive databases, a memory system, and access to reasoning tools. Prompt engineering equips these agents with advanced capabilities for analysis, planning, implementation, evaluation, and continuous improvement. With appropriate information and prompts, they can manage self-sufficient workflows, albeit under some human supervision
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    .
+    <br class="ltx_break"/>
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="127" id="S2.F2.g1" src="/html/2401.04124/assets/x2.png" width="216"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Overview of the process of an automated execution tool. Extracting information from a mobile page as DOM context.
+Subsequently, the task goal, agent role, DOM information, and historical operations are combined to form the model’s input prompt.
+Inputting the prompt to the AI agent to generate execution commands, and carrying out operations on the mobile page based on these commands.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    Regarding manipulation tasks for agent, there are two particularly popular areas: web page manipulation and mobile application operation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    .
+Overall, the task-oriented agent follows high-level user instructions, performing tasks like goal decomposition
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ]
+    </cite>
+    , planning the sequence of sub-goals
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    , and interactive exploration of the environment
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    , until the final objective is attained. Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 Related Work ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    is an example of a basic operation instruction generation for mobile application operation.
+    <br class="ltx_break"/>
+    Agents must have the capability to comprehend instructions in complex scenarios, adapt to changes like noisy text and dynamic HTML web pages or DOM application pages, and gradually generalize successful operations to ensure the completion of advanced task objectives through extended operational processes
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    .
+Researchers have begun leveraging the advanced HTML reading and visual perception abilities of LLM, such as understanding entire page source codes
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    and employing a multimodal corpus containing screenshots
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ]
+    </cite>
+    , to enhance understanding capabilities.
+    <br class="ltx_break"/>
+    In addition to generating the final operational objective, specific details such as element coordinates or XPath (XML Path Language)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      29
+     </a>
+     ]
+    </cite>
+    are crucial for task execution. Various models adopt different approaches: some integrate these coordinates as both input and output
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    , while others focus on predicting the element objects and employ strategies to align them with the corresponding coordinates
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    .
+    <br class="ltx_break"/>
+    In the process of observing the execution environment, maintaining synchronization between the agent’s state and the subgoals is significant.
+Some researchers employ agent to decompose high-level task instructions into a series of sub-goals
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    , basic skill sequences
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    , or fundamental keyboard/mouse operations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    .
+In terms of control strategies, planning the sequence of sub-goals requires decomposing complex tasks into multiple subtasks. This not only enables a better understanding of the intent behind user operations but also allows for the accomplishment of a significantly greater workload
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    .
+    <br class="ltx_break"/>
+    When handling tasks related to sensitive information, involving agents in collaboration with humans is an effective approach. Humans can offer guidance and help regulate the safety, legality, and ethical conduct of agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    .
+For example, in travel decision-making, agents can enhance the experience by empowering tourists to actively seek highly relevant information through a question-and-answer mode, essentially placing them in the driver’s seat of the decision process
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      32
+     </a>
+     ]
+    </cite>
+    .
+But it is challenging to ascertain privacy information during an agent’s execution and to proactively inform users through dialogue. Consequently, agents must be capable of dynamically recognizing emerging privacy information within the operational environment. Subsequently, this information should be structured and presented to users for confirmation of the execution details.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Method
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.10">
+    In this field, use LLM to plan the sequence of sub-goals increases the perplexity of inference. For instance, in our collected training tasks, the same task and environment can have multiple execution pipelines. In such tasks, LLMs struggle to generate consistent sub-goal sequences. If recall techniques are used to place related subtask pipelines into the LLM’s in-context, this approach faces issues with recall accuracy and also increases the time consumed in the execution chain.
+Therefore, we will discuss how introducing SOP method can enhance model Performance. Additionally, We developed structured instructions to identify and extract privacy information, thereby increasing human interaction, and we implemented the latest data processing methods based ’Enlarged-element’ operations.
+We will address this topic focusing on Sample Handling, Structured Instruction, and SOP Design.
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="S3.p1.10.1">
+     Sample Handling:
+    </span>
+    Many existing methods incorporate the coordinates of page elements into the model’s input, whereas the coordinates of user clicks or the start and end points of swipes are processed as outputs. Despite the numerical connection between these two types of coordinates, accurately discerning their relationships poses a challenge for large models. To address this, we employ ’Enlarged-element’ operations, which map coordinates to specific page elements by expanding each element’s coordinate bounding box. This approach ensures unique association of click coordinates with designated elements. In the case of click operations, the coordinates are mapped to specific elements, which are then identified as the predicted targets. For swipe operations, we limit the output to the swipe direction, with each direction corresponding to a predetermined sliding distance. The predictive targets for each operation type and their corresponding coordinate transformations are detailed in Appendix Table
+    <a class="ltx_ref" href="#S6.T6" title="Table 6 ‣ Sample Handling ‣ 6 Appendix ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+     <span class="ltx_text ltx_ref_tag">
+      6
+     </span>
+    </a>
+    .
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="S3.p1.10.2">
+     Structured Instruction:
+    </span>
+    To ensure user privacy and address personalized needs, we have developed structured instructions in addition to the common operational and task status instructions. For application pages that require user awareness and authorization, the agent is designed to accurately identify and enable the production of well-structured messages and user operation choices. This empowers users to select operations themselves, effectively replacing the model’s direct execution of commands. Examples of all types of instructions can be found in the Appendix Figure
+    <a class="ltx_ref" href="#S6.F5" title="Figure 5 ‣ Instruction Example ‣ 6 Appendix ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    .
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="S3.p1.10.3">
+     SOP Design:
+    </span>
+    MetaGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    introduces a groundbreaking approach by leveraging SOP to orchestrate multi-agent systems driven by LLM, revolutionizing collaborative task resolution. In our research, we utilize SOPs to break down complex tasks into more manageable segments, assigning subtasks and monitoring their completion status within the current action environment. Unlike traditional plan-based methods, SOPs function as a blueprint for the model’s instruction execution pipeline on the input side, while a plan dictates future action strategies during the output phase. SOPs abstract and generalize operational instructions, eschewing the specification of explicit operation types.
+To execute a task such as ’Search for the best rated headphones on Amazon,’ the SOP can be structured as follows: First, conduct a search on the website; second, view and click on page content to access Amazon; third, type ’Best Rated Headphones’ into Amazon’s search bar; fourth, view and select relevant products by clicking on their page content; finally, complete the task.
+We also integrate the current status of task execution into the SOPs, enabling the model to more effectively understand past actions and anticipate future tasks.
+    <br class="ltx_break"/>
+    In our approach, we introduce an abstraction
+    <math alttext="Y" class="ltx_Math" display="inline" id="S3.p1.1.m1.1">
+     <semantics id="S3.p1.1.m1.1a">
+      <mi id="S3.p1.1.m1.1.1" xref="S3.p1.1.m1.1.1.cmml">
+       Y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.1.m1.1b">
+       <ci id="S3.p1.1.m1.1.1.cmml" xref="S3.p1.1.m1.1.1">
+        𝑌
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.1.m1.1c">
+       Y
+      </annotation>
+     </semantics>
+    </math>
+    that encapsulates various types of instructions generated from the model’s input prompt
+    <math alttext="X" class="ltx_Math" display="inline" id="S3.p1.2.m2.1">
+     <semantics id="S3.p1.2.m2.1a">
+      <mi id="S3.p1.2.m2.1.1" xref="S3.p1.2.m2.1.1.cmml">
+       X
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.2.m2.1b">
+       <ci id="S3.p1.2.m2.1.1.cmml" xref="S3.p1.2.m2.1.1">
+        𝑋
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.2.m2.1c">
+       X
+      </annotation>
+     </semantics>
+    </math>
+    . The input prompt includes the task goal, agent role, DOM information, and historical operations. Mathematically, we can formalize this process as follows:
+The conditional entropy of directly predicting
+    <math alttext="Y" class="ltx_Math" display="inline" id="S3.p1.3.m3.1">
+     <semantics id="S3.p1.3.m3.1a">
+      <mi id="S3.p1.3.m3.1.1" xref="S3.p1.3.m3.1.1.cmml">
+       Y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.3.m3.1b">
+       <ci id="S3.p1.3.m3.1.1.cmml" xref="S3.p1.3.m3.1.1">
+        𝑌
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.3.m3.1c">
+       Y
+      </annotation>
+     </semantics>
+    </math>
+    given
+    <math alttext="X" class="ltx_Math" display="inline" id="S3.p1.4.m4.1">
+     <semantics id="S3.p1.4.m4.1a">
+      <mi id="S3.p1.4.m4.1.1" xref="S3.p1.4.m4.1.1.cmml">
+       X
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.4.m4.1b">
+       <ci id="S3.p1.4.m4.1.1.cmml" xref="S3.p1.4.m4.1.1">
+        𝑋
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.4.m4.1c">
+       X
+      </annotation>
+     </semantics>
+    </math>
+    is denoted as
+    <math alttext="H(Y|X)" class="ltx_Math" display="inline" id="S3.p1.5.m5.1">
+     <semantics id="S3.p1.5.m5.1a">
+      <mrow id="S3.p1.5.m5.1.1" xref="S3.p1.5.m5.1.1.cmml">
+       <mi id="S3.p1.5.m5.1.1.3" xref="S3.p1.5.m5.1.1.3.cmml">
+        H
+       </mi>
+       <mo id="S3.p1.5.m5.1.1.2" lspace="0em" rspace="0em" xref="S3.p1.5.m5.1.1.2.cmml">
+        ​
+       </mo>
+       <mrow id="S3.p1.5.m5.1.1.1.1" xref="S3.p1.5.m5.1.1.1.1.1.cmml">
+        <mo id="S3.p1.5.m5.1.1.1.1.2" stretchy="false" xref="S3.p1.5.m5.1.1.1.1.1.cmml">
+         (
+        </mo>
+        <mrow id="S3.p1.5.m5.1.1.1.1.1" xref="S3.p1.5.m5.1.1.1.1.1.cmml">
+         <mi id="S3.p1.5.m5.1.1.1.1.1.2" xref="S3.p1.5.m5.1.1.1.1.1.2.cmml">
+          Y
+         </mi>
+         <mo fence="false" id="S3.p1.5.m5.1.1.1.1.1.1" xref="S3.p1.5.m5.1.1.1.1.1.1.cmml">
+          |
+         </mo>
+         <mi id="S3.p1.5.m5.1.1.1.1.1.3" xref="S3.p1.5.m5.1.1.1.1.1.3.cmml">
+          X
+         </mi>
+        </mrow>
+        <mo id="S3.p1.5.m5.1.1.1.1.3" stretchy="false" xref="S3.p1.5.m5.1.1.1.1.1.cmml">
+         )
+        </mo>
+       </mrow>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.5.m5.1b">
+       <apply id="S3.p1.5.m5.1.1.cmml" xref="S3.p1.5.m5.1.1">
+        <times id="S3.p1.5.m5.1.1.2.cmml" xref="S3.p1.5.m5.1.1.2">
+        </times>
+        <ci id="S3.p1.5.m5.1.1.3.cmml" xref="S3.p1.5.m5.1.1.3">
+         𝐻
+        </ci>
+        <apply id="S3.p1.5.m5.1.1.1.1.1.cmml" xref="S3.p1.5.m5.1.1.1.1">
+         <csymbol cd="latexml" id="S3.p1.5.m5.1.1.1.1.1.1.cmml" xref="S3.p1.5.m5.1.1.1.1.1.1">
+          conditional
+         </csymbol>
+         <ci id="S3.p1.5.m5.1.1.1.1.1.2.cmml" xref="S3.p1.5.m5.1.1.1.1.1.2">
+          𝑌
+         </ci>
+         <ci id="S3.p1.5.m5.1.1.1.1.1.3.cmml" xref="S3.p1.5.m5.1.1.1.1.1.3">
+          𝑋
+         </ci>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.5.m5.1c">
+       H(Y|X)
+      </annotation>
+     </semantics>
+    </math>
+    . Upon introducing the abstract SOP representation
+    <math alttext="Z" class="ltx_Math" display="inline" id="S3.p1.6.m6.1">
+     <semantics id="S3.p1.6.m6.1a">
+      <mi id="S3.p1.6.m6.1.1" xref="S3.p1.6.m6.1.1.cmml">
+       Z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.6.m6.1b">
+       <ci id="S3.p1.6.m6.1.1.cmml" xref="S3.p1.6.m6.1.1">
+        𝑍
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.6.m6.1c">
+       Z
+      </annotation>
+     </semantics>
+    </math>
+    , we define the conditional entropy for predicting
+    <math alttext="Y" class="ltx_Math" display="inline" id="S3.p1.7.m7.1">
+     <semantics id="S3.p1.7.m7.1a">
+      <mi id="S3.p1.7.m7.1.1" xref="S3.p1.7.m7.1.1.cmml">
+       Y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.7.m7.1b">
+       <ci id="S3.p1.7.m7.1.1.cmml" xref="S3.p1.7.m7.1.1">
+        𝑌
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.7.m7.1c">
+       Y
+      </annotation>
+     </semantics>
+    </math>
+    with the knowledge of both
+    <math alttext="X" class="ltx_Math" display="inline" id="S3.p1.8.m8.1">
+     <semantics id="S3.p1.8.m8.1a">
+      <mi id="S3.p1.8.m8.1.1" xref="S3.p1.8.m8.1.1.cmml">
+       X
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.8.m8.1b">
+       <ci id="S3.p1.8.m8.1.1.cmml" xref="S3.p1.8.m8.1.1">
+        𝑋
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.8.m8.1c">
+       X
+      </annotation>
+     </semantics>
+    </math>
+    and
+    <math alttext="Z" class="ltx_Math" display="inline" id="S3.p1.9.m9.1">
+     <semantics id="S3.p1.9.m9.1a">
+      <mi id="S3.p1.9.m9.1.1" xref="S3.p1.9.m9.1.1.cmml">
+       Z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.9.m9.1b">
+       <ci id="S3.p1.9.m9.1.1.cmml" xref="S3.p1.9.m9.1.1">
+        𝑍
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.9.m9.1c">
+       Z
+      </annotation>
+     </semantics>
+    </math>
+    as
+    <math alttext="H(Y|X,Z)" class="ltx_Math" display="inline" id="S3.p1.10.m10.3">
+     <semantics id="S3.p1.10.m10.3a">
+      <mrow id="S3.p1.10.m10.3.3" xref="S3.p1.10.m10.3.3.cmml">
+       <mi id="S3.p1.10.m10.3.3.3" xref="S3.p1.10.m10.3.3.3.cmml">
+        H
+       </mi>
+       <mo id="S3.p1.10.m10.3.3.2" lspace="0em" rspace="0em" xref="S3.p1.10.m10.3.3.2.cmml">
+        ​
+       </mo>
+       <mrow id="S3.p1.10.m10.3.3.1.1" xref="S3.p1.10.m10.3.3.1.1.1.cmml">
+        <mo id="S3.p1.10.m10.3.3.1.1.2" stretchy="false" xref="S3.p1.10.m10.3.3.1.1.1.cmml">
+         (
+        </mo>
+        <mrow id="S3.p1.10.m10.3.3.1.1.1" xref="S3.p1.10.m10.3.3.1.1.1.cmml">
+         <mi id="S3.p1.10.m10.3.3.1.1.1.2" xref="S3.p1.10.m10.3.3.1.1.1.2.cmml">
+          Y
+         </mi>
+         <mo fence="false" id="S3.p1.10.m10.3.3.1.1.1.1" xref="S3.p1.10.m10.3.3.1.1.1.1.cmml">
+          |
+         </mo>
+         <mrow id="S3.p1.10.m10.3.3.1.1.1.3.2" xref="S3.p1.10.m10.3.3.1.1.1.3.1.cmml">
+          <mi id="S3.p1.10.m10.1.1" xref="S3.p1.10.m10.1.1.cmml">
+           X
+          </mi>
+          <mo id="S3.p1.10.m10.3.3.1.1.1.3.2.1" xref="S3.p1.10.m10.3.3.1.1.1.3.1.cmml">
+           ,
+          </mo>
+          <mi id="S3.p1.10.m10.2.2" xref="S3.p1.10.m10.2.2.cmml">
+           Z
+          </mi>
+         </mrow>
+        </mrow>
+        <mo id="S3.p1.10.m10.3.3.1.1.3" stretchy="false" xref="S3.p1.10.m10.3.3.1.1.1.cmml">
+         )
+        </mo>
+       </mrow>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.10.m10.3b">
+       <apply id="S3.p1.10.m10.3.3.cmml" xref="S3.p1.10.m10.3.3">
+        <times id="S3.p1.10.m10.3.3.2.cmml" xref="S3.p1.10.m10.3.3.2">
+        </times>
+        <ci id="S3.p1.10.m10.3.3.3.cmml" xref="S3.p1.10.m10.3.3.3">
+         𝐻
+        </ci>
+        <apply id="S3.p1.10.m10.3.3.1.1.1.cmml" xref="S3.p1.10.m10.3.3.1.1">
+         <csymbol cd="latexml" id="S3.p1.10.m10.3.3.1.1.1.1.cmml" xref="S3.p1.10.m10.3.3.1.1.1.1">
+          conditional
+         </csymbol>
+         <ci id="S3.p1.10.m10.3.3.1.1.1.2.cmml" xref="S3.p1.10.m10.3.3.1.1.1.2">
+          𝑌
+         </ci>
+         <list id="S3.p1.10.m10.3.3.1.1.1.3.1.cmml" xref="S3.p1.10.m10.3.3.1.1.1.3.2">
+          <ci id="S3.p1.10.m10.1.1.cmml" xref="S3.p1.10.m10.1.1">
+           𝑋
+          </ci>
+          <ci id="S3.p1.10.m10.2.2.cmml" xref="S3.p1.10.m10.2.2">
+           𝑍
+          </ci>
+         </list>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.10.m10.3c">
+       H(Y|X,Z)
+      </annotation>
+     </semantics>
+    </math>
+    .
+According to the chain rule of information theory, it is known that:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex1">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="H(Y|X,Z)\leq H(Y|X)" class="ltx_Math" display="block" id="S3.Ex1.m1.4">
+        <semantics id="S3.Ex1.m1.4a">
+         <mrow id="S3.Ex1.m1.4.4" xref="S3.Ex1.m1.4.4.cmml">
+          <mrow id="S3.Ex1.m1.3.3.1" xref="S3.Ex1.m1.3.3.1.cmml">
+           <mi id="S3.Ex1.m1.3.3.1.3" xref="S3.Ex1.m1.3.3.1.3.cmml">
+            H
+           </mi>
+           <mo id="S3.Ex1.m1.3.3.1.2" lspace="0em" rspace="0em" xref="S3.Ex1.m1.3.3.1.2.cmml">
+            ​
+           </mo>
+           <mrow id="S3.Ex1.m1.3.3.1.1.1" xref="S3.Ex1.m1.3.3.1.1.1.1.cmml">
+            <mo id="S3.Ex1.m1.3.3.1.1.1.2" stretchy="false" xref="S3.Ex1.m1.3.3.1.1.1.1.cmml">
+             (
+            </mo>
+            <mrow id="S3.Ex1.m1.3.3.1.1.1.1" xref="S3.Ex1.m1.3.3.1.1.1.1.cmml">
+             <mi id="S3.Ex1.m1.3.3.1.1.1.1.2" xref="S3.Ex1.m1.3.3.1.1.1.1.2.cmml">
+              Y
+             </mi>
+             <mo fence="false" id="S3.Ex1.m1.3.3.1.1.1.1.1" xref="S3.Ex1.m1.3.3.1.1.1.1.1.cmml">
+              |
+             </mo>
+             <mrow id="S3.Ex1.m1.3.3.1.1.1.1.3.2" xref="S3.Ex1.m1.3.3.1.1.1.1.3.1.cmml">
+              <mi id="S3.Ex1.m1.1.1" xref="S3.Ex1.m1.1.1.cmml">
+               X
+              </mi>
+              <mo id="S3.Ex1.m1.3.3.1.1.1.1.3.2.1" xref="S3.Ex1.m1.3.3.1.1.1.1.3.1.cmml">
+               ,
+              </mo>
+              <mi id="S3.Ex1.m1.2.2" xref="S3.Ex1.m1.2.2.cmml">
+               Z
+              </mi>
+             </mrow>
+            </mrow>
+            <mo id="S3.Ex1.m1.3.3.1.1.1.3" stretchy="false" xref="S3.Ex1.m1.3.3.1.1.1.1.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+          <mo id="S3.Ex1.m1.4.4.3" xref="S3.Ex1.m1.4.4.3.cmml">
+           ≤
+          </mo>
+          <mrow id="S3.Ex1.m1.4.4.2" xref="S3.Ex1.m1.4.4.2.cmml">
+           <mi id="S3.Ex1.m1.4.4.2.3" xref="S3.Ex1.m1.4.4.2.3.cmml">
+            H
+           </mi>
+           <mo id="S3.Ex1.m1.4.4.2.2" lspace="0em" rspace="0em" xref="S3.Ex1.m1.4.4.2.2.cmml">
+            ​
+           </mo>
+           <mrow id="S3.Ex1.m1.4.4.2.1.1" xref="S3.Ex1.m1.4.4.2.1.1.1.cmml">
+            <mo id="S3.Ex1.m1.4.4.2.1.1.2" stretchy="false" xref="S3.Ex1.m1.4.4.2.1.1.1.cmml">
+             (
+            </mo>
+            <mrow id="S3.Ex1.m1.4.4.2.1.1.1" xref="S3.Ex1.m1.4.4.2.1.1.1.cmml">
+             <mi id="S3.Ex1.m1.4.4.2.1.1.1.2" xref="S3.Ex1.m1.4.4.2.1.1.1.2.cmml">
+              Y
+             </mi>
+             <mo fence="false" id="S3.Ex1.m1.4.4.2.1.1.1.1" xref="S3.Ex1.m1.4.4.2.1.1.1.1.cmml">
+              |
+             </mo>
+             <mi id="S3.Ex1.m1.4.4.2.1.1.1.3" xref="S3.Ex1.m1.4.4.2.1.1.1.3.cmml">
+              X
+             </mi>
+            </mrow>
+            <mo id="S3.Ex1.m1.4.4.2.1.1.3" stretchy="false" xref="S3.Ex1.m1.4.4.2.1.1.1.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.Ex1.m1.4b">
+          <apply id="S3.Ex1.m1.4.4.cmml" xref="S3.Ex1.m1.4.4">
+           <leq id="S3.Ex1.m1.4.4.3.cmml" xref="S3.Ex1.m1.4.4.3">
+           </leq>
+           <apply id="S3.Ex1.m1.3.3.1.cmml" xref="S3.Ex1.m1.3.3.1">
+            <times id="S3.Ex1.m1.3.3.1.2.cmml" xref="S3.Ex1.m1.3.3.1.2">
+            </times>
+            <ci id="S3.Ex1.m1.3.3.1.3.cmml" xref="S3.Ex1.m1.3.3.1.3">
+             𝐻
+            </ci>
+            <apply id="S3.Ex1.m1.3.3.1.1.1.1.cmml" xref="S3.Ex1.m1.3.3.1.1.1">
+             <csymbol cd="latexml" id="S3.Ex1.m1.3.3.1.1.1.1.1.cmml" xref="S3.Ex1.m1.3.3.1.1.1.1.1">
+              conditional
+             </csymbol>
+             <ci id="S3.Ex1.m1.3.3.1.1.1.1.2.cmml" xref="S3.Ex1.m1.3.3.1.1.1.1.2">
+              𝑌
+             </ci>
+             <list id="S3.Ex1.m1.3.3.1.1.1.1.3.1.cmml" xref="S3.Ex1.m1.3.3.1.1.1.1.3.2">
+              <ci id="S3.Ex1.m1.1.1.cmml" xref="S3.Ex1.m1.1.1">
+               𝑋
+              </ci>
+              <ci id="S3.Ex1.m1.2.2.cmml" xref="S3.Ex1.m1.2.2">
+               𝑍
+              </ci>
+             </list>
+            </apply>
+           </apply>
+           <apply id="S3.Ex1.m1.4.4.2.cmml" xref="S3.Ex1.m1.4.4.2">
+            <times id="S3.Ex1.m1.4.4.2.2.cmml" xref="S3.Ex1.m1.4.4.2.2">
+            </times>
+            <ci id="S3.Ex1.m1.4.4.2.3.cmml" xref="S3.Ex1.m1.4.4.2.3">
+             𝐻
+            </ci>
+            <apply id="S3.Ex1.m1.4.4.2.1.1.1.cmml" xref="S3.Ex1.m1.4.4.2.1.1">
+             <csymbol cd="latexml" id="S3.Ex1.m1.4.4.2.1.1.1.1.cmml" xref="S3.Ex1.m1.4.4.2.1.1.1.1">
+              conditional
+             </csymbol>
+             <ci id="S3.Ex1.m1.4.4.2.1.1.1.2.cmml" xref="S3.Ex1.m1.4.4.2.1.1.1.2">
+              𝑌
+             </ci>
+             <ci id="S3.Ex1.m1.4.4.2.1.1.1.3.cmml" xref="S3.Ex1.m1.4.4.2.1.1.1.3">
+              𝑋
+             </ci>
+            </apply>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.Ex1.m1.4c">
+          H(Y|X,Z)\leq H(Y|X)
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <p class="ltx_p" id="S3.p1.16">
+    This implies that the uncertainty of
+    <math alttext="Y" class="ltx_Math" display="inline" id="S3.p1.11.m1.1">
+     <semantics id="S3.p1.11.m1.1a">
+      <mi id="S3.p1.11.m1.1.1" xref="S3.p1.11.m1.1.1.cmml">
+       Y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.11.m1.1b">
+       <ci id="S3.p1.11.m1.1.1.cmml" xref="S3.p1.11.m1.1.1">
+        𝑌
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.11.m1.1c">
+       Y
+      </annotation>
+     </semantics>
+    </math>
+    , given both
+    <math alttext="X" class="ltx_Math" display="inline" id="S3.p1.12.m2.1">
+     <semantics id="S3.p1.12.m2.1a">
+      <mi id="S3.p1.12.m2.1.1" xref="S3.p1.12.m2.1.1.cmml">
+       X
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.12.m2.1b">
+       <ci id="S3.p1.12.m2.1.1.cmml" xref="S3.p1.12.m2.1.1">
+        𝑋
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.12.m2.1c">
+       X
+      </annotation>
+     </semantics>
+    </math>
+    and
+    <math alttext="Z" class="ltx_Math" display="inline" id="S3.p1.13.m3.1">
+     <semantics id="S3.p1.13.m3.1a">
+      <mi id="S3.p1.13.m3.1.1" xref="S3.p1.13.m3.1.1.cmml">
+       Z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.13.m3.1b">
+       <ci id="S3.p1.13.m3.1.1.cmml" xref="S3.p1.13.m3.1.1">
+        𝑍
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.13.m3.1c">
+       Z
+      </annotation>
+     </semantics>
+    </math>
+    , is potentially reduced compared to when only
+    <math alttext="X" class="ltx_Math" display="inline" id="S3.p1.14.m4.1">
+     <semantics id="S3.p1.14.m4.1a">
+      <mi id="S3.p1.14.m4.1.1" xref="S3.p1.14.m4.1.1.cmml">
+       X
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.14.m4.1b">
+       <ci id="S3.p1.14.m4.1.1.cmml" xref="S3.p1.14.m4.1.1">
+        𝑋
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.14.m4.1c">
+       X
+      </annotation>
+     </semantics>
+    </math>
+    is known. Therefore, the presence of
+    <math alttext="Z" class="ltx_Math" display="inline" id="S3.p1.15.m5.1">
+     <semantics id="S3.p1.15.m5.1a">
+      <mi id="S3.p1.15.m5.1.1" xref="S3.p1.15.m5.1.1.cmml">
+       Z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.15.m5.1b">
+       <ci id="S3.p1.15.m5.1.1.cmml" xref="S3.p1.15.m5.1.1">
+        𝑍
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.15.m5.1c">
+       Z
+      </annotation>
+     </semantics>
+    </math>
+    can lead to a reduction in entropy—or equivalently, an increase in the information available for the prediction of
+    <math alttext="Y" class="ltx_Math" display="inline" id="S3.p1.16.m6.1">
+     <semantics id="S3.p1.16.m6.1a">
+      <mi id="S3.p1.16.m6.1.1" xref="S3.p1.16.m6.1.1.cmml">
+       Y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p1.16.m6.1b">
+       <ci id="S3.p1.16.m6.1.1.cmml" xref="S3.p1.16.m6.1.1">
+        𝑌
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p1.16.m6.1c">
+       Y
+      </annotation>
+     </semantics>
+    </math>
+    —which can consequently improve the accuracy of the prediction.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiments
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    We have enhanced our Ant Intelligent Assistant (AIA) application by integrating the capability of large models to recognize privacy permissions and generate structured information, thereby improving the functionality of user interactions in automation execution. Furthermore, we have developed a LLM agent based on SOP technology, utilizing Google’s AitW dataset
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    , to objectively assess the accuracy and time efficiency of our method.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    AIA
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     The AIA is a product currently in the testing and development phase, not yet released for public use, designed and developed for dialogue scenarios where large models generate instructions to aid user automation in mobile applications. Within AIA, we have formulated Operational Instructions, Task Status Instructions, and Structured Instructions to enhance user interaction, the interactions example can be found in Appendix Figure
+     <a class="ltx_ref" href="#S6.F5" title="Figure 5 ‣ Instruction Example ‣ 6 Appendix ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     .
+From the model’s perspective, the input is a prompt comprising task goals, operation sequences, and the DOM information of the current page. The model outputs three distinct types of instructions.
+    </p>
+    <ul class="ltx_itemize" id="S4.I1">
+     <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S4.I1.i1.p1">
+       <p class="ltx_p" id="S4.I1.i1.p1.1">
+        Operational Instructions: These include commands such as clicking, scrolling, and typing, which facilitate basic mobile phone operations.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S4.I1.i2.p1">
+       <p class="ltx_p" id="S4.I1.i2.p1.1">
+        Task Status Instructions: These instructions represent the completion of a task, indicating the status of the instruction, such as successful completion or infeasibility.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S4.I1.i3.p1">
+       <p class="ltx_p" id="S4.I1.i3.p1.1">
+        Structured Instructions: This category involves identifying necessary user interactions on the current page and transforming disorganized DOM fragment data into a well-structured data format.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Strctured Instructions
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px1.p1.1">
+      Exploring the Structured Instruction functionality, this aspect focuses on identifying pages that necessitate the recognition of personal privacy information authorization, the confirmation of message notifications, and the selection of slot content. As illustrated in Figure
+      <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ Strctured Instructions ‣ 4.1 AIA ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      , when processing a medical page with pop-up information, including medical instructions, we start by organizing the fragmented and disorganized DOM data. This cleaned-up data is then used to formulate a prompt for the AI agent. Subsequently, the AI agent generates structured notification content and user-required confirmation options, such as ’I understand’.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F3">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="117" id="S4.F3.g1" src="/html/2401.04124/assets/x3.png" width="216"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 3:
+      </span>
+      The prediction process in the notification confirmation scenario.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     SOP Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px2.p1.1">
+      In our AIA medical application, the primary action involves clicking on text elements. We have delineated 13 fundamental SOP sub-tasks within the medical in-context, including Select Department, Others, Consent Information, Select Clinic Area, Order Payment, Select Appointment Time, Outpatient Registration, Outpatient Payment, View Reports, Check Expenses, Registration History, Electronic Invoices, and Inpatient Services, each linked to specific text elements for interaction. Utilizing this framework, we trained a BERT-based classification model
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib33" title="">
+        33
+       </a>
+       ]
+      </cite>
+      . In this setup, each click text in the user’s action sequence is categorized into a corresponding sub-task, culminating in the formation of the SOP pipeline. For instance, phrases like ’confirm’, ’I understand’, ’agree to authorize’, and ’log in’ are classified by the BERT model into the ’Consent Information’ sub-task, while text elements such as ’urology’, ’general surgery’, and ’reproductive clinic’ fall under the ’Select Department’ sub-task. Thus, every click text is assigned to a pertinent SOP task, constructing an SOP pipeline. However, click texts categorized under the ’Others’ task are excluded from the SOP pipeline.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Evaluation Measures
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p1.1">
+      Task completion rate is utilized as a metric to evaluate the effectiveness of predictions. Initially, a partial score is determined by dividing the number of correct actions by the episode length. Subsequently, the task completion score is computed as the average of all partial scores.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Results
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px4.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px4.p1.1">
+      In response to privacy concerns, the use of online user data was ruled out. Consequently, we engaged ten external contractors to conduct testing operations over a two-week period. Some of these participants were assigned the responsibility of manually documenting their envisioned utilization of medical scenarios within the Alipay app, while others operated the Alipay application to simulate these specific scenarios. Following this, we collected their data with the aim of constructing model samples. Additionally, we collected corresponding tasks from 38 hospital applications, amassing a total of approximately 20,000 episodes. Of these, around 2,000 episodes were allocated for testing purposes. Regarding the model, we utilized QWen-7B
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib34" title="">
+        34
+       </a>
+       ]
+      </cite>
+      to conduct Supervised Fine-Tuning (SFT) with LoRA on our chinese dataset. The related evaluation metrics are detailed below in Table
+      <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ Results ‣ 4.1 AIA ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      . Integrating SOP content within the model’s in-context learning significantly improves the accuracy of instruction generation.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T1">
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T1.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T1.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T1.1.1.1.1">
+         Instruction
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T1.1.1.1.2">
+         Qwen-7B
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T1.1.1.1.3">
+         Qwen-7B-SOP
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T1.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.1.1">
+         Operational
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.1.2">
+         0.895
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T1.1.2.1.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T1.1.2.1.3.1">
+          0.926
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T1.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S4.T1.1.3.2.1">
+         Task Status
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T1.1.3.2.2">
+         0.792
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T1.1.3.2.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T1.1.3.2.3.1">
+          0.942
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T1.1.4.3">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T1.1.4.3.1">
+         Structured
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T1.1.4.3.2">
+         0.46
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T1.1.4.3.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T1.1.4.3.3.1">
+          0.606
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      Diverse Instruction Types and Their Corresponding Impact on Models’ Predictive Performance (task complete score).
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    AitW
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     The AitW dataset
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     is highly regarded in the domain of mobile device control, comprising human-curated demonstrations of natural language instructions, user interface (UI) screens, and actions across a range of human tasks. AitW is a well-recognized dataset in the field of mobile operations, extensively utilized by numerous academic institutions and research organizations for research purposes. The AitW task example show as Appendix Figure
+     <a class="ltx_ref" href="#S6.F4" title="Figure 4 ‣ AitW Task ‣ 6 Appendix ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     . To objectively assess the effectiveness of our SOP technology in enabling large models to quickly learn tool usage, we conducted evaluations using this dataset.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Dataset
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px1.p1.1">
+      The dataset comprises human demonstrations of device interactions, encompassing screens, actions, and corresponding natural language instructions. It contains 715,000 episodes, covering 30,000 unique instructions. The benchmark dataset is segmented into five subsets: General, Install, GoogleApps, Single, and WebShopping. Each subset is further divided into training, validation, and test sets on an episode-wise basis. Detailed descriptions and statistics for the subsets of the benchmark dataset are provided in Table
+      <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ Dataset ‣ 4.2 AitW ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      .
+     </p>
+     <ul class="ltx_itemize" id="S4.I2">
+      <li class="ltx_item" id="S4.I2.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I2.i1.p1">
+        <p class="ltx_p" id="S4.I2.i1.p1.1">
+         GOOGLEAPPS: This subset encompasses high-level tasks, some of which overlap with PixelHelp, and involves interactions with various Google applications like Gmail, Calendar, Photos, Settings, etc.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I2.i2.p1">
+        <p class="ltx_p" id="S4.I2.i2.p1.1">
+         INSTALL: This category includes tasks related to installing and uninstalling apps, managing app logins, and addressing support issues (e.g., "forgot password") for 88 applications on the Google Play Store.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I2.i3.p1">
+        <p class="ltx_p" id="S4.I2.i3.p1.1">
+         WEBSHOPPING: Focused on E-commerce activities, this subset covers tasks such as searching for products, adding items to a shopping cart, and reviewing cart contents.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I2.i4.p1">
+        <p class="ltx_p" id="S4.I2.i4.p1.1">
+         GENERAL: A diverse collection of tasks, primarily centered on question-answering (e.g., "How much does a 2-bedroom apartment rent for in San Francisco?") and interactions with third-party apps and websites.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I2.i5.p1">
+        <p class="ltx_p" id="S4.I2.i5.p1.1">
+         SINGLE: Comprised of single-step tasks, annotated with hindsight relabeling, predominantly sourced from the WEBSHOPPING category (e.g., "Close the pop-up, then add the first item to the cart").
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <figure class="ltx_table" id="S4.T2">
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T2.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T2.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1">
+         Dataset
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.2">
+         Episodes
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.3">
+         Screens
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.4">
+         Instructions
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T2.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.1">
+         General
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.2">
+         9,476
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.3">
+         85,413
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.4">
+         545
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.1">
+         Install
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.2">
+         25,760
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.3">
+         250,058
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.4">
+         688
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.4.3">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.1">
+         GoogleApps
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.2">
+         625,542
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.3">
+         4,903,601
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.4">
+         306
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.5.4">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.1">
+         Single
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.2">
+         26,303
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.3">
+         85,668
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.4">
+         15,366
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.6.5">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.6.5.1">
+         WebShopping
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.6.5.2">
+         28,061
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.6.5.3">
+         365,253
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.6.5.4">
+         13,473
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 2:
+      </span>
+      Dataset statistics.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Baseline
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px2.p1.1">
+      We employed various baseline models, specifically:
+     </p>
+     <ul class="ltx_itemize" id="S4.I3">
+      <li class="ltx_item" id="S4.I3.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I3.i1.p1">
+        <p class="ltx_p" id="S4.I3.i1.p1.1">
+         In-context learning LLMs: This includes Palm 2
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib35" title="">
+           35
+          </a>
+          ]
+         </cite>
+         and ChatGPT-3.5
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib36" title="">
+           36
+          </a>
+          ]
+         </cite>
+         . These models were used without a fine-tuning process but with extra samples. They input a textual description of the screen in HTML syntax, incorporating UI element information from OCR and icon detection. The models are tasked with predicting actions from predefined options, such as providing the index of the clicked UI element for click actions or specifying the scroll direction for scrolling actions. In the ChatGPT-3.5 model, 5-shot CoT prompting is utilized to enhance performance.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I3.i2.p1">
+        <p class="ltx_p" id="S4.I3.i2.p1.1">
+         Fine-tuned LLMs: For this category, we selected Llama 2
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib37" title="">
+           37
+          </a>
+          ]
+         </cite>
+         as the baseline and fine-tuned it using LoRA. The model receives user instructions and screen descriptions, similar to the format used for in-context learning LLMs. The expected output from the model includes the action type and the specific element. For details on the sample design, please refer to Figure
+         <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 Related Work ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+          <span class="ltx_text ltx_ref_tag">
+           2
+          </span>
+         </a>
+         above. Training methods similar to SOP were also employed for control comparisons. This included incorporating the execution plan as well as integrating both the plan and task status into the output, we name them Llama 2+plan and Llama 2+plan+state.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I3.i3.p1">
+        <p class="ltx_p" id="S4.I3.i3.p1.1">
+         Multimodal LLMs: This category includes ChatGPT-4V
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib38" title="">
+           38
+          </a>
+          ]
+         </cite>
+         . For ChatGPT-4V, screen images are directly utilized, exploring the integration of historical behaviors or OCR-decoded text.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I3.i4.p1">
+        <p class="ltx_p" id="S4.I3.i4.p1.1">
+         SOP-based LLMs: Similar to the fine-tuned LLMs, we also used Llama 2, based on enlarged-element operations, as the foundational model. In the training phase of the SOP model, we incorporated the task’s SOP process into the in-context input and mixed it with the original samples. During the prediction phase, this approach allows consistency with the original prompt, eliminating the need for additional tasks. This mixed training method does not increase the length of the output tokens, ensuring that the time taken for prediction remains unchanged.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     LLMS Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px3.p1.1">
+      Figure
+      <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ LLMS Details ‣ 4.2 AitW ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      clearly illustrates the differences between various techniques by presenting the model’s input and output.
+     </p>
+     <ul class="ltx_itemize" id="S4.I4">
+      <li class="ltx_item" id="S4.I4.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I4.i1.p1">
+        <p class="ltx_p" id="S4.I4.i1.p1.1">
+         The topmost Llama 2 model serves as the basic baseline version. Its input prompt consists of task role, previous action, Environment (structured DOM info), and instruction. The output response includes action type and element type (text, type).
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I4.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I4.i2.p1">
+        <p class="ltx_p" id="S4.I4.i2.p1.1">
+         The Llama 2+plan model adds the complete plan pipeline for executing the instruction to the output response. In this in-context, the term ’task plan’ refers to the abstract concept of subtasks, rather than the detailed step-by-step operations.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I4.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I4.i3.p1">
+        <p class="ltx_p" id="S4.I4.i3.p1.1">
+         The Llama 2+plan+state model adds information about whether the plan has been completed to the output plan.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I4.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S4.I4.i4.p1">
+        <p class="ltx_p" id="S4.I4.i4.p1.1">
+         The Llama 2+SOP approach involves adding key abstract subtask pipelines to the input prompt while also marking the completion status of each subtask in the current process. The method of incorporating SOP in the input in-context is quite similar to adding plan and state in the output.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <figure class="ltx_table" id="S4.T3">
+     <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T3.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T3.1.1.1">
+        <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.1.1.1.1">
+          <span class="ltx_p" id="S4.T3.1.1.1.1.1.1" style="width:42.7pt;">
+           Model
+          </span>
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.1.1.2.1">
+          <span class="ltx_p" id="S4.T3.1.1.1.2.1.1" style="width:247.5pt;">
+           Prompt
+          </span>
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.1.1.3.1">
+          <span class="ltx_p" id="S4.T3.1.1.1.3.1.1" style="width:202.0pt;">
+           Response
+          </span>
+         </span>
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T3.1.2.1">
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S4.T3.1.2.1.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.2.1.1.1">
+          <span class="ltx_p" id="S4.T3.1.2.1.1.1.1" style="width:42.7pt;">
+           Llama 2
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S4.T3.1.2.1.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.2.1.2.1">
+          <span class="ltx_p" id="S4.T3.1.2.1.2.1.1" style="width:247.5pt;">
+           Given a mobile screen and a question, provide the action based on the screen information.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S4.T3.1.2.1.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.2.1.3.1">
+          <span class="ltx_p" id="S4.T3.1.2.1.3.1.1" style="width:202.0pt;">
+           action: TYPE
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.3.2">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.3.2.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.3.2.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.3.2.2.1">
+          <span class="ltx_p" id="S4.T3.1.3.2.2.1.1" style="width:247.5pt;">
+           Previous Actions:id:0,type:DUAL_POINT,text:G, ui_type:…
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.3.2.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.4.3">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.4.3.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.4.3.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.4.3.2.1">
+          <span class="ltx_p" id="S4.T3.1.4.3.2.1.1" style="width:247.5pt;">
+           Environment: id:0, text:Bass Headsets, type:TEXT …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.4.3.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.4.3.3.1">
+          <span class="ltx_p" id="S4.T3.1.4.3.3.1.1" style="width:202.0pt;">
+           text: best rated headphones
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.5.4">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.5.4.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.5.4.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.5.4.2.1">
+          <span class="ltx_p" id="S4.T3.1.5.4.2.1.1" style="width:247.5pt;">
+           Instruction: Search for the best rated headphones on Amazon.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.5.4.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.6.5">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.6.5.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.6.5.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.6.5.2.1">
+          <span class="ltx_p" id="S4.T3.1.6.5.2.1.1" style="width:247.5pt;">
+           Answer:
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.6.5.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.7.6">
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.7.6.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.7.6.1.1">
+          <span class="ltx_p" id="S4.T3.1.7.6.1.1.1" style="width:42.7pt;">
+           +plan
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.7.6.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.7.6.2.1">
+          <span class="ltx_p" id="S4.T3.1.7.6.2.1.1" style="width:247.5pt;">
+           Given a mobile screen and a question, provide the action based
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.7.6.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.7.6.3.1">
+          <span class="ltx_p" id="S4.T3.1.7.6.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.7.6.3.1.1.1">
+            PLAN:
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.8.7">
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.8.7.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.8.7.1.1">
+          <span class="ltx_p" id="S4.T3.1.8.7.1.1.1" style="width:42.7pt;">
+           Llama 2
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.8.7.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.8.7.2.1">
+          <span class="ltx_p" id="S4.T3.1.8.7.2.1.1" style="width:247.5pt;">
+           on the screen information.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.8.7.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.8.7.3.1">
+          <span class="ltx_p" id="S4.T3.1.8.7.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.8.7.3.1.1.1">
+            id:0 search on the website
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.9.8">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.9.8.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.9.8.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.9.8.2.1">
+          <span class="ltx_p" id="S4.T3.1.9.8.2.1.1" style="width:247.5pt;">
+           Previous Actions:id:0,type:DUAL_POINT,text:G, ui_type: …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.9.8.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.9.8.3.1">
+          <span class="ltx_p" id="S4.T3.1.9.8.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.9.8.3.1.1.1">
+            id:1 view and click page content
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.10.9">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.10.9.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.10.9.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.10.9.2.1">
+          <span class="ltx_p" id="S4.T3.1.10.9.2.1.1" style="width:247.5pt;">
+           Environment: id:0, text:Bass Headsets, type:TEXT …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.10.9.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.10.9.3.1">
+          <span class="ltx_p" id="S4.T3.1.10.9.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.10.9.3.1.1.1">
+            id:2 type ’best rated headphones’
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.11.10">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.11.10.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.11.10.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.11.10.2.1">
+          <span class="ltx_p" id="S4.T3.1.11.10.2.1.1" style="width:247.5pt;">
+           Instruction: Search for the best rated headphones on Amazon.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.11.10.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.11.10.3.1">
+          <span class="ltx_p" id="S4.T3.1.11.10.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.11.10.3.1.1.1">
+            id:3 view and click page content
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.12.11">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.12.11.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.12.11.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.12.11.2.1">
+          <span class="ltx_p" id="S4.T3.1.12.11.2.1.1" style="width:247.5pt;">
+           Answer:
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.12.11.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.12.11.3.1">
+          <span class="ltx_p" id="S4.T3.1.12.11.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.12.11.3.1.1.1">
+            id:4 task complete
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.13.12">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.13.12.1">
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.13.12.2">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.13.12.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.13.12.3.1">
+          <span class="ltx_p" id="S4.T3.1.13.12.3.1.1" style="width:202.0pt;">
+           action: TYPE
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.14.13">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.14.13.1">
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.14.13.2">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.14.13.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.14.13.3.1">
+          <span class="ltx_p" id="S4.T3.1.14.13.3.1.1" style="width:202.0pt;">
+           text: best rated headphones
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.15.14">
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.15.14.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.15.14.1.1">
+          <span class="ltx_p" id="S4.T3.1.15.14.1.1.1" style="width:42.7pt;">
+           +plan+state
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.15.14.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.15.14.2.1">
+          <span class="ltx_p" id="S4.T3.1.15.14.2.1.1" style="width:247.5pt;">
+           Given a mobile screen and a question, provide the action based
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.15.14.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.15.14.3.1">
+          <span class="ltx_p" id="S4.T3.1.15.14.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.15.14.3.1.1.1">
+            PLAN&amp;STATE:
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.16.15">
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.16.15.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.16.15.1.1">
+          <span class="ltx_p" id="S4.T3.1.16.15.1.1.1" style="width:42.7pt;">
+           Llama 2
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.16.15.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.16.15.2.1">
+          <span class="ltx_p" id="S4.T3.1.16.15.2.1.1" style="width:247.5pt;">
+           on the screen information.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.16.15.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.16.15.3.1">
+          <span class="ltx_p" id="S4.T3.1.16.15.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.16.15.3.1.1.1">
+            id:0 search on the website,state:finish
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.17.16">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.17.16.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.17.16.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.17.16.2.1">
+          <span class="ltx_p" id="S4.T3.1.17.16.2.1.1" style="width:247.5pt;">
+           Previous Actions:id:0,type:DUAL_POINT,text:G, ui_type: …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.17.16.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.17.16.3.1">
+          <span class="ltx_p" id="S4.T3.1.17.16.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.17.16.3.1.1.1">
+            id:1 view and click page content,state:finish
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.18.17">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.18.17.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.18.17.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.18.17.2.1">
+          <span class="ltx_p" id="S4.T3.1.18.17.2.1.1" style="width:247.5pt;">
+           Environment: id:0, text:Bass Headsets, type:TEXT …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.18.17.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.18.17.3.1">
+          <span class="ltx_p" id="S4.T3.1.18.17.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.18.17.3.1.1.1">
+            id:2 type ’best rated headphones’,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.19.18">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.19.18.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.19.18.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.19.18.2.1">
+          <span class="ltx_p" id="S4.T3.1.19.18.2.1.1" style="width:247.5pt;">
+           Instruction: Search for the best rated headphones on Amazon.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.19.18.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.19.18.3.1">
+          <span class="ltx_p" id="S4.T3.1.19.18.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.19.18.3.1.1.1">
+            id:3 view and click page content,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.20.19">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.20.19.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.20.19.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.20.19.2.1">
+          <span class="ltx_p" id="S4.T3.1.20.19.2.1.1" style="width:247.5pt;">
+           Answer:
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.20.19.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.20.19.3.1">
+          <span class="ltx_p" id="S4.T3.1.20.19.3.1.1" style="width:202.0pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.20.19.3.1.1.1">
+            id:4 task complete,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.21.20">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.21.20.1">
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.21.20.2">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.21.20.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.21.20.3.1">
+          <span class="ltx_p" id="S4.T3.1.21.20.3.1.1" style="width:202.0pt;">
+           action: TYPE
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.22.21">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.22.21.1">
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.22.21.2">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.22.21.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.22.21.3.1">
+          <span class="ltx_p" id="S4.T3.1.22.21.3.1.1" style="width:202.0pt;">
+           text: best rated headphones
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.23.22">
+        <td class="ltx_td ltx_align_top ltx_border_t" id="S4.T3.1.23.22.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S4.T3.1.23.22.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.23.22.2.1">
+          <span class="ltx_p" id="S4.T3.1.23.22.2.1.1" style="width:247.5pt;">
+           Given a mobile screen and a question, provide the action based on the screen information.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top ltx_border_t" id="S4.T3.1.23.22.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.24.23">
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.24.23.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.24.23.1.1">
+          <span class="ltx_p" id="S4.T3.1.24.23.1.1.1" style="width:42.7pt;">
+           Llama 2
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.24.23.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.24.23.2.1">
+          <span class="ltx_p" id="S4.T3.1.24.23.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.24.23.2.1.1.1">
+            SOP:
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.24.23.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.25.24">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.25.24.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.25.24.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.25.24.2.1">
+          <span class="ltx_p" id="S4.T3.1.25.24.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.25.24.2.1.1.1">
+            id:0 search on the website,state:finish
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.25.24.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.26.25">
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.26.25.1">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.26.25.1.1">
+          <span class="ltx_p" id="S4.T3.1.26.25.1.1.1" style="width:42.7pt;">
+           +SOP
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.26.25.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.26.25.2.1">
+          <span class="ltx_p" id="S4.T3.1.26.25.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.26.25.2.1.1.1">
+            id:1 view and click page content,state:finish
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.26.25.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.26.25.3.1">
+          <span class="ltx_p" id="S4.T3.1.26.25.3.1.1" style="width:202.0pt;">
+           action: TYPE
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.27.26">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.27.26.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.27.26.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.27.26.2.1">
+          <span class="ltx_p" id="S4.T3.1.27.26.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.27.26.2.1.1.1">
+            id:2 type ’best rated headphones’,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.27.26.3">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.27.26.3.1">
+          <span class="ltx_p" id="S4.T3.1.27.26.3.1.1" style="width:202.0pt;">
+           text: best rated headphones
+          </span>
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.28.27">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.28.27.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.28.27.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.28.27.2.1">
+          <span class="ltx_p" id="S4.T3.1.28.27.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.28.27.2.1.1.1">
+            id:3 view and click page content,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.28.27.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.29.28">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.29.28.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.29.28.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.29.28.2.1">
+          <span class="ltx_p" id="S4.T3.1.29.28.2.1.1" style="width:247.5pt;">
+           <span class="ltx_text ltx_font_bold" id="S4.T3.1.29.28.2.1.1.1">
+            id:4 task complete,state:unfinish
+           </span>
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.29.28.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.30.29">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.30.29.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.30.29.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.30.29.2.1">
+          <span class="ltx_p" id="S4.T3.1.30.29.2.1.1" style="width:247.5pt;">
+           Previous Actions:id:0,type:DUAL_POINT,text:G, ui_type: …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.30.29.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.31.30">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.31.30.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.31.30.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.31.30.2.1">
+          <span class="ltx_p" id="S4.T3.1.31.30.2.1.1" style="width:247.5pt;">
+           Environment: id:0, text:Bass Headsets, type:TEXT …
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.31.30.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.32.31">
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.32.31.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T3.1.32.31.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.32.31.2.1">
+          <span class="ltx_p" id="S4.T3.1.32.31.2.1.1" style="width:247.5pt;">
+           Instruction: Search for the best rated headphones on Amazon.
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top" id="S4.T3.1.32.31.3">
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.33.32">
+        <td class="ltx_td ltx_align_top ltx_border_bb" id="S4.T3.1.33.32.1">
+        </td>
+        <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb" id="S4.T3.1.33.32.2">
+         <span class="ltx_inline-block ltx_align_top" id="S4.T3.1.33.32.2.1">
+          <span class="ltx_p" id="S4.T3.1.33.32.2.1.1" style="width:247.5pt;">
+           Answer:
+          </span>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_top ltx_border_bb" id="S4.T3.1.33.32.3">
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 3:
+      </span>
+      The model and corresponding prompts and responses. The first line details the construction of the Llama 2 sample, with bold text in other models highlighting the differences compared to Llama 2.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     SOP Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px4.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px4.p1.1">
+      Even with the same instructions, the SOP for different tasks vary and are intricately linked to the specific execution operations of the current task. To distill key subtask sequences into standardized processes, we identified commonly executed actions and designated them as specific tasks. We excluded certain negative actions, such as ’going back’ or ’closing,’ and consolidated similar subtasks. Subsequently, in the current execution environment, each task was assigned a completion state.
+      <br class="ltx_break"/>
+      For instance, If the semantic understanding of mobile screens
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib39" title="">
+        39
+       </a>
+       ]
+      </cite>
+      interprets the text context as the digit ’9’ or the letter ’g.’, but the actual user action involves clicking on the Google icon, this task would be classified as ’search on the website.’ For an in-depth definition of click types and their correlation with SOPs, please refer to the Appendix Table
+      <span class="ltx_ref ltx_missing_label ltx_ref_self">
+       LABEL:sop_type
+      </span>
+      .
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px5">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Implementation Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px5.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px5.p1.1">
+      We conducted four sets of experiments: Llama 2, Llama 2+plan, Llama 2+plan+state, and Llama 2+SOP. The relationship among these experiments can be understood as follows: ’plan’ requires the model to predict the overall plan during inference, ’plan+state’ adds the completion status of each subtask to the ’plan’, and ’SOP’ can be viewed as transferring ’plan+state’ to the input side, thereby guiding the model in generating executable instructions.
+      <br class="ltx_break"/>
+      For each experiment, we utilized the computational power of 8 NVIDIA A100 GPUs during the training phase. The training process spanned 5 epochs with a learning rate set at 5e-5. Regarding the Google APP dataset, which is notably extensive, we sampled 10% of the data. For other datasets, we conducted comprehensive training using the entire dataset.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px6">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Results
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px6.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px6.p1.1">
+      The results of the comparative experiments are presented in Table
+      <a class="ltx_ref" href="#S4.T4" title="Table 4 ‣ Results ‣ 4.2 AitW ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      . Our model exhibits the highest performance in all experiments, with its overall average metrics surpassing the previously best-performing model by 66.92%, a significant increase of 1.49%. Specifically, in individual domains, our model achieved superior results in four areas, while in the SINGLE domain, its performance is comparable to that of ChatGPT-4V.
+      <br class="ltx_break"/>
+      From the perspective of the training process, models subjected to fine-tuning exhibit better performance compared to those relying solely on in-context predictions. This is because the fine-tuning process introduces more comprehensive and precise data into the model, as well as aligning LLM with our task instructions. In the in-context method, the multimodal ChatGPT-4V significantly surpasses pure LLM. This enhancement is attributed not only to the advanced capabilities of the model itself but also to the inclusion of direct image data, enriching the information fed into the model.
+      <br class="ltx_break"/>
+      In experiments involving pure LLMs, the integration of a plan led to a noticeable decline in performance. Our analysis indicates that, on average, each instruction in the dataset is associated with 29 different operation pipelines, presenting a considerable challenge for the model to learn and accurately generate unique pipelines for each instruction. The complexity and variability of the data hinder the model’s ability to precisely fit the results. While adding the state status to each task atop the plan does introduce execution-relevant plan information into the model, the improvement observed is relatively minor.
+      <br class="ltx_break"/>
+      We explored the factors contributing to the enhanced performance of models following the inclusion of SOP. First, SOP encapsulate historical operational behaviors and outline subsequent actions, enabling the model to more effectively comprehend the overall operational pipeline and gain a deeper insight into complex historical operations. Second, the introduction of SOP during the in-context stage significantly bolsters the model’s inferential and predictive capabilities.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T4">
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T4.1">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T4.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.1">
+         Model
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.2">
+         Overall
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.3">
+         General
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.4">
+         Install
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.5">
+         GoogleApps
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.6">
+         Single
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.7">
+         WebShopping
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.2.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.1">
+         ChatGPT-CoT (5-shot)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.2">
+         7.72
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.3">
+         5.93
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.4">
+         4.38
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.5">
+         10.47
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.6">
+         9.39
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.2.2.7">
+         8.42
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.3.3">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.1">
+         Palm 2
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.2">
+         39.6
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.3">
+         -
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.4">
+         -
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.5">
+         -
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.6">
+         -
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.3.3.7">
+         -
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.4.4">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.1">
+         GPT-4V ZS +text
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.2">
+         50.54
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.3">
+         41.66
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.4">
+         42.64
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.5">
+         49.82
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.6">
+         72.83
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.4.4.7">
+         45.73
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.5.5">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.1">
+         GPT-4V ZS image-only
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.2">
+         51.92
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.3">
+         42.44
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.4">
+         49.18
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.5">
+         48.26
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.6">
+         76.34
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.5.5.7">
+         43.35
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.6.6">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.1">
+         GPT-4V ZS +history
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.2">
+         52.96
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.3">
+         43.01
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.4">
+         46.14
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.5">
+         49.18
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.6">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.6.6.6.1">
+          78.29
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.6.6.7">
+         48.18
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.7.7">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.1">
+         Llama 2
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.2">
+         65.43
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.3">
+         55.3
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.4">
+         73.65
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.5">
+         62.33
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.6">
+         74.82
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.7.7.7">
+         61.07
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.8.8">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.1">
+         Llama 2+plan
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.2">
+         62.08
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.3">
+         52.1
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.4">
+         71.65
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.5">
+         56.23
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.6">
+         74.18
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.8.8.7">
+         56.22
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.9.9">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.1">
+         Llama 2+plan+state
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.2">
+         62.86
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.3">
+         53.77
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.4">
+         69.1
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.5">
+         61.19
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.6">
+         73.51
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.9.9.7">
+         56.74
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.10.10">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.1">
+         Llama 2+SOP
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.2">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.10.10.2.1">
+          66.92
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.10.10.3.1">
+          55.8
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.4">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.10.10.4.1">
+          74.98
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.5">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.10.10.5.1">
+          63.95
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.6">
+         76.27
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.10.10.7">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.10.10.7.1">
+          63.61
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 4:
+      </span>
+      Different Types of Instructions and Their Cor-
+responding Models’ Predictive Performance (task complete
+score).The Overall dataset calculates the average metrics of the five subsets.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px7">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Computation Cost
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS2.SSS0.Px7.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px7.p1.1">
+      Table
+      <a class="ltx_ref" href="#S4.T5" title="Table 5 ‣ Computation Cost ‣ 4.2 AitW ‣ 4 Experiments ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      compares the inference speed of the four models.
+Each model employs the vLLM framework
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib40" title="">
+        40
+       </a>
+       ]
+      </cite>
+      for accelerated predictions, with inference parameters configured to a maximum output length of 128 and a precision setting of float16. According to the comparison results, our model aligns with the original Llama 2 method in terms of speed and is ten times faster than the Llama 2+plan+state method.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T5">
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T5.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T5.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T5.1.1.1.1">
+         Model
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T5.1.1.1.2">
+         Inference (s/n)
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T5.1.1.1.3">
+         Token Length
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T5.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.2.1.1">
+         Llama 2
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.2.1.2">
+         0.071
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.2.1.3">
+         21
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T5.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.3.2.1">
+         Llama 2+plan
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.3.2.2">
+         0.117
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.3.2.3">
+         108
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T5.1.4.3">
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.4.3.1">
+         Llama 2+plan+state
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.4.3.2">
+         0.123
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T5.1.4.3.3">
+         123
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T5.1.5.4">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T5.1.5.4.1">
+         Llama 2+SOP
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T5.1.5.4.2">
+         0.071
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T5.1.5.4.3">
+         21
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 5:
+      </span>
+      Computation Cost of Each Model: The computational efficiency of each model is determined by dividing the time taken (in seconds) by the number of inferences (n). The calculation of token length specifically relates to the response component.
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In our automation execution application, we have integrated user interaction features to effectively manage privacy authorizations and related information. This is further enhanced by incorporating the flow of tasks as per SOP within the in-context. For offline training, we utilize a combination of samples, ensuring that this approach incurs no additional costs in practical usage. This method not only elevates the predictive performance baseline of the existing AitW dataset to a new level but also has potential applicability to similar models with operational workflows. To achieve heightened performance in this domain, directly inputting image data into multimodal large models is a key strategy. In the realm of multimodal systems, our future endeavor involves leveraging SOP to assist the model in comprehending historical operation sequences represented in image format.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela
+Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Training language models to follow instructions with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:27730–27744, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Yi Tay, Rishi Bommasani, Colin Raffel, Barret Zoph, Sebastian
+Borgeaud, Dani Yogatama, Maarten Bosma, Denny Zhou, Donald Metzler, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Emergent abilities of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2206.07682
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph O’Brien, Carrie Jun Cai, Meredith Ringel Morris, Percy
+Liang, and Michael S Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      Proceedings of the 36th Annual ACM Symposium on User
+Interface Software and Technology
+     </span>
+     , pages 1–22, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Samuel Stevens, Boshi Wang, Huan
+Sun, and Yu Su.
+    </span>
+    <span class="ltx_bibblock">
+     Mind2web: Towards a generalist agent for the web.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2306.06070
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Andrea Burns, Deniz Arsan, Sanjna Agrawal, Ranjitha Kumar, Kate Saenko, and
+Bryan A Plummer.
+    </span>
+    <span class="ltx_bibblock">
+     A dataset for interactive vision-language navigation with unknown
+command feasibility.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      European Conference on Computer Vision
+     </span>
+     , pages 312–328.
+Springer, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Theodore R Sumers, Shunyu Yao, Karthik Narasimhan, and Thomas L Griffiths.
+    </span>
+    <span class="ltx_bibblock">
+     Cognitive architectures for language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2309.02427
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Howard Chen, John Yang, and Karthik Narasimhan.
+    </span>
+    <span class="ltx_bibblock">
+     Webshop: Towards scalable real-world web interaction with grounded
+language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     ,
+35:20744–20757, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan
+Chen, Jiakai Tang, Xu Chen, Yankai Lin, et al.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on large language model based autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2308.11432
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming
+Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     The rise and potential of large language model based agents: A
+survey.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2309.07864
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Christopher Rawles, Alice Li, Daniel Rodriguez, Oriana Riva, and Timothy
+Lillicrap.
+    </span>
+    <span class="ltx_bibblock">
+     Android in the wild: A large-scale dataset for android device
+control.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2307.10088
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Hao Wen, Yuanchun Li, Guohong Liu, Shanhui Zhao, Tao Yu, Toby Jia-Jun Li, Shiqi
+Jiang, Yunhao Liu, Yaqin Zhang, and Yunxin Liu.
+    </span>
+    <span class="ltx_bibblock">
+     Empowering llm to use smartphone for intelligent task automation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2308.15272
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Zhuosheng Zhan and Aston Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     You only look at screens: Multimodal chain-of-action agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2309.11436
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     An Yan, Zhengyuan Yang, Wanrong Zhu, Kevin Lin, Linjie Li, Jianfeng Wang,
+Jianwei Yang, Yiwu Zhong, Julian McAuley, Jianfeng Gao, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4v in wonderland: Large multimodal models for zero-shot
+smartphone gui navigation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2311.07562
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Hiroki Furuta, Ofir Nachum, Kuang-Huei Lee, Yutaka Matsuo, Shixiang Shane Gu,
+and Izzeddin Gur.
+    </span>
+    <span class="ltx_bibblock">
+     Multimodal web navigation with instruction-finetuned foundation
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2305.11854
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Izzeddin Gur, Hiroki Furuta, Austin Huang, Mustafa Safdari, Yutaka Matsuo,
+Douglas Eck, and Aleksandra Faust.
+    </span>
+    <span class="ltx_bibblock">
+     A real-world webagent with planning, long context understanding, and
+program synthesis.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2307.12856
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Kurt Shuster, Jing Xu, Mojtaba Komeili, Da Ju, Eric Michael Smith, Stephen
+Roller, Megan Ung, Moya Chen, Kushal Arora, Joshua Lane, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Blenderbot 3: a deployed conversational agent that continually learns
+to responsibly engage.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2208.03188
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Peter Henderson, Koustuv Sinha, Nicolas Angelard-Gontier, Nan Rosemary Ke,
+Genevieve Fried, Ryan Lowe, and Joelle Pineau.
+    </span>
+    <span class="ltx_bibblock">
+     Ethical challenges in data-driven dialogue systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 2018 AAAI/ACM Conference on AI, Ethics,
+and Society
+     </span>
+     , pages 123–129, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     Chan Hee Song, Jiaman Wu, Clayton Washington, Brian M Sadler, Wei-Lun Chao, and
+Yu Su.
+    </span>
+    <span class="ltx_bibblock">
+     Llm-planner: Few-shot grounded planning for embodied agents with
+large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the IEEE/CVF International Conference on
+Computer Vision
+     </span>
+     , pages 2998–3009, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Zhuosheng Zhang, Yao Yao, Aston Zhang, Xiangru Tang, Xinbei Ma, Zhiwei He,
+Yiming Wang, Mark Gerstein, Rui Wang, Gongshen Liu, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Igniting language intelligence: The hitchhiker’s guide from
+chain-of-thought reasoning to language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2311.11797
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Allan R Wagner.
+    </span>
+    <span class="ltx_bibblock">
+     Sop: A model of automatic memory processing in animal behavior.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      Information processing in animals
+     </span>
+     , pages 5–47. Psychology
+Press, 2014.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Rao R Tummala, Madhavan Swaminathan, Manos M Tentzeris, Joy Laskar, Gee-Kung
+Chang, Suresh Sitaraman, David Keezer, Daniel Guidotti, Zhaoran Huang, Kyutae
+Lim, et al.
+    </span>
+    <span class="ltx_bibblock">
+     The sop for miniaturized, mixed-signal computing, communication, and
+consumer systems of the next decade.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      IEEE Transactions on Advanced Packaging
+     </span>
+     , 27(2):250–267, 2004.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Jinlin Wang, Ceyao Zhang,
+Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Metagpt: Meta programming for multi-agent collaborative framework.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2308.00352
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Wangchunshu Zhou, Yuchen Eleanor Jiang, Long Li, Jialong Wu, Tiannan Wang, Shi
+Qiu, Jintian Zhang, Jing Chen, Ruipu Wu, Shuai Wang, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Agents: An open-source framework for autonomous language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      arXiv preprint arXiv:2309.07870
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Yue Wu, So Yeon Min, Yonatan Bisk, Ruslan Salakhutdinov, Amos Azaria, Yuanzhi
+Li, Tom Mitchell, and Shrimai Prabhumoye.
+    </span>
+    <span class="ltx_bibblock">
+     Plan, eliminate, and track–language models are good teachers for
+embodied agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2305.02412
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     Po-Lin Chen and Cheng-Shang Chang.
+    </span>
+    <span class="ltx_bibblock">
+     Interact: Exploring the potentials of chatgpt as a cooperative agent.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2308.01552
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar,
+Xianyi Cheng, Yonatan Bisk, Daniel Fried, Uri Alon, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Webarena: A realistic web environment for building autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2307.13854
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     Wenyi Hong, Weihan Wang, Qingsong Lv, Jiazheng Xu, Wenmeng Yu, Junhui Ji, Yan
+Wang, Zihan Wang, Yuxiao Dong, Ming Ding, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Cogagent: A visual language model for gui agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2312.08914
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Zhao Yang, Jiaxuan Liu, Yucheng Han, Xin Chen, Zebiao Huang, Bin Fu, and Gang
+Yu.
+    </span>
+    <span class="ltx_bibblock">
+     Appagent: Multimodal agents as smartphone users.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2312.13771
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     James Clark, Steve DeRose, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Xml path language (xpath), 1999.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     Kolby Nottingham, Prithviraj Ammanabrolu, Alane Suhr, Yejin Choi, Hannaneh
+Hajishirzi, Sameer Singh, and Roy Fox.
+    </span>
+    <span class="ltx_bibblock">
+     Do embodied agents dream of pixelated sheep?: Embodied decision
+making using language guided world modelling.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      arXiv preprint arXiv:2301.12050
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Haoqi Yuan, Chi Zhang, Hongcheng Wang, Feiyang Xie, Penglin Cai, Hao Dong, and
+Zongqing Lu.
+    </span>
+    <span class="ltx_bibblock">
+     Plan4mc: Skill reinforcement learning and planning for open-world
+minecraft tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2303.16563
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     IpKin Anthony Wong, Qi Lilith Lian, and Danni Sun.
+    </span>
+    <span class="ltx_bibblock">
+     Autonomous travel decision-making: An early glimpse into chatgpt and
+generative ai.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Journal of Hospitality and Tourism Management
+     </span>
+     , 56:253–263,
+2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+    </span>
+    <span class="ltx_bibblock">
+     Bert: Pre-training of deep bidirectional transformers for language
+understanding.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      arXiv preprint arXiv:1810.04805
+     </span>
+     , 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan,
+Wenbin Ge, Yu Han, Fei Huang, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Qwen technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      arXiv preprint arXiv:2309.16609
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     Rohan Anil, Andrew M Dai, Orhan Firat, Melvin Johnson, Dmitry Lepikhin,
+Alexandre Passos, Siamak Shakeri, Emanuel Taropa, Paige Bailey, Zhifeng Chen,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Palm 2 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      arXiv preprint arXiv:2305.10403
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     Malak Abdullah, Alia Madain, and Yaser Jararweh.
+    </span>
+    <span class="ltx_bibblock">
+     Chatgpt: Fundamentals, applications and social impacts.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      2022 Ninth International Conference on Social Networks
+Analysis, Management and Security (SNAMS)
+     </span>
+     , pages 1–8. IEEE, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine
+Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale,
+et al.
+    </span>
+    <span class="ltx_bibblock">
+     Llama 2: Open foundation and fine-tuned chat models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.1.1">
+      arXiv preprint arXiv:2307.09288
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     Zhengyuan Yang, Linjie Li, Kevin Lin, Jianfeng Wang, Chung-Ching Lin, Zicheng
+Liu, and Lijuan Wang.
+    </span>
+    <span class="ltx_bibblock">
+     The dawn of lmms: Preliminary explorations with gpt-4v (ision).
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.1.1">
+      arXiv preprint arXiv:2309.17421
+     </span>
+     , 9(1), 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     Srinivas Sunkara, Maria Wang, Lijuan Liu, Gilles Baechler, Yu-Chung Hsiao,
+Abhanshu Sharma, James Stout, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Towards better semantic understanding of mobile interfaces.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      arXiv preprint arXiv:2210.02663
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu,
+Joseph Gonzalez, Hao Zhang, and Ion Stoica.
+    </span>
+    <span class="ltx_bibblock">
+     Efficient memory management for large language model serving with
+pagedattention.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      Proceedings of the 29th Symposium on Operating Systems
+Principles
+     </span>
+     , pages 611–626, 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Appendix
+  </h2>
+  <section class="ltx_paragraph" id="S6.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Sample Handling
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S6.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S6.SS0.SSS0.Px1.p1.1">
+     For the commands PRESS_BACK, PRESS_HOME, PRESS_ENTER, STATUS_TASK_IMPOSSIBLE, STATUS_TASK_COMPLETE, and TYPE, our model’s target output omits coordinate numbers and predicts only the command type. Additionally, for the TYPE command, input content is predicted. In double-point actions, if it’s a click, the corresponding page element coordinates are mapped in the target output. For scroll actions, the scroll direction is determined from the coordinates and included in the target output.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S6.T6">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S6.T6.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S6.T6.1.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S6.T6.1.1.1.1">
+        Action Type
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S6.T6.1.1.1.2">
+        Gesture Coordinate
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T6.1.1.1.3">
+        Target Output
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.2.2">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.2.2.1">
+        PRESS_BACK
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.2.2.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.2.2.3">
+        action type: PRESS_BACK
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.3.3">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.3.3.1">
+        PRESS_ENTER
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.3.3.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.3.3.3">
+        action type: PRESS_ENTER
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.4.4">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.4.4.1">
+        PRESS_HOME
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.4.4.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.4.4.3">
+        action type: PRESS_HOME
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.5.5">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.5.5.1">
+        STATUS_TASK_COMPLETE
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.5.5.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.5.5.3">
+        action type: TASK_COMPLETE
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.6.6">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.6.6.1">
+        STATUS_TASK_IMPOSSIBLE
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.6.6.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.6.6.3">
+        action type: TASK_IMPOSSIBLE
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.7.7">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.7.7.1">
+        TYPE
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.7.7.2">
+        touch_point:[-1.0, -1.0] lift_point[-1.0, -1.0]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.7.7.3">
+        action type: TYPE
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.8.8">
+       <td class="ltx_td ltx_border_r" id="S6.T6.1.8.8.1">
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T6.1.8.8.2">
+        typed_text:XXX
+       </td>
+       <td class="ltx_td ltx_align_left" id="S6.T6.1.8.8.3">
+        text: XXX
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.9.9">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.9.9.1">
+        DUAL_POINT (click)
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T6.1.9.9.2">
+        touch_point:[0.8497, 0.5964] lift_point[0.8497, 0.5964]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.1.9.9.3">
+        action type: DUAL_POINT
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.10.10">
+       <td class="ltx_td ltx_border_r" id="S6.T6.1.10.10.1">
+       </td>
+       <td class="ltx_td ltx_border_r" id="S6.T6.1.10.10.2">
+       </td>
+       <td class="ltx_td ltx_align_left" id="S6.T6.1.10.10.3">
+        text: XXX type: ICON_STAR id:1
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S6.T6.1.11.11">
+       <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r ltx_border_t" id="S6.T6.1.11.11.1">
+        DUAL_POINT (scroll)
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r ltx_border_t" id="S6.T6.1.11.11.2">
+        touch_point:[0.8497, 0.5964] lift_point[0.8497, 0.8964]
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S6.T6.1.11.11.3">
+        action type: SCROLL DOWN
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 6:
+     </span>
+     the Enlarge-Element Method example: Transforming Action Coordinates into Page Elements.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_paragraph" id="S6.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    SOP Details
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S6.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="S6.SS0.SSS0.Px2.p1.1">
+     This appendix, Table
+     <span class="ltx_ref ltx_missing_label ltx_ref_self">
+      LABEL:sop_type
+     </span>
+     , presents a detailed table outlining the SOP subtask that we have defined for all operations within the AitW dataset.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S6.T7">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      Table 7:
+     </span>
+     Types of actions in the AitW dataset and the corresponding SOP task descriptions designed for them.
+    </figcaption>
+    <table class="ltx_tabular" id="S6.T7.1">
+     <tr class="ltx_tr" id="S6.T7.1.1">
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S6.T7.1.1.1">
+       Action
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S6.T7.1.1.2">
+       Text/ICON Type
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T7.1.1.3">
+       SOP Task Description
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.2">
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.2.1">
+       scroll
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.2.2">
+       -
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.2.3">
+       scroll and view page content
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.3">
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.3.1">
+       type
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.3.2">
+       *
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.3.3">
+       type "*"
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.4">
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.4.1">
+       status_task_complete
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.4.2">
+       -
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.4.3">
+       task complete
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.5">
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.5.1">
+       press_home
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.5.2">
+       -
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.5.3">
+       switch to the home screen
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.6">
+      <td class="ltx_td ltx_border_r ltx_border_t" id="S6.T7.1.6.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.6.2">
+       search
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.6.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.7">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.7.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.7.2">
+       search or type web address
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.7.3">
+       search or type web address
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.8">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.8.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.8.2">
+       g
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.8.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.9">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.9.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.9.2">
+       9
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.9.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.10">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.10.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.10.2">
+       add to cart
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.10.3">
+       add goods to cart
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.11">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.11.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.11.2">
+       accept &amp; continue
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.11.3">
+       continue the next operate
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.12">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.12.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.12.2">
+       agree
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.12.3">
+       continue the next operate
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.13">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.13.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.13.2">
+       ok
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.13.3">
+       continue the next operate
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.14">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.14.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.14.2">
+       remove
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.14.3">
+       delete text
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.15">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.15.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.15.2">
+       install
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.15.3">
+       install the app
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.16">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.16.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.16.2">
+       open
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.16.3">
+       open the app
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.17">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.17.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.17.2">
+       uninstall
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.17.3">
+       uninstall the app
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.18">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.18.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.18.2">
+       location
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.18.3">
+       set your location
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.19">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.19.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.19.2">
+       search amazon
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.19.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.20">
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.20.1">
+       dual_point:TEXT
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.20.2">
+       search for anything
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.20.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.21">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.21.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.21.2">
+       search here
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.21.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.22">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.22.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.22.2">
+       checkout
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.22.3">
+       checkout
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.23">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.23.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.23.2">
+       view in cart
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.23.3">
+       view in cart
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.24">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.24.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.24.2">
+       history
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.24.3">
+       view the history info
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.25">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.25.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.25.2">
+       add
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.25.3">
+       add goods to cart
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.26">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.26.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.26.2">
+       videos
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.26.3">
+       open then video
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.27">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.27.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.27.2">
+       chrome
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.27.3">
+       open the browser
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.28">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.28.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.28.2">
+       settings
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.28.3">
+       display menu options
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.29">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.29.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.29.2">
+       site settings
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.29.3">
+       display menu options
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.30">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.30.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.30.2">
+       m
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.30.3">
+       display menu options
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.31">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.31.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.31.2">
+       notifications
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.31.3">
+       check messages
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.32">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.32.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.32.2">
+       take me to gmail
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.32.3">
+       use the email service
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.33">
+      <td class="ltx_td ltx_border_r ltx_border_t" id="S6.T7.1.33.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S6.T7.1.33.2">
+       icon_shopping_cart
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.1.33.3">
+       view in cart
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.34">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.34.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.34.2">
+       icon_plus
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.34.3">
+       add goods to cart
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.35">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.35.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.35.2">
+       icon_three_bars
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.35.3">
+       display menu options
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.36">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.36.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.36.2">
+       icon_three_dots
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.36.3">
+       display menu options
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.37">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.37.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.37.2">
+       icon_v_downward
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.37.3">
+       view page content
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.38">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.38.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.38.2">
+       icon_mic
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.38.3">
+       input voice
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.39">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.39.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.39.2">
+       icon_assistant
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.39.3">
+       open assistant
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.40">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.40.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.40.2">
+       icon_play
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.40.3">
+       playing media
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.41">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.41.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.41.2">
+       icon_person
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.41.3">
+       open profile and community
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.42">
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.42.1">
+       dual_point:ICON
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.42.2">
+       icon_magnifying_glass
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.42.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.43">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.43.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.43.2">
+       icon_google
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.43.3">
+       search on the website
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.44">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.44.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.44.2">
+       icon_chat
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.44.3">
+       send a message to someone
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.45">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.45.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.45.2">
+       icon_settings
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.45.3">
+       set function
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.46">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.46.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.46.2">
+       icon_nav_bar_rect
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.46.3">
+       switch to the other app
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.47">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.47.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.47.2">
+       icon_nav_bar_circle
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.47.3">
+       switch to the home screen
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.48">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.48.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.48.2">
+       icon_home
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.48.3">
+       switch to the home screen
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.49">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.49.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.49.2">
+       icon_take_photo
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.49.3">
+       take a photo
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.50">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.50.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.50.2">
+       icon_time
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.50.3">
+       view time
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.51">
+      <td class="ltx_td ltx_border_r" id="S6.T7.1.51.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_r" id="S6.T7.1.51.2">
+       icon_envelope
+      </td>
+      <td class="ltx_td ltx_align_left" id="S6.T7.1.51.3">
+       view order
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S6.T7.1.52">
+      <td class="ltx_td ltx_border_bb ltx_border_r" id="S6.T7.1.52.1">
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S6.T7.1.52.2">
+       icon_location
+      </td>
+      <td class="ltx_td ltx_align_left ltx_border_bb" id="S6.T7.1.52.3">
+       set your location
+      </td>
+     </tr>
+    </table>
+   </figure>
+  </section>
+  <section class="ltx_paragraph" id="S6.SS0.SSS0.Px3">
+   <h4 class="ltx_title ltx_title_paragraph">
+    AitW Task
+   </h4>
+   <div class="ltx_para" id="S6.SS0.SSS0.Px3.p1">
+    <p class="ltx_p" id="S6.SS0.SSS0.Px3.p1.1">
+     We present task examples from the AITW benchmark dataset
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     , with Figure
+     <a class="ltx_ref" href="#S6.F4" title="Figure 4 ‣ AitW Task ‣ 6 Appendix ‣ MobileAgent: Enhancing Mobile Control via Human-Machine Interaction and SOP Integration">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     showcasing the ’General’ subset, including tasks like ’What’s the US dollar sxchange rate against the Euro?’.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S6.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="387" id="S6.F4.g1" src="/html/2401.04124/assets/figure/ex1.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     An example episode from General.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_paragraph" id="S6.SS0.SSS0.Px4">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Instruction Example
+   </h4>
+   <div class="ltx_para" id="S6.SS0.SSS0.Px4.p1">
+    <p class="ltx_p" id="S6.SS0.SSS0.Px4.p1.1">
+     Our designed model generates Instructions, which include Operational Instructions, Task Status Instructions, and Structured Instructions.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S6.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="630" id="S6.F5.g1" src="/html/2401.04124/assets/x4.png" width="360"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     The instrucion example.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+</article>

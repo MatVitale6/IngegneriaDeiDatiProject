@@ -1,0 +1,4544 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  <span class="ltx_text ltx_font_typewriter" id="id4.id1">
+   clembench
+   <sub class="ltx_sub" id="id4.id1.1">
+    2024
+   </sub>
+   <br class="ltx_break"/>
+  </span>
+  A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Anne Beyer, Kranti Chalamalasetti, Sherzod Hakimov
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="id1.1.1">
+     Brielen Madureira, Philipp Sadler, David Schlangen
+     <sup class="ltx_sup" id="id1.1.1.1">
+      1
+     </sup>
+    </span>
+    <br class="ltx_break"/>
+    Computational Linguistics, Department of Linguistics
+    <br class="ltx_break"/>
+    University of Potsdam, Germany
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id5.4.id1">
+     <span class="ltx_text ltx_font_italic" id="id5.4.id1.1">
+      1
+     </span>
+    </sup>
+    German Research Center for Artificial Intelligence (DFKI), Berlin, Germany
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter ltx_font_italic" id="id6.5.id2">
+     first
+     <span class="ltx_text ltx_font_upright" id="id6.5.id2.1">
+      .
+     </span>
+     last
+     <span class="ltx_text ltx_font_upright" id="id6.5.id2.2">
+      @uni-potsdam.de
+     </span>
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    Contributions: AB designed and ran the multilingual experiments. KC updated the
+    <span class="ltx_text ltx_font_typewriter" id="id7.6.id1">
+     wordle
+    </span>
+    games; BM did so for
+    <span class="ltx_text ltx_font_typewriter" id="id8.7.id2">
+     private/shared
+    </span>
+    ; SH did so for
+    <span class="ltx_text ltx_font_typewriter" id="id9.8.id3">
+     drawing
+    </span>
+    and
+    <span class="ltx_text ltx_font_typewriter" id="id10.9.id4">
+     reference
+    </span>
+    , managed the leaderboard and co-managed the project. PS maintained the main framework and the server infrastructure. DS co-designed the experiments, co-managed the project, and edited the document. All authors discussed all content.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id11.id1">
+   It
+has been established in recent work that Large Language Models (LLMs)
+can be prompted to “self-play” conversational games that probe certain capabilities (general instruction following, strategic goal orientation, language understanding abilities), where the resulting interactive game play can be automatically scored. In this paper, we take one of the proposed frameworks for setting up such game-play environments, and further test its usefulness as an evaluation instrument, along a number of dimensions: We show that it can easily keep up with new developments while avoiding data contamination, we show that the tests implemented within it are not yet saturated (human performance is substantially higher than that of even the best models), and we show that it lends itself to investigating additional questions, such as the impact of the prompting language on performance. We believe that the approach forms a good basis for making decisions on model choice for building applied interactive systems, and perhaps ultimately setting up a closed-loop development environment of system and simulated evaluator.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.3">
+   <p class="ltx_p" id="p1.3.4">
+    <span class="ltx_text ltx_font_typewriter" id="p1.3.4.1">
+     clembench
+     <sub class="ltx_sub" id="p1.3.4.1.1">
+      2024
+     </sub>
+     <br class="ltx_break"/>
+    </span>
+    <span class="ltx_text ltx_font_bold" id="p1.3.4.2">
+     A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.3.3" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.3.3.3" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.3.3.3.3">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.3.3.3.3.4.1">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.3.3.4.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.3.3.3.3.4.1.1.1">
+          Anne Beyer, Kranti Chalamalasetti, Sherzod Hakimov
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.2.2.2.2.2">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.2.2.2.2">
+         <span class="ltx_text ltx_font_bold" id="p1.1.1.1.1.1.1.1">
+          Brielen Madureira, Philipp Sadler, David Schlangen
+          <sup class="ltx_sup" id="p1.1.1.1.1.1.1.1.1">
+           1
+          </sup>
+         </span>
+         <span class="ltx_note ltx_role_thanks" id="p1.2.2.2.2.2.2.2">
+          <sup class="ltx_note_mark">
+           †
+          </sup>
+          <span class="ltx_note_outer">
+           <span class="ltx_note_content">
+            <sup class="ltx_note_mark">
+             †
+            </sup>
+            <span class="ltx_note_type">
+             thanks:
+            </span>
+            Contributions: AB designed and ran the multilingual experiments. KC updated the
+            <span class="ltx_text ltx_font_typewriter" id="p1.2.2.2.2.2.2.2.1">
+             wordle
+            </span>
+            games; BM did so for
+            <span class="ltx_text ltx_font_typewriter" id="p1.2.2.2.2.2.2.2.2">
+             private/shared
+            </span>
+            ; SH did so for
+            <span class="ltx_text ltx_font_typewriter" id="p1.2.2.2.2.2.2.2.3">
+             drawing
+            </span>
+            and
+            <span class="ltx_text ltx_font_typewriter" id="p1.2.2.2.2.2.2.2.4">
+             reference
+            </span>
+            , managed the leaderboard and co-managed the project. PS maintained the main framework and the server infrastructure. DS co-designed the experiments, co-managed the project, and edited the document. All authors discussed all content.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.3.3.5.2">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.3.3.5.2.1">
+         Computational Linguistics, Department of Linguistics
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.3.3.6.3">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.3.3.6.3.1">
+         University of Potsdam, Germany
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.3.3.3">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.3.3.3.1">
+         <sup class="ltx_sup" id="p1.3.3.3.3.3.1.1">
+          <span class="ltx_text ltx_font_italic" id="p1.3.3.3.3.3.1.1.1">
+           1
+          </span>
+         </sup>
+         German Research Center for Artificial Intelligence (DFKI), Berlin, Germany
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.3.3.7.4">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.3.3.7.4.1">
+         <span class="ltx_text ltx_font_typewriter ltx_font_italic" id="p1.3.3.3.3.7.4.1.1">
+          first
+          <span class="ltx_text ltx_font_upright" id="p1.3.3.3.3.7.4.1.1.1">
+           .
+          </span>
+          last
+          <span class="ltx_text ltx_font_upright" id="p1.3.3.3.3.7.4.1.1.2">
+           @uni-potsdam.de
+          </span>
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The possibility of coaxing agentive behaviour out of large language models (LLMs) makes a vision seem to come into reach of setting up a closed-loop development cycle where the dialogue system is formulated through a description of the task that is to be reached, and evaluated through specifying a simulated user. While there is active work on both sides of this (realising task-oriented systems with LLMs, see e.g.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Hudeček and Dusek (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , and evaluating with LLM-simulated users, see e.g.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Sekulic et al. (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2024
+     </a>
+     )
+    </cite>
+    ), an important foundational step is to establish the validity and limitations of the LLMs-as-agents view. In 2023, a number of frameworks appeared that tackled this task through setting up dialogue “self-play” of LLMs on more abstract tasks with fully specifiable goals (then often called “dialogue games”
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Schlangen,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    ).
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    For this paper, we continued our work with the
+    <span class="ltx_text ltx_font_typewriter" id="S1.p2.1.1">
+     clemgame
+    </span>
+    framework
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chalamalasetti et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    ,
+and validated some of the claims that were left for future work in the original release. Specifically, we show that a) this approach can be extended to be a
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.2">
+     dynamic
+    </span>
+    benchmark, in the sense that what is being evaluated are indeed the games themselves and not specific game instances; b) it is still a
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.3">
+     challenging
+    </span>
+    benchmark, given that the scores of even the best models are considerably below human performance, which we establish for this paper for the first time; c) it is
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.4">
+     complementary
+    </span>
+    to other benchmarks, both reference-based ones (HELM by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2022
+     </a>
+     )
+    </cite>
+    ) and preference-based ones (Chatbot arena by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Chiang et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2024
+     </a>
+     )
+    </cite>
+    ); d) the underlying abstractions are
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.5">
+     flexible
+    </span>
+    , so that new models can be integrated easily, making it possible, as we do here, to track the rise of open-weight models since the first release of the benchmark; and, last but not least, e) the framework makes evaluation of
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.6">
+     multilingual
+    </span>
+    capabilities of models easily possible, as we exemplify here for one of the dialogue games.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Altogether, we draw from this the conclusion that
+    <span class="ltx_text ltx_font_typewriter" id="S1.p3.1.1">
+     clembench
+    </span>
+    constitutes a valuable tool for the community for testing chat-optimised LLMs (and basing decisions on the outcome), but also as an instrument for detailed studies of specific aspects of LLM behaviour. We end by speculating on possible future uses, for example as a learning environment specifically for interaction, and as something that brings us closer to the vision from the opening paragraph, as a build/test framework for designing improved agents.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Dialogue Games and Agent Capabilities
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    From the realisation in 2022 that LLMs could be seen as generalist “dialogue models” (see e.g.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Andreas (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2022
+     </a>
+     )
+    </cite>
+    ), the idea suggested itself that they could be made to simulate all sides in a conversation, and that this could be used to evaluate certain capabilities better than dataset-based evaluations.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Qiao et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023
+     </a>
+     )
+    </cite>
+    implement a small number of games (20 questions-like, social deduction game) and test them on a small number of models.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023
+     </a>
+     )
+    </cite>
+    also emphasise the need to go “beyond static datasets” and implement some interactive tasks, which however rely on scoring through a referee-model.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Gong et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    integrate LLMs in more clearly situated environments such as Minecraft, augmenting the models into agents with purpose-built modules.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Wu et al. (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2024
+     </a>
+     )
+    </cite>
+    also implement a variety of games and test a few models.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Zhou et al. (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2024
+     </a>
+     )
+    </cite>
+    focus specifically on “social” skills and use a game-like setting to study free-form interactions between LLM-realised agents.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Duan et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2024
+     </a>
+     )
+    </cite>
+    finally set up a number of zero-shot games for self-play of LLMs, comparing the apparent strategies with those known to be game-theory optimal. What these works have in common (with the exception of
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Duan et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2024
+     </a>
+     )
+    </cite>
+    ) is a focus on
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.1">
+     face validity
+    </span>
+    , in that the implemented games are simply postulated as being
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.2">
+     challenging
+    </span>
+    , and no attempt is made at elucidating which aspect of the underlying construct they target.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    For the current work, we continue our work on
+one of the frameworks that was among the first to realise this idea of “self-play for evaluation” (preceding the work cited above), and which also specifically focussed on
+    <span class="ltx_text ltx_font_italic" id="S2.p2.1.1">
+     construct validity
+    </span>
+    , the
+    <span class="ltx_text ltx_font_typewriter" id="S2.p2.1.2">
+     clemgame/clembench
+    </span>
+    framework
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chalamalasetti et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . We do not repeat these validity arguments here and just point the interested reader to the original publication; what we do here is to introduce the basic components insofar as they are relevant for the work presented here.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    The main idea of this framework is that games are specified through
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.1">
+     prompt templates
+    </span>
+    , which explain the game goals to the players in natural language, through
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.2">
+     response parsing rules
+    </span>
+    that define what counts as a well-formed response, and through a game-specific
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.3">
+     game flow
+    </span>
+    that defines what counts as a terminal state. A programmatic
+    <span class="ltx_text ltx_font_typewriter" id="S2.p3.1.4">
+     GameMaster
+    </span>
+    then realises game play through the instantiation of the templates with specific game instances (e.g., in a guessing game, the word to guess in this round), and the turn-by-turn prompting of
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.5">
+     players
+    </span>
+    (which can be LLMs, or human players). The resulting
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.6">
+     episodes
+    </span>
+    are then scored through game specific
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.7">
+     scoring rules
+    </span>
+    . For each game, one scoring metric is determined as the
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.8">
+     main metric
+    </span>
+    (always ranging from 0 (worst) to 100 (best)). An overall score is computed by averaging this metric by game and then over games. Games where a player violates the parsing rules count as not played (to end). We track the percentage of games played to end; this allows us to separate
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.9">
+     formatting rule following
+    </span>
+    capabilities (which are important for any use of LLMs as internal components where the output needs to be of a pre-specified
+    <span class="ltx_text ltx_font_italic" id="S2.p3.1.10">
+     form
+    </span>
+    ) from the strategic game play quality. The overall score is the product of the two scores. In the following, we will denote the benchmark (set of games) as
+    <span class="ltx_text ltx_font_typewriter" id="S2.p3.1.11">
+     clembench
+    </span>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p4">
+   <p class="ltx_p" id="S2.p4.2">
+    For the experiments reported here, we introduced a generalisation layer for accessing LLMs via various routes (e.g., locally via huggingface transformers
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wolf et al. (
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2020
+     </a>
+     )
+    </cite>
+    or via
+    <span class="ltx_text ltx_font_typewriter" id="S2.p4.2.1">
+     llama.cpp
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         <span class="ltx_text ltx_font_serif" id="footnote1.1.1.1">
+          1
+         </span>
+        </span>
+        <a class="ltx_ref ltx_url" href="https://github.com/ggerganov/llama.cpp" target="_blank" title="">
+         https://github.com/ggerganov/llama.cpp
+        </a>
+        <span class="ltx_text ltx_font_serif" id="footnote1.5">
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    , or via various proprietor-specific APIs). This gives us the flexibility to benchmark a large selection of models, as discussed below in Section
+    <a class="ltx_ref" href="#S3" title="3 Flexible: Performance over Time ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    , and easily integrate new ones. We also carefully went through all components described above, and in particular corrected some parsing rules and scoring rules for some games.
+    <span class="ltx_note ltx_role_footnote" id="footnote2">
+     <sup class="ltx_note_mark">
+      2
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        2
+       </span>
+       A detailed list of changes is available in the project repositories at
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/clembench/." target="_blank" title="">
+        https://github.com/clembench/.
+       </a>
+      </span>
+     </span>
+    </span>
+    Note that this makes the scores that we report not directly comparable with those previously reported. For the subset of models that was scored both in the previously reported run and in our latest one (19 models), we calculated a rank correlation (Kendall’s tau,
+    <math alttext="r_{\tau}" class="ltx_Math" display="inline" id="S2.p4.1.m1.1">
+     <semantics id="S2.p4.1.m1.1a">
+      <msub id="S2.p4.1.m1.1.1" xref="S2.p4.1.m1.1.1.cmml">
+       <mi id="S2.p4.1.m1.1.1.2" xref="S2.p4.1.m1.1.1.2.cmml">
+        r
+       </mi>
+       <mi id="S2.p4.1.m1.1.1.3" xref="S2.p4.1.m1.1.1.3.cmml">
+        τ
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S2.p4.1.m1.1b">
+       <apply id="S2.p4.1.m1.1.1.cmml" xref="S2.p4.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S2.p4.1.m1.1.1.1.cmml" xref="S2.p4.1.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S2.p4.1.m1.1.1.2.cmml" xref="S2.p4.1.m1.1.1.2">
+         𝑟
+        </ci>
+        <ci id="S2.p4.1.m1.1.1.3.cmml" xref="S2.p4.1.m1.1.1.3">
+         𝜏
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p4.1.m1.1c">
+       r_{\tau}
+      </annotation>
+     </semantics>
+    </math>
+    ) of 0.71 (
+    <math alttext="p&lt;.05" class="ltx_Math" display="inline" id="S2.p4.2.m2.1">
+     <semantics id="S2.p4.2.m2.1a">
+      <mrow id="S2.p4.2.m2.1.1" xref="S2.p4.2.m2.1.1.cmml">
+       <mi id="S2.p4.2.m2.1.1.2" xref="S2.p4.2.m2.1.1.2.cmml">
+        p
+       </mi>
+       <mo id="S2.p4.2.m2.1.1.1" xref="S2.p4.2.m2.1.1.1.cmml">
+        &lt;
+       </mo>
+       <mn id="S2.p4.2.m2.1.1.3" xref="S2.p4.2.m2.1.1.3.cmml">
+        .05
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S2.p4.2.m2.1b">
+       <apply id="S2.p4.2.m2.1.1.cmml" xref="S2.p4.2.m2.1.1">
+        <lt id="S2.p4.2.m2.1.1.1.cmml" xref="S2.p4.2.m2.1.1.1">
+        </lt>
+        <ci id="S2.p4.2.m2.1.1.2.cmml" xref="S2.p4.2.m2.1.1.2">
+         𝑝
+        </ci>
+        <cn id="S2.p4.2.m2.1.1.3.cmml" type="float" xref="S2.p4.2.m2.1.1.3">
+         .05
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p4.2.m2.1c">
+       p&lt;.05
+      </annotation>
+     </semantics>
+    </math>
+    ), i.e., a strong to very strong correlation.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S2.T1">
+   <div class="ltx_flex_figure ltx_flex_table">
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_top" id="S2.T1.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S2.T1.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.1.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="S2.T1.1.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.1.1.1.3">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S2.T1.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.1.2.1.1">
+         gpt-4
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S2.T1.1.2.1.2">
+         59.49
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.1.2.1.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.3.2.1">
+         claude-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.3.2.2">
+         37.07
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.3.2.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.4.3">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.4.3.1">
+         gpt-3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.4.3.2">
+         37.02
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.4.3.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.5.4">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.5.4.1">
+         text-davinci-003
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.5.4.2">
+         15.78
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.5.4.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.6.5">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.6.5.1">
+         vicuna-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.6.5.2">
+         4.24
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.6.5.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.7.6">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.7.6.1">
+         oasst-12b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.7.6.2">
+         1.74
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.7.6.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.8.7">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.8.7.1">
+         koala-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.8.7.2">
+         1.48
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.8.7.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.9.8">
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.9.8.1">
+         falcon-40b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.1.9.8.2">
+         0.71
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.1.9.8.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.1.10.9">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.1.10.9.1">
+         luminous-supreme
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S2.T1.1.10.9.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.1.10.9.3">
+         $$
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_top" id="S2.T1.2">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S2.T1.2.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.2.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="S2.T1.2.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.2.1.1.3">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S2.T1.2.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.2.2.1.1">
+         gpt-4-0613
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S2.T1.2.2.1.2">
+         60.90
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.2.2.1.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.3.2">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.3.2.1">
+         gpt-4-1106-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.3.2.2">
+         60.33
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.3.2.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.4.3">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.4.3.1">
+         gpt-4-0314
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.4.3.2">
+         58.81
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.4.3.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.5.4">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.5.4.1">
+         claude-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.5.4.2">
+         37.64
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.5.4.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.6.5">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.6.5.1">
+         claude-2.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.6.5.2">
+         36.38
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.6.5.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.7.6">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.7.6.1">
+         claude-2
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.7.6.2">
+         33.71
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.7.6.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.8.7">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.8.7.1">
+         gpt-3.5-turbo-0613
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.8.7.2">
+         32.53
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.8.7.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.9.8">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.9.8.1">
+         gpt-3.5-turbo-1106
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.9.8.2">
+         30.45
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.9.8.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.10.9">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.10.9.1">
+         openchat_3.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.10.9.2">
+         19.72
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.10.9.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.11.10">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.11.10.1">
+         mistral-medium
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.11.10.2">
+         17.99
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.11.10.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.12.11">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.12.11.1">
+         mixtral-8x7b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.12.11.2">
+         17.81
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.12.11.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.13.12">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.13.12.1">
+         openchat-3.5-1210
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.13.12.2">
+         17.61
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.13.12.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.14.13">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.14.13.1">
+         sheep-duck-llama-2-70b-v1.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.14.13.2">
+         17.12
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.14.13.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.15.14">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.15.14.1">
+         yi-34b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.15.14.2">
+         16.77
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.15.14.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.16.15">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.16.15.1">
+         wizardlm-70b-v1.0
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.16.15.2">
+         16.70
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.16.15.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.17.16">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.17.16.1">
+         tulu-2-dpo-70b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.17.16.2">
+         15.90
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.17.16.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.18.17">
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.18.17.1">
+         sus-chat-34b
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.2.18.17.2">
+         15.64
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.2.18.17.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.2.19.18">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.2.19.18.1">
+         claude-instant-1.2
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S2.T1.2.19.18.2">
+         15.44
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.2.19.18.3">
+         $$
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_top" id="S2.T1.3">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S2.T1.3.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.3.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="S2.T1.3.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S2.T1.3.1.1.3">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S2.T1.3.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.3.2.1.1">
+         gpt-4-turbo-2024-04-09
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S2.T1.3.2.1.2">
+         58.30
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S2.T1.3.2.1.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.3.2">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.3.2.1">
+         gpt-4-0125-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.3.2.2">
+         52.50
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.3.2.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.4.3">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.4.3.1">
+         gpt-4-1106-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.4.3.2">
+         51.99
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.4.3.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.5.4">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.5.4.1">
+         gpt-4-0613
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.5.4.2">
+         51.09
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.5.4.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.6.5">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.6.5.1">
+         gpt-4o-2024-05-13
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.6.5.2">
+         48.34
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.6.5.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.7.6">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.7.6.1">
+         claude-3-opus-20240229
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.7.6.2">
+         42.42
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.7.6.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.8.7">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.8.7.1">
+         gemini-1.5-pro-latest
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.8.7.2">
+         41.72
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.8.7.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.9.8">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.9.8.1">
+         llama-3-70b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.9.8.2">
+         35.11
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.9.8.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.10.9">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.10.9.1">
+         claude-2.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.10.9.2">
+         32.50
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.10.9.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.11.10">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.11.10.1">
+         gemini-1.5-flash-latest
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.11.10.2">
+         32.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.11.10.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.12.11">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.12.11.1">
+         claude-3-sonnet-20240229
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.12.11.2">
+         30.53
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.12.11.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.13.12">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.13.12.1">
+         qwen1.5-72b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.13.12.2">
+         30.37
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.13.12.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.14.13">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.14.13.1">
+         mistral-large-2402
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.14.13.2">
+         28.17
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.14.13.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.15.14">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.15.14.1">
+         gpt-3.5-turbo-0125
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.15.14.2">
+         27.22
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.15.14.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.16.15">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.16.15.1">
+         gemini-1.0-pro
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.16.15.2">
+         26.95
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.16.15.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.17.16">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.17.16.1">
+         command-r-plus
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.17.16.2">
+         24.94
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.17.16.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.18.17">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.18.17.1">
+         openchat_3.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.18.17.2">
+         23.64
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.18.17.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.19.18">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.19.18.1">
+         claude-3-haiku-20240307
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.19.18.2">
+         22.49
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.19.18.3">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.20.19">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.20.19.1">
+         sheep-duck-llama-2-70b-v1.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.20.19.2">
+         21.50
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.20.19.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.21.20">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.21.20.1">
+         llama-3-8b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.21.20.2">
+         19.99
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.21.20.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.22.21">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.22.21.1">
+         openchat-3.5-1210
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.22.21.2">
+         18.22
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.22.21.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.23.22">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.23.22.1">
+         wizardlm-70b-v1.0
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.23.22.2">
+         17.40
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.23.22.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.24.23">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.24.23.1">
+         openchat-3.5-0106
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.24.23.2">
+         17.10
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.24.23.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.25.24">
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.25.24.1">
+         qwen1.5-14b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="S2.T1.3.25.24.2">
+         16.80
+        </td>
+        <td class="ltx_td ltx_align_left" id="S2.T1.3.25.24.3">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S2.T1.3.26.25">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.3.26.25.1">
+         mistral-medium-2312
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S2.T1.3.26.25.2">
+         16.43
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S2.T1.3.26.25.3">
+         $$
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    From left to right, results on the English
+    <span class="ltx_text ltx_font_typewriter" id="S2.T1.5.1">
+     clembench
+    </span>
+    from June 2023, November 2023, May 2024. “ow”: open weight models, “$$”: gated models. The best gated model stayed constant (modulo fixes to scoring code, see text), open weight models gained substantially.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   <span class="ltx_text ltx_font_italic" id="S3.1.1">
+    Flexible
+   </span>
+   : Performance over Time
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Table
+    <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2 Dialogue Games and Agent Capabilities ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    shows the
+    <span class="ltx_text ltx_font_typewriter" id="S3.p1.1.1">
+     clembench
+    </span>
+    results over various timepoints, from the results of the initial publication, over an intermediate point (November 2023), to current results.
+    <span class="ltx_note ltx_role_footnote" id="footnote3">
+     <sup class="ltx_note_mark">
+      3
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        3
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        3
+       </span>
+       The current leaderboard and all previous versions can always be found at
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://clembench.github.io/leaderboard.html" target="_blank" title="">
+        https://clembench.github.io/leaderboard.html
+       </a>
+       , with detailed result logs at
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/clembench/clembench-runs" target="_blank" title="">
+        https://github.com/clembench/clembench-runs
+       </a>
+       .
+      </span>
+     </span>
+    </span>
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.2">
+    Several things are notable. First, the changes described above allowed us to keep track of the rapidly evolving field. Whereas
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chalamalasetti et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    only reported results for 9 models, the current version now tracks 53 models. (The figure is capped at scores below 16, to save space.)
+Secondly, two interesting trends are observable:
+    <br class="ltx_break"/>
+    <math alttext="\bullet" class="ltx_Math" display="inline" id="S3.p2.1.m1.1">
+     <semantics id="S3.p2.1.m1.1a">
+      <mo id="S3.p2.1.m1.1.1" xref="S3.p2.1.m1.1.1.cmml">
+       ∙
+      </mo>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.1.m1.1b">
+       <ci id="S3.p2.1.m1.1.1.cmml" xref="S3.p2.1.m1.1.1">
+        ∙
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.1.m1.1c">
+       \bullet
+      </annotation>
+     </semantics>
+    </math>
+    While there is more competition in the field of closed weight models, as a whole, this field has not moved up. The top position is still held by a variant of GPT-4, and the top score has also not improved (insofar as the numbers are directly comparable; see discussion above). This indicates a certain
+    <span class="ltx_text ltx_font_italic" id="S3.p2.2.1">
+     saturation in achievable performance
+    </span>
+    .
+    <br class="ltx_break"/>
+    <math alttext="\bullet" class="ltx_Math" display="inline" id="S3.p2.2.m2.1">
+     <semantics id="S3.p2.2.m2.1a">
+      <mo id="S3.p2.2.m2.1.1" xref="S3.p2.2.m2.1.1.cmml">
+       ∙
+      </mo>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.2.m2.1b">
+       <ci id="S3.p2.2.m2.1.1.cmml" xref="S3.p2.2.m2.1.1">
+        ∙
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.2.m2.1c">
+       \bullet
+      </annotation>
+     </semantics>
+    </math>
+    <span class="ltx_text ltx_font_italic" id="S3.p2.2.2">
+     Open weight models
+    </span>
+    , on the other hand,
+    <span class="ltx_text ltx_font_italic" id="S3.p2.2.3">
+     have improved dramatically
+    </span>
+    over this time span. While the distance between the best open and the best gated model was 55.25 points in June 2023, it was reduced to 41.18 five months later (November 2023), and now (May 2024) stands at 24.94, thanks to the singular performance of
+    <span class="ltx_text ltx_font_typewriter" id="S3.p2.2.4">
+     llama3-70b-ins
+    </span>
+    . (As the full tables in the Appendix
+    <a class="ltx_ref" href="#A1" title="Appendix A Full Results ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      A
+     </span>
+    </a>
+    show, this is partially due to the much improved formatting rule following capabilities of these models.)
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    This indicates, we believe, the usefulness of
+    <span class="ltx_text ltx_font_typewriter" id="S3.p3.1.1">
+     clembench
+    </span>
+    as an instrument for tracking developments in the field, in particular with respect to the suitability of a model to be directed to enter into goal-oriented interactions.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   <span class="ltx_text ltx_font_italic" id="S4.1.1">
+    Dynamic
+   </span>
+   : Games, not Instances
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    As remarked already by
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Chalamalasetti et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , but not followed up on, the separation between
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.1">
+     game specification
+    </span>
+    (through templates) and
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.2">
+     game instances
+    </span>
+    makes it possible to treat the games as generative devices creating a
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.3">
+     dynamic benchmark
+    </span>
+    that can more easily evade “data contamination”
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Magar and Schwartz (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . For the run reported above, we created new instances for all of the games contained in
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.4">
+     clembench
+    </span>
+    . For some games, this just required sampling from an already existing pool (e.g., new target words for the
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.5">
+     wordle
+    </span>
+    game), for others, this required light manual work (e.g., selecting new target words for the
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.6">
+     taboo
+    </span>
+    game following the methodology described in the original paper; creating new target images for the
+    <span class="ltx_text ltx_font_italic" id="S4.p1.1.7">
+     image
+    </span>
+    game). As reported above, the ranking correlation between the previous run and ours is high (0.71), which we take as indication that we are indeed evaluating the game, and not the instances.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S4.T2">
+   <div class="ltx_flex_figure ltx_flex_table">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_centering ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="S4.T2.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T2.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         <span class="ltx_text ltx_font_italic" id="S4.T2.1.1.1.1.1">
+          % played
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         de
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         en
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         it
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         ja
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         pt
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         te
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         tk
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         tr
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         zh
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T2.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         GPT-4
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         99.44 (-0.56)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         98.33 (-1.67)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.1.2.1.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         72.78 (-27.22)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Claude-3
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.3.2.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.4.3">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Llama-3-70b
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         99.44 (-0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.4.3.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.5.4">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Llama-3-8b
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         98.33 (-1.67)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         98.89 (-1.11)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         87.78 (-12.22)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         28.89 (-71.11)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         0.0 (-100.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.5.4.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.6.5">
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Command-R+
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         99.44 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         83.89 (-15.55)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         67.78 (-31.66)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.56)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.1.6.5.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         99.44 (0.00)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.7.6">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Openchat
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         98.33 (-1.67)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         46.67 (-53.33)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         100.0 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         50.0 (-50.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         0.0 (-100.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         0.0 (-100.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         0.0 (-100.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.1.7.6.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         46.67 (-53.33)
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_centering ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="S4.T2.2">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S4.T2.2.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         <span class="ltx_text ltx_font_italic" id="S4.T2.2.1.1.1.1">
+          quality score
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         de
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         en
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         it
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         ja
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         pt
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         te
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         tk
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         tr
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S4.T2.2.1.1.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         zh
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S4.T2.2.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         GPT-4
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         85.56 (-1.66)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         87.22 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         89.44 (2.22)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         85.56 (-1.66)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         81.11 (-6.11)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         35.2 (-52.02)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         75.14 (-12.08)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         50.0 (-37.22)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T2.2.2.1.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         88.55 (1.33)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.2.3.2">
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Claude-3
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         71.11 (-6.11)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         77.22 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         72.22 (-5.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         68.89 (-8.33)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         73.33 (-3.89)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         52.22 (-25.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         61.11 (-16.11)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         58.89 (-18.33)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.3.2.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         68.89 (-8.33)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.2.4.3">
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Llama-3-70b
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         58.33 (-4.45)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         62.78 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         66.67 (3.89)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         56.11 (-6.67)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         60.56 (-2.22)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         45.25 (-17.53)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         36.11 (-26.67)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         45.0 (-17.78)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.4.3.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         68.89 (6.11)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.2.5.4">
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Llama-3-8b
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         43.5 (-4.28)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         47.78 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         37.78 (-10.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         39.33 (-8.45)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         46.11 (-1.67)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         34.18 (-13.60)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         34.62 (-13.16)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         nan (nan)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.5.4.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         35.0 (-12.78)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.2.6.5">
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Command-R+
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         37.22 (-1.33)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         38.55 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         38.33 (-0.22)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         36.11 (-2.44)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         37.22 (-1.33)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         29.8 (-8.75)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         31.15 (-7.40)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         35.56 (-2.99)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S4.T2.2.6.5.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         38.55 (0.00)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.2.7.6">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.1" style="padding-left:4.0pt;padding-right:4.0pt;">
+         Openchat
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.2" style="padding-left:4.0pt;padding-right:4.0pt;">
+         35.59 (0.03)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.3" style="padding-left:4.0pt;padding-right:4.0pt;">
+         35.56 (0.00)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.4" style="padding-left:4.0pt;padding-right:4.0pt;">
+         54.76 (19.20)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.5" style="padding-left:4.0pt;padding-right:4.0pt;">
+         36.11 (0.55)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.6" style="padding-left:4.0pt;padding-right:4.0pt;">
+         56.67 (21.11)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.7" style="padding-left:4.0pt;padding-right:4.0pt;">
+         nan (nan)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.8" style="padding-left:4.0pt;padding-right:4.0pt;">
+         nan (nan)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.9" style="padding-left:4.0pt;padding-right:4.0pt;">
+         nan (nan)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T2.2.7.6.10" style="padding-left:4.0pt;padding-right:4.0pt;">
+         40.48 (4.92)
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2:
+    </span>
+    The
+    <span class="ltx_text ltx_font_italic" id="S4.T2.7.1">
+     reference
+    </span>
+    game in different languages. Top, “% played”, measuring formatting rule following, bottom, “quality score”, measuring quality of the well-formed games. In brackets the delta compared to the original English version.
+    <span class="ltx_text ltx_font_italic" id="S4.T2.8.2">
+     GPT-4
+    </span>
+    : gpt-4-turbo-2024-04-09,
+    <span class="ltx_text ltx_font_italic" id="S4.T2.9.3">
+     Claude-3
+    </span>
+    : claude-3-opus-20240229,
+    <span class="ltx_text ltx_font_italic" id="S4.T2.10.4">
+     Openchat
+    </span>
+    : openchat-3.5-0106
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   <span class="ltx_text ltx_font_italic" id="S5.1.1">
+    Challenging
+   </span>
+   : Room to Grow
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Chalamalasetti et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    “suspect” that human performance on
+    <span class="ltx_text ltx_font_typewriter" id="S5.p1.1.1">
+     clembench
+    </span>
+    would be “near the ceiling”. We tested this assumption. Among the authors of this paper, we created pairings so as to ensure that no player played a game where they were involved in the creation of instances. Since during the work on this paper all players developed a good understanding of all games, we consider the resulting scores to represent not
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.2">
+     average
+    </span>
+    human performance, but rather
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.3">
+     human expert performance
+    </span>
+    . We played between 10 and 15 episodes per game (leaving out
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.4">
+     wordle-clue
+    </span>
+    and
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.5">
+     wordle-critic
+    </span>
+    , as these are only variants of the main
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.6">
+     wordle
+    </span>
+    game). All games were played to end, hence ‘% played’ is, unsurprisingly, 100 for the human players. The resultant quality scores were:
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.7">
+     wordle
+    </span>
+    : 72,
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.8">
+     taboo
+    </span>
+    : 80.5;
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.9">
+     drawing
+    </span>
+    : 95.2;
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.10">
+     reference
+    </span>
+    : 100; leading to an average of 86.93 – indeed considerably higher than the best result reported in Table
+    <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2 Dialogue Games and Agent Capabilities ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   <span class="ltx_text ltx_font_italic" id="S6.1.1">
+    Complementary
+   </span>
+   : Correlations
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.4">
+    To investigate how the
+    <span class="ltx_text ltx_font_typewriter" id="S6.p1.4.1">
+     clembench
+    </span>
+    measures relate to what is measured via
+    <span class="ltx_text ltx_font_italic" id="S6.p1.4.2">
+     reference-based
+    </span>
+    evaluation on the one hand, and
+    <span class="ltx_text ltx_font_italic" id="S6.p1.4.3">
+     preference-based
+    </span>
+    evaluation on the other, we computed rank correlation with HELM (v1.3.0, 2024-05-07;
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2022
+     </a>
+     )
+    </cite>
+    ) and Chatbot Arena (CA; retrieved 2024-05-16;
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Chiang et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2024
+     </a>
+     )
+    </cite>
+    ), respectively. With CA,
+    <span class="ltx_text ltx_font_typewriter" id="S6.p1.4.4">
+     clembench
+    </span>
+    shares 30 models. The rankings correlate highly, with Kendall’s tau at 0.65 (
+    <math alttext="r_{\tau}" class="ltx_Math" display="inline" id="S6.p1.1.m1.1">
+     <semantics id="S6.p1.1.m1.1a">
+      <msub id="S6.p1.1.m1.1.1" xref="S6.p1.1.m1.1.1.cmml">
+       <mi id="S6.p1.1.m1.1.1.2" xref="S6.p1.1.m1.1.1.2.cmml">
+        r
+       </mi>
+       <mi id="S6.p1.1.m1.1.1.3" xref="S6.p1.1.m1.1.1.3.cmml">
+        τ
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S6.p1.1.m1.1b">
+       <apply id="S6.p1.1.m1.1.1.cmml" xref="S6.p1.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S6.p1.1.m1.1.1.1.cmml" xref="S6.p1.1.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S6.p1.1.m1.1.1.2.cmml" xref="S6.p1.1.m1.1.1.2">
+         𝑟
+        </ci>
+        <ci id="S6.p1.1.m1.1.1.3.cmml" xref="S6.p1.1.m1.1.1.3">
+         𝜏
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S6.p1.1.m1.1c">
+       r_{\tau}
+      </annotation>
+     </semantics>
+    </math>
+    ,
+    <math alttext="p&lt;0.05" class="ltx_Math" display="inline" id="S6.p1.2.m2.1">
+     <semantics id="S6.p1.2.m2.1a">
+      <mrow id="S6.p1.2.m2.1.1" xref="S6.p1.2.m2.1.1.cmml">
+       <mi id="S6.p1.2.m2.1.1.2" xref="S6.p1.2.m2.1.1.2.cmml">
+        p
+       </mi>
+       <mo id="S6.p1.2.m2.1.1.1" xref="S6.p1.2.m2.1.1.1.cmml">
+        &lt;
+       </mo>
+       <mn id="S6.p1.2.m2.1.1.3" xref="S6.p1.2.m2.1.1.3.cmml">
+        0.05
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S6.p1.2.m2.1b">
+       <apply id="S6.p1.2.m2.1.1.cmml" xref="S6.p1.2.m2.1.1">
+        <lt id="S6.p1.2.m2.1.1.1.cmml" xref="S6.p1.2.m2.1.1.1">
+        </lt>
+        <ci id="S6.p1.2.m2.1.1.2.cmml" xref="S6.p1.2.m2.1.1.2">
+         𝑝
+        </ci>
+        <cn id="S6.p1.2.m2.1.1.3.cmml" type="float" xref="S6.p1.2.m2.1.1.3">
+         0.05
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S6.p1.2.m2.1c">
+       p&lt;0.05
+      </annotation>
+     </semantics>
+    </math>
+    ). With HELM, it shares 18 models. The correlation is drastically lower, at 0.39 (
+    <math alttext="r_{\tau}" class="ltx_Math" display="inline" id="S6.p1.3.m3.1">
+     <semantics id="S6.p1.3.m3.1a">
+      <msub id="S6.p1.3.m3.1.1" xref="S6.p1.3.m3.1.1.cmml">
+       <mi id="S6.p1.3.m3.1.1.2" xref="S6.p1.3.m3.1.1.2.cmml">
+        r
+       </mi>
+       <mi id="S6.p1.3.m3.1.1.3" xref="S6.p1.3.m3.1.1.3.cmml">
+        τ
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S6.p1.3.m3.1b">
+       <apply id="S6.p1.3.m3.1.1.cmml" xref="S6.p1.3.m3.1.1">
+        <csymbol cd="ambiguous" id="S6.p1.3.m3.1.1.1.cmml" xref="S6.p1.3.m3.1.1">
+         subscript
+        </csymbol>
+        <ci id="S6.p1.3.m3.1.1.2.cmml" xref="S6.p1.3.m3.1.1.2">
+         𝑟
+        </ci>
+        <ci id="S6.p1.3.m3.1.1.3.cmml" xref="S6.p1.3.m3.1.1.3">
+         𝜏
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S6.p1.3.m3.1c">
+       r_{\tau}
+      </annotation>
+     </semantics>
+    </math>
+    ,
+    <math alttext="p&lt;0.05" class="ltx_Math" display="inline" id="S6.p1.4.m4.1">
+     <semantics id="S6.p1.4.m4.1a">
+      <mrow id="S6.p1.4.m4.1.1" xref="S6.p1.4.m4.1.1.cmml">
+       <mi id="S6.p1.4.m4.1.1.2" xref="S6.p1.4.m4.1.1.2.cmml">
+        p
+       </mi>
+       <mo id="S6.p1.4.m4.1.1.1" xref="S6.p1.4.m4.1.1.1.cmml">
+        &lt;
+       </mo>
+       <mn id="S6.p1.4.m4.1.1.3" xref="S6.p1.4.m4.1.1.3.cmml">
+        0.05
+       </mn>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S6.p1.4.m4.1b">
+       <apply id="S6.p1.4.m4.1.1.cmml" xref="S6.p1.4.m4.1.1">
+        <lt id="S6.p1.4.m4.1.1.1.cmml" xref="S6.p1.4.m4.1.1.1">
+        </lt>
+        <ci id="S6.p1.4.m4.1.1.2.cmml" xref="S6.p1.4.m4.1.1.2">
+         𝑝
+        </ci>
+        <cn id="S6.p1.4.m4.1.1.3.cmml" type="float" xref="S6.p1.4.m4.1.1.3">
+         0.05
+        </cn>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S6.p1.4.m4.1c">
+       p&lt;0.05
+      </annotation>
+     </semantics>
+    </math>
+    ).
+This very interesting result shows that
+    <span class="ltx_text ltx_font_typewriter" id="S6.p1.4.5">
+     clembench
+    </span>
+    correlates more closely to results achieved through interaction (Chatbot Arena) — while not actually requiring human interaction and running fully offline. (For a graphical view of the ranking relations, see the Appendix
+    <a class="ltx_ref" href="#A2" title="Appendix B Across-Benchmark Correlations ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      B
+     </span>
+    </a>
+    .)
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   <span class="ltx_text ltx_font_italic" id="S7.1.1">
+    Multilingual
+   </span>
+   : A Case Study
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    The separation in the
+    <span class="ltx_text ltx_font_typewriter" id="S7.p1.1.1">
+     clemgame
+    </span>
+    framework of game specification and game logic makes it possible to realise the same game in different languages, simply through translating the game templates and game parsing rules. We make use of this to probe the multilingual capabilities of a subset of the models tested above, using the
+    <span class="ltx_text ltx_font_italic" id="S7.p1.1.2">
+     reference
+    </span>
+    game as a case study. (In this game, player A is presented with three, unicode character-based, 5x5 pixel images, and tasked to describe the first one. Player B is presented with the same images, potentially in a different order, and is tasked to identify the described one. Random performance would lead to a
+    <span class="ltx_text ltx_font_italic" id="S7.p1.1.3">
+     quality score
+    </span>
+    of 33.) We selected a set of typologically diverse languages (see Appendix
+    <a class="ltx_ref" href="#A3" title="Appendix C Language Tested in the Case Study ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      C
+     </span>
+    </a>
+    ) and asked native speakers to translate the prompts and target expressions. Table
+    <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4 Dynamic: Games, not Instances ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    shows the impact of playing in languages other than English. The large commercial languages hold up well when it comes to following the formatting instructions (top part of the Table), as does
+    <span class="ltx_text ltx_font_typewriter" id="S7.p1.1.4">
+     llama3-70b
+    </span>
+    . All models are mostly impacted by the quality of the game play.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p2">
+   <p class="ltx_p" id="S7.p2.1">
+    We leave a more detailed analysis of these results to future work, only making the point here that this case study shows the value of
+    <span class="ltx_text ltx_font_typewriter" id="S7.p2.1.1">
+     clembench
+    </span>
+    as a promising instrument for investigating multilingual interaction instruction following capabilities.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    8
+   </span>
+   Conclusions
+  </h2>
+  <div class="ltx_para" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    In this short paper, we have assessed a recently proposed evaluation approach for LLMs that complements existing reference-based and preference-based approaches. We have shown that it possesses certain desirable properties, which promise to let it keep its relevance (because it is flexible to be adapted to new models, and its dynamic nature counteracts the danger of data contamination). The games implemented in the framework appear to sit at an interesting level: They are not particularly challenging for human players, and yet they are and remain so even for the best-performing models. In a case study, we have shown that the approach can also serve to investigate multilingual capabilities. Future work may show even further use cases, for example as a learning environment in a reinforcement learning setting, or as a development environment for more applied goal-directed dialogue systems.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Andreas (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Andreas. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.findings-emnlp.423" target="_blank" title="">
+      Language models as agent models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Findings of the Association for Computational Linguistics: EMNLP 2022
+     </em>
+     , pages 5769–5779, Abu Dhabi, United Arab Emirates. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chalamalasetti et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Kranti Chalamalasetti, Jana Götze, Sherzod Hakimov, Brielen Madureira, Philipp Sadler, and David Schlangen. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2023.emnlp-main.689" target="_blank" title="">
+      clembench: Using game play to evaluate chat-optimized language models as conversational agents
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 11174–11219, Singapore. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chiang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Wei-Lin Chiang, Lianmin Zheng, Ying Sheng, Anastasios Nikolas Angelopoulos, Tianle Li, Dacheng Li, Hao Zhang, Banghua Zhu, Michael I. Jordan, Joseph E. Gonzalez, and Ion Stoica. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/ARXIV.2403.04132" target="_blank" title="">
+      Chatbot arena: An open platform for evaluating llms by human preference
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      CoRR
+     </em>
+     , abs/2403.04132.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Duan et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Jinhao Duan, Renming Zhang, James Diffenderfer, Bhavya Kailkhura, Lichao Sun, Elias Stengel-Eskin, Mohit Bansal, Tianlong Chen, and Kaidi Xu. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2402.12348" target="_blank" title="">
+      Gtbench: Uncovering the strategic reasoning limitations of llms via game-theoretic evaluations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Preprint
+     </em>
+     , arXiv:2402.12348.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Ran Gong, Qiuyuan Huang, Xiaojian Ma, Hoi Vo, Zane Durante, Yusuke Noda, Zilong Zheng, Song-Chun Zhu, Demetri Terzopoulos, Li Fei-Fei, and Jianfeng Gao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2309.09971" target="_blank" title="">
+      Mindagent: Emergent gaming interaction
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Preprint
+     </em>
+     , arXiv:2309.09971.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hendrycks et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2009.03300" target="_blank" title="">
+      Measuring Massive Multitask Language Understanding
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Proceedings of the International Conference on Learning Representations (ICLR)ICLR
+     </em>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     ArXiv:2009.03300 [cs].
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hudeček and Dusek (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Vojtěch Hudeček and Ondrej Dusek. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2023.sigdial-1.21" target="_blank" title="">
+      Are large language models all you need for task-oriented dialogue?
+     </a>
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Proceedings of the 24th Annual Meeting of the Special Interest Group on Discourse and Dialogue
+     </em>
+     , pages 216–228, Prague, Czechia. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jiatong Li, Rui Li, and Qi Liu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2309.04369" target="_blank" title="">
+      Beyond static datasets: A deep interaction approach to llm evaluation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Preprint
+     </em>
+     , arXiv:2309.04369.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michihiro Yasunaga, and
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.2.1">
+      alia
+     </span>
+     . 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2211.09110" target="_blank" title="">
+      Holistic evaluation of language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.3.1">
+      CoRR
+     </em>
+     , abs/2211.09110.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Magar and Schwartz (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Inbal Magar and Roy Schwartz. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.acl-short.18" target="_blank" title="">
+      Data contamination: From memorization to exploitation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)
+     </em>
+     , pages 157–165, Dublin, Ireland. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI, Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, Red Avila, Igor Babuschkin, Suchir Balaji, Valerie Balcom, Paul Baltescu, Haiming Bao, Mohammad Bavarian, Jeff Belgum, Irwan Bello, and
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.2.1">
+      alia
+     </span>
+     . 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2303.08774" target="_blank" title="">
+      Gpt-4 technical report
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.3.1">
+      Preprint
+     </em>
+     , arXiv:2303.08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qiao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Dan Qiao, Chenfei Wu, Yaobo Liang, Juntao Li, and Nan Duan. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2308.10032" target="_blank" title="">
+      Gameeval: Evaluating llms on conversational games
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Preprint
+     </em>
+     , arXiv:2308.10032.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Schlangen (2023)
+    </span>
+    <span class="ltx_bibblock">
+     David Schlangen. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2304.07007" target="_blank" title="">
+      Dialogue games for benchmarking language understanding: Motivation, taxonomy, strategy
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      CoRR
+     </em>
+     , abs/2304.07007.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sekulic et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Ivan Sekulic, Silvia Terragni, Victor Guimarães, Nghia Khau, Bruna Guedes, Modestas Filipavicius, Andre Ferreira Manso, and Roland Mathis. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2024.scichat-1.3" target="_blank" title="">
+      Reliable LLM-based user simulator for task-oriented dialogue systems
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Proceedings of the 1st Workshop on Simulating Conversational Intelligence in Chat (SCI-CHAT 2024)
+     </em>
+     , pages 19–35, St. Julians, Malta. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wolf et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue, Anthony Moi, Pierric Cistac, Tim Rault, Remi Louf, Morgan Funtowicz, Joe Davison, Sam Shleifer, Patrick von Platen, Clara Ma, Yacine Jernite, Julien Plu, Canwen Xu, Teven Le Scao, Sylvain Gugger, Mariama Drame, Quentin Lhoest, and Alexander Rush. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2020.emnlp-demos.6" target="_blank" title="">
+      Transformers: State-of-the-art natural language processing
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations
+     </em>
+     , pages 38–45, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Yue Wu, Xuan Tang, Tom M. Mitchell, and Yuanzhi Li. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2310.01557" target="_blank" title="">
+      Smartplay: A benchmark for llms as intelligent agents
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      Preprint
+     </em>
+     , arXiv:2310.01557.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Xuhui Zhou, Hao Zhu, Leena Mathur, Ruohong Zhang, Haofei Yu, Zhengyang Qi, Louis-Philippe Morency, Yonatan Bisk, Daniel Fried, Graham Neubig, and Maarten Sap. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2310.11667" target="_blank" title="">
+      SOTOPIA: Interactive Evaluation for Social Intelligence in Language Agents
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of ICLR 2024
+     </em>
+     , pages 1–45.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Full Results
+  </h2>
+  <figure class="ltx_table" id="A1.T3">
+   <div class="ltx_flex_figure ltx_flex_table">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="A1.T3.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="A1.T3.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.1.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.1.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.1.1.1.3">
+         %pl
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.1.1.1.4">
+         qs
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.1.1.1.5">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="A1.T3.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.1.2.1.1">
+         gpt-4
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.1.2.1.2">
+         59.49
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.1.2.1.3">
+         96.06
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.1.2.1.4">
+         61.93
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.1.2.1.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.3.2">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.3.2.1">
+         claude-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.3.2.2">
+         37.07
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.3.2.3">
+         74.76
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.3.2.4">
+         49.58
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.3.2.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.4.3">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.4.3.1">
+         gpt-3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.4.3.2">
+         37.02
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.4.3.3">
+         85.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.4.3.4">
+         43.12
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.4.3.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.5.4">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.5.4.1">
+         text-davinci-003
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.5.4.2">
+         15.78
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.5.4.3">
+         44.50
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.5.4.4">
+         35.46
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.5.4.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.6.5">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.6.5.1">
+         vicuna-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.6.5.2">
+         4.24
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.6.5.3">
+         13.58
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.6.5.4">
+         31.25
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.6.5.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.7.6">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.7.6.1">
+         oasst-12b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.7.6.2">
+         1.74
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.7.6.3">
+         20.85
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.7.6.4">
+         8.33
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.7.6.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.8.7">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.8.7.1">
+         koala-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.8.7.2">
+         1.48
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.8.7.3">
+         14.76
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.8.7.4">
+         10.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.8.7.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.9.8">
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.9.8.1">
+         falcon-40b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.9.8.2">
+         0.71
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.9.8.3">
+         0.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.1.9.8.4">
+         75.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.1.9.8.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.1.10.9">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.1.10.9.1">
+         luminous-supreme
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.1.10.9.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.1.10.9.3">
+         16.24
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.1.10.9.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.1.10.9.5">
+         $$
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="A1.T3.2">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="A1.T3.2.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.2.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.2.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.2.1.1.3">
+         %pl
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.2.1.1.4">
+         qs
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.2.1.1.5">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="A1.T3.2.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.2.2.1.1">
+         gpt-4-0613
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.2.2.1.2">
+         60.90
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.2.2.1.3">
+         97.22
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.2.2.1.4">
+         62.64
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.2.2.1.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.3.2">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.3.2.1">
+         gpt-4-1106-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.3.2.2">
+         60.33
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.3.2.3">
+         97.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.3.2.4">
+         61.59
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.3.2.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.4.3">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.4.3.1">
+         gpt-4-0314
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.4.3.2">
+         58.81
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.4.3.3">
+         93.79
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.4.3.4">
+         62.70
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.4.3.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.5.4">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.5.4.1">
+         claude-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.5.4.2">
+         37.64
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.5.4.3">
+         74.24
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.5.4.4">
+         50.70
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.5.4.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.6.5">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.6.5.1">
+         claude-2.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.6.5.2">
+         36.38
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.6.5.3">
+         83.08
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.6.5.4">
+         43.79
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.6.5.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.7.6">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.7.6.1">
+         claude-2
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.7.6.2">
+         33.71
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.7.6.3">
+         82.12
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.7.6.4">
+         41.05
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.7.6.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.8.7">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.8.7.1">
+         gpt-3.5-turbo-0613
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.8.7.2">
+         32.53
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.8.7.3">
+         91.96
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.8.7.4">
+         35.37
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.8.7.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.9.8">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.9.8.1">
+         gpt-3.5-turbo-1106
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.9.8.2">
+         30.45
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.9.8.3">
+         77.12
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.9.8.4">
+         39.49
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.9.8.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.10.9">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.10.9.1">
+         openchat_3.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.10.9.2">
+         19.72
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.10.9.3">
+         57.57
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.10.9.4">
+         34.26
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.10.9.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.11.10">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.11.10.1">
+         mistral-medium
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.11.10.2">
+         17.99
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.11.10.3">
+         51.11
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.11.10.4">
+         35.20
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.11.10.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.12.11">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.12.11.1">
+         mixtral-8x7b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.12.11.2">
+         17.81
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.12.11.3">
+         60.49
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.12.11.4">
+         29.44
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.12.11.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.13.12">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.13.12.1">
+         openchat-3.5-1210
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.13.12.2">
+         17.61
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.13.12.3">
+         53.18
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.13.12.4">
+         33.11
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.13.12.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.14.13">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.14.13.1">
+         sheep-duck-llama-2-70b-v1.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.14.13.2">
+         17.12
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.14.13.3">
+         40.82
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.14.13.4">
+         41.93
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.14.13.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.15.14">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.15.14.1">
+         yi-34b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.15.14.2">
+         16.77
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.15.14.3">
+         63.76
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.15.14.4">
+         26.30
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.15.14.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.16.15">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.16.15.1">
+         wizardlm-70b-v1.0
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.16.15.2">
+         16.70
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.16.15.3">
+         51.65
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.16.15.4">
+         32.34
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.16.15.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.17.16">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.17.16.1">
+         tulu-2-dpo-70b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.17.16.2">
+         15.90
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.17.16.3">
+         54.49
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.17.16.4">
+         29.18
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.17.16.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.18.17">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.18.17.1">
+         sus-chat-34b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.18.17.2">
+         15.64
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.18.17.3">
+         49.75
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.18.17.4">
+         31.44
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.18.17.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.19.18">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.19.18.1">
+         claude-instant-1.2
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.19.18.2">
+         15.44
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.19.18.3">
+         59.61
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.19.18.4">
+         25.91
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.19.18.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.20.19">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.20.19.1">
+         openchat-3.5-0106
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.20.19.2">
+         14.33
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.20.19.3">
+         48.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.20.19.4">
+         29.33
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.20.19.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.21.20">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.21.20.1">
+         nous-hermes-2-mixtral-8x7b-dpo
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.21.20.2">
+         12.69
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.21.20.3">
+         57.47
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.21.20.4">
+         22.08
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.21.20.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.22.21">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.22.21.1">
+         codellama-34b-instruct-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.22.21.2">
+         10.34
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.22.21.3">
+         23.96
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.22.21.4">
+         43.15
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.22.21.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.23.22">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.23.22.1">
+         vicuna-33b-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.23.22.2">
+         9.15
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.23.22.3">
+         17.47
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.23.22.4">
+         52.36
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.23.22.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.24.23">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.24.23.1">
+         wizardlm-13b-v1.2
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.24.23.2">
+         7.82
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.24.23.3">
+         40.49
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.24.23.4">
+         19.31
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.24.23.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.25.24">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.25.24.1">
+         vicuna-13b-v1.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.25.24.2">
+         7.21
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.25.24.3">
+         34.74
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.25.24.4">
+         20.74
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.25.24.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.26.25">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.26.25.1">
+         sheep-duck-llama-2-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.26.25.2">
+         6.74
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.26.25.3">
+         34.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.26.25.4">
+         19.34
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.26.25.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.27.26">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.27.26.1">
+         vicuna-7b-v1.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.27.26.2">
+         3.46
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.27.26.3">
+         12.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.27.26.4">
+         26.91
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.27.26.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.28.27">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.28.27.1">
+         tulu-2-dpo-7b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.28.27.2">
+         3.27
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.28.27.3">
+         36.29
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.28.27.4">
+         9.02
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.28.27.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.29.28">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.29.28.1">
+         command
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.29.28.2">
+         3.12
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.29.28.3">
+         10.01
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.29.28.4">
+         31.13
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.29.28.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.30.29">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.30.29.1">
+         wizard-vicuna-13b-uncensored-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.30.29.2">
+         2.06
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.30.29.3">
+         9.49
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.30.29.4">
+         21.71
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.30.29.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.31.30">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.31.30.1">
+         llama-2-13b-chat-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.31.30.2">
+         1.89
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.31.30.3">
+         3.43
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.31.30.4">
+         55.09
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.31.30.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.32.31">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.32.31.1">
+         mistral-7b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.32.31.2">
+         1.50
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.32.31.3">
+         12.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.32.31.4">
+         11.67
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.32.31.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.33.32">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.33.32.1">
+         llama-2-70b-chat-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.33.32.2">
+         1.39
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.33.32.3">
+         3.79
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.33.32.4">
+         36.74
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.33.32.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.34.33">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.34.33.1">
+         koala-13b-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.34.33.2">
+         1.25
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.34.33.3">
+         23.22
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.34.33.4">
+         5.38
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.34.33.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.35.34">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.35.34.1">
+         zephyr-7b-beta
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.35.34.2">
+         1.23
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.35.34.3">
+         3.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.35.34.4">
+         31.25
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.35.34.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.36.35">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.36.35.1">
+         deepseek-llm-67b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.36.35.2">
+         0.77
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.36.35.3">
+         2.64
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.36.35.4">
+         29.17
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.36.35.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.37.36">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.37.36.1">
+         zephyr-7b-alpha
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.37.36.2">
+         0.75
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.37.36.3">
+         7.51
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.37.36.4">
+         10.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.37.36.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.38.37">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.38.37.1">
+         llama-2-7b-chat-hf
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.38.37.2">
+         0.24
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.38.37.3">
+         6.05
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.38.37.4">
+         4.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.38.37.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.39.38">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.39.38.1">
+         gpt4all-13b-snoozy
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.39.38.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.39.38.3">
+         2.92
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.39.38.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.39.38.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.40.39">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.40.39.1">
+         deepseek-llm-7b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.40.39.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.40.39.3">
+         7.44
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.40.39.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.40.39.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.41.40">
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.41.40.1">
+         oasst-sft-4-pythia-12b-epoch-3.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.41.40.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.41.40.3">
+         14.76
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.2.41.40.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.2.41.40.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.2.42.41">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.2.42.41.1">
+         falcon-7b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.2.42.41.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.2.42.41.3">
+         14.29
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.2.42.41.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.2.42.41.5">
+         ow
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <table class="ltx_tabular ltx_figure_panel ltx_guessed_headers ltx_align_middle" id="A1.T3.3">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="A1.T3.3.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.3.1.1.1">
+         models
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.3.1.1.2">
+         sc
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.3.1.1.3">
+         %pl
+        </th>
+        <th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt" id="A1.T3.3.1.1.4">
+         qs
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="A1.T3.3.1.1.5">
+         o/g
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="A1.T3.3.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.3.2.1.1">
+         gpt-4-turbo-2024-04-09
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.3.2.1.2">
+         58.30
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.3.2.1.3">
+         94.88
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="A1.T3.3.2.1.4">
+         61.45
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T3.3.2.1.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.3.2">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.3.2.1">
+         gpt-4-0125-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.3.2.2">
+         52.50
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.3.2.3">
+         94.92
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.3.2.4">
+         55.31
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.3.2.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.4.3">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.4.3.1">
+         gpt-4-1106-preview
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.4.3.2">
+         51.99
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.4.3.3">
+         98.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.4.3.4">
+         53.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.4.3.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.5.4">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.5.4.1">
+         gpt-4-0613
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.5.4.2">
+         51.09
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.5.4.3">
+         94.88
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.5.4.4">
+         53.85
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.5.4.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.6.5">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.6.5.1">
+         gpt-4o-2024-05-13
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.6.5.2">
+         48.34
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.6.5.3">
+         85.71
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.6.5.4">
+         56.40
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.6.5.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.7.6">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.7.6.1">
+         claude-3-opus-20240229
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.7.6.2">
+         42.42
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.7.6.3">
+         83.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.7.6.4">
+         51.05
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.7.6.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.8.7">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.8.7.1">
+         gemini-1.5-pro-latest
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.8.7.2">
+         41.72
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.8.7.3">
+         82.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.8.7.4">
+         50.79
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.8.7.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.9.8">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.9.8.1">
+         llama-3-70b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.9.8.2">
+         35.11
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.9.8.3">
+         80.72
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.9.8.4">
+         43.50
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.9.8.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.10.9">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.10.9.1">
+         claude-2.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.10.9.2">
+         32.50
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.10.9.3">
+         82.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.10.9.4">
+         39.57
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.10.9.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.11.10">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.11.10.1">
+         gemini-1.5-flash-latest
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.11.10.2">
+         32.00
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.11.10.3">
+         76.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.11.10.4">
+         42.03
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.11.10.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.12.11">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.12.11.1">
+         claude-3-sonnet-20240229
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.12.11.2">
+         30.53
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.12.11.3">
+         85.24
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.12.11.4">
+         35.82
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.12.11.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.13.12">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.13.12.1">
+         qwen1.5-72b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.13.12.2">
+         30.37
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.13.12.3">
+         80.05
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.13.12.4">
+         37.94
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.13.12.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.14.13">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.14.13.1">
+         mistral-large-2402
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.14.13.2">
+         28.17
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.14.13.3">
+         66.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.14.13.4">
+         42.14
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.14.13.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.15.14">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.15.14.1">
+         gpt-3.5-turbo-0125
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.15.14.2">
+         27.22
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.15.14.3">
+         89.67
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.15.14.4">
+         30.36
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.15.14.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.16.15">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.16.15.1">
+         gemini-1.0-pro
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.16.15.2">
+         26.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.16.15.3">
+         80.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.16.15.4">
+         33.63
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.16.15.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.17.16">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.17.16.1">
+         command-r-plus
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.17.16.2">
+         24.94
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.17.16.3">
+         74.90
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.17.16.4">
+         33.30
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.17.16.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.18.17">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.18.17.1">
+         openchat_3.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.18.17.2">
+         23.64
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.18.17.3">
+         63.52
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.18.17.4">
+         37.22
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.18.17.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.19.18">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.19.18.1">
+         claude-3-haiku-20240307
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.19.18.2">
+         22.49
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.19.18.3">
+         79.52
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.19.18.4">
+         28.28
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.19.18.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.20.19">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.20.19.1">
+         sheep-duck-llama-2-70b-v1.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.20.19.2">
+         21.50
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.20.19.3">
+         41.19
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.20.19.4">
+         52.20
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.20.19.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.21.20">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.21.20.1">
+         llama-3-8b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.21.20.2">
+         19.99
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.21.20.3">
+         76.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.21.20.4">
+         26.27
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.21.20.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.22.21">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.22.21.1">
+         openchat-3.5-1210
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.22.21.2">
+         18.22
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.22.21.3">
+         51.19
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.22.21.4">
+         35.60
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.22.21.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.23.22">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.23.22.1">
+         wizardlm-70b-v1.0
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.23.22.2">
+         17.40
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.23.22.3">
+         46.19
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.23.22.4">
+         37.66
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.23.22.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.24.23">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.24.23.1">
+         openchat-3.5-0106
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.24.23.2">
+         17.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.24.23.3">
+         52.57
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.24.23.4">
+         32.52
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.24.23.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.25.24">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.25.24.1">
+         qwen1.5-14b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.25.24.2">
+         16.80
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.25.24.3">
+         40.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.25.24.4">
+         41.02
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.25.24.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.26.25">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.26.25.1">
+         mistral-medium-2312
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.26.25.2">
+         16.43
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.26.25.3">
+         49.25
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.26.25.4">
+         33.36
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.26.25.5">
+         $$
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.27.26">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.27.26.1">
+         qwen1.5-32b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.27.26.2">
+         15.41
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.27.26.3">
+         63.69
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.27.26.4">
+         24.19
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.27.26.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.28.27">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.28.27.1">
+         codegemma-7b-it
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.28.27.2">
+         15.30
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.28.27.3">
+         51.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.28.27.4">
+         29.45
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.28.27.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.29.28">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.29.28.1">
+         dolphin-2.5-mixtral-8x7b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.29.28.2">
+         15.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.29.28.3">
+         46.38
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.29.28.4">
+         32.55
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.29.28.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.30.29">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.30.29.1">
+         codellama-34b-instruct
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.30.29.2">
+         14.35
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.30.29.3">
+         33.57
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.30.29.4">
+         42.76
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.30.29.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.31.30">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.31.30.1">
+         command-r
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.31.30.2">
+         14.15
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.31.30.3">
+         61.67
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.31.30.4">
+         22.95
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.31.30.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.32.31">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.32.31.1">
+         gemma-1.1-7b-it
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.32.31.2">
+         14.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.32.31.3">
+         49.67
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.32.31.4">
+         28.46
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.32.31.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.33.32">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.33.32.1">
+         sus-chat-34b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.33.32.2">
+         14.11
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.33.32.3">
+         54.40
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.33.32.4">
+         25.93
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.33.32.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.34.33">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.34.33.1">
+         mixtral-8x22b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.34.33.2">
+         12.69
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.34.33.3">
+         52.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.34.33.4">
+         24.33
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.34.33.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.35.34">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.35.34.1">
+         tulu-2-dpo-70b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.35.34.2">
+         12.62
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.35.34.3">
+         49.76
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.35.34.4">
+         25.37
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.35.34.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.36.35">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.36.35.1">
+         nous-hermes-2-mixtral-8x7b-sft
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.36.35.2">
+         11.95
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.36.35.3">
+         39.68
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.36.35.4">
+         30.12
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.36.35.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.37.36">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.37.36.1">
+         wizardlm-13b-v1.2
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.37.36.2">
+         11.48
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.37.36.3">
+         39.57
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.37.36.4">
+         29.00
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.37.36.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.38.37">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.38.37.1">
+         vicuna-33b-v1.3
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.38.37.2">
+         11.27
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.38.37.3">
+         23.81
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.38.37.4">
+         47.32
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.38.37.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.39.38">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.39.38.1">
+         mistral-7b-instruct-v0.2
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.39.38.2">
+         9.75
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.39.38.3">
+         36.91
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.39.38.4">
+         26.42
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.39.38.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.40.39">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.40.39.1">
+         yi-34b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.40.39.2">
+         8.27
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.40.39.3">
+         40.86
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.40.39.4">
+         20.25
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.40.39.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.41.40">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.41.40.1">
+         mixtral-8x7b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.41.40.2">
+         8.17
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.41.40.3">
+         47.62
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.41.40.4">
+         17.15
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.41.40.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.42.41">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.42.41.1">
+         mistral-7b-instruct-v0.1
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.42.41.2">
+         8.01
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.42.41.3">
+         37.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.42.41.4">
+         21.58
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.42.41.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.43.42">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.43.42.1">
+         yi-1.5-34b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.43.42.2">
+         7.67
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.43.42.3">
+         52.38
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.43.42.4">
+         14.65
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.43.42.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.44.43">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.44.43.1">
+         vicuna-13b-v1.5
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.44.43.2">
+         7.01
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.44.43.3">
+         39.52
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.44.43.4">
+         17.73
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.44.43.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.45.44">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.45.44.1">
+         yi-1.5-6b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.45.44.2">
+         6.73
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.45.44.3">
+         41.43
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.45.44.4">
+         16.25
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.45.44.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.46.45">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.46.45.1">
+         starling-lm-7b-beta
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.46.45.2">
+         6.56
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.46.45.3">
+         30.89
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.46.45.4">
+         21.25
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.46.45.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.47.46">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.47.46.1">
+         sheep-duck-llama-2-13b
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.47.46.2">
+         5.39
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.47.46.3">
+         31.90
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.47.46.4">
+         16.90
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.47.46.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.48.47">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.48.47.1">
+         yi-1.5-9b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.48.47.2">
+         4.37
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.48.47.3">
+         38.10
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.48.47.4">
+         11.48
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.48.47.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.49.48">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.49.48.1">
+         gemma-1.1-2b-it
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.49.48.2">
+         2.91
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.49.48.3">
+         22.62
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.49.48.4">
+         12.87
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.49.48.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.50.49">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.50.49.1">
+         qwen1.5-7b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.50.49.2">
+         2.58
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.50.49.3">
+         30.24
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.50.49.4">
+         8.53
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.50.49.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.51.50">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.51.50.1">
+         gemma-7b-it
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.51.50.2">
+         1.82
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.51.50.3">
+         17.78
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.51.50.4">
+         10.23
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.51.50.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.52.51">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.52.51.1">
+         llama-2-70b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.52.51.2">
+         0.81
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.52.51.3">
+         7.14
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.52.51.4">
+         11.31
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.52.51.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.53.52">
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.53.52.1">
+         qwen1.5-0.5b-chat
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.53.52.2">
+         0.12
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.53.52.3">
+         25.72
+        </td>
+        <td class="ltx_td ltx_align_right" id="A1.T3.3.53.52.4">
+         0.48
+        </td>
+        <td class="ltx_td ltx_align_left" id="A1.T3.3.53.52.5">
+         ow
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="A1.T3.3.54.53">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.3.54.53.1">
+         qwen1.5-1.8b-chat
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.3.54.53.2">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.3.54.53.3">
+         15.24
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="A1.T3.3.54.53.4">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T3.3.54.53.5">
+         ow
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 3:
+    </span>
+    In order, results on the English
+    <span class="ltx_text ltx_font_typewriter" id="A1.T3.5.1">
+     clembench
+    </span>
+    from June 2023, November 2023, May 2024. “sc” is the clemscore, “%pl” is the percentage of games played formally correctly, “qs” is the quality of the game play of those games; “ow”: open weight models, “$$”: gated models.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="A1.p1">
+   <p class="ltx_p" id="A1.p1.1">
+    See Table
+    <a class="ltx_ref" href="#A1.T3" title="Table 3 ‣ Appendix A Full Results ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_appendix" id="A2">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix B
+   </span>
+   Across-Benchmark Correlations
+  </h2>
+  <div class="ltx_para" id="A2.p1">
+   <p class="ltx_p" id="A2.p1.1">
+    See Figure
+    <a class="ltx_ref" href="#A2.F1" title="Figure 1 ‣ Appendix B Across-Benchmark Correlations ‣ clembench2024 A Challenging, Dynamic, Complementary, Multilingual Benchmark and Underlying Flexible Framework for LLMs as Multi-Action Agents">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="A2.F1">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" height="329" id="A2.F1.g1" src="/html/2405.20859/assets/latex/Images/clemb_arena_bump.png" width="538"/>
+    </div>
+    <div class="ltx_flex_break">
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_1">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" height="292" id="A2.F1.g2" src="/html/2405.20859/assets/latex/Images/clemb_helm_bump.png" width="479"/>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Top: Bump chart showing ranking differences between
+    <span class="ltx_text ltx_font_typewriter" id="A2.F1.3.1">
+     clembench
+    </span>
+    (left) and Chatbot Arena (2024-05-16; right); Bottom: Ranking differences between
+    <span class="ltx_text ltx_font_typewriter" id="A2.F1.4.2">
+     clembench
+    </span>
+    (left) and HELM (v1.3.0; right)
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_appendix" id="A3">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix C
+   </span>
+   Language Tested in the Case Study
+  </h2>
+  <div class="ltx_para" id="A3.p1">
+   <p class="ltx_p" id="A3.p1.1">
+    While there is no explicit information available on the amount of training data and optimisation for different languages for the commercial models, the model card for Command-R+ gives an overview of the supported languages on different levels.
+    <span class="ltx_note ltx_role_footnote" id="footnote4">
+     <sup class="ltx_note_mark">
+      4
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        4
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        4
+       </span>
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://huggingface.co/CohereForAI/c4ai-command-r-plus" target="_blank" title="">
+        https://huggingface.co/CohereForAI/c4ai-command-r-plus
+       </a>
+      </span>
+     </span>
+    </span>
+    We select a subset of eight languages from different language families, five for which the model is explicitly optimised: German (de), Italian (it), Brazilian Portuguese (pt), Japanese (ja) and Simplified Chinese (zh), one for which the training data is reported to contain resources: Turkish (tr), and two which are not supported explicitly: Telugu (te) and Turkmen (tk).
+   </p>
+  </div>
+  <div class="ltx_para" id="A3.p2">
+   <p class="ltx_p" id="A3.p2.1">
+    The Technical Report on GPT-4
+    <cite class="ltx_cite ltx_citemacro_citet">
+     OpenAI et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2024
+     </a>
+     )
+    </cite>
+    does not contain any information on the languages supported in the training data, but their evaluation contains a ranking of the model’s performance in different languages on an automatically translated version of multiple choice questions
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Hendrycks et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2021
+     </a>
+     )
+    </cite>
+    . Among others, our selected languages include the best and worst performing languages from their evaluation (Italian and Telugu, respectively). Similarly, the Claude-3 Model Card (available at
+    <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www-cdn.anthropic.com/de8ba9b01c9ab7cbabf5c33b80b7bbc618857627/Model_Card_Claude_3.pdf" target="_blank" title="">
+     https://www-cdn.anthropic.com/de8ba9b01c9ab7cbabf5c33b80b7bbc618857627/Model_Card_Claude_3.pdf
+    </a>
+    ) does not contain information on multilingual training data, but the languages we select also cover a broad range of the ones this model was evaluated on (and more).
+   </p>
+  </div>
+ </section>
+</article>

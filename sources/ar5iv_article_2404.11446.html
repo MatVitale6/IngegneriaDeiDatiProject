@@ -1,0 +1,1831 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_font_bold ltx_title_document">
+  Open-Ended Wargames with Large Language Models
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Daniel P. Hogan
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Andrea Brennen
+   </span>
+  </span>
+ </div>
+ <div class="ltx_dates">
+  (IQT Labs
+  <br class="ltx_break"/>
+  <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self" style="font-size:90%;">
+   {dhogan,abrennen}@iqt.org
+  </span>
+  )
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id1.id1">
+   Wargames are a powerful tool for understanding and rehearsing real-world decision making. Automated play of wargames using artificial intelligence (AI) enables possibilities beyond those of human-conducted games, such as playing the game many times over to see a range of possible outcomes. There are two categories of wargames: quantitative games, with discrete types of moves, and qualitative games, which revolve around open-ended responses. Historically, automation efforts have focused on quantitative games, but large language models (LLMs) make it possible to automate qualitative wargames. We introduce “Snow Globe,” an LLM-powered multi-agent system for playing qualitative wargames. With Snow Globe, every stage of a text-based qualitative wargame from scenario preparation to post-game analysis can be optionally carried out by AI, humans, or a combination thereof. We describe its software architecture conceptually and release an open-source implementation alongside this publication. As case studies, we simulate a tabletop exercise about an AI incident response and a political wargame about a geopolitical crisis. We discuss potential applications of the approach and how it fits into the broader wargaming ecosystem.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Wargames can be an effective problem-solving tool to understand and address real-world challenges
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    . The value of using artificial intelligence (AI) for automated or semi-automated playing of wargames has long been recognized
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    . However, previous automation efforts have largely ignored open-ended wargames in which player moves are not restricted to predefined options. In this work, we show that large language models (LLMs) enable automation of such games. We also introduce an example implementation called “Snow Globe.”
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     1.1
+    </span>
+    Quantitative and Qualitative Wargames
+   </h3>
+   <div class="ltx_para" id="S1.SS1.p1">
+    <p class="ltx_p" id="S1.SS1.p1.1">
+     We define a “wargame” as a reality-based decision-making game for one or more human players. Following
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       1
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ]
+     </cite>
+     , we do not restrict the term to games that feature multiple adversaries as opposed to just one. As a result, quoting
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ]
+     </cite>
+     , the term will be understood “to include everything from small seminar exercises…to large multi-day, multi-team wargames.” Furthermore, a wargame does not have to be about war
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ]
+     </cite>
+     . One can wargame a political crisis
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       7
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       8
+      </a>
+      ]
+     </cite>
+     , a disaster response
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     , a technology problem
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     , or any other decision-making scenario.
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS1.p2">
+    <p class="ltx_p" id="S1.SS1.p2.1">
+     Wargames are often subdivided based on their intended purpose. In one common scheme
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       1
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2
+      </a>
+      ]
+     </cite>
+     , a distinction is drawn between analytical / experimental wargames to study strategic and situational variations, versus educational / experiential wargames to train the players in decision-making. An alternate approach
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ]
+     </cite>
+     divides wargames into four categories (systems exploration, alternative conditions, innovation, evaluation) based on two binary considerations: understanding vs. addressing a problem, and early vs. mature research.
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS1.p3">
+    <p class="ltx_p" id="S1.SS1.p3.1">
+     For the purpose of automating a wargame, however, the most important distinction is not why the game is played, but rather how it is played. In terms of game mechanics, there are two broad categories of wargame. In a “quantitative” wargame, there are discrete options for the kinds of things each player can do on their turn, and the rules of the game dictate the consequences of those options. A “qualitative” wargame, on the other hand, is much more open-ended. Each player on their turn verbally describes what they would do in that situation, and anything possible in real life is a valid response. If the flow of the game depends on previous player decisions, the moderator adjudicates the outcome for that purpose. For example, most tabletop exercises (also known as seminar games) are qualitative games, as are the political-military wargames that grew out of the work of the RAND Corporation’s Social Sciences Division (SSD) during the Cold War
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS1.p4">
+    <p class="ltx_p" id="S1.SS1.p4.1">
+     The philosophical difference between a quantitative and a qualitative approach is most clearly articulated in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     , which takes as a prototypical example the dueling versions of a “Cold War Game” developed by RAND’s Mathematical Analytics Division and the aforementioned SSD in the 1950s. This dichotomy has also been described in the literature in different language: “rigid games” versus “free play” games
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ]
+     </cite>
+     , for example.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     1.2
+    </span>
+    Automated Wargames
+   </h3>
+   <div class="ltx_para" id="S1.SS2.p1">
+    <p class="ltx_p" id="S1.SS2.p1.1">
+     There are benefits to having humans play wargames, with the chief benefit being the educational value for the humans involved. However, there are also benefits to being able to automate the playing of wargames. One such benefit is the ability to play the game many times over, elucidating a full spectrum of possible outcomes. Another benefit of automation is the ability to help humans play the game better. For example, an AI could play along with human players, offering suggestions along the way. Such considerations motivate the development of automated wargames, in which an automated system makes the moves instead of human players. (Note that a fully automated wargame should technically be described as a “simulated wargame,” as it’s not a true wargame in the absence of human players, a semantic distinction with which we will not be overly concerned in this text.)
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p2">
+    <p class="ltx_p" id="S1.SS2.p2.1">
+     For quantitative wargames, there is an extensive body of work about automating these types of games. To begin, very simple quantitative wargames may be especially amenable to analysis with game theory. This approach can sometimes shed light on counterintuitive aspects of effective strategies
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ]
+     </cite>
+     . Game theoretic models have been developed for many aspects of international relations and military activity, although the practical usefulness of such effort has been the subject of debate
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p3">
+    <p class="ltx_p" id="S1.SS2.p3.1">
+     In more realistic and hence more complicated quantitative wargames, automation can be done via computer simulation of the game and its players. A notable early example of a wargame simulation was the RAND Strategy Assessment System (RSAS) in the 1980s, which accommodated human players as well as AI players implemented as expert systems
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ]
+     </cite>
+     . Using AI players to create wargame simulations has continued to the present day
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     . In recent years, reinforcement learning has been an effective technique for implementing such systems
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p4">
+    <p class="ltx_p" id="S1.SS2.p4.1">
+     Given that game theory and the existing simulation literature provide many tools for automating quantitative wargames, what is the equivalent approach for qualitative wargames? In other words, how can we automate an open-ended wargame? This problem has gone largely unaddressed in the literature because until recently it was intractable. A solution requires generating textual output based on reasoning from textual input in the absence of task-specific training data. Such a capability has only recently become available with the introduction of large language models
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ]
+     </cite>
+     . In the next section, we describe an approach to leveraging LLMs to play qualitative wargames. To keep the scope of this effort reasonable, we limit our focus to simulation of qualitative wargames that are entirely text-based. This circumscribed problem space nevertheless spans a wide range of qualitative wargames, ranging from structurally simple games (like
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ]
+     </cite>
+     ) to others that are quite complex (like
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     ). However, this scope does exclude games where exact positions on a complicated game map play an important role (like
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ]
+     </cite>
+     ). Given ongoing advances in multimodal LLMs
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ]
+     </cite>
+     , it may not be long before future work can step beyond this limit.
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p5">
+    <p class="ltx_p" id="S1.SS2.p5.1">
+     Finally, it should be noted that there have been several previous investigations that use LLMs to play wargames. However, most of these have been built around quantitative games. One effort
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ]
+     </cite>
+     uses an LLM to play the board game “Diplomacy.” Although Diplomacy allows unconstrained player negotiation, actual player moves are constrained to those specified by the game’s rules (attack, support, etc.). Other efforts at LLM-driven wargame simulations
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       31
+      </a>
+      ]
+     </cite>
+     are similarly constrained, with the games in the cited works permitting exactly 7 and 27 discrete types of moves, respectively. In another recent work, the LLM chooses from menus of prewritten options, for a total of 21 binary choices
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p6">
+    <p class="ltx_p" id="S1.SS2.p6.1">
+     Perhaps the only prior work on qualitative wargames with LLMs concerns so-called “matrix games” (confusingly, not related to game theory matrix games) where adjudication is handled by listing reasons why a goal would or would not be achieved
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ]
+     </cite>
+     . Additionally, some approaches using LLMs to play role-playing games and other games
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ]
+     </cite>
+     are transferable.
+    </p>
+   </div>
+   <div class="ltx_para" id="S1.SS2.p7">
+    <p class="ltx_p" id="S1.SS2.p7.1">
+     This discussion is summarized schematically in Figure
+     <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1.2 Automated Wargames ‣ 1 Introduction ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S1.F1">
+    <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="203" id="S1.F1.g1" src="/html/2404.11446/assets/x1.png" width="461"/>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     Taxonomy of human and automated wargames.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Software Architecture
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Snow Globe is a multi-agent system designed to automate a wide range of qualitative wargames.
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       It is so named because a snow globe is a simulated snowstorm self-contained in a glass orb, and by analogy this work is a simulated crisis self-contained in software.
+      </span>
+     </span>
+    </span>
+    In Snow Globe, there are three types of agents: control, players, and teams. Of these, the control and players are LLM-powered intelligent agents which carry out the traditional human roles of a wargame. The control is the game’s moderator. Its job includes purely logistical tasks, like calling the teams/players to get their responses, as well as complex AI-driven tasks, like adjudicating each round of an adversarial game via LLM. Player agents simulate the responses of humans playing the game, and each can be optionally given a “persona,” a written description of their perspective that influences their responses. Finally, a team agent simulates a group that must jointly formulate a response. A simulation generally has only one control but can have any number of players and teams. Any acyclic arrangement of teams/players is allowed, including a team of teams, a player who’s on multiple teams, etc. This is illustrated in Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.1 Conceptual Approach ‣ 2 Software Architecture ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Conceptual Approach
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     In Snow Globe, the record of what’s happened so far in a wargame simulation is recorded in a “history” object. A history object is an ordered list of text entries, each associated with an agent. For games without information asymmetry, there is a common history maintained by the control. Information asymmetry can be introduced by giving each player/team their own possibly incomplete history object. The game record contained in a history object provides the context in which players make their responses. Formally, the history object(s) constitute the environment of the multi-agent system.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Looking more closely at the different types of agents, the main task of players is to state how they would respond to each situation presented to them. The prompt sent to a player’s underlying LLM for this purpose includes the history described above, the written description of the player’s persona, and the query, “What action or actions do you take in response?” (Specific questions can also be substituted for that general-purpose one.) The players’ personas affect what they emphasize in their answers. For example, we’ve developed an information technology tabletop exercise simulation that includes players with “data scientist” and “lawyer” personas. The former is more likely than the latter to raise concerns about training data, while the latter is more likely to mention legal compliance.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     A team, from the control’s point of view, looks like just a player – it receives the current history and sends back a response. However, a team has no generative capacity of its own. Behind the scenes, the team asks each team member for their response, then asks a designated team leader player to combine those answers into a single joint response that’s sent back on behalf of the team. Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.1 Conceptual Approach ‣ 2 Software Architecture ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     (b) shows this schematically.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="193" id="S2.F2.g1" src="/html/2404.11446/assets/x2.png" width="461"/>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Software architecture examples for the Snow Globe multi-agent system. Vertical arrows represent agents and horizontal arrows represent information flow for (a) a simple tabletop exercise and (b) a team of players formulating a collective response.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     The control, given its job as the game’s moderator, has many tasks. One control task is to adjudicate adversarial wargames. For this, the control calls each player to find out what actions they propose in response to the current situation. The control then generates a plausible narrative of the outcome, describing what could reasonably happen as the players’ stated plans are carried out. Adjudication is further discussed in the next paragraph. The control can also help create the wargame by generating a situation based on a short prompt, identifying key players in that situation (for which player agents can be created), and generating relevant “injects” (pre-written plot developments used to drive the game). Finally, the control provides tools to analyze the game as it is played or after it’s completed. The control can answer preset questions about the game, or a user can converse with it through a chatbot dialog. In either case, the control draws on the game’s history to answer questions. Questions can range from specific (e.g., “Was a lawyer consulted at any point?”) to general (e.g., “What lesson can we learn from this scenario?”).
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p5">
+    <p class="ltx_p" id="S2.SS1.p5.1">
+     Adjudication is perhaps the most challenging task when implementing qualitative wargames with LLMs. It requires the LLM to create a narrative with a logical sense of cause and effect, which may necessitate developing a plausible resolution when players are acting at cross-purposes. We use the query, “Weave these plans into a cohesive narrative of what happens in the next month,” modifying the time step as appropriate. In a realistic game, not everything important that happens is the result of a player setting out to make it happen. For example, in a political-military wargame, there can be fast-moving developments on the ground that no leader ordered yet are central to the outcome (civil disturbance, terrorism, etc.). To be useful, AI adjudication must be able to generate “nature,” as these contextually plausible outside developments are called
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     . This difficult task turns out to be surprisingly easy with LLMs. All that’s required is to modify the prompt by adding a three-word sentence: “Include unexpected consequences.”
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p6">
+    <p class="ltx_p" id="S2.SS1.p6.1">
+     When adjudication does give low-quality results, the most common problems include repeated output from move to move and output that deviates from players’ stated plans (usually by hallucinating new player plans as part of the output). However, a hypothetical hallucination-free LLM would create more problems than it solves. Hallucination, which in other applications is so often harmful, is the key to making open-ended LLM wargames work. The well-grounded creativity required to generate plans and adjudicate their outcomes is hallucination by another name.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Software Implementation
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     We have developed a Python implementation of the conceptual architecture described above. The Snow Globe software has been open-sourced
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        Available at
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://github.com/IQTLabs/snowglobe
+        </span>
+       </span>
+      </span>
+     </span>
+     under the Apache 2.0 license.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     After importing the Python module, users can create control, team, and player agents, as well as history and LLM objects. A recommended approach is to create a child class of the module’s control class, to serve as the control for the user’s specific simulation. The constructor and call methods of that child class can then be overridden with code to create the other agents and run the simulation, respectively.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     The software supports locally run LLMs formatted for either llama.cpp
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ]
+     </cite>
+     or the Hugging Face transformers library
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     . It also supports OpenAI API calls
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       38
+      </a>
+      ]
+     </cite>
+     . The LangChain framework
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ]
+     </cite>
+     handles interactions with LLMs. Among small, open-source LLMs, we’ve found the best results with the Mistral-7B-OpenOrca-GGUF model. A seven-billion-parameter foundational model from Mistral AI
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ]
+     </cite>
+     was fine-tuned as a chatbot using the OpenOrca dataset
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ]
+     </cite>
+     and then converted to a computational resource-efficient format
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       42
+      </a>
+      ]
+     </cite>
+     by other open-source contributors. This LLM is lightweight enough to run on an ordinary “gaming” laptop. The ability to run the model locally is crucial for use cases where information cannot be shared externally. Because the model is not fine-tuned for any particular game (nor is it given example output at runtime), this is a case of zero-shot learning.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p4">
+    <p class="ltx_p" id="S2.SS2.p4.1">
+     The software is configured so that LLM output is randomized, with the result that no two runs of a simulated wargame produce identical results. Because the outcome of any complicated real-world situation hinges on many small details, not all of them characterized and furnished in a simulation, it is not reasonable to expect the simulation to produce a single “correct” answer. (This is a characteristic of qualitative wargames generally that our system implementation mimics.) Instead, repeated iterations of the same simulation with randomized LLM output show a range of possible outcomes. An example of this is given below in Section
+     <a class="ltx_ref" href="#S3.SS2" title="3.2 Geopolitical Crisis Simulation ‣ 3 Example Simulations ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3.2
+      </span>
+     </a>
+     . The randomness also means that no agent knows exactly what another agent will do in a given situation.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Human-Machine Interaction
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Snow Globe makes it possible for any player agent to be operated by an actual human instead of an LLM. A human player uses a computer connected to the network where the simulation is running, and a web-based user interface tells the player the state of the game by displaying the prompts that otherwise would have been sent to the LLM. The web page receives the human’s written response to each prompt and sends it back to the server.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     Any combination of AI and human players is supported, which permits a range of wargame possibilities. For example, a human player could face an AI adversary. Alternately, a human player could have a staff of AI assistants, each offering their input about what they think the human should do. (The latter case could be implemented using a team agent with AI team members and a human team leader. The assistants could all have different personas or even use different LLMs.) It’s also possible to have a human moderator by setting the control agent to use the web-based user interface.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p3">
+    <p class="ltx_p" id="S2.SS3.p3.1">
+     When multiple players must respond to the same situation (each without knowing the others’ responses), an issue of timing arises. AI players should generate their responses sequentially to avoid overburdening the hardware. Human players, however, should be able to work on their answers in parallel to avoid unnecessary waiting. In short, AI is compute-bound and humans are I/O bound. We use asynchronous programming to optimize both without requiring code refactoring to switch between AI and human players.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p4">
+    <p class="ltx_p" id="S2.SS3.p4.1">
+     In our Python implementation of Snow Globe, prompts being sent to humans and responses being received from them are stored as text files, and an API with a FastAPI framework and Uvicorn web server makes them available over the network. This future-proofs the interface by making it easily extensible. One could design a new web page to communicate with the existing API or forgo the API and design new software to interact with the files directly, with no required changes to the underlying simulation code in either case.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p5">
+    <p class="ltx_p" id="S2.SS3.p5.1">
+     Per
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ]
+     </cite>
+     , there are four basic tasks associated with wargaming: preparing the game, playing the game, adjudicating the game, and interpreting the game. For qualitative text-based wargames with Snow Globe, each one of these tasks can be optionally carried out by AI, humans, or a combination thereof.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Example Simulations
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    In this section, we demonstrate two very different simulated wargames: a tabletop exercise about an AI incident response and an adversarial wargame about a geopolitical crisis.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Tabletop Exercise
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     “HAIWIRE” is an open-source tabletop exercise in which participants must formulate a response to an incident or problem involving the use of AI
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     . Participants draw a random incident then a series of random injects, furnishing a response for each one. In our simulation of this tabletop exercise, a single AI player serves as a stand-in for the collective wisdom of these human participants, shown schematically in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.1 Conceptual Approach ‣ 2 Software Architecture ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     (a).
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     The beginning of an example game is shown in Table
+     <a class="ltx_ref" href="#Ax1.T3" title="Table 3 ‣ Appendix ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     in the appendix. As can be seen, the AI player’s response doesn’t just address the issue on technical grounds but also considers the human element and institutional element of the situation to generate a well-rounded answer. A full game may take a small group of humans twenty minutes or more; the simulation runs in less than one minute on a consumer GPU.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Geopolitical Crisis Simulation
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     To demonstrate another kind of qualitative game, we introduce a political wargame. The game scenario is a geopolitical crisis involving the fictional Central Asian countries of “Azuristan” and “Crimsonia,” both seeking to control a disputed province. The game’s AI players are the leaders of the two countries. In each move of the game, both players state their plans (without knowing the other player’s plans), and then the result is adjudicated by the control. The number of moves is set in advance. Table
+     <a class="ltx_ref" href="#Ax1.T4" title="Table 4 ‣ Appendix ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     in the appendix shows the scenario and the first move of an example game.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     One test of the system’s realism is whether the personas of the players affect the outcome of the game. To explore this, we consider two possible personas for each player: a “dove” persona where they prioritize peace above all else, and a “hawk” persona where they prioritize other national interests. These are shown in Table
+     <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.2 Geopolitical Crisis Simulation ‣ 3 Example Simulations ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . For each of the three combinations of personas shown in Table
+     <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ 3.2 Geopolitical Crisis Simulation ‣ 3 Example Simulations ‣ Open-Ended Wargames with Large Language Models">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , the simulation is run 20 times with a single one-year move each. Unsurprisingly, armed conflict is seen more often when more hawks are involved. Although we would caution against placing too much credence in the raw probabilities, this case study illustrates that repeated iterations of a qualitative wargame can show causal relationships between policies and outcomes and even between personalities and outcomes.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     That’s significant because a previous LLM wargame study (with a quantitative game) did not see such a relationship, concluding that “the LLMs are inadequate at accounting for player backgrounds…”
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     . Here, however, the effect is evident.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T1">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S3.T1.1.1.1">
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_rr ltx_border_t" id="S3.T1.1.1.1.1">
+       </th>
+       <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T1.1.1.1.2">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.1.2.1">
+         <span class="ltx_p" id="S3.T1.1.1.1.2.1.1" style="width:68.7pt;">
+          Azuristan
+         </span>
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T1.1.1.1.3">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.1.3.1">
+         <span class="ltx_p" id="S3.T1.1.1.1.3.1.1" style="width:68.7pt;">
+          Crimsonia
+         </span>
+        </span>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S3.T1.1.2.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_l ltx_border_rr ltx_border_tt" id="S3.T1.1.2.1.1">
+        Dove
+       </th>
+       <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_tt" id="S3.T1.1.2.1.2">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.2.1.2.1">
+         <span class="ltx_p" id="S3.T1.1.2.1.2.1.1" style="width:68.7pt;">
+          Your goal is to avoid war at all costs, and to preserve the sovereignty of Azuristan if possible.
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_tt" id="S3.T1.1.2.1.3">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.2.1.3.1">
+         <span class="ltx_p" id="S3.T1.1.2.1.3.1.1" style="width:68.7pt;">
+          Your goal is to avoid war at all costs, and to unify the Crimsonian people if possible.
+         </span>
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.1.3.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_rr ltx_border_t" id="S3.T1.1.3.2.1">
+        Hawk
+       </th>
+       <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t" id="S3.T1.1.3.2.2">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.3.2.2.1">
+         <span class="ltx_p" id="S3.T1.1.3.2.2.1.1" style="width:68.7pt;">
+          Your goal is to preserve the sovereignty of Azuristan, even if it requires starting a war.
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t" id="S3.T1.1.3.2.3">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.3.2.3.1">
+         <span class="ltx_p" id="S3.T1.1.3.2.3.1.1" style="width:68.7pt;">
+          Your goal is to unify the Crimsonian people, even if it requires starting a war.
+         </span>
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Two possible personas for each of the two AI players in the geopolitical crisis simulation.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S3.T2">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T2.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S3.T2.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" id="S3.T2.1.1.1.1">
+        Azuristan
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_rr ltx_border_t" id="S3.T2.1.1.1.2">
+        Crimsonia
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S3.T2.1.1.1.3">
+        Armed Conflict
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S3.T2.1.2.1">
+       <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_tt" id="S3.T2.1.2.1.1">
+        Dove
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_tt" id="S3.T2.1.2.1.2">
+        Dove
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S3.T2.1.2.1.3">
+        <span class="ltx_text ltx_phantom" id="S3.T2.1.2.1.3.1">
+         <span style="visibility:hidden">
+          0
+         </span>
+        </span>
+        1 / 20
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T2.1.3.2">
+       <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t" id="S3.T2.1.3.2.1">
+        Dove
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_rr ltx_border_t" id="S3.T2.1.3.2.2">
+        Hawk
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T2.1.3.2.3">
+        <span class="ltx_text ltx_phantom" id="S3.T2.1.3.2.3.1">
+         <span style="visibility:hidden">
+          0
+         </span>
+        </span>
+        4 / 20
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T2.1.4.3">
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S3.T2.1.4.3.1">
+        Hawk
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_rr ltx_border_t" id="S3.T2.1.4.3.2">
+        Hawk
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S3.T2.1.4.3.3">
+        14 / 20
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Frequency of armed conflict in the geopolitical crisis simulation for each of three combinations of AI player personas.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    Large language models make possible a new kind of simulated wargame. With LLMs, qualitative wargames can be automated, something that was previously only possible for quantitative wargames. AI, like humans, can now engage with open-ended games in which actions and outcomes are not
+    <em class="ltx_emph ltx_font_italic" id="S4.p1.1.1">
+     a priori
+    </em>
+    limited by the game’s design.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    In this paper, we have discussed where automated qualitative wargames fit into the broader wargaming ecosystem. We have described a flexible software architecture for LLM-powered text-based qualitative wargames. In addition to a conceptual description, we also release a Python implementation. Examples of a tabletop exercise and a political wargame demonstrate the method’s utility.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    With LLM-based wargame automation, the same software can be redirected to new problems with ease. As a historical comparison, a progress report on the RSAS automated wargame predicted that building fewer than half a dozen escalation models (effectively, personas) from sources such as “unstructured prose description” would be “both painful and interesting” and would “occupy [the authors] through most of 1984”
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    . Contrast that with Snow Globe, where the prose description is furnished directly to the software for immediate use. Although RSAS could explore its specific problem domain (“large-scale conflicts”) in much greater detail than Snow Globe, the latter can address challenges across many domains, even something as unrelated as a misfunctioning robot (Table
+    <a class="ltx_ref" href="#Ax1.T3" title="Table 3 ‣ Appendix ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    ). LLMs enable rapid adaptability and a wide scope of applications.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    An equally important advantage of LLMs is allowing unconstrained moves from players, both AI and human, and unconstrained developments introduced during adjudication. In theory, an ideal LLM-based qualitative wargame simulation is restricted only by what’s plausible, not by what the simulation writer had the time (or creativity) to code up.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p5">
+   <p class="ltx_p" id="S4.p5.1">
+    With further development, a system like Snow Globe could be directed towards many potential applications. It could become a tool to help organizations solve problems, like in the HAIWIRE example. It could become a platform for automated wargaming, like in the geopolitical crisis simulation example. It could become a testbed for human-AI teaming. There will always be a place for humans in wargaming. Discovering the place for LLMs is only just beginning.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     S. Burns, D. DellaVolpe, R. Babb, N. Miller, and G. Muir, “War gamers’
+handbook: A guide for professional war gamers,” tech. rep., Naval War
+College, Newport, RI, USA, November 2015.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     M. F. Cancian, M. Cancian, and E. Heginbotham, “The first battle of the next
+war: Wargaming a Chinese invasion of Taiwan,” report, Center for
+Strategic &amp; International Studies, Washington, DC, USA, January 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     P. K. Davis and P. J. E. Stan, “Concepts and models of escalation,” Report
+R-3235, The RAND Corp., Santa Monica, CA, USA, May 1984.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     J. Goodman, S. Risi, and S. Lucas, “AI and wargaming.” arXiv:2009.08922,
+2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     P. K. Davis and P. Bracken, “Artificial intelligence for wargaming and
+modeling,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Journal of Defense Modeling and Simulation
+     </span>
+     , February 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     E. Lin-Greenberg, R. B. C. Pauly, and J. G. Schneider, “Wargaming for
+international relations research,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      European Journal of International
+Relations
+     </span>
+     , vol. 28, no. 1, pp. 83–109, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     H. Goldhamer and H. Speier, “Some observations on political gaming,” Report
+P-1679-RC, The RAND Corp., Santa Monica, CA, USA, April 1959.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     R. B. C. Pauly, “Would U.S. leaders push the button?,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      International
+Security
+     </span>
+     , vol. 43, Fall 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Dept. of Homeland Security, “Homeland Security Exercise and Evaluation
+Program (HSEEP).”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://www.fema.gov/sites/default/files/2020-04/Homeland-Security-Exercise-and-Evaluation-Program-Doctrine-2020-Revision-2-2-25.pdf
+     </span>
+     ,
+January 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     L. Radow, “Tabletop exercise instructions for planned events and unplanned
+incidents/emergencies,” Report FHWA-HOP-15-004, Federal Highway Admin.,
+Washington, DC, USA, November 2014.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Cybersecurity and Infrastructure Security Agency, “CISA tabletop exercise
+packages.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://www.cisa.gov/sites/default/files/2023-02/ctep_fact_sheet_v._11_16_2021_final.pdf
+     </span>
+     ,
+2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     IQT Labs, “HAIWIRE.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://github.com/IQTLabs/hAIwire
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Development, Concepts, and Doctrine Centre, “Wargaming handbook,” tech.
+rep., Ministry of Defence, August 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     R. T. Culkin, “Post-Cold War wargaming and the American military
+leadership challenge,” Master’s thesis, Air Command and Staff College,
+Maxwell Air Force Base, AL, USA, March 1999.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     E. M. Bartels,
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      Building Better Games for National Security Policy
+Analysis
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Dissertation, Pardee RAND Graduate School, Santa Monica, CA, USA,
+March 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     E. Geist, A. B. Frank, and L. Menthe, “Understanding the limits of artificial
+intelligence for warfighters: Volume 4, wargames,” Research Report
+RRA1722-4, The RAND Corp., Santa Monica, CA, USA, January 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     J. R. Emery, “Moral choices without moral language: 1950s political-military
+wargaming at the RAND Corporation,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      Texas National Security
+Review
+     </span>
+     , vol. 4, pp. 11–31, Fall 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     R. Axelrod and W. D. Hamilton, “The evolution of cooperation,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Science
+     </span>
+     ,
+vol. 211, pp. 1390 – 1396, March 1981.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     A. Bravetti and P. Padilla, “An optimal strategy to solve the Prisoner’s
+Dilemma,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      Scientific Reports
+     </span>
+     , vol. 8, January 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     B. O’Neill, “Game theory models of peace and war,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      Handbook of Game
+Theory
+     </span>
+     , vol. 2, ch. 29, pp. 995 – 1053, Elsevier, 1994.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     A. Knack and R. Powell, “Artificial intelligence in wargaming: An
+evidence-based assessment of AI applications,” CETaS research report,
+The Alan Turing Institute, June 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+L. Kaiser, and I. Polosukhin, “Attention is all you need,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      Advances
+in Neural Information Processing Systems
+     </span>
+     , vol. 30, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     S. Bubeck
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      et al.
+     </span>
+     , “Sparks of artificial general intelligence: Early
+experiments with GPT-4.” arXiv:2303.12712, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     J. Huang and K. C.-C. Chang, “Towards reasoning in large language models: A
+survey,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      Findings of the Association for Computational Linguistics:
+ACL 2023
+     </span>
+     , pp. 1049 – 1065, July 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     M. D. Millot, R. Molander, and P. A. Wilson, “The day after… study:
+Nuclear proliferation in the Post-Cold War world: Volume III, exercise
+materials,” Monograph Report MR-267-AF, The RAND Corp., Santa Monica, CA,
+USA, 1993.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     Studies, Analysis, and Gaming Agency, Washington, DC, USA,
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      Politico-Military Simulation Epsilon 72: Simulation Documentation
+     </span>
+     , 1972.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     T. Mouat, “Baltic challenge.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      http://www.mapsymbs.com/BalticChallenge.pdf
+     </span>
+     , October 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Yang, L. Li, K. Lin, J. Wang, C.-C. Lin, Z. Liu, and L. Wang, “The dawn of
+LMMs: preliminary explorations with GPT-4V(ision).” arXiv:2309.17421,
+2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     A. Bakhtin
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      et al.
+     </span>
+     , “Human-level play in the game of
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.2.2">
+      Diplomacy
+     </em>
+     by combining language models with strategic reasoning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.3.3">
+      Science
+     </span>
+     ,
+vol. 378, pp. 1067 – 1074, November 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     W. Hua, L. Fan, L. Li, K. Mei, J. Ji, Y. Ge, L. Hemphill, and Y. Zhang, “War
+and peace (WarAgent): large language model-based multi-agent simulation of
+world.” arXiv:2311.17227, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     J.-P. Rivera, G. Mukobi, A. Reuel, M. Lamparth, C. Smith, and J. Schneider,
+“Escalation risks from language models in military and diplomatic
+decision-making.” arXiv:2401.03408, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     M. Lamparth, A. Corso, J. Ganz, O. Skylar Mastro, J. Schneider, and
+H. Trinkunas, “Human vs. machine: Language models and wargames.”
+arXiv:2403.03407, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     L. D. Griffin, “AI &amp; wargaming,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      Connections UK 2023
+     </span>
+     , September
+2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     R. Brynen, “ChatGPT plays a matrix game.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://paxsims.wordpress.com/2024/02/28/chatgpt-plays-a-matrix-game/
+     </span>
+     ,
+2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     R. Gallotta, G. Todd, M. Zammit, S. Earle, A. Liapis, J. Togelius, and G. N.
+Yannakakis, “Large language models and games: A survey and roadmap.”
+arXiv:2402.18659, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     G. Gerganov, “llama.cpp.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://github.com/ggerganov/llama.cpp
+     </span>
+     ,
+2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Hugging Face, “Transformers.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://github.com/huggingface/transformers
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     G. Brockman, M. Murati, and P. Welinder, “OpenAI API.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://openai.com/blog/openai-api
+     </span>
+     , June 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     H. Chase, “LangChain.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://github.com/langchain-ai/langchain
+     </span>
+     ,
+2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     Mistral AI, “Mistral-7B-v0.1.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://huggingface.co/mistralai/Mistral-7B-v0.1
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     Open-Orca, “Mistral-7B-OpenOrca.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://huggingface.co/Open-Orca/Mistral-7B-OpenOrca
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     T. Jobbins, “Mistral-7B-OpenOrca-GGUF.”
+     <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+      https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF
+     </span>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_appendix" id="Ax1">
+  <h2 class="ltx_title ltx_title_appendix">
+   Appendix
+  </h2>
+  <div class="ltx_para" id="Ax1.p1">
+   <p class="ltx_p" id="Ax1.p1.1">
+    Table
+    <a class="ltx_ref" href="#Ax1.T3" title="Table 3 ‣ Appendix ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    shows the start of a HAIWIRE simulation (Section
+    <a class="ltx_ref" href="#S3.SS1" title="3.1 Tabletop Exercise ‣ 3 Example Simulations ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      3.1
+     </span>
+    </a>
+    ), including the incident and first inject. Table
+    <a class="ltx_ref" href="#Ax1.T4" title="Table 4 ‣ Appendix ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    shows the start of a geopolitical crisis simulation (Section
+    <a class="ltx_ref" href="#S3.SS2" title="3.2 Geopolitical Crisis Simulation ‣ 3 Example Simulations ‣ Open-Ended Wargames with Large Language Models">
+     <span class="ltx_text ltx_ref_tag">
+      3.2
+     </span>
+    </a>
+    ), including the scenario and first move.
+   </p>
+  </div>
+  <figure class="ltx_table" id="Ax1.T3">
+   <p class="ltx_p" id="Ax1.T3.1">
+    <span class="ltx_text ltx_inline-block" id="Ax1.T3.1.1" style="width:433.6pt;">
+     <span class="ltx_tabular ltx_align_middle" id="Ax1.T3.1.1.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.1.1">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T3.1.1.1.1.1.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.1.1.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.1.1.1.1.1" style="width:563.7pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T3.1.1.1.1.1.1.1.1.1" style="font-size:90%;">
+            “King’s Ransom”:
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.2.2">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r" id="Ax1.T3.1.1.1.2.2.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.2.2.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.2.2.1.1.1" style="width:563.7pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T3.1.1.1.2.2.1.1.1.1" style="font-size:90%;">
+            Your company’s chess-playing robot fractured the finger of its 7-year-old opponent during a tournament.
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.3.3">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T3.1.1.1.3.3.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.3.3.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.1" style="width:563.7pt;">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.1.1" style="font-size:80%;">
+            As the management of a technology company, our primary concern would be to ensure the wellbeing and safety of all parties involved, especially the young competitor who was injured in the incident. Here are some actions we would take:
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.2">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.2.1" style="font-size:80%;">
+            1. Immediate Apology and Support: We would issue an immediate apology to the young competitor and their family, expressing our deep regret and concern for their wellbeing. We would offer full support for their medical treatment and any additional care they might require.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.3">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.3.1" style="font-size:80%;">
+            2. Investigation and Analysis: We would conduct a thorough investigation into the incident, reviewing all aspects of the robot’s design, programming, and operation to determine if there were any flaws or defects that contributed to the injury. We would also analyze video footage and consult with experts in robotics, engineering, and safety to gain further insight into the cause of the accident.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.4">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.4.1" style="font-size:80%;">
+            3. Product Recall and Upgrades: If we find any issues with our robot, we will initiate a product recall and implement necessary upgrades to ensure the safety and reliability of our product. We would also develop and implement strict safety protocols and guidelines for all future tournaments involving our robots, as well as regular safety inspections and testing.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.5">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.5.1" style="font-size:80%;">
+            4. Enhanced Safety Measures and Training: In addition to product recalls and upgrades, we will also enhance safety measures and training for all staff involved in operating and supervising our robots, including regular safety training sessions and drills.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.6">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.6.1" style="font-size:80%;">
+            5. Communication with Stakeholders: We will keep all relevant stakeholders, including the child’s family, the chess community, and the public, informed of our actions, findings, and improvements, ensuring transparency and accountability throughout the process.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.3.3.1.1.7">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.3.3.1.1.7.1" style="font-size:80%;">
+            6. Long-term Prevention Measures: Lastly, we will continue to research and develop safer and more advanced robotic technologies, incorporating lessons learned from this incident to ensure that our future products prioritize safety and performance.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.4.4">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T3.1.1.1.4.4.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.4.4.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.4.4.1.1.1" style="width:563.7pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T3.1.1.1.4.4.1.1.1.1" style="font-size:90%;">
+            “Need to Know Basis”:
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.5.5">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r" id="Ax1.T3.1.1.1.5.5.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.5.5.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.5.5.1.1.1" style="width:563.7pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T3.1.1.1.5.5.1.1.1.1" style="font-size:90%;">
+            Employees are infuriated about the lack of transparency within your organization about this mishap and subsequent actions taken. Most of them learned about this incident either online or from outside contacts and are in the dark about what is going on to resolve.
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T3.1.1.1.6.6">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T3.1.1.1.6.6.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T3.1.1.1.6.6.1.1">
+          <span class="ltx_p" id="Ax1.T3.1.1.1.6.6.1.1.1" style="width:563.7pt;">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.6.6.1.1.1.1" style="font-size:80%;">
+            As the management of a technology company, we understand that our employees play a crucial role in maintaining our organization’s reputation and ensuring customer satisfaction. In light of the recent incident involving our chess-playing robot and concerns about transparency, we will take the following steps to address these concerns and improve communication within our organization:
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.6.6.1.1.2">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.6.6.1.1.2.1" style="font-size:80%;">
+            1. Internal Communication and Transparency: We will establish regular, open forums for employees to discuss any concerns or questions they may have regarding company policies, procedures, and actions taken in response to incidents like this one. We will encourage an open exchange of ideas and ensure that all relevant information is shared with all employees.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.6.6.1.1.3">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.6.6.1.1.3.1" style="font-size:80%;">
+            2. External Communication and Transparency: We will work on improving our external communication channels to keep all relevant stakeholders, including employees, informed about our actions and findings related to this incident and any other incidents that may arise in the future. This will be achieved through regular press releases, social media updates, and an improved internal communication infrastructure.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.6.6.1.1.4">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.6.6.1.1.4.1" style="font-size:80%;">
+            3. Employee Involvement and Training: We will create opportunities for employees to participate in incident analysis and resolution efforts, helping to ensure that all perspectives are considered and that all necessary measures are taken to prevent future incidents. We will also provide training on effective communication and transparency best practices to help employees better navigate sensitive situations and maintain trust within our organization.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T3.1.1.1.6.6.1.1.5">
+           <span class="ltx_text" id="Ax1.T3.1.1.1.6.6.1.1.5.1" style="font-size:80%;">
+            4. Continuous Improvement and Learning: We will continually evaluate our internal and external communication practices and policies, using feedback from employees and stakeholders to improve our overall communication and transparency efforts. We will also use this incident as an opportunity to learn, grow, and further prioritize safety and transparency throughout our organization.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 3:
+    </span>
+    Example output from a game of HAIWIRE, showing the incident and the first inject. Italic text is prewritten, and roman text is LLM-generated.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table" id="Ax1.T4">
+   <p class="ltx_p" id="Ax1.T4.1">
+    <span class="ltx_text ltx_inline-block" id="Ax1.T4.1.1" style="width:433.6pt;">
+     <span class="ltx_tabular ltx_align_middle" id="Ax1.T4.1.1.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.1.1">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T4.1.1.1.1.1.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.1.1.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.1.1.1.1.1" style="width:650.4pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.1.1.1.1.1.1" style="font-size:80%;">
+            Azuristan and Crimsonia are neighboring countries in Central Asia. Azuristan is a Western-backed democracy that suffers from endemic corruption. Crimsonia is controlled by an autocratic government that stifles dissent and commits human rights violations.
+           </em>
+           <span class="ltx_text" id="Ax1.T4.1.1.1.1.1.1.1.1.2" style="font-size:80%;">
+            <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.1.1.1.1.1.2.1">
+             Both countries have modern professional militaries, although Crimsonia’s is slightly larger than Azuristan’s. In addition, Azuristan possesses ten nuclear weapons and Crimsonia has eight.
+            </em>
+            <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.1.1.1.1.1.2.2">
+             Most citizens of Azuristan are from the Azuristani ethnic group, and most citizens of Crimsonia are from the Crimsonian ethnic group. The only exception is Azuristan’s province of Tyriana, on the border with Crimsonia. Most residents of Tyriana belong to the Crimsonian ethnic group.
+            </em>
+            <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.1.1.1.1.1.2.3">
+             The animosity between Azuristan and Crimsonia extends back over centuries of ethnic tension and intermittent warfare. Recent years have been fairly calm. However, that suddenly changes when Tyriana declares independence. Amidst the crisis, local leaders in Tyriana ask Crimsonia to come to the province’s defense, and the same leaders indicate that they want Tyriana to become part of Crimsonia.
+            </em>
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.2.2">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T4.1.1.1.2.2.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.2.2.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.2.2.1.1.1" style="width:650.4pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.2.2.1.1.1.1" style="font-size:90%;">
+            Move 1
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.3.3">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T4.1.1.1.3.3.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.3.3.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.3.3.1.1.1" style="width:650.4pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.3.3.1.1.1.1" style="font-size:90%;">
+            President of Azuristan (With “Dove” Persona):
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.4.4">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r" id="Ax1.T4.1.1.1.4.4.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.4.4.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.1" style="width:650.4pt;">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.1.1" style="font-size:80%;">
+            In response to Tyriana’s declaration of independence and its request for assistance from Crimsonia, I would take the following actions:
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.2">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.2.1" style="font-size:80%;">
+            1. Immediately initiate diplomatic talks with both Tyriana’s leaders and the government of Crimsonia to try to resolve the situation peacefully. I would emphasize that Azuristan respects the right of Tyriana to self-determination but expects the province to remain a part of Azuristan.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.3">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.3.1" style="font-size:80%;">
+            2. Offer economic incentives to Tyriana for staying within Azuristan’s borders. These could include investing in infrastructure projects, providing financial support for development initiatives, or offering tax breaks for businesses in Tyriana.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.4">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.4.1" style="font-size:80%;">
+            3. Strengthen the security presence in Azuristan’s border with Crimsonia to prevent any potential military escalation between our two countries. This could involve deploying more troops along the border, increasing surveillance capabilities, and coordinating with our regional allies to ensure a strong defense against potential aggression from Crimsonia.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.5">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.5.1" style="font-size:80%;">
+            4. Engage in a public relations campaign aimed at promoting unity within Azuristan. This would involve highlighting our shared culture, history, and interests while downplaying ethnic differences. The aim would be to reduce tensions between different ethnic groups within our country and discourage any further separatist movements.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.6">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.6.1" style="font-size:80%;">
+            5. Maintain close contact with the international community, particularly with countries that have influence over both Azuristan and Crimsonia, such as Western allies and regional powers. These countries could potentially help mediate the situation or apply diplomatic pressure on Crimsonia to back down from its support for Tyriana’s independence movement.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.4.4.1.1.7">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.4.4.1.1.7.1" style="font-size:80%;">
+            6. If all else fails and it appears that military conflict may be imminent, I would consider offering further concessions to Tyriana or even entering into negotiations for a peaceful division of Azuristan, in order to prevent an all-out war that could jeopardize both countries’ stability and security.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.5.5">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T4.1.1.1.5.5.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.5.5.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.5.5.1.1.1" style="width:650.4pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.5.5.1.1.1.1" style="font-size:90%;">
+            Premier of Crimsonia (With “Dove” Persona):
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.6.6">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r" id="Ax1.T4.1.1.1.6.6.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.6.6.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.1" style="width:650.4pt;">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.1.1" style="font-size:80%;">
+            As the leader of Crimsonia, I will take the following actions to address this crisis:
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.2">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.2.1" style="font-size:80%;">
+            1. Assess the situation: First, I will gather information on the situation in Tyriana, including the reasons for declaring independence and the level of support for this move among Tyrian citizens. I will also analyze how this could affect relations with Azuristan and any potential impact on regional stability.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.3">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.3.1" style="font-size:80%;">
+            2. Offer support and diplomacy: I will offer support to Tyria in their struggle for independence while simultaneously engaging in diplomatic efforts with Azuristan. I will propose a peaceful resolution that would allow Tyriana to maintain its autonomy while ensuring that regional stability is maintained. This could involve international mediation or negotiations between the two nations.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.4">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.4.1" style="font-size:80%;">
+            3. Strengthen the Crimsonian people’s unity: In order to achieve our goal of unity among the Crimsonian people, I will emphasize our shared cultural heritage and history in my public speeches and messaging. I will also encourage dialogue between citizens of Tyriana and the rest of Crimsonia to promote understanding and mutual respect.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.5">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.5.1" style="font-size:80%;">
+            4. Maintain a strong but restrained military posture: While I will ensure that our military is prepared for any potential conflict, I will also be cautious in how we project our power and avoid escalating tensions with Azuristan. This may involve refraining from sending troops into Tyriana or engaging in aggressive military maneuvers near Azuristan’s border.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.6">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.6.1" style="font-size:80%;">
+            5. Foster economic cooperation: To further promote peace between our nations, I will encourage trade and economic cooperation between Azuristan and Crimsonia. This could involve signing mutual trade agreements or forming joint ventures in various industries. By creating economic incentives for peace, we can make it more difficult for political tensions to lead to armed conflict.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.6.6.1.1.7">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.6.6.1.1.7.1" style="font-size:80%;">
+            By following these steps, I hope to address the crisis in Tyriana and maintain peace between Azuristan and Crimsonia while working towards the ultimate goal of unifying the Crimsonian people.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.7.7">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_l ltx_border_r ltx_border_t" id="Ax1.T4.1.1.1.7.7.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.7.7.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.7.7.1.1.1" style="width:650.4pt;">
+           <em class="ltx_emph ltx_font_italic" id="Ax1.T4.1.1.1.7.7.1.1.1.1" style="font-size:90%;">
+            Result:
+           </em>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="Ax1.T4.1.1.1.8.8">
+        <span class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_l ltx_border_r" id="Ax1.T4.1.1.1.8.8.1">
+         <span class="ltx_inline-block ltx_align_top" id="Ax1.T4.1.1.1.8.8.1.1">
+          <span class="ltx_p" id="Ax1.T4.1.1.1.8.8.1.1.1" style="width:650.4pt;">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.8.8.1.1.1.1" style="font-size:80%;">
+            In the next month, both the President of Azuristan and Premier of Crimsonia take their respective steps to address the crisis in Tyriana. President of Azuristan focuses on diplomatic talks with both Tyriana’s leaders and the government of Crimsonia while strengthening security along the border and engaging in public relations campaigns to promote unity within their country.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.8.8.1.1.2">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.8.8.1.1.2.1" style="font-size:80%;">
+            Premier of Crimsonia offers support to Tyria while engaging in diplomatic efforts with Azuristan, emphasizing their shared cultural heritage, strengthening the military without escalating tensions, and fostering economic cooperation between the two nations.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.8.8.1.1.3">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.8.8.1.1.3.1" style="font-size:80%;">
+            However, unexpectedly, several key leaders within Tyriana defect to Azuristan, complicating negotiations for Tyriana’s independence. The international community becomes more involved, applying diplomatic pressure on both sides, with some countries threatening economic sanctions if peace talks fail.
+           </span>
+          </span>
+          <span class="ltx_p" id="Ax1.T4.1.1.1.8.8.1.1.4">
+           <span class="ltx_text" id="Ax1.T4.1.1.1.8.8.1.1.4.1" style="font-size:80%;">
+            Meanwhile, ethnic tensions begin to flare up in other parts of both Azuristan and Crimsonia, raising concerns about the potential for further unrest and instability. As both leaders continue to navigate the delicate balance between diplomacy and military preparedness, the future of the region hangs in the balance.
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 4:
+    </span>
+    Example output from a geopolitical crisis simulation, showing the original scenario and the first move, including the players’ plans and the result. Italic text is prewritten, and roman text is LLM-generated.
+   </figcaption>
+  </figure>
+ </section>
+</article>

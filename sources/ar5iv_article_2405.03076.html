@@ -1,0 +1,2363 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Bingzhang Wang, Zhiyu (Joey) Cai, Muhammad Monjurul Karim, Chenxi Liu, and Yinhai Wang,
+    <span class="ltx_text ltx_font_italic" id="id1.1.id1">
+     Fellow, IEEE
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    B. Wang, M.M. Karim, C. Liu, and Y. Wang are with the Department of Civil and Environmental Engineering, University of Washington, Seattle, WA. (Email: bzwang@uw.edu; mmkarim@uw.edu; lcx2017@uw.edu; yinhai@uw.edu)Z. Cai is with the Department of Civil and Environmental Engineering, University of California, Berkeley, CA. (Email: zhiyu_cai@berkeley.edu)
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   The digitization of traffic sensing infrastructure has significantly accumulated an extensive traffic data warehouse, which presents unprecedented challenges for transportation analytics. The complexities associated with querying large-scale multi-table databases require specialized programming expertise and labor-intensive development. Additionally, traditional analysis methods have focused mainly on numerical data, often neglecting the semantic aspects that could enhance interpretability and understanding. Furthermore, real-time traffic data access is typically limited due to privacy concerns. To bridge this gap, the integration of Large Language Models (LLMs) into the domain of traffic management presents a transformative approach to addressing the complexities and challenges inherent in modern transportation systems. This paper proposes an intelligent online chatbot, TP-GPT, for efficient customized transportation surveillance and management empowered by a large real-time traffic database. The innovative framework leverages contextual and generative intelligence of language models to generate accurate SQL queries and natural language interpretations by employing transportation-specialized prompts, Chain-of-Thought prompting, few-shot learning, multi-agent collaboration strategy, and chat memory. Experimental study demonstrates that our approach outperforms state-of-the-art baselines such as GPT-4 and PaLM 2 on a challenging traffic-analysis benchmark TransQuery. TP-GPT would aid researchers and practitioners in real-time transportation surveillance and management in a privacy-preserving, equitable, and customizable manner.
+  </p>
+ </div>
+ <div class="ltx_keywords">
+  <h6 class="ltx_title ltx_title_keywords">
+   Index Terms:
+  </h6>
+  Transportation Analytics, Pre-Trained Large Language Models, SQL Database.
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    I
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S1.1.1">
+    Introduction
+   </span>
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    With the rapid digitization of sensing infrastructure, an immense volume of traffic data is being collected at an ever-increasing rate. This presents both opportunities and challenges. On one hand, these unprecedented data resources hold the promise of propelling advancements in traffic analysis, making it more accurate and reliable; On the other hand, the unpredictable accumulation of data poses significant challenges for the development of sophisticated traffic analysis techniques. Firstly, real-time traffic sensing data is typically stored in large-scale, multi-table databases. These databases are incredibly large and have complex relationships between different data points. Querying these database can be labor-intensive and time-consuming, leading to significant latency. To properly manipulate databases even requires not only a deep preliminary understanding of context but also specialized expertise in database programming. Secondly, traditional methods of traffic analysis have primarily focused on the numerical aspects of the data, using statistical methods and machine learning techniques. This overlooks the semantic and interpretability attributes of the data. As a result, the exploration of traffic datasets has been limited to numerical imputations and prescriptive visualization, neglecting their inherent natural-language significance. Thirdly, access to real-time traffic data is typically restricted to authorized entities such as government agencies and academic institutions, due to privacy concerns, making it inaccessible for direct data handling by the general public. There is a pressing need for an intermediate framework that processes and interprets data for practitioners in a privacy-preserving manner, which has the potential to not only facilitate trip planning and policy-making but also improve traffic analysis by making it more accessible, efficient, and equitable.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    In recent years Large Language Models (LLMs) have emerged as a groundbreaking development in the field of artificial intelligence (AI), demonstrating unparalleled capabilities in understanding, and interpreting real-world scenarios in human-like ways
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    . These models, powered by advanced neural network architectures, have found applications across a wide range of domains, from natural language processing and machine translation to content generation and beyond. They offer unprecedented capabilities in data interpretation and decision-making.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    LLMs have proven their versatility in different fields, including education, healthcare, software engineering
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , among many others. While still a new area of exploration, LLMs show promise for analyzing traffic data. Their general ability to adapt to different tasks makes them attractive for various intelligent transportation applications, including traffic signal control
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    , and accident risk assessment
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    . However, effectively using LLMs in these specialized areas requires them to have a deep understanding of the specific domain
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    . This necessitates the integration of domain-specific databases with LLMs to foster data-driven reasoning capabilities. Recent research has explored leveraging LLMs for database operations. Frameworks like LangChain facilitate efficient interaction with LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , while models like DB-GPT are fine-tuned with domain-specific database knowledge
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , enabling the translation of textual semantics into database queries (text-to-SQL). These advancements offer exciting possibilities for advanced analysis of large-scale traffic data. However, existing models primarily target general-purpose database tasks, neglecting the unique knowledge domain of traffic data. This omission of traffic-specific background knowledge during training may lead to diminished query result accuracy and limit their applicability in traffic research.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Despite the proliferation of LLM applications across various domains, their potential in traffic data analysis, especially within databases, remains an open research topic. Furthermore, there is a pressing need for a user-friendly intelligent platform that can effectively communicate and analyze real-time data. The paper aims to delve into this gap by proposing an intelligent transportation analytics system that applies pre-trained large language models to complex traffic data analysis. It leverages their capability to generate accurate SQL queries and natural language interpretations based on contextual awareness, demonstrating the extensive pre-trained knowledge of LLMs and their proficiency in adapting to the transportation domain.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    The contributions of this paper are listed below:
+   </p>
+   <ol class="ltx_enumerate" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       An intelligent online chatbot, Traffic Performance GPT (TP-GPT), is proposed for efficient personalized transportation analysis and management leveraging the support of big real-time traffic data. To the best of our knowledge, TP-GPT is the first real-time traffic analysis chatbot empowered by LLMs to be proposed.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Leveraging contextual and generative intelligence of the Generative Pre-trained Transformer (GPT), an innovative framework is constructed to serve as a connection between public users and authorized data resources in a privacy-preserving, equitable, customizable way.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       The developed chatbot is able to generate reliable, responsive and accurate traffic analysis and management responses to input questions, by integrating designed prompts, few-shot learning module, multi-agent collaboration strategy and conversation memory module. The proposed method outperforms existing general-purpose LLMs regarding traffic-domain analysis performance.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    II
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S2.1.1">
+    Related Work
+   </span>
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS1.5.1.1">
+      II-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS1.6.2">
+     Traffic Management with LLMs
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Traffic management for road networks especially in urban area encounters complex background knowledge, and real-time demands. Previous research usually relied on traditional hardware infrastructure, such as surveillance cameras and loop sensors to observe traffic flow. Researchers have employed both micro and macro methods
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       8
+      </a>
+      ]
+     </cite>
+     based on theories and data from traditional methods to simulate traffic flow, promoting the advancement of theoretical research as well as management strategies.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Recent research addresses challenges of traffic more from data-driven perspectives with the emerging techniques of mobility and traffic data collection and analysis. There has been a shift towards leveraging deep learning methods and LLMs to provide new solutions to traffic control and management. Traffic control at intersections
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ]
+     </cite>
+     emphasizes traffic efficiency and collision prevention. Other scenarios such as ring and bottleneck scenarios have also been studied
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ]
+     </cite>
+     combining with robotic vehicles and human drivers.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     Other research expanded the scope of specific scenarios, such as
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ]
+     </cite>
+     combines LLMs to assist human users in traffic network analysis and further decision-making. There are more research explored into forecasting tasks. A traffic prediction model proposed by researchers in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     shows capacity to tackle flow prediction tasks under full-sample and few-shot historical data scenarios. By encoding the data in a specific way
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     , LLMs can be widely used to conduct research on time series and spatio-temporal data
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ]
+     </cite>
+     , and their potential to analyze data of such modalities is being further explored, including univariate time series forecasting
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ]
+     </cite>
+     , multivariate time-series data
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     One other significant challenge is model’s capability to understand contexts in transportation systems. Authors in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ]
+     </cite>
+     manually collected multi-modal traffic data sets,such as text and traffic signs alignment for model training, while authors in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     focused on users’ itinerary planning demands. Among a variety of integration of Large Language Models into traffic management, this paper showcases a promising avenue for enhancing real-time traffic analysis and management in order to benefit practitioner, traveler and researcher.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS2.5.1.1">
+      II-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS2.6.2">
+     LLMs in Database SQL Query
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     LLMs exhibit remarkable capabilities in generating reliable and accurate SQL queries, advancing database interaction efficiency. A recent study introduces BIRD
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ]
+     </cite>
+     , a benchmark for large-scale database text-to-SQL tasks highlighting challenges such as content quality, external knowledge integration, and SQL efficiency. Their inherent contextual intelligence enables them to understand data origins and relationships, thus enhancing the performance of data queries and analyses. Many scholars use SQL agent to enhance database-related tasks, such as
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ]
+     </cite>
+     employs a Data Expert LLM (DELLM) to provide knowledge for text-to-SQL models to generate accurate queries. Authors in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     enhance text-to-SQL parsing in multi-turn conversations by leveraging contextual information from the dialogue history. Research
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     utilizes LLMs to automatically generate test cases for selecting the most accurate SQL query from a set of candidates.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     Databases can be queried more effectively by leveraging LLMs, ensuring that target data is extracted with a high degree of precision. This prowess underscores the potential of LLMs in database management and analysis. Current research mostly uses agents for task processing from the perspective of context. The disadvantage of this is that LLM’s ability to perform SQL queries is relatively static and requires a large number of iterations to correct the model.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    III
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S3.1.1">
+    Methodology
+   </span>
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS1.5.1.1">
+      III-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS1.6.2">
+     Problem Statement
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     A substantial magnitude of traffic intensity is being observed in modern mobility. As reported by the Washington State Department of Transportation, the annual Vehicle Miles of Travel (VMT) on the state highway of King County reached a total of 8,534 million in the year 2022. Meanwhile, the wide-range deployment of traffic sensing systems has employed tons of real-time and historical data. The unpredictable, fast-changing traffic patterns underlying the enormous numerical data pose an ever-challenging task for efficient and effective traffic analysis and management. To tackle this problem, we incorporate a large-scale network-wide mobility database hosted by STAR Lab
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ]
+     </cite>
+     , which integrates the real-time data resources of traffic counts (i.e., speed, volume, occupancy) collected from more than 8,000 inductive loop detectors, as well as the route segment-wide Traffic Performance Score (TPS) calculated using Equation
+     <a class="ltx_ref" href="#S3.E1" title="In III-A Problem Statement ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     based on loop data
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <table class="ltx_equation ltx_eqn_table" id="S3.E1">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="TPS_{t}=\frac{\sum_{i=1}^{n}V_{t}^{i}\cdot Q_{t}^{i}\cdot L^{i}}{\sum_{i=1}^{n}V_{f}\cdot Q_{t}^{i}\cdot L^{i}}\times 100\%" class="ltx_Math" display="block" id="S3.E1.m1.1">
+         <semantics id="S3.E1.m1.1a">
+          <mrow id="S3.E1.m1.1.1" xref="S3.E1.m1.1.1.cmml">
+           <mrow id="S3.E1.m1.1.1.2" xref="S3.E1.m1.1.1.2.cmml">
+            <mi id="S3.E1.m1.1.1.2.2" xref="S3.E1.m1.1.1.2.2.cmml">
+             T
+            </mi>
+            <mo id="S3.E1.m1.1.1.2.1" lspace="0em" rspace="0em" xref="S3.E1.m1.1.1.2.1.cmml">
+             ​
+            </mo>
+            <mi id="S3.E1.m1.1.1.2.3" xref="S3.E1.m1.1.1.2.3.cmml">
+             P
+            </mi>
+            <mo id="S3.E1.m1.1.1.2.1a" lspace="0em" rspace="0em" xref="S3.E1.m1.1.1.2.1.cmml">
+             ​
+            </mo>
+            <msub id="S3.E1.m1.1.1.2.4" xref="S3.E1.m1.1.1.2.4.cmml">
+             <mi id="S3.E1.m1.1.1.2.4.2" xref="S3.E1.m1.1.1.2.4.2.cmml">
+              S
+             </mi>
+             <mi id="S3.E1.m1.1.1.2.4.3" xref="S3.E1.m1.1.1.2.4.3.cmml">
+              t
+             </mi>
+            </msub>
+           </mrow>
+           <mo id="S3.E1.m1.1.1.1" xref="S3.E1.m1.1.1.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E1.m1.1.1.3" xref="S3.E1.m1.1.1.3.cmml">
+            <mfrac id="S3.E1.m1.1.1.3.2" xref="S3.E1.m1.1.1.3.2.cmml">
+             <mrow id="S3.E1.m1.1.1.3.2.2" xref="S3.E1.m1.1.1.3.2.2.cmml">
+              <msubsup id="S3.E1.m1.1.1.3.2.2.1" xref="S3.E1.m1.1.1.3.2.2.1.cmml">
+               <mo id="S3.E1.m1.1.1.3.2.2.1.2.2" xref="S3.E1.m1.1.1.3.2.2.1.2.2.cmml">
+                ∑
+               </mo>
+               <mrow id="S3.E1.m1.1.1.3.2.2.1.2.3" xref="S3.E1.m1.1.1.3.2.2.1.2.3.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.2.1.2.3.2" xref="S3.E1.m1.1.1.3.2.2.1.2.3.2.cmml">
+                 i
+                </mi>
+                <mo id="S3.E1.m1.1.1.3.2.2.1.2.3.1" xref="S3.E1.m1.1.1.3.2.2.1.2.3.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E1.m1.1.1.3.2.2.1.2.3.3" xref="S3.E1.m1.1.1.3.2.2.1.2.3.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <mi id="S3.E1.m1.1.1.3.2.2.1.3" xref="S3.E1.m1.1.1.3.2.2.1.3.cmml">
+                n
+               </mi>
+              </msubsup>
+              <mrow id="S3.E1.m1.1.1.3.2.2.2" xref="S3.E1.m1.1.1.3.2.2.2.cmml">
+               <msubsup id="S3.E1.m1.1.1.3.2.2.2.2" xref="S3.E1.m1.1.1.3.2.2.2.2.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.2.2.2.2.2" xref="S3.E1.m1.1.1.3.2.2.2.2.2.2.cmml">
+                 V
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.2.2.2.2.3" xref="S3.E1.m1.1.1.3.2.2.2.2.2.3.cmml">
+                 t
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.2.2.2.3" xref="S3.E1.m1.1.1.3.2.2.2.2.3.cmml">
+                 i
+                </mi>
+               </msubsup>
+               <mo id="S3.E1.m1.1.1.3.2.2.2.1" lspace="0.222em" rspace="0.222em" xref="S3.E1.m1.1.1.3.2.2.2.1.cmml">
+                ⋅
+               </mo>
+               <msubsup id="S3.E1.m1.1.1.3.2.2.2.3" xref="S3.E1.m1.1.1.3.2.2.2.3.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.2.2.3.2.2" xref="S3.E1.m1.1.1.3.2.2.2.3.2.2.cmml">
+                 Q
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.2.2.3.2.3" xref="S3.E1.m1.1.1.3.2.2.2.3.2.3.cmml">
+                 t
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.2.2.3.3" xref="S3.E1.m1.1.1.3.2.2.2.3.3.cmml">
+                 i
+                </mi>
+               </msubsup>
+               <mo id="S3.E1.m1.1.1.3.2.2.2.1a" lspace="0.222em" rspace="0.222em" xref="S3.E1.m1.1.1.3.2.2.2.1.cmml">
+                ⋅
+               </mo>
+               <msup id="S3.E1.m1.1.1.3.2.2.2.4" xref="S3.E1.m1.1.1.3.2.2.2.4.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.2.2.4.2" xref="S3.E1.m1.1.1.3.2.2.2.4.2.cmml">
+                 L
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.2.2.4.3" xref="S3.E1.m1.1.1.3.2.2.2.4.3.cmml">
+                 i
+                </mi>
+               </msup>
+              </mrow>
+             </mrow>
+             <mrow id="S3.E1.m1.1.1.3.2.3" xref="S3.E1.m1.1.1.3.2.3.cmml">
+              <msubsup id="S3.E1.m1.1.1.3.2.3.1" xref="S3.E1.m1.1.1.3.2.3.1.cmml">
+               <mo id="S3.E1.m1.1.1.3.2.3.1.2.2" xref="S3.E1.m1.1.1.3.2.3.1.2.2.cmml">
+                ∑
+               </mo>
+               <mrow id="S3.E1.m1.1.1.3.2.3.1.2.3" xref="S3.E1.m1.1.1.3.2.3.1.2.3.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.3.1.2.3.2" xref="S3.E1.m1.1.1.3.2.3.1.2.3.2.cmml">
+                 i
+                </mi>
+                <mo id="S3.E1.m1.1.1.3.2.3.1.2.3.1" xref="S3.E1.m1.1.1.3.2.3.1.2.3.1.cmml">
+                 =
+                </mo>
+                <mn id="S3.E1.m1.1.1.3.2.3.1.2.3.3" xref="S3.E1.m1.1.1.3.2.3.1.2.3.3.cmml">
+                 1
+                </mn>
+               </mrow>
+               <mi id="S3.E1.m1.1.1.3.2.3.1.3" xref="S3.E1.m1.1.1.3.2.3.1.3.cmml">
+                n
+               </mi>
+              </msubsup>
+              <mrow id="S3.E1.m1.1.1.3.2.3.2" xref="S3.E1.m1.1.1.3.2.3.2.cmml">
+               <msub id="S3.E1.m1.1.1.3.2.3.2.2" xref="S3.E1.m1.1.1.3.2.3.2.2.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.3.2.2.2" xref="S3.E1.m1.1.1.3.2.3.2.2.2.cmml">
+                 V
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.3.2.2.3" xref="S3.E1.m1.1.1.3.2.3.2.2.3.cmml">
+                 f
+                </mi>
+               </msub>
+               <mo id="S3.E1.m1.1.1.3.2.3.2.1" lspace="0.222em" rspace="0.222em" xref="S3.E1.m1.1.1.3.2.3.2.1.cmml">
+                ⋅
+               </mo>
+               <msubsup id="S3.E1.m1.1.1.3.2.3.2.3" xref="S3.E1.m1.1.1.3.2.3.2.3.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.3.2.3.2.2" xref="S3.E1.m1.1.1.3.2.3.2.3.2.2.cmml">
+                 Q
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.3.2.3.2.3" xref="S3.E1.m1.1.1.3.2.3.2.3.2.3.cmml">
+                 t
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.3.2.3.3" xref="S3.E1.m1.1.1.3.2.3.2.3.3.cmml">
+                 i
+                </mi>
+               </msubsup>
+               <mo id="S3.E1.m1.1.1.3.2.3.2.1a" lspace="0.222em" rspace="0.222em" xref="S3.E1.m1.1.1.3.2.3.2.1.cmml">
+                ⋅
+               </mo>
+               <msup id="S3.E1.m1.1.1.3.2.3.2.4" xref="S3.E1.m1.1.1.3.2.3.2.4.cmml">
+                <mi id="S3.E1.m1.1.1.3.2.3.2.4.2" xref="S3.E1.m1.1.1.3.2.3.2.4.2.cmml">
+                 L
+                </mi>
+                <mi id="S3.E1.m1.1.1.3.2.3.2.4.3" xref="S3.E1.m1.1.1.3.2.3.2.4.3.cmml">
+                 i
+                </mi>
+               </msup>
+              </mrow>
+             </mrow>
+            </mfrac>
+            <mo id="S3.E1.m1.1.1.3.1" lspace="0.222em" rspace="0.222em" xref="S3.E1.m1.1.1.3.1.cmml">
+             ×
+            </mo>
+            <mrow id="S3.E1.m1.1.1.3.3" xref="S3.E1.m1.1.1.3.3.cmml">
+             <mn id="S3.E1.m1.1.1.3.3.2" xref="S3.E1.m1.1.1.3.3.2.cmml">
+              100
+             </mn>
+             <mo id="S3.E1.m1.1.1.3.3.1" xref="S3.E1.m1.1.1.3.3.1.cmml">
+              %
+             </mo>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E1.m1.1b">
+           <apply id="S3.E1.m1.1.1.cmml" xref="S3.E1.m1.1.1">
+            <eq id="S3.E1.m1.1.1.1.cmml" xref="S3.E1.m1.1.1.1">
+            </eq>
+            <apply id="S3.E1.m1.1.1.2.cmml" xref="S3.E1.m1.1.1.2">
+             <times id="S3.E1.m1.1.1.2.1.cmml" xref="S3.E1.m1.1.1.2.1">
+             </times>
+             <ci id="S3.E1.m1.1.1.2.2.cmml" xref="S3.E1.m1.1.1.2.2">
+              𝑇
+             </ci>
+             <ci id="S3.E1.m1.1.1.2.3.cmml" xref="S3.E1.m1.1.1.2.3">
+              𝑃
+             </ci>
+             <apply id="S3.E1.m1.1.1.2.4.cmml" xref="S3.E1.m1.1.1.2.4">
+              <csymbol cd="ambiguous" id="S3.E1.m1.1.1.2.4.1.cmml" xref="S3.E1.m1.1.1.2.4">
+               subscript
+              </csymbol>
+              <ci id="S3.E1.m1.1.1.2.4.2.cmml" xref="S3.E1.m1.1.1.2.4.2">
+               𝑆
+              </ci>
+              <ci id="S3.E1.m1.1.1.2.4.3.cmml" xref="S3.E1.m1.1.1.2.4.3">
+               𝑡
+              </ci>
+             </apply>
+            </apply>
+            <apply id="S3.E1.m1.1.1.3.cmml" xref="S3.E1.m1.1.1.3">
+             <times id="S3.E1.m1.1.1.3.1.cmml" xref="S3.E1.m1.1.1.3.1">
+             </times>
+             <apply id="S3.E1.m1.1.1.3.2.cmml" xref="S3.E1.m1.1.1.3.2">
+              <divide id="S3.E1.m1.1.1.3.2.1.cmml" xref="S3.E1.m1.1.1.3.2">
+              </divide>
+              <apply id="S3.E1.m1.1.1.3.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2">
+               <apply id="S3.E1.m1.1.1.3.2.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.1">
+                <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.1.1.cmml" xref="S3.E1.m1.1.1.3.2.2.1">
+                 superscript
+                </csymbol>
+                <apply id="S3.E1.m1.1.1.3.2.2.1.2.cmml" xref="S3.E1.m1.1.1.3.2.2.1">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.1.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.1">
+                  subscript
+                 </csymbol>
+                 <sum id="S3.E1.m1.1.1.3.2.2.1.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.1.2.2">
+                 </sum>
+                 <apply id="S3.E1.m1.1.1.3.2.2.1.2.3.cmml" xref="S3.E1.m1.1.1.3.2.2.1.2.3">
+                  <eq id="S3.E1.m1.1.1.3.2.2.1.2.3.1.cmml" xref="S3.E1.m1.1.1.3.2.2.1.2.3.1">
+                  </eq>
+                  <ci id="S3.E1.m1.1.1.3.2.2.1.2.3.2.cmml" xref="S3.E1.m1.1.1.3.2.2.1.2.3.2">
+                   𝑖
+                  </ci>
+                  <cn id="S3.E1.m1.1.1.3.2.2.1.2.3.3.cmml" type="integer" xref="S3.E1.m1.1.1.3.2.2.1.2.3.3">
+                   1
+                  </cn>
+                 </apply>
+                </apply>
+                <ci id="S3.E1.m1.1.1.3.2.2.1.3.cmml" xref="S3.E1.m1.1.1.3.2.2.1.3">
+                 𝑛
+                </ci>
+               </apply>
+               <apply id="S3.E1.m1.1.1.3.2.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2">
+                <ci id="S3.E1.m1.1.1.3.2.2.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.1">
+                 ⋅
+                </ci>
+                <apply id="S3.E1.m1.1.1.3.2.2.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.2.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2">
+                  superscript
+                 </csymbol>
+                 <apply id="S3.E1.m1.1.1.3.2.2.2.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2">
+                  <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.2.2.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E1.m1.1.1.3.2.2.2.2.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2.2.2">
+                   𝑉
+                  </ci>
+                  <ci id="S3.E1.m1.1.1.3.2.2.2.2.2.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2.2.3">
+                   𝑡
+                  </ci>
+                 </apply>
+                 <ci id="S3.E1.m1.1.1.3.2.2.2.2.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.2.3">
+                  𝑖
+                 </ci>
+                </apply>
+                <apply id="S3.E1.m1.1.1.3.2.2.2.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.2.3.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3">
+                  superscript
+                 </csymbol>
+                 <apply id="S3.E1.m1.1.1.3.2.2.2.3.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3">
+                  <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.2.3.2.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E1.m1.1.1.3.2.2.2.3.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3.2.2">
+                   𝑄
+                  </ci>
+                  <ci id="S3.E1.m1.1.1.3.2.2.2.3.2.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3.2.3">
+                   𝑡
+                  </ci>
+                 </apply>
+                 <ci id="S3.E1.m1.1.1.3.2.2.2.3.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.3.3">
+                  𝑖
+                 </ci>
+                </apply>
+                <apply id="S3.E1.m1.1.1.3.2.2.2.4.cmml" xref="S3.E1.m1.1.1.3.2.2.2.4">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.2.2.4.1.cmml" xref="S3.E1.m1.1.1.3.2.2.2.4">
+                  superscript
+                 </csymbol>
+                 <ci id="S3.E1.m1.1.1.3.2.2.2.4.2.cmml" xref="S3.E1.m1.1.1.3.2.2.2.4.2">
+                  𝐿
+                 </ci>
+                 <ci id="S3.E1.m1.1.1.3.2.2.2.4.3.cmml" xref="S3.E1.m1.1.1.3.2.2.2.4.3">
+                  𝑖
+                 </ci>
+                </apply>
+               </apply>
+              </apply>
+              <apply id="S3.E1.m1.1.1.3.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3">
+               <apply id="S3.E1.m1.1.1.3.2.3.1.cmml" xref="S3.E1.m1.1.1.3.2.3.1">
+                <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.1.1.cmml" xref="S3.E1.m1.1.1.3.2.3.1">
+                 superscript
+                </csymbol>
+                <apply id="S3.E1.m1.1.1.3.2.3.1.2.cmml" xref="S3.E1.m1.1.1.3.2.3.1">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.1.2.1.cmml" xref="S3.E1.m1.1.1.3.2.3.1">
+                  subscript
+                 </csymbol>
+                 <sum id="S3.E1.m1.1.1.3.2.3.1.2.2.cmml" xref="S3.E1.m1.1.1.3.2.3.1.2.2">
+                 </sum>
+                 <apply id="S3.E1.m1.1.1.3.2.3.1.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3.1.2.3">
+                  <eq id="S3.E1.m1.1.1.3.2.3.1.2.3.1.cmml" xref="S3.E1.m1.1.1.3.2.3.1.2.3.1">
+                  </eq>
+                  <ci id="S3.E1.m1.1.1.3.2.3.1.2.3.2.cmml" xref="S3.E1.m1.1.1.3.2.3.1.2.3.2">
+                   𝑖
+                  </ci>
+                  <cn id="S3.E1.m1.1.1.3.2.3.1.2.3.3.cmml" type="integer" xref="S3.E1.m1.1.1.3.2.3.1.2.3.3">
+                   1
+                  </cn>
+                 </apply>
+                </apply>
+                <ci id="S3.E1.m1.1.1.3.2.3.1.3.cmml" xref="S3.E1.m1.1.1.3.2.3.1.3">
+                 𝑛
+                </ci>
+               </apply>
+               <apply id="S3.E1.m1.1.1.3.2.3.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2">
+                <ci id="S3.E1.m1.1.1.3.2.3.2.1.cmml" xref="S3.E1.m1.1.1.3.2.3.2.1">
+                 ⋅
+                </ci>
+                <apply id="S3.E1.m1.1.1.3.2.3.2.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2.2">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.2.2.1.cmml" xref="S3.E1.m1.1.1.3.2.3.2.2">
+                  subscript
+                 </csymbol>
+                 <ci id="S3.E1.m1.1.1.3.2.3.2.2.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2.2.2">
+                  𝑉
+                 </ci>
+                 <ci id="S3.E1.m1.1.1.3.2.3.2.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3.2.2.3">
+                  𝑓
+                 </ci>
+                </apply>
+                <apply id="S3.E1.m1.1.1.3.2.3.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.2.3.1.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3">
+                  superscript
+                 </csymbol>
+                 <apply id="S3.E1.m1.1.1.3.2.3.2.3.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3">
+                  <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.2.3.2.1.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3">
+                   subscript
+                  </csymbol>
+                  <ci id="S3.E1.m1.1.1.3.2.3.2.3.2.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3.2.2">
+                   𝑄
+                  </ci>
+                  <ci id="S3.E1.m1.1.1.3.2.3.2.3.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3.2.3">
+                   𝑡
+                  </ci>
+                 </apply>
+                 <ci id="S3.E1.m1.1.1.3.2.3.2.3.3.cmml" xref="S3.E1.m1.1.1.3.2.3.2.3.3">
+                  𝑖
+                 </ci>
+                </apply>
+                <apply id="S3.E1.m1.1.1.3.2.3.2.4.cmml" xref="S3.E1.m1.1.1.3.2.3.2.4">
+                 <csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.3.2.4.1.cmml" xref="S3.E1.m1.1.1.3.2.3.2.4">
+                  superscript
+                 </csymbol>
+                 <ci id="S3.E1.m1.1.1.3.2.3.2.4.2.cmml" xref="S3.E1.m1.1.1.3.2.3.2.4.2">
+                  𝐿
+                 </ci>
+                 <ci id="S3.E1.m1.1.1.3.2.3.2.4.3.cmml" xref="S3.E1.m1.1.1.3.2.3.2.4.3">
+                  𝑖
+                 </ci>
+                </apply>
+               </apply>
+              </apply>
+             </apply>
+             <apply id="S3.E1.m1.1.1.3.3.cmml" xref="S3.E1.m1.1.1.3.3">
+              <csymbol cd="latexml" id="S3.E1.m1.1.1.3.3.1.cmml" xref="S3.E1.m1.1.1.3.3.1">
+               percent
+              </csymbol>
+              <cn id="S3.E1.m1.1.1.3.3.2.cmml" type="integer" xref="S3.E1.m1.1.1.3.3.2">
+               100
+              </cn>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E1.m1.1c">
+           TPS_{t}=\frac{\sum_{i=1}^{n}V_{t}^{i}\cdot Q_{t}^{i}\cdot L^{i}}{\sum_{i=1}^{n}V_{f}\cdot Q_{t}^{i}\cdot L^{i}}\times 100\%
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (1)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <p class="ltx_p" id="S3.SS1.p2.7">
+     where
+     <math alttext="V_{t}^{i}" class="ltx_Math" display="inline" id="S3.SS1.p2.1.m1.1">
+      <semantics id="S3.SS1.p2.1.m1.1a">
+       <msubsup id="S3.SS1.p2.1.m1.1.1" xref="S3.SS1.p2.1.m1.1.1.cmml">
+        <mi id="S3.SS1.p2.1.m1.1.1.2.2" xref="S3.SS1.p2.1.m1.1.1.2.2.cmml">
+         V
+        </mi>
+        <mi id="S3.SS1.p2.1.m1.1.1.2.3" xref="S3.SS1.p2.1.m1.1.1.2.3.cmml">
+         t
+        </mi>
+        <mi id="S3.SS1.p2.1.m1.1.1.3" xref="S3.SS1.p2.1.m1.1.1.3.cmml">
+         i
+        </mi>
+       </msubsup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.1.m1.1b">
+        <apply id="S3.SS1.p2.1.m1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1">
+          superscript
+         </csymbol>
+         <apply id="S3.SS1.p2.1.m1.1.1.2.cmml" xref="S3.SS1.p2.1.m1.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.1.1.2.1.cmml" xref="S3.SS1.p2.1.m1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.p2.1.m1.1.1.2.2.cmml" xref="S3.SS1.p2.1.m1.1.1.2.2">
+           𝑉
+          </ci>
+          <ci id="S3.SS1.p2.1.m1.1.1.2.3.cmml" xref="S3.SS1.p2.1.m1.1.1.2.3">
+           𝑡
+          </ci>
+         </apply>
+         <ci id="S3.SS1.p2.1.m1.1.1.3.cmml" xref="S3.SS1.p2.1.m1.1.1.3">
+          𝑖
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.1.m1.1c">
+        V_{t}^{i}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="Q_{t}^{i}" class="ltx_Math" display="inline" id="S3.SS1.p2.2.m2.1">
+      <semantics id="S3.SS1.p2.2.m2.1a">
+       <msubsup id="S3.SS1.p2.2.m2.1.1" xref="S3.SS1.p2.2.m2.1.1.cmml">
+        <mi id="S3.SS1.p2.2.m2.1.1.2.2" xref="S3.SS1.p2.2.m2.1.1.2.2.cmml">
+         Q
+        </mi>
+        <mi id="S3.SS1.p2.2.m2.1.1.2.3" xref="S3.SS1.p2.2.m2.1.1.2.3.cmml">
+         t
+        </mi>
+        <mi id="S3.SS1.p2.2.m2.1.1.3" xref="S3.SS1.p2.2.m2.1.1.3.cmml">
+         i
+        </mi>
+       </msubsup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.2.m2.1b">
+        <apply id="S3.SS1.p2.2.m2.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p2.2.m2.1.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1">
+          superscript
+         </csymbol>
+         <apply id="S3.SS1.p2.2.m2.1.1.2.cmml" xref="S3.SS1.p2.2.m2.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.p2.2.m2.1.1.2.1.cmml" xref="S3.SS1.p2.2.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.p2.2.m2.1.1.2.2.cmml" xref="S3.SS1.p2.2.m2.1.1.2.2">
+           𝑄
+          </ci>
+          <ci id="S3.SS1.p2.2.m2.1.1.2.3.cmml" xref="S3.SS1.p2.2.m2.1.1.2.3">
+           𝑡
+          </ci>
+         </apply>
+         <ci id="S3.SS1.p2.2.m2.1.1.3.cmml" xref="S3.SS1.p2.2.m2.1.1.3">
+          𝑖
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.2.m2.1c">
+        Q_{t}^{i}
+       </annotation>
+      </semantics>
+     </math>
+     represent traffic speed and volume of road segment
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS1.p2.3.m3.1">
+      <semantics id="S3.SS1.p2.3.m3.1a">
+       <mi id="S3.SS1.p2.3.m3.1.1" xref="S3.SS1.p2.3.m3.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.3.m3.1b">
+        <ci id="S3.SS1.p2.3.m3.1.1.cmml" xref="S3.SS1.p2.3.m3.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.3.m3.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     at time
+     <math alttext="t" class="ltx_Math" display="inline" id="S3.SS1.p2.4.m4.1">
+      <semantics id="S3.SS1.p2.4.m4.1a">
+       <mi id="S3.SS1.p2.4.m4.1.1" xref="S3.SS1.p2.4.m4.1.1.cmml">
+        t
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.4.m4.1b">
+        <ci id="S3.SS1.p2.4.m4.1.1.cmml" xref="S3.SS1.p2.4.m4.1.1">
+         𝑡
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.4.m4.1c">
+        t
+       </annotation>
+      </semantics>
+     </math>
+     .
+     <math alttext="L^{i}" class="ltx_Math" display="inline" id="S3.SS1.p2.5.m5.1">
+      <semantics id="S3.SS1.p2.5.m5.1a">
+       <msup id="S3.SS1.p2.5.m5.1.1" xref="S3.SS1.p2.5.m5.1.1.cmml">
+        <mi id="S3.SS1.p2.5.m5.1.1.2" xref="S3.SS1.p2.5.m5.1.1.2.cmml">
+         L
+        </mi>
+        <mi id="S3.SS1.p2.5.m5.1.1.3" xref="S3.SS1.p2.5.m5.1.1.3.cmml">
+         i
+        </mi>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.5.m5.1b">
+        <apply id="S3.SS1.p2.5.m5.1.1.cmml" xref="S3.SS1.p2.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p2.5.m5.1.1.1.cmml" xref="S3.SS1.p2.5.m5.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p2.5.m5.1.1.2.cmml" xref="S3.SS1.p2.5.m5.1.1.2">
+          𝐿
+         </ci>
+         <ci id="S3.SS1.p2.5.m5.1.1.3.cmml" xref="S3.SS1.p2.5.m5.1.1.3">
+          𝑖
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.5.m5.1c">
+        L^{i}
+       </annotation>
+      </semantics>
+     </math>
+     is road segment length covered by the
+     <math alttext="i" class="ltx_Math" display="inline" id="S3.SS1.p2.6.m6.1">
+      <semantics id="S3.SS1.p2.6.m6.1a">
+       <mi id="S3.SS1.p2.6.m6.1.1" xref="S3.SS1.p2.6.m6.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.6.m6.1b">
+        <ci id="S3.SS1.p2.6.m6.1.1.cmml" xref="S3.SS1.p2.6.m6.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.6.m6.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     -th detector.
+     <math alttext="V_{f}" class="ltx_Math" display="inline" id="S3.SS1.p2.7.m7.1">
+      <semantics id="S3.SS1.p2.7.m7.1a">
+       <msub id="S3.SS1.p2.7.m7.1.1" xref="S3.SS1.p2.7.m7.1.1.cmml">
+        <mi id="S3.SS1.p2.7.m7.1.1.2" xref="S3.SS1.p2.7.m7.1.1.2.cmml">
+         V
+        </mi>
+        <mi id="S3.SS1.p2.7.m7.1.1.3" xref="S3.SS1.p2.7.m7.1.1.3.cmml">
+         f
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p2.7.m7.1b">
+        <apply id="S3.SS1.p2.7.m7.1.1.cmml" xref="S3.SS1.p2.7.m7.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p2.7.m7.1.1.1.cmml" xref="S3.SS1.p2.7.m7.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS1.p2.7.m7.1.1.2.cmml" xref="S3.SS1.p2.7.m7.1.1.2">
+          𝑉
+         </ci>
+         <ci id="S3.SS1.p2.7.m7.1.1.3.cmml" xref="S3.SS1.p2.7.m7.1.1.3">
+          𝑓
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p2.7.m7.1c">
+        V_{f}
+       </annotation>
+      </semantics>
+     </math>
+     is free flow speed. Therefore, TPS is a value ranging from 0% to 100% where 0% is the worst traffic condition and 100% is the best.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     These loop detectors are deployed on freeways, including I-5, I-90, I-99, I-167, I-405, and SR-520, in the Greater Seattle Area, WA, as shown in Figure
+     <a class="ltx_ref" href="#S3.F1" title="Figure 1 ‣ III-A Problem Statement ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . Data have been collected online in one-minute intervals from 2020 to the present, and it has accumulated around 1.89 Terabytes (TB) in the data warehouse. There are a total of 6 tables in the database, with the details shown in Table
+     <a class="ltx_ref" href="#S3.T1" title="TABLE I ‣ III-A Problem Statement ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       I
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F1">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="274" id="S3.F1.g1" src="/html/2405.03076/assets/loop_locations.png" width="479"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     Inductive loop Detector locations shown as blue points
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.1">
+     This level of database has great potential for insightful network-wide analysis of real-time traffic performance. However, vast volume of data poses great challenges for practitioners’ and researchers’ inspection and management of data. Firstly, exploring the data warehouse necessitates participants’ deep understanding of database setup details (i.e., tables, columns, data types, relations, and so on), as well as expertise in database programming especially processing large-scale databases. Even though, manually programming various queries and then executing commands for real-time information in such a huge database is particularly time-consuming and labor-intensive, making it almost a mission impossible. Second, interpreting from numeric data results to human-language traffic advisory or impactful analysis results needs in-depth professional transportation-domain knowledge and a wide range of historical knowledge base support such as urban planning, and social events. Third, the lack of direct access to the database for security and privacy concerns limits the potential participants’ exploration, hindering flexible investigation.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T1">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      TABLE I:
+     </span>
+     Network-wide traffic database introduction
+    </figcaption>
+    <div class="ltx_inline-block ltx_transformed_outer" id="S3.T1.1" style="width:433.6pt;height:210.1pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(13.3pt,-6.4pt) scale(1.06524748224189,1.06524748224189) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S3.T1.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S3.T1.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.1.1">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.1.1">
+           Table Name
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.1.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.2.1">
+           Columns
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.1.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.1.1.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.1.1.3.1.1" style="width:216.8pt;">
+            <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.3.1.1.1">
+             Description
+            </span>
+           </span>
+          </span>
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S3.T1.1.1.2.1">
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T1.1.1.2.1.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.2.1.1.1">
+           dbo.cabinets
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T1.1.1.2.1.2">
+          17
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S3.T1.1.1.2.1.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.2.1.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.2.1.3.1.1" style="width:216.8pt;">
+            Loop detector details of unit name, coordinate, route, milepost, and direction.
+           </span>
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.3.2">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.2.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.3.2.1.1">
+           dbo.cabinfo
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.2.2">
+          6
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S3.T1.1.1.3.2.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.3.2.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.3.2.3.1.1" style="width:216.8pt;">
+            District location of loop detectors sorted by cabinet station ID.
+           </span>
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.4.3">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.3.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.4.3.1.1">
+           dbo.MinuteDataNW
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.3.2">
+          6
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S3.T1.1.1.4.3.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.4.3.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.4.3.3.1.1" style="width:216.8pt;">
+            One-minute traffic speed, volume, occupancy data in Washington Northwest sorted by loop detector ID and timestamp.
+           </span>
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.5.4">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.5.4.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.5.4.1.1">
+           dbo.Segments
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.5.4.2">
+          6
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S3.T1.1.1.5.4.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.5.4.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.5.4.3.1.1" style="width:216.8pt;">
+            Road segment definition with corresponding location information.
+           </span>
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.6.5">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.5.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.6.5.1.1">
+           dbo.SegmentTrafficIndex
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.5.2">
+          8
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S3.T1.1.1.6.5.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.6.5.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.6.5.3.1.1" style="width:216.8pt;">
+            Segment-based traffic performance data on general-purpose lanes and carpool lanes, including speed, volume, and TPS.
+           </span>
+          </span>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.7.6">
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T1.1.1.7.6.1">
+          <span class="ltx_text ltx_font_italic" id="S3.T1.1.1.7.6.1.1">
+           dbo.TrafficIndex
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T1.1.1.7.6.2">
+          9
+         </td>
+         <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S3.T1.1.1.7.6.3">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.7.6.3.1">
+           <span class="ltx_p" id="S3.T1.1.1.7.6.3.1.1" style="width:216.8pt;">
+            Statistical traffic performance data for each defined road segment.
+           </span>
+          </span>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S3.SS1.p5">
+    <p class="ltx_p" id="S3.SS1.p5.1">
+     In this context, we propose an intelligent traffic performance chatbot TP-GPT for real-time transportation surveillance and management in a privacy-preserving way. While, technical problems need to be tackled for comprehensive development:
+1) ChatGPT does not have preliminary contextual knowledge of the database setup, structures and content. Even though ChatGPT has strong abilities in programming and inference, direct deployment of the language model to database analysis without prerequisites may result in hallucination that blind actions irrelevant to the raised question would possibly be taken. Thus, the compilation of appropriate input prompts is essential for employing ChatGPT. 2) ChatGPT has a reliable performance of executing sequential commands activated by human’s input. However, the lack of monitoring the response relevance and query correctness regarding to the user’s question may generate unexpected, unreliable answers. It is necessary to incorporate an intelligent autonomous streamline with self-management capability for quality control of answer generation. Specifically, iterative communications between ChatGPT and the database in the revision circulation is needed to keep modifying responses until certain standard is reached. This process necessitates the participation of multiple intelligent virtual agents of different roles, such as database query engineer, quality manager, consultant and more. 3) The demonstration of a set of typically asked questions with their corresponding answers are critical for ChatGPT to specify the work scope, furthermore, to improve the effectiveness and efficiency of target response. 4) In order for users to be able to consecutively interact with the chatbot, a chatting memory function is needed so that the chatbot has the historical memory to support following generative process.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS2.5.1.1">
+      III-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS2.6.2">
+     System Design
+    </span>
+   </h3>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="206" id="S3.F2.g1" src="/html/2405.03076/assets/System_architecture.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Overall system architecture design demonstrating traffic analysis pipeline (right), example input prompts (left), and incorporated Chain of Thought iterative prompting (center)
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     TP-GPT aims to answer users’ questions by integrating GPT with real-time traffic SQL database. Directly applying generative model to the database has potential to cause several concerns such as reasoning hallucination, answer accuracy, and performance reliability. To overcome these obstacles, the proposed framework incorporates multiple modules as a pipeline to process and interpret data, as shown in Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ III-B System Design ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . Specifically, once users’ questions are input into the ChatBot, five steps are executed, each of which is empowered by GPT’s contextual and generative intelligence, to generate the final answer: 1) Task management: Since the fixed sequence of implementation steps is not adaptable to resolving different questions, a customized execution plan is produced based on the input. Meanwhile, each execution step is determined and managed flexibly by GPT’s decision-making capability. For example, if the question is relevant to searching the traffic data, database query generation and execution will be included in the plan; Otherwise, the chat function will be activated to interact with users based on the general knowledge base. 2) Query generation: A query to extract relevant data in the database is generated by understanding the input question. Constraints on query statement specifics such as programming syntax and quantity of queried data are applied to the process. 3) Quality check: An initial syntax check is performed on the generated query to inspect if it is beyond the designated constraints like too many data instances are queried. 4) Query execution: The checked query is executed in the SQL database. While, an inspection of the execution log is conducted to debug any existing errors. 5) Data interpretation: The queried data combined with the user’s question is analyzed and interpreted into a traffic advisory report incorporating GPT’s wide range of transportation knowledge base.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS3.5.1.1">
+      III-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS3.6.2">
+     Input Prompt Generation
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     Prompt engineering is essential for LLMs to master preliminary contextual information before a practical question is fed. Such integration can not only enable language models to avoid the unnecessary repeating process of reasoning users’ desired responses in each run when the contexts (i.e., database setup, question background) are constant, but also boost the ChatBot performance in the transportation domain. In the proposed framework, the iterative interface with GPT is achieved through the Chain of Thought (CoT) prompting
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ]
+     </cite>
+     , which iteratively reasons a series of intermediate steps before the final answer is generated. The conceptual workflow of CoT iteration is shown in Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ III-B System Design ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . The designed prompts cover comprehensive descriptions in these aspects: 1) Instructions on what role the model is expected to play in performing the tasks and how to generate the object responses; 2) In-depth descriptions of database setup with an emphasis on table relations, column explanation, and data significance. 3) Domain knowledge in transportation scenarios, especially those missing from GPT’s commonsense, such as the definition of Traffic Performance Score and its measurement scale. 4) Designated output format that is desired from GPT at the current step. An example prompt input is shown in Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ III-B System Design ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS4.5.1.1">
+      III-D
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS4.6.2">
+     Multi-Agent Strategy
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     GPT achieves superior performance in solving individual tasks following instructional logic in a dialogue. However, highly sophisticated problems in real-world traffic analysis are challenging to tackle by directly adopting GPT’s general intelligence. Here we introduce the multi-agent strategy in transportation scenarios, an innovative collaborative workflow incorporating GPT as different agents to work as a team, which simulates the human’s real teamwork logistics in a research lab or industrial company. The overall objective is to decompose the original complex tasks into sub-tasks of different scopes and then assign each to a GPT agent expertized in the designated domain to solve by a streamlined, collaborative workflow. The interaction between agents is enabled and achieved by incorporating a public scratchpad for the agent team to track the updated progress. Agents iteratively communicate with the GPT based on the CoT prompting dialogue in JSON format, illustrated in the previous section, to seek advisory and thoughts on task solutions and then formulate the execution plan.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="292" id="S3.F3.g1" src="/html/2405.03076/assets/multi_agent.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     TP-GPT multi-agent collaboration framework for traffic data analysis
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS4.p2">
+    <p class="ltx_p" id="S3.SS4.p2.1">
+     The joint collaborative framework includes four virtual agents, shown in Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ III-D Multi-Agent Strategy ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , each of which conducts the designated scope of tasks corresponding to a teamwork role. In detail, the project manager controls the entire team’s workflow by reasoning the next-step action based on the execution results from the last step; SQL engineer generates synthetically correct queries for the desired data through contextual understanding of the users’ input demand; Quality analyst checks if a syntax error exists in the generated query or the obtained data is not reasonably acceptable, then necessary inspections into backend database execution log are implemented to figure out the potential cause to the error in order to correct the query; Finally, data analyst interprets the queried data to mobility analysis report based on pre-trained transportation domain knowledge, to answer the user’s demanded information in a natural-language illustrative method with real-time data and detailed explanation involved. The multi-agent collaborative strategy significantly improves the overall performance of the ChatBot in terms of accuracy, reliability, interpretability, and flexibility.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS5.5.1.1">
+      III-E
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS5.6.2">
+     Few-shot Learning Prompting
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS5.p1">
+    <p class="ltx_p" id="S3.SS5.p1.1">
+     Although LLMs exhibit impressive zero-shot capabilities for general problems, they struggle to address complex problems in the transportation domain using only a zero-shot approach. Few-shot prompting can be used as a technique to facilitate in-context learning by providing examples that guide the model toward better performance. The demonstrations in the prompt contain exemplar user questions with their ideal queries crafted by developers that the model is expected to follow to generate subsequent responses. In each attempt to resolve the input question, the model can refer to several of the most relevant examples, which not only enables the model to master the contextual knowledge required to answer similar questions accurately but also improves response efficiency by significantly decreasing reasoning time and the risk of causing errors. To further enhance response reliability leveraging few-shot learning, an example repository covering multiple transportation scenarios is manually crafted, including real-time traffic advisory, historical data statistical analysis, travel emission inquiry, lane-based traffic performance inspection, and so on, for providing comprehensive transportation evaluations. In implementations, the input question is converted to text embedding to search the designated number of most similar questions in the example repository. Then, these question-query example pairs are used to populate the generated prompt for model inference. A typical few-shot prompt is displayed in Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ III-B System Design ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . This approach avoids offering irrelevant examples to target work scope, thereby increasing the few-shot efficiency and accuracy, as well as reducing the possibility of non-objective examples misleading the response. The integration of few-shot learning remarkably enhances ChatBot performance, especially when questions that are typically asked fall into the pre-defined scope. This also provides the potential for further extension of objective response domain by simply adding more exemplar use cases.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS6">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS6.5.1.1">
+      III-F
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS6.6.2">
+     Chat Memory
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS6.p1">
+    <p class="ltx_p" id="S3.SS6.p1.1">
+     To enhance interactivity, the ChatBot should retain a memory of past conversations, allowing it to infer and tailor future responses based on previous interactions. In most use cases, if the initial generated response does not fulfill users’ expectations, normally subsequent questions will follow, assuming chat history is held. Thus, the ChatBot is integrated with the chat memory module by saving dialogue history in each conversation session. Specifically, only the part of chat records relevant to the current input question is retrieved from memory for the model’s reference in response, which prevents from reading the whole lengthy dialogue list. Afterward, the generated answer, along with the question, is written into memory. This simple yet effective implementation advances the ChatBot towards more efficient and intelligent interaction experience.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    IV
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S4.1.1">
+    Experiments
+   </span>
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    An online ChatBot with interactive web interface has been developed using Streamlit framework in Python. An example conversation between user and TP-GPT chatbot is visualized in Figure
+    <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    . Furthermore, experimental study has been conducted leveraging the ChatBot interface to evaluate and compare performance of TP-GPT with baseline models.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S4.F4">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="325" id="S4.F4.g1" src="/html/2405.03076/assets/Interface.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 4:
+    </span>
+    Online web application interface of TP-GPT ChatBot
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS1.5.1.1">
+      IV-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS1.6.2">
+     Experimental Setup
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     To demonstrate the model’s performance in solving transportation-specific domain problems, we introduce our self-generated challenging traffic analysis benchmark named TransQuery based on the mobility database as mentioned in Section
+     <a class="ltx_ref" href="#S3.SS1" title="III-A Problem Statement ‣ III Methodology ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       <span class="ltx_text">
+        III-A
+       </span>
+      </span>
+     </a>
+     . The benchmark includes 50 manually designed complicated transportation surveillance and management tasks in real-world scenarios. Each instance is an input-output pair consisting of a question and its ground-truth response (i.e., SQL query, target data, and natural language answer). These tasks cover a wide scope of traffic analysis challenges including but not limited to: spatial-temporal traffic condition inquiry, traffic pattern recognition, peak traffic behavior analysis, real-time lane-based trip advisory, traffic counting statistics, and vehicle emission evaluation. Some of the example problems are listed in the Table
+     <a class="ltx_ref" href="#S4.T2" title="TABLE II ‣ IV-A Experimental Setup ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       II
+      </span>
+     </a>
+     . To demonstrate the validity of employing TP-GPT framework, we use TransQuery benchmark to compare our method with GPT-4 Turbo
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       25
+      </a>
+      ]
+     </cite>
+     , PaLM 2
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     , and SQLCoder
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ]
+     </cite>
+     which are state-of-the-art baseline LLMs having expertise in the database query domain. Standard prompting containing fundamental database information and contextual knowledge is integrated into baseline models.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      TABLE II:
+     </span>
+     Sample questions in TransQuery
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T2.1" style="width:433.6pt;height:122.7pt;vertical-align:-1.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-7.7pt,2.2pt) scale(0.965864224689871,0.965864224689871) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T2.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T2.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.1.1.1.1">
+           Input questions
+          </span>
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T2.1.1.2.1">
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T2.1.1.2.1.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Show me the most recent loop data on SR 99 Northbound sorted by locations.
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.3.2">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.2.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Compare traffic performance of I-5 between Monday and Sunday in last month.
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.4.3">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.3.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          What was the traffic condition of SR-520 during today’s evening peak?
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.5.4">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.5.4.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Should I use HOV or general purpose lane on I-5 now?
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.6.5">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.6.5.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          How many cars are on each segment of I-405 on average now?
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.7.6">
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T2.1.1.7.6.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          What is the difference in greenhouse gas emissions between weekdays and weekends in last month?
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     To statistically compare the performance of each model on TransQuery, the execution result of each instance of the benchmark is evaluated by the metrics with corresponding rate scores:
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.1">
+      Non-functional
+     </span>
+     : SQL query is non-executable due to existing errors, with rate score of 0;
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.2">
+      Runnable but imperfect
+     </span>
+     : SQL query can be executed successfully but not perfectly answers the input question, with rate score of 1;
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.3">
+      Flawless
+     </span>
+     : correct data can be queried, and interpretation of data can properly answer the input question, with rate score of 2. In this way, an average performance score
+     <math alttext="S" class="ltx_Math" display="inline" id="S4.SS1.p2.1.m1.1">
+      <semantics id="S4.SS1.p2.1.m1.1a">
+       <mi id="S4.SS1.p2.1.m1.1.1" xref="S4.SS1.p2.1.m1.1.1.cmml">
+        S
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.1.m1.1b">
+        <ci id="S4.SS1.p2.1.m1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1">
+         𝑆
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.1.m1.1c">
+        S
+       </annotation>
+      </semantics>
+     </math>
+     is calculated for each model using the Equation
+     <a class="ltx_ref" href="#S4.E2" title="In IV-A Experimental Setup ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     :
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <table class="ltx_equation ltx_eqn_table" id="S4.E2">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="S=\frac{\sum_{i}n_{i}s_{i}}{s_{max}\sum_{i}n_{i}}" class="ltx_Math" display="block" id="S4.E2.m1.1">
+         <semantics id="S4.E2.m1.1a">
+          <mrow id="S4.E2.m1.1.1" xref="S4.E2.m1.1.1.cmml">
+           <mi id="S4.E2.m1.1.1.2" xref="S4.E2.m1.1.1.2.cmml">
+            S
+           </mi>
+           <mo id="S4.E2.m1.1.1.1" xref="S4.E2.m1.1.1.1.cmml">
+            =
+           </mo>
+           <mfrac id="S4.E2.m1.1.1.3" xref="S4.E2.m1.1.1.3.cmml">
+            <mrow id="S4.E2.m1.1.1.3.2" xref="S4.E2.m1.1.1.3.2.cmml">
+             <msub id="S4.E2.m1.1.1.3.2.1" xref="S4.E2.m1.1.1.3.2.1.cmml">
+              <mo id="S4.E2.m1.1.1.3.2.1.2" xref="S4.E2.m1.1.1.3.2.1.2.cmml">
+               ∑
+              </mo>
+              <mi id="S4.E2.m1.1.1.3.2.1.3" xref="S4.E2.m1.1.1.3.2.1.3.cmml">
+               i
+              </mi>
+             </msub>
+             <mrow id="S4.E2.m1.1.1.3.2.2" xref="S4.E2.m1.1.1.3.2.2.cmml">
+              <msub id="S4.E2.m1.1.1.3.2.2.2" xref="S4.E2.m1.1.1.3.2.2.2.cmml">
+               <mi id="S4.E2.m1.1.1.3.2.2.2.2" xref="S4.E2.m1.1.1.3.2.2.2.2.cmml">
+                n
+               </mi>
+               <mi id="S4.E2.m1.1.1.3.2.2.2.3" xref="S4.E2.m1.1.1.3.2.2.2.3.cmml">
+                i
+               </mi>
+              </msub>
+              <mo id="S4.E2.m1.1.1.3.2.2.1" lspace="0em" rspace="0em" xref="S4.E2.m1.1.1.3.2.2.1.cmml">
+               ​
+              </mo>
+              <msub id="S4.E2.m1.1.1.3.2.2.3" xref="S4.E2.m1.1.1.3.2.2.3.cmml">
+               <mi id="S4.E2.m1.1.1.3.2.2.3.2" xref="S4.E2.m1.1.1.3.2.2.3.2.cmml">
+                s
+               </mi>
+               <mi id="S4.E2.m1.1.1.3.2.2.3.3" xref="S4.E2.m1.1.1.3.2.2.3.3.cmml">
+                i
+               </mi>
+              </msub>
+             </mrow>
+            </mrow>
+            <mrow id="S4.E2.m1.1.1.3.3" xref="S4.E2.m1.1.1.3.3.cmml">
+             <msub id="S4.E2.m1.1.1.3.3.2" xref="S4.E2.m1.1.1.3.3.2.cmml">
+              <mi id="S4.E2.m1.1.1.3.3.2.2" xref="S4.E2.m1.1.1.3.3.2.2.cmml">
+               s
+              </mi>
+              <mrow id="S4.E2.m1.1.1.3.3.2.3" xref="S4.E2.m1.1.1.3.3.2.3.cmml">
+               <mi id="S4.E2.m1.1.1.3.3.2.3.2" xref="S4.E2.m1.1.1.3.3.2.3.2.cmml">
+                m
+               </mi>
+               <mo id="S4.E2.m1.1.1.3.3.2.3.1" lspace="0em" rspace="0em" xref="S4.E2.m1.1.1.3.3.2.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S4.E2.m1.1.1.3.3.2.3.3" xref="S4.E2.m1.1.1.3.3.2.3.3.cmml">
+                a
+               </mi>
+               <mo id="S4.E2.m1.1.1.3.3.2.3.1a" lspace="0em" rspace="0em" xref="S4.E2.m1.1.1.3.3.2.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S4.E2.m1.1.1.3.3.2.3.4" xref="S4.E2.m1.1.1.3.3.2.3.4.cmml">
+                x
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S4.E2.m1.1.1.3.3.1" lspace="0em" rspace="0em" xref="S4.E2.m1.1.1.3.3.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.E2.m1.1.1.3.3.3" xref="S4.E2.m1.1.1.3.3.3.cmml">
+              <msub id="S4.E2.m1.1.1.3.3.3.1" xref="S4.E2.m1.1.1.3.3.3.1.cmml">
+               <mo id="S4.E2.m1.1.1.3.3.3.1.2" xref="S4.E2.m1.1.1.3.3.3.1.2.cmml">
+                ∑
+               </mo>
+               <mi id="S4.E2.m1.1.1.3.3.3.1.3" xref="S4.E2.m1.1.1.3.3.3.1.3.cmml">
+                i
+               </mi>
+              </msub>
+              <msub id="S4.E2.m1.1.1.3.3.3.2" xref="S4.E2.m1.1.1.3.3.3.2.cmml">
+               <mi id="S4.E2.m1.1.1.3.3.3.2.2" xref="S4.E2.m1.1.1.3.3.3.2.2.cmml">
+                n
+               </mi>
+               <mi id="S4.E2.m1.1.1.3.3.3.2.3" xref="S4.E2.m1.1.1.3.3.3.2.3.cmml">
+                i
+               </mi>
+              </msub>
+             </mrow>
+            </mrow>
+           </mfrac>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S4.E2.m1.1b">
+           <apply id="S4.E2.m1.1.1.cmml" xref="S4.E2.m1.1.1">
+            <eq id="S4.E2.m1.1.1.1.cmml" xref="S4.E2.m1.1.1.1">
+            </eq>
+            <ci id="S4.E2.m1.1.1.2.cmml" xref="S4.E2.m1.1.1.2">
+             𝑆
+            </ci>
+            <apply id="S4.E2.m1.1.1.3.cmml" xref="S4.E2.m1.1.1.3">
+             <divide id="S4.E2.m1.1.1.3.1.cmml" xref="S4.E2.m1.1.1.3">
+             </divide>
+             <apply id="S4.E2.m1.1.1.3.2.cmml" xref="S4.E2.m1.1.1.3.2">
+              <apply id="S4.E2.m1.1.1.3.2.1.cmml" xref="S4.E2.m1.1.1.3.2.1">
+               <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.2.1.1.cmml" xref="S4.E2.m1.1.1.3.2.1">
+                subscript
+               </csymbol>
+               <sum id="S4.E2.m1.1.1.3.2.1.2.cmml" xref="S4.E2.m1.1.1.3.2.1.2">
+               </sum>
+               <ci id="S4.E2.m1.1.1.3.2.1.3.cmml" xref="S4.E2.m1.1.1.3.2.1.3">
+                𝑖
+               </ci>
+              </apply>
+              <apply id="S4.E2.m1.1.1.3.2.2.cmml" xref="S4.E2.m1.1.1.3.2.2">
+               <times id="S4.E2.m1.1.1.3.2.2.1.cmml" xref="S4.E2.m1.1.1.3.2.2.1">
+               </times>
+               <apply id="S4.E2.m1.1.1.3.2.2.2.cmml" xref="S4.E2.m1.1.1.3.2.2.2">
+                <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.2.2.2.1.cmml" xref="S4.E2.m1.1.1.3.2.2.2">
+                 subscript
+                </csymbol>
+                <ci id="S4.E2.m1.1.1.3.2.2.2.2.cmml" xref="S4.E2.m1.1.1.3.2.2.2.2">
+                 𝑛
+                </ci>
+                <ci id="S4.E2.m1.1.1.3.2.2.2.3.cmml" xref="S4.E2.m1.1.1.3.2.2.2.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S4.E2.m1.1.1.3.2.2.3.cmml" xref="S4.E2.m1.1.1.3.2.2.3">
+                <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.2.2.3.1.cmml" xref="S4.E2.m1.1.1.3.2.2.3">
+                 subscript
+                </csymbol>
+                <ci id="S4.E2.m1.1.1.3.2.2.3.2.cmml" xref="S4.E2.m1.1.1.3.2.2.3.2">
+                 𝑠
+                </ci>
+                <ci id="S4.E2.m1.1.1.3.2.2.3.3.cmml" xref="S4.E2.m1.1.1.3.2.2.3.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+             <apply id="S4.E2.m1.1.1.3.3.cmml" xref="S4.E2.m1.1.1.3.3">
+              <times id="S4.E2.m1.1.1.3.3.1.cmml" xref="S4.E2.m1.1.1.3.3.1">
+              </times>
+              <apply id="S4.E2.m1.1.1.3.3.2.cmml" xref="S4.E2.m1.1.1.3.3.2">
+               <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.3.2.1.cmml" xref="S4.E2.m1.1.1.3.3.2">
+                subscript
+               </csymbol>
+               <ci id="S4.E2.m1.1.1.3.3.2.2.cmml" xref="S4.E2.m1.1.1.3.3.2.2">
+                𝑠
+               </ci>
+               <apply id="S4.E2.m1.1.1.3.3.2.3.cmml" xref="S4.E2.m1.1.1.3.3.2.3">
+                <times id="S4.E2.m1.1.1.3.3.2.3.1.cmml" xref="S4.E2.m1.1.1.3.3.2.3.1">
+                </times>
+                <ci id="S4.E2.m1.1.1.3.3.2.3.2.cmml" xref="S4.E2.m1.1.1.3.3.2.3.2">
+                 𝑚
+                </ci>
+                <ci id="S4.E2.m1.1.1.3.3.2.3.3.cmml" xref="S4.E2.m1.1.1.3.3.2.3.3">
+                 𝑎
+                </ci>
+                <ci id="S4.E2.m1.1.1.3.3.2.3.4.cmml" xref="S4.E2.m1.1.1.3.3.2.3.4">
+                 𝑥
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S4.E2.m1.1.1.3.3.3.cmml" xref="S4.E2.m1.1.1.3.3.3">
+               <apply id="S4.E2.m1.1.1.3.3.3.1.cmml" xref="S4.E2.m1.1.1.3.3.3.1">
+                <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.3.3.1.1.cmml" xref="S4.E2.m1.1.1.3.3.3.1">
+                 subscript
+                </csymbol>
+                <sum id="S4.E2.m1.1.1.3.3.3.1.2.cmml" xref="S4.E2.m1.1.1.3.3.3.1.2">
+                </sum>
+                <ci id="S4.E2.m1.1.1.3.3.3.1.3.cmml" xref="S4.E2.m1.1.1.3.3.3.1.3">
+                 𝑖
+                </ci>
+               </apply>
+               <apply id="S4.E2.m1.1.1.3.3.3.2.cmml" xref="S4.E2.m1.1.1.3.3.3.2">
+                <csymbol cd="ambiguous" id="S4.E2.m1.1.1.3.3.3.2.1.cmml" xref="S4.E2.m1.1.1.3.3.3.2">
+                 subscript
+                </csymbol>
+                <ci id="S4.E2.m1.1.1.3.3.3.2.2.cmml" xref="S4.E2.m1.1.1.3.3.3.2.2">
+                 𝑛
+                </ci>
+                <ci id="S4.E2.m1.1.1.3.3.3.2.3.cmml" xref="S4.E2.m1.1.1.3.3.3.2.3">
+                 𝑖
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S4.E2.m1.1c">
+           S=\frac{\sum_{i}n_{i}s_{i}}{s_{max}\sum_{i}n_{i}}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (2)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <p class="ltx_p" id="S4.SS1.p3.3">
+     where
+     <math alttext="i" class="ltx_Math" display="inline" id="S4.SS1.p3.1.m1.1">
+      <semantics id="S4.SS1.p3.1.m1.1a">
+       <mi id="S4.SS1.p3.1.m1.1.1" xref="S4.SS1.p3.1.m1.1.1.cmml">
+        i
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.1.m1.1b">
+        <ci id="S4.SS1.p3.1.m1.1.1.cmml" xref="S4.SS1.p3.1.m1.1.1">
+         𝑖
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.1.m1.1c">
+        i
+       </annotation>
+      </semantics>
+     </math>
+     represents evaluation categories (e.g., non-functional),
+     <math alttext="n" class="ltx_Math" display="inline" id="S4.SS1.p3.2.m2.1">
+      <semantics id="S4.SS1.p3.2.m2.1a">
+       <mi id="S4.SS1.p3.2.m2.1.1" xref="S4.SS1.p3.2.m2.1.1.cmml">
+        n
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.2.m2.1b">
+        <ci id="S4.SS1.p3.2.m2.1.1.cmml" xref="S4.SS1.p3.2.m2.1.1">
+         𝑛
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.2.m2.1c">
+        n
+       </annotation>
+      </semantics>
+     </math>
+     represents the number of experimental instances classified to each category, and
+     <math alttext="s" class="ltx_Math" display="inline" id="S4.SS1.p3.3.m3.1">
+      <semantics id="S4.SS1.p3.3.m3.1a">
+       <mi id="S4.SS1.p3.3.m3.1.1" xref="S4.SS1.p3.3.m3.1.1.cmml">
+        s
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.3.m3.1b">
+        <ci id="S4.SS1.p3.3.m3.1.1.cmml" xref="S4.SS1.p3.3.m3.1.1">
+         𝑠
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.3.m3.1c">
+        s
+       </annotation>
+      </semantics>
+     </math>
+     represents their corresponding rate scores.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS2.5.1.1">
+      IV-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS2.6.2">
+     Performance Comparison
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     In experiments, three baseline models are compared to TP-GPT using TransQuery benchmark that has 50 complex transportation problems. As shown in Table
+     <a class="ltx_ref" href="#S4.T3" title="TABLE III ‣ IV-B Performance Comparison ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       III
+      </span>
+     </a>
+     , TP-GPT significantly outperforms other baseline models on TransQuery with an average performance score of 0.87, surpassing GPT-4 Turbo of 0.57, PaLM 2 of 0.34, and SQLCoder of 0.16. Specifically, out of total 50 questions, TP-GPT generates 40 flawless responses accounting for 80% of the whole dataset, 7 runnable queries but imperfect responses, and only 3 non-functional queries. Whereas, the state-of-the-art LLM GPT-4 Turbo only generates 22 flawless responses accounting for 44% of the whole dataset, even with superior pre-trained reasoning and contextual capability. PaLM 2 and SQLCoder barely generate 15 and 7 flawless responses accounting for the percentage of 30% and 14% respectively.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T3">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      TABLE III:
+     </span>
+     Performance comparison of TP-GPT with baseline models on TransQuery traffic-analysis benchmark
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.1" style="width:433.6pt;height:122.2pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(25.2pt,-7.1pt) scale(1.13154961269587,1.13154961269587) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T3.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T3.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Model
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" colspan="3" id="S4.T3.1.1.1.1.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Response Metrics
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Avg. Score
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T3.1.1.2.1">
+         <td class="ltx_td" id="S4.T3.1.1.2.1.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+         </td>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T3.1.1.2.1.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Non-functional
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T3.1.1.2.1.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Runnable but imperfect
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S4.T3.1.1.2.1.4" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          Flawless
+         </th>
+         <td class="ltx_td" id="S4.T3.1.1.2.1.5" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.3.2">
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.3.2.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          PaLM 2
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.3.2.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          31 (62%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.3.2.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          4 (8%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.3.2.4" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          15 (30%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T3.1.1.3.2.5" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          0.34
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.4.3">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.4.3.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          SQLCoder
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.4.3.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          41 (82%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.4.3.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          2 (4%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.4.3.4" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          7 (14%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.4.3.5" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          0.16
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.5.4">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.5.4.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          GPT-4 Turbo
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.5.4.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          15 (30%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.5.4.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          13 (26%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.5.4.4" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          22 (44%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.5.4.5" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          0.57
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.6.5">
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T3.1.1.6.5.1" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.6.5.1.1">
+           TP-GPT
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T3.1.1.6.5.2" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          3 (6%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T3.1.1.6.5.3" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          7 (14%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T3.1.1.6.5.4" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          40 (80%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S4.T3.1.1.6.5.5" style="padding-top:2.5pt;padding-bottom:2.5pt;">
+          0.87
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     This result not only demonstrates the complicacy and challenge of TransQuery benchmark, but also indicates TP-GPT’s superior performance in resolving transportation scenario problems and its effectiveness when GPT is integrated with our developed ChatBot system. A detailed comparison between the models is narrated in the following.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <ul class="ltx_itemize" id="S4.I1">
+     <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i1.p1">
+       <p class="ltx_p" id="S4.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i1.p1.1.1">
+         PaLM 2
+        </span>
+        : The most capable PaLM 2 model in code generation named Bison, is tested as one of the baselines due to its compatibility with SQL query generation. This model has the fastest response time for its relatively small model size. However, the performance struggles in dealing with complex tasks requiring overloaded tokens that frequently exceed the limit. For example, the question ”
+        <span class="ltx_text ltx_font_italic" id="S4.I1.i1.p1.1.2">
+         Compare traffic performance of I-5 between Monday and Sunday in last month.
+        </span>
+        ” requires querying a vast amount of minute-by-minute historical data in one month to summarize the traffic performance. This data volume cannot be processed by Bison causing the token limit error.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i2.p1">
+       <p class="ltx_p" id="S4.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i2.p1.1.1">
+         SQLCoder
+        </span>
+        : Defog’s SQLCoder-34B is implemented for text-to-SQL performance comparison as one of baselines. The model is constrained by its model size achieving the lowest solve rate. It could have been trained using the dataset that consists of MySQL-syntax samples other than MSSQL dialect, which is potentially the major factor of disadvantageous performance. However, SQLCoder provides great possibilities of future fine tuning to adapt to the specific domain due to its open-source origin.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i3.p1">
+       <p class="ltx_p" id="S4.I1.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i3.p1.1.1">
+         GPT-4 Turbo
+        </span>
+        : In order to compare TP-GPT with a model that is not limited by model size, we conducted experiments on the up-to-date GPT model, GPT-4 Turbo, which has the 128,000 token limit. This model is commonly regarded as the most powerful generative intelligence by the public for its extensive pre-trained knowledge in various domains, absolutely including transportation and SQL query programming. In the experiment, the fundamental prompt containing contextual information such as description of the expected role to perform, database setup, and table schema is input to the model’s memory. The result shows that GPT-4 Turbo achieves a better performance than PaLM 2, especially regarding the lower non-functional rate. The strong reasoning and coding capabilities enable the model to generate more executable SQL queries. However, obtaining flawless answers with correctly queried data is still challenging for its low solve rate compared to TP-GPT. A fair portion of queries are runnable yet do not properly answer the input questions.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i4.p1">
+       <p class="ltx_p" id="S4.I1.i4.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i4.p1.1.1">
+         TP-GPT
+        </span>
+        : Our innovative system TP-GPT, integrating intelligence-boosting strategies to regular GPT-4 model without need of fine-tuning, achieves the highest performance among powerful models. In experiments, TP-GPT is capable of crafting lengthy SQL statements within minutes and also interpreting data to answer tricky questions that require deduction and derivation. For example, TP-GPT tackles the question ”
+        <span class="ltx_text ltx_font_italic" id="S4.I1.i4.p1.1.2">
+         What is the difference in greenhouse gas emissions between weekdays and weekends in the last month?
+        </span>
+        ” by estimating emissions based on Vehicle Miles of Travel (VMT) using a conceptual formula.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p4">
+    <p class="ltx_p" id="S4.SS2.p4.1">
+     Several observations are captured during experiments that potentially account for the superior performance of TP-GPT over GPT-4 Turbo: 1) TP-GPT’s multi-agent strategy, especially the quality agent, enhances the query correctness by checking syntax errors. However, GPT-4 Turbo suffers from frequently executing incorrect queries without error checking. It also struggles to recognize the correct column name of a table even when the schema has been input; 2) TP-GPT’s implementation of Chain of Thought enables the model to revise the response in multiple rounds of iterative communication. On the contrary, GPT-4 Turbo merely processes data in a sequential flow without the review loop, which causes a lack of understanding of the database environment and content. It is unable to inspect if the query will successfully extract correct data, having the potential to obtain empty results; 3) As TP-GPT is prompted by few-shot examples consisting of template questions and queries, higher proficiency in generating certain SQL dialects (e.g., Microsoft SQL) is observed for the prior knowledge leaned from few-shot learning in consistent contexts. With the absence of this functional module, GPT-4 Turbo fluctuates its performance due to frequently caused errors converting date from string to timestamp in Microsoft SQL syntax.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS3.5.1.1">
+      IV-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS3.6.2">
+     Ablation Study
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     This section examines the impact of removing the crafted prompt, few-shot learning, and multi-agent strategy from the proposed TP-GPT on TransQuery. Questions in the benchmark are input to TP-GPT and its three variations, and each response is evaluated as non-functional, runnable but imperfect, or flawless as described in Section
+     <a class="ltx_ref" href="#S4.SS1" title="IV-A Experimental Setup ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       <span class="ltx_text">
+        IV-A
+       </span>
+      </span>
+     </a>
+     . The percentage of responses in each of these three categories among all responses is calculated for the models, of which the results are shown in Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ IV-C Ablation Study ‣ IV Experiments ‣ Traffic Performance GPT (TP-GPT): Real-Time Data Informed Intelligent ChatBot for Transportation Surveillance and Management">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . By comparing the flawless response rates, TP-GPT significantly outperforms the three variations, validating the effectiveness of incorporating each of modules embedded in TP-GPT.
+    </p>
+    <ul class="ltx_itemize" id="S4.I2">
+     <li class="ltx_item" id="S4.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I2.i1.p1">
+       <p class="ltx_p" id="S4.I2.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i1.p1.1.1">
+         Prompt
+        </span>
+        : The prompt elaborately customized for transportation-domain inquiry is essential to TP-GPT. The removal of prompt leads to a sudden drop in flawless response rate from 80% to 26%, due to a lack of contextual knowledge and performing role description.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I2.i2.p1">
+       <p class="ltx_p" id="S4.I2.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i2.p1.1.1">
+         Few-shot learning
+        </span>
+        : Few-shot learning has the least impact on TP-GPT among modules regarding response metrics. This is because it only affects answering questions highly similar to the exemplar. For most questions not relevant to example inventory, the responses are barely impacted.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I2.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I2.i3.p1">
+       <p class="ltx_p" id="S4.I2.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i3.p1.1.1">
+         Multi-agent strategy
+        </span>
+        : Multi-agent collaboration plays a vital role in TP-GPT, suggested by the decrease in flawless response rate to 44% when it is removed. Intuitively, the problem-solving process has multiple stages, where reviewing outputs, generating feedback, and creating thoughts iteratively are fundamental to producing accurate results. However, a sequential process with no reflection loop in this variation frequently results in misunderstanding of contexts, causing syntax errors, or extracting mistaken data.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <figure class="ltx_figure" id="S4.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="310" id="S4.F5.g1" src="/html/2405.03076/assets/Ablation.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     Ablation study of TP-GPT on TransQuery by removing prompts, few-shot learning, or multi-agent strategy
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    V
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S5.1.1">
+    Conclusions
+   </span>
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    The integration of Large Language Models (LLMs) into the domain of traffic management presents a transformative approach to addressing the complexities and challenges inherent in modern transportation systems. This paper has outlined the development of an intelligent traffic performance chatbot, TP-GPT, which leverages the power of real-time traffic data and the contextual understanding of LLMs to provide efficient, accurate, and privacy-preserving transportation surveillance and management.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    TP-GPT demonstrates a novel framework that can effectively navigate the vast and intricate traffic database landscapes to extract meaningful insights. It has great capabilities to understand contextual information and respond to inquiries in the transportation domain by transforming input texts into queries and converting data into detailed natural-language analysis reports leveraging extensive prior knowledge. TP-GPT employs Chain of Thought prompting for iterative query generation, a multi-agent strategy to optimize intermediate results, few-shot learning to enhance exemplar performance, and chat memory to improve interaction quality. The experimental study devices a challenging traffic-analysis benchmark TransQuery to compare the performance of TP-GPT with state-of-the-art baseline LLMs. Quantitative results show that TP-GPT significantly outperforms GPT-4 Turbo, PaLM 2, and SQLCoder, demonstrating its superior performance in resolving real-world transportation inquiry tasks. The ablation study validates the effectiveness of employed modules in TP-GPT. Furthermore, an intelligent online ChatBot empowered by TP-GPT is launched with an interactive web interface.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    Future studies will improve TP-GPT to have the ability to predict future traffic conditions based on historical data, by possibly integrating traffic forecasting models. Besides, location recognition could be further enhanced leveraging the visual intelligence of language models in analyzing maps.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Chang, X. Wang, J. Wang, Y. Wu, L. Yang, K. Zhu, H. Chen, X. Yi, C. Wang, and Y. Wang, “A survey on evaluation of large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      ACM Transactions on Intelligent Systems and Technology
+     </span>
+     , 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: ACM New York, NY.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     M. Fraiwan and N. Khasawneh, “A Review of ChatGPT Applications in Education, Marketing, Software Engineering, and Healthcare: Benefits, Drawbacks, and Research Directions,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2305.00237
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     S. Lai, Z. Xu, W. Zhang, H. Liu, and H. Xiong, “Large language models as traffic signal control agents: Capacity and opportunity,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2312.16044
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     L. Wang, H. Jiang, P. Cai, D. Fu, T. Wang, Z. Cui, Y. Ren, H. Yu, X. Wang, and Y. Wang, “AccidentGPT: Accident analysis and prevention from V2X Environmental Perception with Multi-modal Large Model,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2312.13156
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Ge, W. Hua, K. Mei, J. Tan, S. Xu, Z. Li, and Y. Zhang, “Openagi: When llm meets domain experts,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , vol. 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     O. Topsakal and T. C. Akinci, “Creating large language model applications utilizing langchain: A primer on developing llm apps fast,” vol. 1, pp. 1050–1056, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Issue: 1.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     X. Zhou, Z. Sun, and G. Li, “Db-gpt: Large language model meets database,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Data Science and Engineering
+     </span>
+     , pp. 1–10, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wang, Z. Cai, Y. Chen, P. Yang, and B. Chen, “An advanced control strategy for connected autonomous vehicles based on Micro simulation models at multiple intersections,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      Physica A: Statistical Mechanics and its Applications
+     </span>
+     , vol. 623, p. 128836, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Publisher: Elsevier.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     M. Villarreal, B. Poudel, and W. Li, “Can ChatGPT Enable ITS? The Case of Mixed Traffic Control via Reinforcement Learning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2306.08094
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     S. Zhang, D. Fu, W. Liang, Z. Zhang, B. Yu, P. Cai, and B. Yao, “TrafficGPT: Viewing, processing and interacting with traffic foundation models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      Transport Policy
+     </span>
+     , vol. 150, pp. 95–105, May 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Ren, Y. Chen, S. Liu, B. Wang, H. Yu, and Z. Cui, “TPLLM: A Traffic Prediction Framework Based on Pretrained Large Language Models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2403.02221
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     C. Sun, Y. Li, H. Li, and S. Hong, “TEST: Text prototype aligned embedding to activate LLM’s ability for time series,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2308.08241
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     C. Liu, S. Yang, Q. Xu, Z. Li, C. Long, Z. Li, and R. Zhao, “Spatial-temporal large language model for traffic prediction,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2401.10134
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     K. Rasul, A. Ashok, A. R. Williams, A. Khorasani, G. Adamopoulos, R. Bhagwatkar, M. Biloš, H. Ghonia, N. V. Hassen, and A. Schneider, “Lag-llama: Towards foundation models for time series forecasting,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2310.08278
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     M. Jin, S. Wang, L. Ma, Z. Chu, J. Y. Zhang, X. Shi, P.-Y. Chen, Y. Liang, Y.-F. Li, and S. Pan, “Time-llm: Time series forecasting by reprogramming large language models,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2310.01728
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     P. Wang, X. Wei, F. Hu, and W. Han, “TransGPT: Multi-modal Generative Pre-trained Transformer for Transportation,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2402.07233
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Tang, Z. Wang, A. Qu, Y. Yan, K. Hou, D. Zhuang, X. Guo, J. Zhao, Z. Zhao, and W. Ma, “Synergizing Spatial Optimization with Large Language Models for Open-Domain Urban Itinerary Planning,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      arXiv preprint arXiv:2402.07204
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     J. Li, B. Hui, G. Qu, J. Yang, B. Li, B. Li, B. Wang, B. Qin, R. Geng, N. Huo, X. Zhou, M. Chenhao, G. Li, K. Chang, F. Huang, R. Cheng, and Y. Li, “Can LLM Already Serve as A Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     (A. Oh, T. Neumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, eds.), vol. 36, pp. 42330–42357, Curran Associates, Inc., 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Hong, Z. Yuan, H. Chen, Q. Zhang, F. Huang, and X. Huang, “Knowledge-to-sql: Enhancing sql generation with data expert llm,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2402.11517
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Cai, X. Li, B. Hui, M. Yang, B. Li, B. Li, Z. Cao, W. Li, F. Huang, and L. Si, “Star: Sql guided pre-training for context-dependent text-to-sql parsing,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2210.11888
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Li and T. Xie, “Using llm to select the right sql query from candidates,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2401.02115
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Cui, M. Zhu, S. Wang, P. Wang, Y. Zhou, Q. Cao, C. Kopca, and Y. Wang, “Star lab traffic performance score platform,” 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Cui, M. Zhu, S. Wang, P. Wang, Y. Zhou, Q. Cao, C. Kopca, and Y. Wang, “Traffic performance score for measuring the impact of covid-19 on urban mobility,” 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wei, X. Wang, D. Schuurmans, M. Bosma, b. ichter, F. Xia, E. Chi, Q. V. Le, and D. Zhou, “Chain-of-thought prompting elicits reasoning in large language models,” in
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     (S. Koyejo, S. Mohamed, A. Agarwal, D. Belgrave, K. Cho, and A. Oh, eds.), vol. 35, pp. 24824–24837, Curran Associates, Inc., 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI, “New models and developer products announced at devday,” 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     R. Anil, A. M. Dai, O. Firat, M. Johnson, D. Lepikhin, A. Passos, S. Shakeri, E. Taropa, P. Bailey, Z. Chen,
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      et al.
+     </span>
+     , “Palm 2 technical report,”
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.2.2">
+      arXiv preprint arXiv:2305.10403
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     R. S. Wong Jing Ping, Wendy Aw, “Open-sourcing sqlcoder2-15b and sqlcoder-7b,” 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

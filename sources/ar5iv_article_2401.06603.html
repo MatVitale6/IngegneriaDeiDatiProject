@@ -1,0 +1,1781 @@
+<article class="ltx_document ltx_fleqn">
+ <h1 class="ltx_title ltx_title_document">
+  Mutual Enhancement of Large Language and Reinforcement Learning Models through Bi-Directional Feedback Mechanisms: A Case Study
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Shangding Gu
+    <sup class="ltx_sup" id="id2.2.id1">
+     <span class="ltx_text ltx_font_italic" id="id2.2.id1.1">
+      ∗
+     </span>
+    </sup>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id3.id1">
+   Large Language Models (LLMs) have demonstrated remarkable capabilities for reinforcement learning (RL) models, such as planning and reasoning capabilities. However, the problems of LLMs and RL model collaboration still need to be solved. In this study, we employ a teacher-student learning framework to tackle these problems, specifically by offering feedback for LLMs using RL models and providing high-level information for RL models with LLMs in a cooperative multi-agent setting. Within this framework, the LLM acts as a teacher, while the RL model acts as a student. The two agents cooperatively assist each other through a process of
+   <span class="ltx_text ltx_font_italic" id="id3.id1.1">
+    recursive help
+   </span>
+   , such as ”I help you help I help.” The LLM agent supplies abstract information to the RL agent, enabling efficient exploration and policy improvement. In turn, the RL agent offers feedback to the LLM agent, providing valuable, real-time information that helps generate more useful tokens. This bi-directional feedback loop promotes optimization, exploration, and mutual improvement for both agents, enabling them to accomplish increasingly challenging tasks. Remarkably, we propose a practical algorithm to address the problem and conduct empirical experiments to evaluate the effectiveness of our method.
+  </p>
+ </div>
+ <div class="ltx_classification">
+  <h6 class="ltx_title ltx_title_classification">
+   keywords:
+  </h6>
+  Large Language Model; Reinforcement Learning Model; Cooperative Game; Bi-Directional Feedback.
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large Language Models (LLMs)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      openai2023gpt4
+     </span>
+     ,
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      chang2023survey
+     </span>
+     ]
+    </cite>
+    have showcased exceptional prowess across various domains. Notably, LLMs find applications in furnishing information for tasks like robot planning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      singh2023progprompt
+     </span>
+     ]
+    </cite>
+    , machine translation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      zhang2023prompting
+     </span>
+     ]
+    </cite>
+    and medicine
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      thirunavukarasu2023large
+     </span>
+     ]
+    </cite>
+    . In parallel, RL has demonstrated remarkable capabilities in various domains, including achieving human-level performance in games such as the game of Go
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      silver2016mastering
+     </span>
+     ]
+    </cite>
+    and multiplayer poker
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      brown2019superhuman
+     </span>
+     ]
+    </cite>
+    . LLMs have been increasingly incorporated to enhance the performance of Reinforcement Learning (RL)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      du2023guiding
+     </span>
+     ,
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      szot2023large
+     </span>
+     ]
+    </cite>
+    . Likewise, RL has also been employed to augment the capabilities of LLMs, furthering their effectiveness
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      ouyang2022training
+     </span>
+     ]
+    </cite>
+    .
+Nevertheless, the effective harnessing of LLMs’ latent potential in solving complex tasks, through the synergistic integration with powerful RL frameworks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      sutton2018reinforcement
+     </span>
+     ]
+    </cite>
+    , remains a formidable challenge.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    The research most related to our study includes the works of
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.1">
+     Carta et al.
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      carta2023grounding
+     </span>
+     ]
+    </cite>
+    and
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.2">
+     Tran et al.
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      tran2023exploring
+     </span>
+     ]
+    </cite>
+    . In the work of
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.3">
+     Carta et al.
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      carta2023grounding
+     </span>
+     ]
+    </cite>
+    , they employ LLMs as RL policies to acquire task-solving capabilities while learning new knowledge through interactive experiences. Their experimental findings suggest that their method outperforms baseline approaches. However, a potential limitation of their work is the absence of instruction feedback from RL models, which may impact the overall effectiveness of their method. In the work of
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.4">
+     Tran et al.
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      tran2023exploring
+     </span>
+     ]
+    </cite>
+    , they deploy RL to train a conversational agent using a simulator and an initial text generated by a generative chat agent. Subsequently, they input the data from the RL-trained agent to the generative chat agent. Although their experiment results indicate that their method performs better than baselines, a concern of this approach is the potential time consumption associated with RL training for multi-turn conversations, as each conversation may necessitate RL training requests. Additionally, achieving self-online learning for task execution could be challenging in this framework.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    In this study, to address the above challenge, we propose a teacher-student learning framework in a cooperative game, where the integration of RL models (students) and LLMs (teachers) with bi-directional feedback
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      gu2023human
+     </span>
+     ]
+    </cite>
+    may be an effective solution. The two models cooperatively to carry out complex tasks, which can be considered a win-win collaboration, where the RL model and the LLM act as two agents, cooperating to complement, assist, and provide feedback to each other, ultimately solving the problem together.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Method
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    In this section, we introduce a teacher-student learning framework with bi-directional feedback, wherein a synergistic partnership between an LLM and an RL model is employed to tackle tasks collaboratively. As illustrated in Figure
+    <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 Method ‣ Mutual Enhancement of Large Language and Reinforcement Learning Models through Bi-Directional Feedback Mechanisms: A Case Study">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , these two models operate in tandem, with mutual support, ultimately enabling successful task completion
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       We use a TD error as an estimator for the case’s advantage function.
+      </span>
+     </span>
+    </span>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p2.1.1">
+     LLMs (teachers) help RL models (students)
+    </span>
+    :
+While it is often challenging for LLMs to provide instructions encompassing perfect and comprehensive environmental information, LLMs can supply RL models with approximated information. Providing such rudimentary guidance by LLMs serves the purpose of streamlining the exploration process undertaken by RL models. Consequently, this streamlined exploration process yields a discernible reduction in the exploration space and the time required for RL models to ascertain and establish an optimal policy. This phenomenon underscores the potential utility of LLMs in mitigating the challenges associated with imperfect instructional input, thereby contributing to the enhanced efficiency of RL models in their quest to identify optimal policies.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p3.1.1">
+     RL models (students) help LLMs (teachers)
+    </span>
+    :
+During the execution of a policy within the RL framework, RL models benefit from the support provided by LLMs. In this collaborative process, RL models are not only recipients but also evaluators of the output generated by LLMs. This reciprocal interaction allows RL models to offer constructive feedback to LLMs, thereby facilitating an iterative refinement of LLMs’ performance. LLMs progressively acquire a more nuanced understanding of the underlying environments with the progression of iterations. Consequently, they become increasingly adept at furnishing improved output, which aids RL models and LLMs in executing complex tasks with greater efficacy. This iterative and symbiotic relationship between RL models and LLMs emphasizes the potential for continuous improvement and optimization in their collaborative endeavors. The corresponding practical algorithm is provided in Algorithm
+    <a class="ltx_ref" href="#alg1" title="In 2 Method ‣ Mutual Enhancement of Large Language and Reinforcement Learning Models through Bi-Directional Feedback Mechanisms: A Case Study">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F1">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_square" height="161" id="S2.F1.g1" src="/html/2401.06603/assets/x1.png" width="180"/>
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" height="179" id="S2.F1.g2" src="/html/2401.06603/assets/x2.png" width="253"/>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S2.F1.2.1.1" style="font-size:90%;">
+      Figure 1
+     </span>
+     :
+    </span>
+    An LLM and an RL model collaboratively engage with an environment to accomplish complex tasks, facilitating bi-directional feedback throughout the process.
+   </figcaption>
+  </figure>
+  <figure class="ltx_float ltx_algorithm" id="alg1">
+   <div class="ltx_listing ltx_lst_numbers_left ltx_listing" id="alg1.2">
+    <div class="ltx_listingline" id="alg1.2.1">
+     <div class="ltx_listing ltx_listing" id="alg1.2.1.1">
+      <div class="ltx_listingline" id="alg1.l1">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l1.1.1.1" style="font-size:80%;">
+         1:
+        </span>
+       </span>
+       Initial Q value
+       <math alttext="Q_{\theta_{0}}" class="ltx_Math" display="inline" id="alg1.l1.m1.1">
+        <semantics id="alg1.l1.m1.1a">
+         <msub id="alg1.l1.m1.1.1" xref="alg1.l1.m1.1.1.cmml">
+          <mi id="alg1.l1.m1.1.1.2" xref="alg1.l1.m1.1.1.2.cmml">
+           Q
+          </mi>
+          <msub id="alg1.l1.m1.1.1.3" xref="alg1.l1.m1.1.1.3.cmml">
+           <mi id="alg1.l1.m1.1.1.3.2" xref="alg1.l1.m1.1.1.3.2.cmml">
+            θ
+           </mi>
+           <mn id="alg1.l1.m1.1.1.3.3" xref="alg1.l1.m1.1.1.3.3.cmml">
+            0
+           </mn>
+          </msub>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m1.1b">
+          <apply id="alg1.l1.m1.1.1.cmml" xref="alg1.l1.m1.1.1">
+           <csymbol cd="ambiguous" id="alg1.l1.m1.1.1.1.cmml" xref="alg1.l1.m1.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m1.1.1.2.cmml" xref="alg1.l1.m1.1.1.2">
+            𝑄
+           </ci>
+           <apply id="alg1.l1.m1.1.1.3.cmml" xref="alg1.l1.m1.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l1.m1.1.1.3.1.cmml" xref="alg1.l1.m1.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l1.m1.1.1.3.2.cmml" xref="alg1.l1.m1.1.1.3.2">
+             𝜃
+            </ci>
+            <cn id="alg1.l1.m1.1.1.3.3.cmml" type="integer" xref="alg1.l1.m1.1.1.3.3">
+             0
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m1.1c">
+          Q_{\theta_{0}}
+         </annotation>
+        </semantics>
+       </math>
+       , V value
+       <math alttext="V_{\phi_{0}}" class="ltx_Math" display="inline" id="alg1.l1.m2.1">
+        <semantics id="alg1.l1.m2.1a">
+         <msub id="alg1.l1.m2.1.1" xref="alg1.l1.m2.1.1.cmml">
+          <mi id="alg1.l1.m2.1.1.2" xref="alg1.l1.m2.1.1.2.cmml">
+           V
+          </mi>
+          <msub id="alg1.l1.m2.1.1.3" xref="alg1.l1.m2.1.1.3.cmml">
+           <mi id="alg1.l1.m2.1.1.3.2" xref="alg1.l1.m2.1.1.3.2.cmml">
+            ϕ
+           </mi>
+           <mn id="alg1.l1.m2.1.1.3.3" xref="alg1.l1.m2.1.1.3.3.cmml">
+            0
+           </mn>
+          </msub>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m2.1b">
+          <apply id="alg1.l1.m2.1.1.cmml" xref="alg1.l1.m2.1.1">
+           <csymbol cd="ambiguous" id="alg1.l1.m2.1.1.1.cmml" xref="alg1.l1.m2.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m2.1.1.2.cmml" xref="alg1.l1.m2.1.1.2">
+            𝑉
+           </ci>
+           <apply id="alg1.l1.m2.1.1.3.cmml" xref="alg1.l1.m2.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l1.m2.1.1.3.1.cmml" xref="alg1.l1.m2.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l1.m2.1.1.3.2.cmml" xref="alg1.l1.m2.1.1.3.2">
+             italic-ϕ
+            </ci>
+            <cn id="alg1.l1.m2.1.1.3.3.cmml" type="integer" xref="alg1.l1.m2.1.1.3.3">
+             0
+            </cn>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m2.1c">
+          V_{\phi_{0}}
+         </annotation>
+        </semantics>
+       </math>
+       , and advantage function value
+       <math alttext="A_{0}^{P}=Q_{\theta_{0}}-V_{\phi_{0}}" class="ltx_Math" display="inline" id="alg1.l1.m3.1">
+        <semantics id="alg1.l1.m3.1a">
+         <mrow id="alg1.l1.m3.1.1" xref="alg1.l1.m3.1.1.cmml">
+          <msubsup id="alg1.l1.m3.1.1.2" xref="alg1.l1.m3.1.1.2.cmml">
+           <mi id="alg1.l1.m3.1.1.2.2.2" xref="alg1.l1.m3.1.1.2.2.2.cmml">
+            A
+           </mi>
+           <mn id="alg1.l1.m3.1.1.2.2.3" xref="alg1.l1.m3.1.1.2.2.3.cmml">
+            0
+           </mn>
+           <mi id="alg1.l1.m3.1.1.2.3" xref="alg1.l1.m3.1.1.2.3.cmml">
+            P
+           </mi>
+          </msubsup>
+          <mo id="alg1.l1.m3.1.1.1" xref="alg1.l1.m3.1.1.1.cmml">
+           =
+          </mo>
+          <mrow id="alg1.l1.m3.1.1.3" xref="alg1.l1.m3.1.1.3.cmml">
+           <msub id="alg1.l1.m3.1.1.3.2" xref="alg1.l1.m3.1.1.3.2.cmml">
+            <mi id="alg1.l1.m3.1.1.3.2.2" xref="alg1.l1.m3.1.1.3.2.2.cmml">
+             Q
+            </mi>
+            <msub id="alg1.l1.m3.1.1.3.2.3" xref="alg1.l1.m3.1.1.3.2.3.cmml">
+             <mi id="alg1.l1.m3.1.1.3.2.3.2" xref="alg1.l1.m3.1.1.3.2.3.2.cmml">
+              θ
+             </mi>
+             <mn id="alg1.l1.m3.1.1.3.2.3.3" xref="alg1.l1.m3.1.1.3.2.3.3.cmml">
+              0
+             </mn>
+            </msub>
+           </msub>
+           <mo id="alg1.l1.m3.1.1.3.1" xref="alg1.l1.m3.1.1.3.1.cmml">
+            −
+           </mo>
+           <msub id="alg1.l1.m3.1.1.3.3" xref="alg1.l1.m3.1.1.3.3.cmml">
+            <mi id="alg1.l1.m3.1.1.3.3.2" xref="alg1.l1.m3.1.1.3.3.2.cmml">
+             V
+            </mi>
+            <msub id="alg1.l1.m3.1.1.3.3.3" xref="alg1.l1.m3.1.1.3.3.3.cmml">
+             <mi id="alg1.l1.m3.1.1.3.3.3.2" xref="alg1.l1.m3.1.1.3.3.3.2.cmml">
+              ϕ
+             </mi>
+             <mn id="alg1.l1.m3.1.1.3.3.3.3" xref="alg1.l1.m3.1.1.3.3.3.3.cmml">
+              0
+             </mn>
+            </msub>
+           </msub>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m3.1b">
+          <apply id="alg1.l1.m3.1.1.cmml" xref="alg1.l1.m3.1.1">
+           <eq id="alg1.l1.m3.1.1.1.cmml" xref="alg1.l1.m3.1.1.1">
+           </eq>
+           <apply id="alg1.l1.m3.1.1.2.cmml" xref="alg1.l1.m3.1.1.2">
+            <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.2.1.cmml" xref="alg1.l1.m3.1.1.2">
+             superscript
+            </csymbol>
+            <apply id="alg1.l1.m3.1.1.2.2.cmml" xref="alg1.l1.m3.1.1.2">
+             <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.2.2.1.cmml" xref="alg1.l1.m3.1.1.2">
+              subscript
+             </csymbol>
+             <ci id="alg1.l1.m3.1.1.2.2.2.cmml" xref="alg1.l1.m3.1.1.2.2.2">
+              𝐴
+             </ci>
+             <cn id="alg1.l1.m3.1.1.2.2.3.cmml" type="integer" xref="alg1.l1.m3.1.1.2.2.3">
+              0
+             </cn>
+            </apply>
+            <ci id="alg1.l1.m3.1.1.2.3.cmml" xref="alg1.l1.m3.1.1.2.3">
+             𝑃
+            </ci>
+           </apply>
+           <apply id="alg1.l1.m3.1.1.3.cmml" xref="alg1.l1.m3.1.1.3">
+            <minus id="alg1.l1.m3.1.1.3.1.cmml" xref="alg1.l1.m3.1.1.3.1">
+            </minus>
+            <apply id="alg1.l1.m3.1.1.3.2.cmml" xref="alg1.l1.m3.1.1.3.2">
+             <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.3.2.1.cmml" xref="alg1.l1.m3.1.1.3.2">
+              subscript
+             </csymbol>
+             <ci id="alg1.l1.m3.1.1.3.2.2.cmml" xref="alg1.l1.m3.1.1.3.2.2">
+              𝑄
+             </ci>
+             <apply id="alg1.l1.m3.1.1.3.2.3.cmml" xref="alg1.l1.m3.1.1.3.2.3">
+              <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.3.2.3.1.cmml" xref="alg1.l1.m3.1.1.3.2.3">
+               subscript
+              </csymbol>
+              <ci id="alg1.l1.m3.1.1.3.2.3.2.cmml" xref="alg1.l1.m3.1.1.3.2.3.2">
+               𝜃
+              </ci>
+              <cn id="alg1.l1.m3.1.1.3.2.3.3.cmml" type="integer" xref="alg1.l1.m3.1.1.3.2.3.3">
+               0
+              </cn>
+             </apply>
+            </apply>
+            <apply id="alg1.l1.m3.1.1.3.3.cmml" xref="alg1.l1.m3.1.1.3.3">
+             <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.3.3.1.cmml" xref="alg1.l1.m3.1.1.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l1.m3.1.1.3.3.2.cmml" xref="alg1.l1.m3.1.1.3.3.2">
+              𝑉
+             </ci>
+             <apply id="alg1.l1.m3.1.1.3.3.3.cmml" xref="alg1.l1.m3.1.1.3.3.3">
+              <csymbol cd="ambiguous" id="alg1.l1.m3.1.1.3.3.3.1.cmml" xref="alg1.l1.m3.1.1.3.3.3">
+               subscript
+              </csymbol>
+              <ci id="alg1.l1.m3.1.1.3.3.3.2.cmml" xref="alg1.l1.m3.1.1.3.3.3.2">
+               italic-ϕ
+              </ci>
+              <cn id="alg1.l1.m3.1.1.3.3.3.3.cmml" type="integer" xref="alg1.l1.m3.1.1.3.3.3.3">
+               0
+              </cn>
+             </apply>
+            </apply>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m3.1c">
+          A_{0}^{P}=Q_{\theta_{0}}-V_{\phi_{0}}
+         </annotation>
+        </semantics>
+       </math>
+       , state
+       <math alttext="s_{0}" class="ltx_Math" display="inline" id="alg1.l1.m4.1">
+        <semantics id="alg1.l1.m4.1a">
+         <msub id="alg1.l1.m4.1.1" xref="alg1.l1.m4.1.1.cmml">
+          <mi id="alg1.l1.m4.1.1.2" xref="alg1.l1.m4.1.1.2.cmml">
+           s
+          </mi>
+          <mn id="alg1.l1.m4.1.1.3" xref="alg1.l1.m4.1.1.3.cmml">
+           0
+          </mn>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m4.1b">
+          <apply id="alg1.l1.m4.1.1.cmml" xref="alg1.l1.m4.1.1">
+           <csymbol cd="ambiguous" id="alg1.l1.m4.1.1.1.cmml" xref="alg1.l1.m4.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m4.1.1.2.cmml" xref="alg1.l1.m4.1.1.2">
+            𝑠
+           </ci>
+           <cn id="alg1.l1.m4.1.1.3.cmml" type="integer" xref="alg1.l1.m4.1.1.3">
+            0
+           </cn>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m4.1c">
+          s_{0}
+         </annotation>
+        </semantics>
+       </math>
+       , action
+       <math alttext="a_{0}" class="ltx_Math" display="inline" id="alg1.l1.m5.1">
+        <semantics id="alg1.l1.m5.1a">
+         <msub id="alg1.l1.m5.1.1" xref="alg1.l1.m5.1.1.cmml">
+          <mi id="alg1.l1.m5.1.1.2" xref="alg1.l1.m5.1.1.2.cmml">
+           a
+          </mi>
+          <mn id="alg1.l1.m5.1.1.3" xref="alg1.l1.m5.1.1.3.cmml">
+           0
+          </mn>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m5.1b">
+          <apply id="alg1.l1.m5.1.1.cmml" xref="alg1.l1.m5.1.1">
+           <csymbol cd="ambiguous" id="alg1.l1.m5.1.1.1.cmml" xref="alg1.l1.m5.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m5.1.1.2.cmml" xref="alg1.l1.m5.1.1.2">
+            𝑎
+           </ci>
+           <cn id="alg1.l1.m5.1.1.3.cmml" type="integer" xref="alg1.l1.m5.1.1.3">
+            0
+           </cn>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m5.1c">
+          a_{0}
+         </annotation>
+        </semantics>
+       </math>
+       , token
+       <math alttext="x_{0}" class="ltx_Math" display="inline" id="alg1.l1.m6.1">
+        <semantics id="alg1.l1.m6.1a">
+         <msub id="alg1.l1.m6.1.1" xref="alg1.l1.m6.1.1.cmml">
+          <mi id="alg1.l1.m6.1.1.2" xref="alg1.l1.m6.1.1.2.cmml">
+           x
+          </mi>
+          <mn id="alg1.l1.m6.1.1.3" xref="alg1.l1.m6.1.1.3.cmml">
+           0
+          </mn>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l1.m6.1b">
+          <apply id="alg1.l1.m6.1.1.cmml" xref="alg1.l1.m6.1.1">
+           <csymbol cd="ambiguous" id="alg1.l1.m6.1.1.1.cmml" xref="alg1.l1.m6.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l1.m6.1.1.2.cmml" xref="alg1.l1.m6.1.1.2">
+            𝑥
+           </ci>
+           <cn id="alg1.l1.m6.1.1.3.cmml" type="integer" xref="alg1.l1.m6.1.1.3">
+            0
+           </cn>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l1.m6.1c">
+          x_{0}
+         </annotation>
+        </semantics>
+       </math>
+       .
+      </div>
+      <div class="ltx_listingline" id="alg1.l2">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l2.1.1.1" style="font-size:80%;">
+         2:
+        </span>
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l2.2">
+        for
+       </span>
+       <math alttext="t=0,1,\dots,T" class="ltx_Math" display="inline" id="alg1.l2.m1.4">
+        <semantics id="alg1.l2.m1.4a">
+         <mrow id="alg1.l2.m1.4.5" xref="alg1.l2.m1.4.5.cmml">
+          <mi id="alg1.l2.m1.4.5.2" xref="alg1.l2.m1.4.5.2.cmml">
+           t
+          </mi>
+          <mo id="alg1.l2.m1.4.5.1" xref="alg1.l2.m1.4.5.1.cmml">
+           =
+          </mo>
+          <mrow id="alg1.l2.m1.4.5.3.2" xref="alg1.l2.m1.4.5.3.1.cmml">
+           <mn id="alg1.l2.m1.1.1" xref="alg1.l2.m1.1.1.cmml">
+            0
+           </mn>
+           <mo id="alg1.l2.m1.4.5.3.2.1" xref="alg1.l2.m1.4.5.3.1.cmml">
+            ,
+           </mo>
+           <mn id="alg1.l2.m1.2.2" xref="alg1.l2.m1.2.2.cmml">
+            1
+           </mn>
+           <mo id="alg1.l2.m1.4.5.3.2.2" xref="alg1.l2.m1.4.5.3.1.cmml">
+            ,
+           </mo>
+           <mi id="alg1.l2.m1.3.3" mathvariant="normal" xref="alg1.l2.m1.3.3.cmml">
+            …
+           </mi>
+           <mo id="alg1.l2.m1.4.5.3.2.3" xref="alg1.l2.m1.4.5.3.1.cmml">
+            ,
+           </mo>
+           <mi id="alg1.l2.m1.4.4" xref="alg1.l2.m1.4.4.cmml">
+            T
+           </mi>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l2.m1.4b">
+          <apply id="alg1.l2.m1.4.5.cmml" xref="alg1.l2.m1.4.5">
+           <eq id="alg1.l2.m1.4.5.1.cmml" xref="alg1.l2.m1.4.5.1">
+           </eq>
+           <ci id="alg1.l2.m1.4.5.2.cmml" xref="alg1.l2.m1.4.5.2">
+            𝑡
+           </ci>
+           <list id="alg1.l2.m1.4.5.3.1.cmml" xref="alg1.l2.m1.4.5.3.2">
+            <cn id="alg1.l2.m1.1.1.cmml" type="integer" xref="alg1.l2.m1.1.1">
+             0
+            </cn>
+            <cn id="alg1.l2.m1.2.2.cmml" type="integer" xref="alg1.l2.m1.2.2">
+             1
+            </cn>
+            <ci id="alg1.l2.m1.3.3.cmml" xref="alg1.l2.m1.3.3">
+             …
+            </ci>
+            <ci id="alg1.l2.m1.4.4.cmml" xref="alg1.l2.m1.4.4">
+             𝑇
+            </ci>
+           </list>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l2.m1.4c">
+          t=0,1,\dots,T
+         </annotation>
+        </semantics>
+       </math>
+       <span class="ltx_text ltx_font_bold" id="alg1.l2.3">
+        do
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l3">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l3.1.1.1" style="font-size:80%;">
+         3:
+        </span>
+       </span>
+       Conduct tasks with an RL model
+       <math alttext="P_{\theta_{t}}(a_{t}\mid x_{t},s_{t})" class="ltx_Math" display="inline" id="alg1.l3.m1.1">
+        <semantics id="alg1.l3.m1.1a">
+         <mrow id="alg1.l3.m1.1.1" xref="alg1.l3.m1.1.1.cmml">
+          <msub id="alg1.l3.m1.1.1.3" xref="alg1.l3.m1.1.1.3.cmml">
+           <mi id="alg1.l3.m1.1.1.3.2" xref="alg1.l3.m1.1.1.3.2.cmml">
+            P
+           </mi>
+           <msub id="alg1.l3.m1.1.1.3.3" xref="alg1.l3.m1.1.1.3.3.cmml">
+            <mi id="alg1.l3.m1.1.1.3.3.2" xref="alg1.l3.m1.1.1.3.3.2.cmml">
+             θ
+            </mi>
+            <mi id="alg1.l3.m1.1.1.3.3.3" xref="alg1.l3.m1.1.1.3.3.3.cmml">
+             t
+            </mi>
+           </msub>
+          </msub>
+          <mo id="alg1.l3.m1.1.1.2" lspace="0em" rspace="0em" xref="alg1.l3.m1.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l3.m1.1.1.1.1" xref="alg1.l3.m1.1.1.1.1.1.cmml">
+           <mo id="alg1.l3.m1.1.1.1.1.2" stretchy="false" xref="alg1.l3.m1.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="alg1.l3.m1.1.1.1.1.1" xref="alg1.l3.m1.1.1.1.1.1.cmml">
+            <msub id="alg1.l3.m1.1.1.1.1.1.4" xref="alg1.l3.m1.1.1.1.1.1.4.cmml">
+             <mi id="alg1.l3.m1.1.1.1.1.1.4.2" xref="alg1.l3.m1.1.1.1.1.1.4.2.cmml">
+              a
+             </mi>
+             <mi id="alg1.l3.m1.1.1.1.1.1.4.3" xref="alg1.l3.m1.1.1.1.1.1.4.3.cmml">
+              t
+             </mi>
+            </msub>
+            <mo id="alg1.l3.m1.1.1.1.1.1.3" xref="alg1.l3.m1.1.1.1.1.1.3.cmml">
+             ∣
+            </mo>
+            <mrow id="alg1.l3.m1.1.1.1.1.1.2.2" xref="alg1.l3.m1.1.1.1.1.1.2.3.cmml">
+             <msub id="alg1.l3.m1.1.1.1.1.1.1.1.1" xref="alg1.l3.m1.1.1.1.1.1.1.1.1.cmml">
+              <mi id="alg1.l3.m1.1.1.1.1.1.1.1.1.2" xref="alg1.l3.m1.1.1.1.1.1.1.1.1.2.cmml">
+               x
+              </mi>
+              <mi id="alg1.l3.m1.1.1.1.1.1.1.1.1.3" xref="alg1.l3.m1.1.1.1.1.1.1.1.1.3.cmml">
+               t
+              </mi>
+             </msub>
+             <mo id="alg1.l3.m1.1.1.1.1.1.2.2.3" xref="alg1.l3.m1.1.1.1.1.1.2.3.cmml">
+              ,
+             </mo>
+             <msub id="alg1.l3.m1.1.1.1.1.1.2.2.2" xref="alg1.l3.m1.1.1.1.1.1.2.2.2.cmml">
+              <mi id="alg1.l3.m1.1.1.1.1.1.2.2.2.2" xref="alg1.l3.m1.1.1.1.1.1.2.2.2.2.cmml">
+               s
+              </mi>
+              <mi id="alg1.l3.m1.1.1.1.1.1.2.2.2.3" xref="alg1.l3.m1.1.1.1.1.1.2.2.2.3.cmml">
+               t
+              </mi>
+             </msub>
+            </mrow>
+           </mrow>
+           <mo id="alg1.l3.m1.1.1.1.1.3" stretchy="false" xref="alg1.l3.m1.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l3.m1.1b">
+          <apply id="alg1.l3.m1.1.1.cmml" xref="alg1.l3.m1.1.1">
+           <times id="alg1.l3.m1.1.1.2.cmml" xref="alg1.l3.m1.1.1.2">
+           </times>
+           <apply id="alg1.l3.m1.1.1.3.cmml" xref="alg1.l3.m1.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l3.m1.1.1.3.1.cmml" xref="alg1.l3.m1.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l3.m1.1.1.3.2.cmml" xref="alg1.l3.m1.1.1.3.2">
+             𝑃
+            </ci>
+            <apply id="alg1.l3.m1.1.1.3.3.cmml" xref="alg1.l3.m1.1.1.3.3">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.1.1.3.3.1.cmml" xref="alg1.l3.m1.1.1.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.1.1.3.3.2.cmml" xref="alg1.l3.m1.1.1.3.3.2">
+              𝜃
+             </ci>
+             <ci id="alg1.l3.m1.1.1.3.3.3.cmml" xref="alg1.l3.m1.1.1.3.3.3">
+              𝑡
+             </ci>
+            </apply>
+           </apply>
+           <apply id="alg1.l3.m1.1.1.1.1.1.cmml" xref="alg1.l3.m1.1.1.1.1">
+            <csymbol cd="latexml" id="alg1.l3.m1.1.1.1.1.1.3.cmml" xref="alg1.l3.m1.1.1.1.1.1.3">
+             conditional
+            </csymbol>
+            <apply id="alg1.l3.m1.1.1.1.1.1.4.cmml" xref="alg1.l3.m1.1.1.1.1.1.4">
+             <csymbol cd="ambiguous" id="alg1.l3.m1.1.1.1.1.1.4.1.cmml" xref="alg1.l3.m1.1.1.1.1.1.4">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m1.1.1.1.1.1.4.2.cmml" xref="alg1.l3.m1.1.1.1.1.1.4.2">
+              𝑎
+             </ci>
+             <ci id="alg1.l3.m1.1.1.1.1.1.4.3.cmml" xref="alg1.l3.m1.1.1.1.1.1.4.3">
+              𝑡
+             </ci>
+            </apply>
+            <list id="alg1.l3.m1.1.1.1.1.1.2.3.cmml" xref="alg1.l3.m1.1.1.1.1.1.2.2">
+             <apply id="alg1.l3.m1.1.1.1.1.1.1.1.1.cmml" xref="alg1.l3.m1.1.1.1.1.1.1.1.1">
+              <csymbol cd="ambiguous" id="alg1.l3.m1.1.1.1.1.1.1.1.1.1.cmml" xref="alg1.l3.m1.1.1.1.1.1.1.1.1">
+               subscript
+              </csymbol>
+              <ci id="alg1.l3.m1.1.1.1.1.1.1.1.1.2.cmml" xref="alg1.l3.m1.1.1.1.1.1.1.1.1.2">
+               𝑥
+              </ci>
+              <ci id="alg1.l3.m1.1.1.1.1.1.1.1.1.3.cmml" xref="alg1.l3.m1.1.1.1.1.1.1.1.1.3">
+               𝑡
+              </ci>
+             </apply>
+             <apply id="alg1.l3.m1.1.1.1.1.1.2.2.2.cmml" xref="alg1.l3.m1.1.1.1.1.1.2.2.2">
+              <csymbol cd="ambiguous" id="alg1.l3.m1.1.1.1.1.1.2.2.2.1.cmml" xref="alg1.l3.m1.1.1.1.1.1.2.2.2">
+               subscript
+              </csymbol>
+              <ci id="alg1.l3.m1.1.1.1.1.1.2.2.2.2.cmml" xref="alg1.l3.m1.1.1.1.1.1.2.2.2.2">
+               𝑠
+              </ci>
+              <ci id="alg1.l3.m1.1.1.1.1.1.2.2.2.3.cmml" xref="alg1.l3.m1.1.1.1.1.1.2.2.2.3">
+               𝑡
+              </ci>
+             </apply>
+            </list>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l3.m1.1c">
+          P_{\theta_{t}}(a_{t}\mid x_{t},s_{t})
+         </annotation>
+        </semantics>
+       </math>
+       and an LLM
+       <math alttext="M(x_{t}\mid s_{t})" class="ltx_Math" display="inline" id="alg1.l3.m2.1">
+        <semantics id="alg1.l3.m2.1a">
+         <mrow id="alg1.l3.m2.1.1" xref="alg1.l3.m2.1.1.cmml">
+          <mi id="alg1.l3.m2.1.1.3" xref="alg1.l3.m2.1.1.3.cmml">
+           M
+          </mi>
+          <mo id="alg1.l3.m2.1.1.2" lspace="0em" rspace="0em" xref="alg1.l3.m2.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l3.m2.1.1.1.1" xref="alg1.l3.m2.1.1.1.1.1.cmml">
+           <mo id="alg1.l3.m2.1.1.1.1.2" stretchy="false" xref="alg1.l3.m2.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="alg1.l3.m2.1.1.1.1.1" xref="alg1.l3.m2.1.1.1.1.1.cmml">
+            <msub id="alg1.l3.m2.1.1.1.1.1.2" xref="alg1.l3.m2.1.1.1.1.1.2.cmml">
+             <mi id="alg1.l3.m2.1.1.1.1.1.2.2" xref="alg1.l3.m2.1.1.1.1.1.2.2.cmml">
+              x
+             </mi>
+             <mi id="alg1.l3.m2.1.1.1.1.1.2.3" xref="alg1.l3.m2.1.1.1.1.1.2.3.cmml">
+              t
+             </mi>
+            </msub>
+            <mo id="alg1.l3.m2.1.1.1.1.1.1" xref="alg1.l3.m2.1.1.1.1.1.1.cmml">
+             ∣
+            </mo>
+            <msub id="alg1.l3.m2.1.1.1.1.1.3" xref="alg1.l3.m2.1.1.1.1.1.3.cmml">
+             <mi id="alg1.l3.m2.1.1.1.1.1.3.2" xref="alg1.l3.m2.1.1.1.1.1.3.2.cmml">
+              s
+             </mi>
+             <mi id="alg1.l3.m2.1.1.1.1.1.3.3" xref="alg1.l3.m2.1.1.1.1.1.3.3.cmml">
+              t
+             </mi>
+            </msub>
+           </mrow>
+           <mo id="alg1.l3.m2.1.1.1.1.3" stretchy="false" xref="alg1.l3.m2.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l3.m2.1b">
+          <apply id="alg1.l3.m2.1.1.cmml" xref="alg1.l3.m2.1.1">
+           <times id="alg1.l3.m2.1.1.2.cmml" xref="alg1.l3.m2.1.1.2">
+           </times>
+           <ci id="alg1.l3.m2.1.1.3.cmml" xref="alg1.l3.m2.1.1.3">
+            𝑀
+           </ci>
+           <apply id="alg1.l3.m2.1.1.1.1.1.cmml" xref="alg1.l3.m2.1.1.1.1">
+            <csymbol cd="latexml" id="alg1.l3.m2.1.1.1.1.1.1.cmml" xref="alg1.l3.m2.1.1.1.1.1.1">
+             conditional
+            </csymbol>
+            <apply id="alg1.l3.m2.1.1.1.1.1.2.cmml" xref="alg1.l3.m2.1.1.1.1.1.2">
+             <csymbol cd="ambiguous" id="alg1.l3.m2.1.1.1.1.1.2.1.cmml" xref="alg1.l3.m2.1.1.1.1.1.2">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m2.1.1.1.1.1.2.2.cmml" xref="alg1.l3.m2.1.1.1.1.1.2.2">
+              𝑥
+             </ci>
+             <ci id="alg1.l3.m2.1.1.1.1.1.2.3.cmml" xref="alg1.l3.m2.1.1.1.1.1.2.3">
+              𝑡
+             </ci>
+            </apply>
+            <apply id="alg1.l3.m2.1.1.1.1.1.3.cmml" xref="alg1.l3.m2.1.1.1.1.1.3">
+             <csymbol cd="ambiguous" id="alg1.l3.m2.1.1.1.1.1.3.1.cmml" xref="alg1.l3.m2.1.1.1.1.1.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l3.m2.1.1.1.1.1.3.2.cmml" xref="alg1.l3.m2.1.1.1.1.1.3.2">
+              𝑠
+             </ci>
+             <ci id="alg1.l3.m2.1.1.1.1.1.3.3.cmml" xref="alg1.l3.m2.1.1.1.1.1.3.3">
+              𝑡
+             </ci>
+            </apply>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l3.m2.1c">
+          M(x_{t}\mid s_{t})
+         </annotation>
+        </semantics>
+       </math>
+       .
+      </div>
+      <div class="ltx_listingline" id="alg1.l4">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l4.1.1.1" style="font-size:80%;">
+         4:
+        </span>
+       </span>
+       LLM
+       <math alttext="M(x_{t}\mid s_{t})" class="ltx_Math" display="inline" id="alg1.l4.m1.1">
+        <semantics id="alg1.l4.m1.1a">
+         <mrow id="alg1.l4.m1.1.1" xref="alg1.l4.m1.1.1.cmml">
+          <mi id="alg1.l4.m1.1.1.3" xref="alg1.l4.m1.1.1.3.cmml">
+           M
+          </mi>
+          <mo id="alg1.l4.m1.1.1.2" lspace="0em" rspace="0em" xref="alg1.l4.m1.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l4.m1.1.1.1.1" xref="alg1.l4.m1.1.1.1.1.1.cmml">
+           <mo id="alg1.l4.m1.1.1.1.1.2" stretchy="false" xref="alg1.l4.m1.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="alg1.l4.m1.1.1.1.1.1" xref="alg1.l4.m1.1.1.1.1.1.cmml">
+            <msub id="alg1.l4.m1.1.1.1.1.1.2" xref="alg1.l4.m1.1.1.1.1.1.2.cmml">
+             <mi id="alg1.l4.m1.1.1.1.1.1.2.2" xref="alg1.l4.m1.1.1.1.1.1.2.2.cmml">
+              x
+             </mi>
+             <mi id="alg1.l4.m1.1.1.1.1.1.2.3" xref="alg1.l4.m1.1.1.1.1.1.2.3.cmml">
+              t
+             </mi>
+            </msub>
+            <mo id="alg1.l4.m1.1.1.1.1.1.1" xref="alg1.l4.m1.1.1.1.1.1.1.cmml">
+             ∣
+            </mo>
+            <msub id="alg1.l4.m1.1.1.1.1.1.3" xref="alg1.l4.m1.1.1.1.1.1.3.cmml">
+             <mi id="alg1.l4.m1.1.1.1.1.1.3.2" xref="alg1.l4.m1.1.1.1.1.1.3.2.cmml">
+              s
+             </mi>
+             <mi id="alg1.l4.m1.1.1.1.1.1.3.3" xref="alg1.l4.m1.1.1.1.1.1.3.3.cmml">
+              t
+             </mi>
+            </msub>
+           </mrow>
+           <mo id="alg1.l4.m1.1.1.1.1.3" stretchy="false" xref="alg1.l4.m1.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l4.m1.1b">
+          <apply id="alg1.l4.m1.1.1.cmml" xref="alg1.l4.m1.1.1">
+           <times id="alg1.l4.m1.1.1.2.cmml" xref="alg1.l4.m1.1.1.2">
+           </times>
+           <ci id="alg1.l4.m1.1.1.3.cmml" xref="alg1.l4.m1.1.1.3">
+            𝑀
+           </ci>
+           <apply id="alg1.l4.m1.1.1.1.1.1.cmml" xref="alg1.l4.m1.1.1.1.1">
+            <csymbol cd="latexml" id="alg1.l4.m1.1.1.1.1.1.1.cmml" xref="alg1.l4.m1.1.1.1.1.1.1">
+             conditional
+            </csymbol>
+            <apply id="alg1.l4.m1.1.1.1.1.1.2.cmml" xref="alg1.l4.m1.1.1.1.1.1.2">
+             <csymbol cd="ambiguous" id="alg1.l4.m1.1.1.1.1.1.2.1.cmml" xref="alg1.l4.m1.1.1.1.1.1.2">
+              subscript
+             </csymbol>
+             <ci id="alg1.l4.m1.1.1.1.1.1.2.2.cmml" xref="alg1.l4.m1.1.1.1.1.1.2.2">
+              𝑥
+             </ci>
+             <ci id="alg1.l4.m1.1.1.1.1.1.2.3.cmml" xref="alg1.l4.m1.1.1.1.1.1.2.3">
+              𝑡
+             </ci>
+            </apply>
+            <apply id="alg1.l4.m1.1.1.1.1.1.3.cmml" xref="alg1.l4.m1.1.1.1.1.1.3">
+             <csymbol cd="ambiguous" id="alg1.l4.m1.1.1.1.1.1.3.1.cmml" xref="alg1.l4.m1.1.1.1.1.1.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l4.m1.1.1.1.1.1.3.2.cmml" xref="alg1.l4.m1.1.1.1.1.1.3.2">
+              𝑠
+             </ci>
+             <ci id="alg1.l4.m1.1.1.1.1.1.3.3.cmml" xref="alg1.l4.m1.1.1.1.1.1.3.3">
+              𝑡
+             </ci>
+            </apply>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l4.m1.1c">
+          M(x_{t}\mid s_{t})
+         </annotation>
+        </semantics>
+       </math>
+       provides decision information to RL model
+       <math alttext="P_{\theta_{t}}(a_{t}\mid x_{t},s_{t})" class="ltx_Math" display="inline" id="alg1.l4.m2.1">
+        <semantics id="alg1.l4.m2.1a">
+         <mrow id="alg1.l4.m2.1.1" xref="alg1.l4.m2.1.1.cmml">
+          <msub id="alg1.l4.m2.1.1.3" xref="alg1.l4.m2.1.1.3.cmml">
+           <mi id="alg1.l4.m2.1.1.3.2" xref="alg1.l4.m2.1.1.3.2.cmml">
+            P
+           </mi>
+           <msub id="alg1.l4.m2.1.1.3.3" xref="alg1.l4.m2.1.1.3.3.cmml">
+            <mi id="alg1.l4.m2.1.1.3.3.2" xref="alg1.l4.m2.1.1.3.3.2.cmml">
+             θ
+            </mi>
+            <mi id="alg1.l4.m2.1.1.3.3.3" xref="alg1.l4.m2.1.1.3.3.3.cmml">
+             t
+            </mi>
+           </msub>
+          </msub>
+          <mo id="alg1.l4.m2.1.1.2" lspace="0em" rspace="0em" xref="alg1.l4.m2.1.1.2.cmml">
+           ​
+          </mo>
+          <mrow id="alg1.l4.m2.1.1.1.1" xref="alg1.l4.m2.1.1.1.1.1.cmml">
+           <mo id="alg1.l4.m2.1.1.1.1.2" stretchy="false" xref="alg1.l4.m2.1.1.1.1.1.cmml">
+            (
+           </mo>
+           <mrow id="alg1.l4.m2.1.1.1.1.1" xref="alg1.l4.m2.1.1.1.1.1.cmml">
+            <msub id="alg1.l4.m2.1.1.1.1.1.4" xref="alg1.l4.m2.1.1.1.1.1.4.cmml">
+             <mi id="alg1.l4.m2.1.1.1.1.1.4.2" xref="alg1.l4.m2.1.1.1.1.1.4.2.cmml">
+              a
+             </mi>
+             <mi id="alg1.l4.m2.1.1.1.1.1.4.3" xref="alg1.l4.m2.1.1.1.1.1.4.3.cmml">
+              t
+             </mi>
+            </msub>
+            <mo id="alg1.l4.m2.1.1.1.1.1.3" xref="alg1.l4.m2.1.1.1.1.1.3.cmml">
+             ∣
+            </mo>
+            <mrow id="alg1.l4.m2.1.1.1.1.1.2.2" xref="alg1.l4.m2.1.1.1.1.1.2.3.cmml">
+             <msub id="alg1.l4.m2.1.1.1.1.1.1.1.1" xref="alg1.l4.m2.1.1.1.1.1.1.1.1.cmml">
+              <mi id="alg1.l4.m2.1.1.1.1.1.1.1.1.2" xref="alg1.l4.m2.1.1.1.1.1.1.1.1.2.cmml">
+               x
+              </mi>
+              <mi id="alg1.l4.m2.1.1.1.1.1.1.1.1.3" xref="alg1.l4.m2.1.1.1.1.1.1.1.1.3.cmml">
+               t
+              </mi>
+             </msub>
+             <mo id="alg1.l4.m2.1.1.1.1.1.2.2.3" xref="alg1.l4.m2.1.1.1.1.1.2.3.cmml">
+              ,
+             </mo>
+             <msub id="alg1.l4.m2.1.1.1.1.1.2.2.2" xref="alg1.l4.m2.1.1.1.1.1.2.2.2.cmml">
+              <mi id="alg1.l4.m2.1.1.1.1.1.2.2.2.2" xref="alg1.l4.m2.1.1.1.1.1.2.2.2.2.cmml">
+               s
+              </mi>
+              <mi id="alg1.l4.m2.1.1.1.1.1.2.2.2.3" xref="alg1.l4.m2.1.1.1.1.1.2.2.2.3.cmml">
+               t
+              </mi>
+             </msub>
+            </mrow>
+           </mrow>
+           <mo id="alg1.l4.m2.1.1.1.1.3" stretchy="false" xref="alg1.l4.m2.1.1.1.1.1.cmml">
+            )
+           </mo>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="alg1.l4.m2.1b">
+          <apply id="alg1.l4.m2.1.1.cmml" xref="alg1.l4.m2.1.1">
+           <times id="alg1.l4.m2.1.1.2.cmml" xref="alg1.l4.m2.1.1.2">
+           </times>
+           <apply id="alg1.l4.m2.1.1.3.cmml" xref="alg1.l4.m2.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.3.1.cmml" xref="alg1.l4.m2.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l4.m2.1.1.3.2.cmml" xref="alg1.l4.m2.1.1.3.2">
+             𝑃
+            </ci>
+            <apply id="alg1.l4.m2.1.1.3.3.cmml" xref="alg1.l4.m2.1.1.3.3">
+             <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.3.3.1.cmml" xref="alg1.l4.m2.1.1.3.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l4.m2.1.1.3.3.2.cmml" xref="alg1.l4.m2.1.1.3.3.2">
+              𝜃
+             </ci>
+             <ci id="alg1.l4.m2.1.1.3.3.3.cmml" xref="alg1.l4.m2.1.1.3.3.3">
+              𝑡
+             </ci>
+            </apply>
+           </apply>
+           <apply id="alg1.l4.m2.1.1.1.1.1.cmml" xref="alg1.l4.m2.1.1.1.1">
+            <csymbol cd="latexml" id="alg1.l4.m2.1.1.1.1.1.3.cmml" xref="alg1.l4.m2.1.1.1.1.1.3">
+             conditional
+            </csymbol>
+            <apply id="alg1.l4.m2.1.1.1.1.1.4.cmml" xref="alg1.l4.m2.1.1.1.1.1.4">
+             <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.1.1.1.4.1.cmml" xref="alg1.l4.m2.1.1.1.1.1.4">
+              subscript
+             </csymbol>
+             <ci id="alg1.l4.m2.1.1.1.1.1.4.2.cmml" xref="alg1.l4.m2.1.1.1.1.1.4.2">
+              𝑎
+             </ci>
+             <ci id="alg1.l4.m2.1.1.1.1.1.4.3.cmml" xref="alg1.l4.m2.1.1.1.1.1.4.3">
+              𝑡
+             </ci>
+            </apply>
+            <list id="alg1.l4.m2.1.1.1.1.1.2.3.cmml" xref="alg1.l4.m2.1.1.1.1.1.2.2">
+             <apply id="alg1.l4.m2.1.1.1.1.1.1.1.1.cmml" xref="alg1.l4.m2.1.1.1.1.1.1.1.1">
+              <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.1.1.1.1.1.1.1.cmml" xref="alg1.l4.m2.1.1.1.1.1.1.1.1">
+               subscript
+              </csymbol>
+              <ci id="alg1.l4.m2.1.1.1.1.1.1.1.1.2.cmml" xref="alg1.l4.m2.1.1.1.1.1.1.1.1.2">
+               𝑥
+              </ci>
+              <ci id="alg1.l4.m2.1.1.1.1.1.1.1.1.3.cmml" xref="alg1.l4.m2.1.1.1.1.1.1.1.1.3">
+               𝑡
+              </ci>
+             </apply>
+             <apply id="alg1.l4.m2.1.1.1.1.1.2.2.2.cmml" xref="alg1.l4.m2.1.1.1.1.1.2.2.2">
+              <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.1.1.1.2.2.2.1.cmml" xref="alg1.l4.m2.1.1.1.1.1.2.2.2">
+               subscript
+              </csymbol>
+              <ci id="alg1.l4.m2.1.1.1.1.1.2.2.2.2.cmml" xref="alg1.l4.m2.1.1.1.1.1.2.2.2.2">
+               𝑠
+              </ci>
+              <ci id="alg1.l4.m2.1.1.1.1.1.2.2.2.3.cmml" xref="alg1.l4.m2.1.1.1.1.1.2.2.2.3">
+               𝑡
+              </ci>
+             </apply>
+            </list>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l4.m2.1c">
+          P_{\theta_{t}}(a_{t}\mid x_{t},s_{t})
+         </annotation>
+        </semantics>
+       </math>
+       by leveraging comsense capabilities and environment information.
+      </div>
+      <div class="ltx_listingline" id="alg1.l5">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l5.1.1.1" style="font-size:80%;">
+         5:
+        </span>
+       </span>
+       Estimate new RL
+       <math alttext="A_{t}^{P}{{}^{\prime}}" class="ltx_math_unparsed" display="inline" id="alg1.l5.m1.1">
+        <semantics id="alg1.l5.m1.1a">
+         <mrow id="alg1.l5.m1.1b">
+          <msubsup id="alg1.l5.m1.1.1">
+           <mi id="alg1.l5.m1.1.1.2.2">
+            A
+           </mi>
+           <mi id="alg1.l5.m1.1.1.2.3">
+            t
+           </mi>
+           <mi id="alg1.l5.m1.1.1.3">
+            P
+           </mi>
+          </msubsup>
+          <msup id="alg1.l5.m1.1.2">
+           <mi id="alg1.l5.m1.1.2a">
+           </mi>
+           <mo id="alg1.l5.m1.1.2.1">
+            ′
+           </mo>
+          </msup>
+         </mrow>
+         <annotation encoding="application/x-tex" id="alg1.l5.m1.1c">
+          A_{t}^{P}{{}^{\prime}}
+         </annotation>
+        </semantics>
+       </math>
+       based on new Q value
+       <math alttext="Q_{\theta_{t}}" class="ltx_Math" display="inline" id="alg1.l5.m2.1">
+        <semantics id="alg1.l5.m2.1a">
+         <msub id="alg1.l5.m2.1.1" xref="alg1.l5.m2.1.1.cmml">
+          <mi id="alg1.l5.m2.1.1.2" xref="alg1.l5.m2.1.1.2.cmml">
+           Q
+          </mi>
+          <msub id="alg1.l5.m2.1.1.3" xref="alg1.l5.m2.1.1.3.cmml">
+           <mi id="alg1.l5.m2.1.1.3.2" xref="alg1.l5.m2.1.1.3.2.cmml">
+            θ
+           </mi>
+           <mi id="alg1.l5.m2.1.1.3.3" xref="alg1.l5.m2.1.1.3.3.cmml">
+            t
+           </mi>
+          </msub>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l5.m2.1b">
+          <apply id="alg1.l5.m2.1.1.cmml" xref="alg1.l5.m2.1.1">
+           <csymbol cd="ambiguous" id="alg1.l5.m2.1.1.1.cmml" xref="alg1.l5.m2.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l5.m2.1.1.2.cmml" xref="alg1.l5.m2.1.1.2">
+            𝑄
+           </ci>
+           <apply id="alg1.l5.m2.1.1.3.cmml" xref="alg1.l5.m2.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l5.m2.1.1.3.1.cmml" xref="alg1.l5.m2.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l5.m2.1.1.3.2.cmml" xref="alg1.l5.m2.1.1.3.2">
+             𝜃
+            </ci>
+            <ci id="alg1.l5.m2.1.1.3.3.cmml" xref="alg1.l5.m2.1.1.3.3">
+             𝑡
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l5.m2.1c">
+          Q_{\theta_{t}}
+         </annotation>
+        </semantics>
+       </math>
+       and V value
+       <math alttext="V_{\phi_{t}}" class="ltx_Math" display="inline" id="alg1.l5.m3.1">
+        <semantics id="alg1.l5.m3.1a">
+         <msub id="alg1.l5.m3.1.1" xref="alg1.l5.m3.1.1.cmml">
+          <mi id="alg1.l5.m3.1.1.2" xref="alg1.l5.m3.1.1.2.cmml">
+           V
+          </mi>
+          <msub id="alg1.l5.m3.1.1.3" xref="alg1.l5.m3.1.1.3.cmml">
+           <mi id="alg1.l5.m3.1.1.3.2" xref="alg1.l5.m3.1.1.3.2.cmml">
+            ϕ
+           </mi>
+           <mi id="alg1.l5.m3.1.1.3.3" xref="alg1.l5.m3.1.1.3.3.cmml">
+            t
+           </mi>
+          </msub>
+         </msub>
+         <annotation-xml encoding="MathML-Content" id="alg1.l5.m3.1b">
+          <apply id="alg1.l5.m3.1.1.cmml" xref="alg1.l5.m3.1.1">
+           <csymbol cd="ambiguous" id="alg1.l5.m3.1.1.1.cmml" xref="alg1.l5.m3.1.1">
+            subscript
+           </csymbol>
+           <ci id="alg1.l5.m3.1.1.2.cmml" xref="alg1.l5.m3.1.1.2">
+            𝑉
+           </ci>
+           <apply id="alg1.l5.m3.1.1.3.cmml" xref="alg1.l5.m3.1.1.3">
+            <csymbol cd="ambiguous" id="alg1.l5.m3.1.1.3.1.cmml" xref="alg1.l5.m3.1.1.3">
+             subscript
+            </csymbol>
+            <ci id="alg1.l5.m3.1.1.3.2.cmml" xref="alg1.l5.m3.1.1.3.2">
+             italic-ϕ
+            </ci>
+            <ci id="alg1.l5.m3.1.1.3.3.cmml" xref="alg1.l5.m3.1.1.3.3">
+             𝑡
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="alg1.l5.m3.1c">
+          V_{\phi_{t}}
+         </annotation>
+        </semantics>
+       </math>
+       .
+      </div>
+      <div class="ltx_listingline" id="alg1.l6">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l6.1.1.1" style="font-size:80%;">
+         6:
+        </span>
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l6.2">
+        if
+       </span>
+       <math alttext="A^{P}&gt;A_{t}^{P}{{}^{\prime}}" class="ltx_math_unparsed" display="inline" id="alg1.l6.m1.1">
+        <semantics id="alg1.l6.m1.1a">
+         <mrow id="alg1.l6.m1.1b">
+          <msup id="alg1.l6.m1.1.1">
+           <mi id="alg1.l6.m1.1.1.2">
+            A
+           </mi>
+           <mi id="alg1.l6.m1.1.1.3">
+            P
+           </mi>
+          </msup>
+          <mo id="alg1.l6.m1.1.2">
+           &gt;
+          </mo>
+          <msubsup id="alg1.l6.m1.1.3">
+           <mi id="alg1.l6.m1.1.3.2.2">
+            A
+           </mi>
+           <mi id="alg1.l6.m1.1.3.2.3">
+            t
+           </mi>
+           <mi id="alg1.l6.m1.1.3.3">
+            P
+           </mi>
+          </msubsup>
+          <msup id="alg1.l6.m1.1.4">
+           <mi id="alg1.l6.m1.1.4a">
+           </mi>
+           <mo id="alg1.l6.m1.1.4.1">
+            ′
+           </mo>
+          </msup>
+         </mrow>
+         <annotation encoding="application/x-tex" id="alg1.l6.m1.1c">
+          A^{P}&gt;A_{t}^{P}{{}^{\prime}}
+         </annotation>
+        </semantics>
+       </math>
+       <span class="ltx_text ltx_font_bold" id="alg1.l6.3">
+        then
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l7">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l7.1.1.1" style="font-size:80%;">
+         7:
+        </span>
+       </span>
+       Provide negative instruction feedback to LLM, the token is worse than the last one.
+      </div>
+      <div class="ltx_listingline" id="alg1.l8">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l8.1.1.1" style="font-size:80%;">
+         8:
+        </span>
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l8.2">
+        else
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l9">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l9.1.1.1" style="font-size:80%;">
+         9:
+        </span>
+       </span>
+       Provide positive instruction feedback to LLM, the token is better than the last one.
+      </div>
+      <div class="ltx_listingline" id="alg1.l10">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l10.1.1.1" style="font-size:80%;">
+         10:
+        </span>
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l10.2">
+        end
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l10.3">
+        if
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l11">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l11.1.1.1" style="font-size:80%;">
+         11:
+        </span>
+       </span>
+       <math alttext="A^{P}=A_{t}^{P}{{}^{\prime}}" class="ltx_math_unparsed" display="inline" id="alg1.l11.m1.1">
+        <semantics id="alg1.l11.m1.1a">
+         <mrow id="alg1.l11.m1.1b">
+          <msup id="alg1.l11.m1.1.1">
+           <mi id="alg1.l11.m1.1.1.2">
+            A
+           </mi>
+           <mi id="alg1.l11.m1.1.1.3">
+            P
+           </mi>
+          </msup>
+          <mo id="alg1.l11.m1.1.2">
+           =
+          </mo>
+          <msubsup id="alg1.l11.m1.1.3">
+           <mi id="alg1.l11.m1.1.3.2.2">
+            A
+           </mi>
+           <mi id="alg1.l11.m1.1.3.2.3">
+            t
+           </mi>
+           <mi id="alg1.l11.m1.1.3.3">
+            P
+           </mi>
+          </msubsup>
+          <msup id="alg1.l11.m1.1.4">
+           <mi id="alg1.l11.m1.1.4a">
+           </mi>
+           <mo id="alg1.l11.m1.1.4.1">
+            ′
+           </mo>
+          </msup>
+         </mrow>
+         <annotation encoding="application/x-tex" id="alg1.l11.m1.1c">
+          A^{P}=A_{t}^{P}{{}^{\prime}}
+         </annotation>
+        </semantics>
+       </math>
+       .
+      </div>
+      <div class="ltx_listingline" id="alg1.l12">
+       <span class="ltx_tag ltx_tag_listingline">
+        <span class="ltx_text" id="alg1.l12.1.1.1" style="font-size:80%;">
+         12:
+        </span>
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l12.2">
+        end
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l12.3">
+        for
+       </span>
+      </div>
+     </div>
+    </div>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_float">
+     <span class="ltx_text ltx_font_bold" id="alg1.3.1.1">
+      Algorithm 1
+     </span>
+    </span>
+    Onling Learning to make decisions with RL and LLMs.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Our experimental investigation is conducted within the context of the BabyAI benchmark
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      babyaiiclr19
+     </span>
+     ]
+    </cite>
+    . To facilitate our experimentation, we leverage the Lamorel framework
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      carta2023grounding
+     </span>
+     ]
+    </cite>
+    . Within the Lamorel framework, we augment LLMs with RL instruction feedback, thereby establishing a feedback loop for the enhancement of LLM performance. Specifically, we proceed to conduct experiments focusing on the task of GoToRedBallNoDists-v0. The experiments are executed over two cases: one comprising 40 iteration steps and another spanning 2100 iteration steps. In the evaluation, we draw a comparative analysis between our proposed method and the baseline. In our method, we consider RL model feedback to LLMs and LLMs’s information to RL models. However, the state-of-the-art baseline represented by the original Lamorel method that lacks such instruction feedback to LLMs from RL models.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.1">
+    It is noteworthy that for our experiments, we employ the ”google/flan-t5-small” model
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      chung2022scaling
+     </span>
+     ]
+    </cite>
+    as the LLM, characterized by a parameter count of 80 million. The experimental results are presented in Figure
+    <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3 Experiments ‣ Mutual Enhancement of Large Language and Reinforcement Learning Models through Bi-Directional Feedback Mechanisms: A Case Study">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    . These findings clearly illustrate the superior performance of our method, as quantified by the performance value metric (where higher values indicate better performance). Furthermore, our method demonstrates notably expedited convergence (one-shot/few-shot learning) when compared to the Lamorel baseline. This empirical evidence highlights the effectiveness of our approach in harnessing bi-directional feedback between RL models and LLMs for improving performance in the context of the BabyAI benchmark.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S3.F2">
+   <div class="ltx_block" id="S3.F2.2">
+    <figure class="ltx_figure ltx_align_center" id="S3.F2.sf1">
+     <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="155" id="S3.F2.sf1.g1" src="/html/2401.06603/assets/x3.png" width="207"/>
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_figure">
+       <span class="ltx_text" id="S3.F2.sf1.2.1.1" style="font-size:90%;">
+        (a)
+       </span>
+      </span>
+     </figcaption>
+    </figure>
+    <figure class="ltx_figure ltx_align_center" id="S3.F2.sf2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="155" id="S3.F2.sf2.g1" src="/html/2401.06603/assets/x4.png" width="207"/>
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_figure">
+       <span class="ltx_text" id="S3.F2.sf2.2.1.1" style="font-size:90%;">
+        (b)
+       </span>
+      </span>
+     </figcaption>
+    </figure>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S3.F2.3.1.1" style="font-size:90%;">
+      Figure 2
+     </span>
+     :
+    </span>
+    Experiments on BabyAI tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      babyaiiclr19
+     </span>
+     ]
+    </cite>
+    with 40 (a) and 2100 (b) iteration steps.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this study, we developed a teacher-student learning framework for unlocking LLMs’ powerful capabilities by leveraging an RL model with bi-directional feedback mechanisms in a cooperative game setting. To empirically assess the effectiveness of our method, we conducted experiments using the BabyAI benchmark as an assessment platform. The results of these experiments demonstrate the superior performance of our approach in comparison to the state-of-the-art baseline, underscoring its potential for substantially enhancing learning outcomes.
+Importantly, our approach could exhibit promise in cultivating safe and robust learning systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <span class="ltx_ref ltx_missing_citation ltx_ref_self">
+      gu2022review
+     </span>
+     ]
+    </cite>
+    , particularly when confronted with the inherent challenges of imperfect information environments. Furthermore, we hope our insights inspire novel avenues of research in the realms of LLMs and RL for future investigations.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Noam Brown and Tuomas Sandholm.
+    </span>
+    <span class="ltx_bibblock">
+     Superhuman ai for multiplayer poker.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      Science
+     </span>
+     , 365(6456):885–890, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Thomas Carta, Clément Romac, Thomas Wolf, Sylvain Lamprier, Olivier Sigaud, and Pierre-Yves Oudeyer.
+    </span>
+    <span class="ltx_bibblock">
+     Grounding large language models in interactive environments with online reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      ICML
+     </span>
+     , volume 202, pages 3676–3713. PMLR, 23–29 Jul 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Yupeng Chang, Xu Wang, Jindong Wang, Yuan Wu, Kaijie Zhu, Hao Chen, Linyi Yang, Xiaoyuan Yi, Cunxiang Wang, Yidong Wang, et al.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on evaluation of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      arXiv:2307.03109
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Maxime Chevalier-Boisvert, Dzmitry Bahdanau, Salem Lahlou, Lucas Willems, Chitwan Saharia, Thien Huu Nguyen, and Yoshua Bengio.
+    </span>
+    <span class="ltx_bibblock">
+     Babyai: First steps towards grounded language learning with a human in the loop.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      ICLR
+     </span>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Scaling instruction-finetuned language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      arXiv:2210.11416
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Yuqing Du, Olivia Watkins, Zihan Wang, Cédric Colas, Trevor Darrell, Pieter Abbeel, Abhishek Gupta, and Jacob Andreas.
+    </span>
+    <span class="ltx_bibblock">
+     Guiding pretraining in reinforcement learning with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      ICML
+     </span>
+     , volume 202, pages 8657–8677. PMLR, 23–29 Jul 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Shangding Gu, Alap Kshirsagar, Yali Du, Guang Chen, Jan Peters, and Alois Knoll.
+    </span>
+    <span class="ltx_bibblock">
+     A human-centered safe robot reinforcement learning framework with interactive behaviors.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      Frontiers in Neurorobotics
+     </span>
+     , 17, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Shangding Gu, Long Yang, Yali Du, Guang Chen, Florian Walter, Jun Wang, Yaodong Yang, and Alois Knoll.
+    </span>
+    <span class="ltx_bibblock">
+     A review of safe reinforcement learning: Methods, theory and applications.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      arXiv:2205.10330
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Training language models to follow instructions with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      NeurIPS
+     </span>
+     , 35:27730–27744, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     David Silver, Aja Huang, Chris J Maddison, Arthur Guez, Laurent Sifre, George Van Den Driessche, Julian Schrittwieser, Ioannis Antonoglou, Veda Panneershelvam, Marc Lanctot, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Mastering the game of go with deep neural networks and tree search.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      nature
+     </span>
+     , 529(7587):484–489, 2016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Ishika Singh, Valts Blukis, Arsalan Mousavian, Ankit Goyal, Danfei Xu, Jonathan Tremblay, Dieter Fox, Jesse Thomason, and Animesh Garg.
+    </span>
+    <span class="ltx_bibblock">
+     Progprompt: Generating situated robot task plans using large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      ICRA
+     </span>
+     , pages 11523–11530. IEEE, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Richard S Sutton and Andrew G Barto.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      Reinforcement learning: An introduction
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     MIT press, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Andrew Szot, Max Schwarzer, Harsh Agrawal, Bogdan Mazoure, Walter Talbott, Katherine Metcalf, Natalie Mackraz, Devon Hjelm, and Alexander Toshev.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models as generalizable policies for embodied tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      arXiv:2310.17722
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     Arun James Thirunavukarasu, Darren Shu Jeng Ting, Kabilan Elangovan, Laura Gutierrez, Ting Fang Tan, and Daniel Shu Wei Ting.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models in medicine.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      Nature medicine
+     </span>
+     , 29(8):1930–1940, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     Quoc-Dai Luong Tran and Anh-Cuong Le.
+    </span>
+    <span class="ltx_bibblock">
+     Exploring bi-directional context for improved chatbot response generation using deep reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      Applied Sciences
+     </span>
+     , 13(8):5041, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     Biao Zhang, Barry Haddow, and Alexandra Birch.
+    </span>
+    <span class="ltx_bibblock">
+     Prompting large language model for machine translation: A case study.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      ICML
+     </span>
+     , volume 202, pages 41092–41110. PMLR, 23–29 Jul 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+</article>

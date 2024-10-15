@@ -1,0 +1,2281 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  LLM Harmony: Multi-Agent Communication for Problem Solving
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Sumedh Rasal
+    <br class="ltx_break"/>
+    Georgia Institute of Technology
+    <br class="ltx_break"/>
+    Chicago, IL
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     srasal3@gatech.edu
+    </span>
+    <br class="ltx_break"/>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   Large Language Models (LLMs) have revolutionized Natural Language Processing but exhibit limitations, particularly in autonomously addressing novel challenges such as reasoning and problem-solving. Traditional techniques like chain-of-thought prompting necessitate explicit human guidance. This paper introduces a novel multi-agent communication framework, inspired by the CAMEL model, to enhance LLMs’ autonomous problem-solving capabilities. The framework employs multiple LLM agents, each with a distinct persona, engaged in role-playing communication, offering a nuanced and adaptable approach to diverse problem scenarios. Extensive experimentation demonstrates the framework’s superior performance and adaptability, providing valuable insights into the collaborative potential of multiple agents in overcoming the limitations of individual models.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The rise of Large Language Models (LLMs)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx3" title="">
+      Brown et al., 2020
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx55" title="">
+      Touvron et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx54" title="">
+      Thoppilan et al., 2022
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx38" title="">
+      Patil et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx34" title="">
+      OpenAI, 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx4" title="">
+      Bubeck et al., 2023
+     </a>
+     ]
+    </cite>
+    has undeniably revolutionized the software industry, particularly in the realm of Natural Language Processing (NLP)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx16" title="">
+      Devlin et al., 2018
+     </a>
+     ]
+    </cite>
+    . These models have demonstrated a remarkable ability not only to generate text but also to grasp the underlying structures of written language, extending their utility to tasks ranging from text generation to code understanding
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx7" title="">
+      Chen et al., 2021
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx48" title="">
+      Schick et al., 2023
+     </a>
+     ]
+    </cite>
+    . However, despite their prowess, it has become evident that LLMs, while adept at handling familiar topics, often falter when confronted with novel challenges.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    One notable limitation lies in their tendency to hallucinate information when presented with unfamiliar subjects
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx2" title="">
+      Azamfirei et al., 2023
+     </a>
+     ]
+    </cite>
+    . Moreover, while these models exhibit commendable proficiency in addressing technical coding challenges across multiple programming languages, they struggle with fundamental reasoning questions. Addressing such limitations necessitates an approach that goes beyond conventional methodologies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx40" title="">
+      Rajani et al., 2019
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx28" title="">
+      Ling et al., 2017
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx11" title="">
+      Cobbe et al., 2021a
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx10" title="">
+      Chiang and Chen, 2018
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx1" title="">
+      Amini et al., 2019
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx8" title="">
+      Chen et al., 2019
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx43" title="">
+      Roy and Roth, 2016
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx31" title="">
+      Lu et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx61" title="">
+      Yao et al., 2022
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    In response to this challenge, our paper introduces a novel strategy aimed at enhancing LLM performance on novel problems. Drawing inspiration from the effectiveness of chain-of-thought prompting
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx58" title="">
+      Wei et al., 2022b
+     </a>
+     ]
+    </cite>
+    in breaking down complex problems, we seek to leverage the synergy of multiple LLM agents working collaboratively
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx13" title="">
+      Cohen et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx17" title="">
+      Du et al., 2023
+     </a>
+     ]
+    </cite>
+    . Each agent is endowed with a distinct persona, a concept inspired by the CAMEL framework, and engages in role-playing communication methods.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Unlike traditional approaches that might be limited to binary agent personas, such as "user" and "assistant," or simplistic positive and negative agent roles, our proposed framework adopts a nuanced and flexible strategy. The intricacies of various novel scenarios demand a more sophisticated approach. Our design incorporates industry best practices to guide the creation of diverse agent personas, ensuring adaptability to a multitude of problem-solving contexts.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    The paper not only addresses the limitations of existing LLM models but also explores the potential of harnessing the collective intelligence of multiple agents to tackle a broader range of challenges. We aim to demonstrate that the proposed framework not only outperforms traditional methodologies but also provides a foundation for autonomous problem-solving, minimizing the need for explicit human guidance.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    In the subsequent sections, we delve into the existing techniques that have been developed to address similar challenges, highlighting their strengths and limitations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx14" title="">
+      Dafoe et al., 2021
+     </a>
+     ]
+    </cite>
+    . Following this, we present our multi-agent communication design, emphasizing its improvements over current methodologies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx47" title="">
+      Saunders et al., 2022
+     </a>
+     ]
+    </cite>
+    . The extendability of our approach to various LLM models is a key focus, underlining its potential as a versatile and reusable solution. Through rigorous experimentation and analysis, we aim to showcase the effectiveness and adaptability of our proposed framework in enhancing the quality of LLM outputs across a spectrum of tasks.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    This is what we propose:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       An innovative framework employing multiple large language model workers/agents, each characterized by a unique persona and guided by a chain-of-thought prompt.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       The collaborative effort of all agents is directed toward devising solutions for novel problems.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       The framework’s versatility allows the incorporation of any persona and chain-of-thought prompt, aligning with the specific problem to be addressed.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       The framework is available.
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/sumedhrasal/simulation" target="_blank" title="">
+        https://github.com/sumedhrasal/simulation
+       </a>
+       . It is built on top of CAMEL’s and ChatDev’s framework.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Methodology
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    In the realm of collaborative problem-solving, particularly evident in scenarios like software development, the complexities arise from coordinating efforts among diverse individuals. Software development teams, for instance, often undergo iterative cycles before converging on a viable solution, and even then, compromises may be accepted as the best available option
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx5" title="">
+      Callison-Burch, 2009
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx29" title="">
+      Liu et al., 2023a
+     </a>
+     ]
+    </cite>
+    . Our proposed strategy addresses the need for comprehensive validation of Large Language Models (LLMs), not just in code evaluation but also in complex reasoning and arithmetic challenges
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx6" title="">
+      Celikyilmaz et al., 2020
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx42" title="">
+      ROUGE, 2004
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx22" title="">
+      Kondrak, 2005
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx33" title="">
+      Novikova et al., 2017
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx57" title="">
+      Wei et al., 2022a
+     </a>
+     ]
+    </cite>
+    . Focused on breaking down problem statements and leveraging distinct personas
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx26" title="">
+      Li et al., 2023
+     </a>
+     ]
+    </cite>
+    , the framework provides agents with tailored chain-of-thought prompts
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx58" title="">
+      Wei et al., 2022b
+     </a>
+     ]
+    </cite>
+    , enabling multi-agent models to tackle novel problems collaboratively.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    Understanding personas is crucial; in a software development organization, roles such as CEO, VP of Engineering, developers, testers, and product managers contribute unique perspectives to problem-solving
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx39" title="">
+      Qian et al., 2023
+     </a>
+     ]
+    </cite>
+    . The interplay of these personas allows agents to validate each other’s responses effectively
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx59" title="">
+      Woolley et al., 2010
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx32" title="">
+      Luppi et al., 2022
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx60" title="">
+      Wu et al., 2023
+     </a>
+     ]
+    </cite>
+    . The concept of chain-of-thought mirrors human problem-solving strategies: decomposing a problem, identifying solutions to sub-problems, and constructing a comprehensive answer. The chain-of-thought prompt extends this strategy, offering the LLM an input, a problem-solving approach, and the desired output. The fusion of personas
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx26" title="">
+      Li et al., 2023
+     </a>
+     ]
+    </cite>
+    and chain-of-thought
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx58" title="">
+      Wei et al., 2022b
+     </a>
+     ]
+    </cite>
+    prompts capitalizes on mimicking human analytical and execution strategies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx35" title="">
+      Ouyang et al., 2022
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx44" title="">
+      Sanh et al., 2021
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx30" title="">
+      Liu et al., 2023b
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx9" title="">
+      Chiang and Lee, 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx18" title="">
+      Gao et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx50" title="">
+      Shen et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx62" title="">
+      Zheng et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx46" title="">
+      Sap et al., 2019
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx53" title="">
+      Talmor et al., 2018
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx49" title="">
+      Sclar et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx45" title="">
+      Sap et al., 2022
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    While some might question the necessity of this approach over retraining the model for novel problems, the practicality lies in the belief that emulating human-like analysis and execution strategies can create autonomous agents capable of diverse tasks without extensive model retraining
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx21" title="">
+      Karpinska et al., 2021
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx56" title="">
+      Van Der Lee et al., 2019
+     </a>
+     ]
+    </cite>
+    . Additionally, the high cost and challenges associated with retraining LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx41" title="">
+      Rasal and Boddhu, 2023
+     </a>
+     ]
+    </cite>
+    , particularly for problems with limited training data, support the appeal of our strategy.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p4">
+   <p class="ltx_p" id="S2.p4.1">
+    In the realm of multi-agent communication
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx27" title="">
+      Liang et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx17" title="">
+      Du et al., 2023
+     </a>
+     ]
+    </cite>
+    , adherence to assigned personas and chain-of-thought prompts is foundational to mitigate agent hallucination and improving cooperation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx14" title="">
+      Dafoe et al., 2021
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx15" title="">
+      Dafoe et al., 2020
+     </a>
+     ]
+    </cite>
+    . The framework’s versatility extends beyond problem-solving to applications in multi-player games
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx51" title="">
+      Susskind, 1985
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx52" title="">
+      Susskind and Corburn, 2000
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx24" title="">
+      Lazaridou et al., 2020
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx19" title="">
+      Graesser et al., 2020
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx25" title="">
+      Lee et al., 2018
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx20" title="">
+      Hendrycks et al., 2021
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx63" title="">
+      Zhou et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx36" title="">
+      Pan et al., 2023
+     </a>
+     ]
+    </cite>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bibx23" title="">
+      Kramár et al., 2022
+     </a>
+     ]
+    </cite>
+    , accommodating both team-oriented and individual goal-driven scenarios, and offering flexibility in achieving optimal outcomes.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    In our experimentation, we adopt a two-agent strategy comprising an expert agent and an evaluator agent, both instances of OpenAI’s "gpt3.5-turbo." Each agent is configured with specific parameters: temperature set to 0.0, representing the trade-off between coherence and creativity, and a conversation limit of 5, indicating the maximum iterations allowed for inter-agent conversation. The evaluator agent assesses the responses generated by the expert agent, guiding it to rectify inaccuracies. Leveraging OpenAI’s LLM object, our framework, integrated with CAMEL’s architecture, facilitates seamless communication among multiple LLM agents, aiming to establish a collaborative problem-solving capability for advanced LLM models.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Arithmetic Reasoning
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     In the arithmetic reasoning segment, we address challenges that assess the arithmetic proficiency of LLMs, an area where traditional large language models have historically faced limitations. The experiment employs the GSM8K benchmark and the SVAMP data set, specifically designed for math word problems. We evaluate the performance of three LLMs: a standalone GPT-3 model, a multi-agent GPT-3 model, and a multi-agent GPT-3 model integrated into our framework. The objective is to gauge the effectiveness of our collaborative approach in enhancing arithmetic reasoning capabilities.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <blockquote class="ltx_quote" id="S3.SS1.p2.1">
+     <p class="ltx_p" id="S3.SS1.p2.1.1">
+      "GSM8K consists of 8.5K high-quality grade school math problems created by human problem writers. We segmented these into 7.5K training problems and 1K test problems. These problems take between 2 and 8 steps to solve, and solutions primarily involve performing a sequence of elementary calculations using basic arithmetic operations (+ - / *) to reach the final answer. A bright middle school student should be able to solve every problem."
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bibx12" title="">
+        Cobbe et al., 2021b
+       </a>
+       ]
+      </cite>
+     </p>
+    </blockquote>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p3">
+    <blockquote class="ltx_quote" id="S3.SS1.p3.1">
+     <p class="ltx_p" id="S3.SS1.p3.1.1">
+      "We first show that existing models achieve reasonably high accuracies on these datasets even after removing the "question" part of the MWP at test time. We further show that a simple model without any word-order information can also solve a majority of MWPs in these datasets. Our experiments indicate that existing models rely on shallow heuristics in benchmark MWP datasets for achieving high performance. Our experiments render the benchmark datasets unreliable to measure model performance. To enable more robust evaluation of automatic MWP solvers, we created a challenge set called "SVAMP"."
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bibx37" title="">
+        Patel et al., 2021
+       </a>
+       ]
+      </cite>
+     </p>
+    </blockquote>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.1
+     </span>
+     Example: 1
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS1.p1">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS1.p1.1">
+| Role Name | Student |
+| Chain of Thought Prompt | You are the student.
+You will be given a math word problem, your job is to solve this problem.
+Use this template to solve math word problems.
+Input: Roger has 5 tennis balls. He buys 2 more cans of tennis balls.
+Each can has 3 tennis balls. How many tennis balls does he have now?
+Explanation: Roger started with 5 balls.
+2 cans of 3 tennis balls each is 6 tennis balls. 5 + 6 = 11.
+Answer: 11 |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS1.p2">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS1.p2.1">
+| Role Name | Teacher |
+| Chain of Thought Prompt | You are the teacher.
+You will supply the math word problem to the student agent.
+Once you receive the student agent’s answer, compare it against the final answer.
+The correct answer is 20.
+Let the student agent know if his answer is correct or not. |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS1.p3">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS1.p3.1">
+Teacher: **[Start Chat]**
+Roger has 10 tennis balls.
+He buys 2 more cans of tennis balls.
+Each can has 5 tennis balls.
+How many tennis balls does he have now?
+
+Student response:
+Input: Roger has 10 tennis balls.
+He buys 2 more cans of tennis balls.
+Each can has 5 tennis balls.
+How many tennis balls does he have now?
+Explanation: Roger started with 10 balls.
+2 cans of 5 tennis balls each is 10 tennis balls.
+10 + 10 = 20.
+Answer: 20
+
+Teacher response:
+Correct! Roger now has 20 tennis balls. Great job!
+
+Student response
+Thank you! I’m glad I could help.
+Let me know if you have any other questions
+or if there’s anything else I can assist you with.
+</pre>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.2
+     </span>
+     Example 2
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS2.p1">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS2.p1.1">
+| Role Name | Student |
+| Chain of Thought Prompt | You are the student.
+You will be given a math word problem, your job is to solve this problem.
+Use this template to solve math word problems.
+Input: James decides to run 3 sprints 3 times a week.
+He runs 60 meters each sprint. How many total meters does he run a week?
+Explanation: How many sprints does James run in a week?
+He sprints 3*3=&lt;&lt;3*3=9&gt;&gt;9 times.
+How many meters does James run in a week?
+So he runs 9*60=&lt;&lt;9*60=540&gt;&gt;540 meters.
+Answer: 540 |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS2.p2">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS2.p2.1">
+| Role Name | Teacher |
+| Chain of Thought Prompt | You are the teacher.
+You will supply the math word problem to the student agent.
+Once you receive the student agent’s answer, compare it against the final answer.
+The correct answer is 540.
+Let the student agent know if his answer is correct or not. |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS2.p3">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS1.SSS2.p3.1">
+Teacher: **[Start Chat]**
+James decides to run 3 sprints 3 times a week.
+He runs 60 meters each sprint.
+How many total meters does he run a week?
+
+Student response:
+Input: James decides to run 3 sprints 3 times a week.
+He runs 60 meters each sprint.
+How many total meters does he run a week?
+Explanation: How many sprints does James run in a week?
+He sprints 3*3=&lt;&lt;3*3=9&gt;&gt;9 times.
+How many meters does James run in a week?
+So he runs 9*60=&lt;&lt;9*60=540&gt;&gt;540 meters.
+Answer: 540
+
+Teacher response:
+Correct! James runs 540 meters a week. Great job!
+
+Student response
+Thank you! I’m glad I could help.
+Let me know if you have any other questions
+or if there’s anything else I can assist you with.
+</pre>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.3
+     </span>
+     Results
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS3.p1">
+     <p class="ltx_p" id="S3.SS1.SSS3.p1.1">
+      The outcomes from both experiments can be found in Table
+      <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.1.3 Results ‣ 3.1 Arithmetic Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      and Table
+      <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ 3.1.3 Results ‣ 3.1 Arithmetic Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      . In the initial experiment (example can be found here
+      <a class="ltx_ref" href="#S3.SS1.SSS1" title="3.1.1 Example: 1 ‣ 3.1 Arithmetic Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        3.1.1
+       </span>
+      </a>
+      ) using the GSM8K data set, the single-agent GPT-3 achieves approximately 50% accuracy, and the multi-agent GPT-3 performs slightly better at 55%. However, our multi-agent approach significantly enhances accuracy, surpassing other large language models (LLMs) such as Google’s PALM 540B parameter model, which we haven’t directly tested but are referencing from their paper. This improvement is notable in terms of accuracy, and it’s noteworthy that we haven’t retrained the model to achieve this enhancement. Assigning personas to the agents enables the LLM model to concentrate on specific aspects of the problem, and the use of chain-of-thought prompts equips it with efficient means to solve sub-problems.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS3.p2">
+     <p class="ltx_p" id="S3.SS1.SSS3.p2.1">
+      In the second experiment (example can be found here
+      <a class="ltx_ref" href="#S3.SS1.SSS2" title="3.1.2 Example 2 ‣ 3.1 Arithmetic Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        3.1.2
+       </span>
+      </a>
+      ) using the SVAMP data set, similar results are observed to those in the first experiment. The single-agent GPT-3 achieves an accuracy of approximately 70%, while the multi-agent version of GPT-3 attains an accuracy of 73%. Even in the SVAMP data set experiment, our multi-agent approach surpasses others, delivering an impressive 77% accuracy.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS3.p3">
+     <p class="ltx_p" id="S3.SS1.SSS3.p3.1">
+      If our approach is unsuccessful in arriving at the correct answer, it is often due to an arithmetic error occurring in one of the sub-steps of the provided problem, accounting for more than half of the instances. This implies that if subsequent iterations of large language models (LLMs) enhance their proficiency in basic arithmetic operations, we can potentially attain an even greater accuracy with our framework.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S3.T1">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      GSM8K Data set Evaluation
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S3.T1.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.1">
+         Agent
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.2">
+         Solve Rate
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S3.T1.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.2.1.1">
+         Single GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.2.1.2">
+         50%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S3.T1.1.3.2.1">
+         Multi-Agent GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left" id="S3.T1.1.3.2.2">
+         55%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.1.4.3">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T1.1.4.3.1">
+         Multi-Agent GPT3.5-turbo
+         <span class="ltx_text ltx_font_bold" id="S3.T1.1.4.3.1.1">
+          (Our approach)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T1.1.4.3.2">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.1.4.3.2.1">
+          65%
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </figure>
+    <figure class="ltx_table" id="S3.T2">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 2:
+      </span>
+      SVAMP Data set Evaluation
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T2.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S3.T2.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T2.1.1.1.1">
+         Agent
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T2.1.1.1.2">
+         Solve Rate
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S3.T2.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.1.2.1.1">
+         Single GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.1.2.1.2">
+         70%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T2.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S3.T2.1.3.2.1">
+         Multi-Agent GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left" id="S3.T2.1.3.2.2">
+         73%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T2.1.4.3">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T2.1.4.3.1">
+         Multi-Agent GPT3.5-turbo
+         <span class="ltx_text ltx_font_bold" id="S3.T2.1.4.3.1.1">
+          (Our approach)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T2.1.4.3.2">
+         <span class="ltx_text ltx_font_bold" id="S3.T2.1.4.3.2.1">
+          77%
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Commonsense Reasoning
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     The subsequent experiment delves into commonsense reasoning, requiring logical inference from a given problem statement, assuming general knowledge. Unlike traditional natural language processing systems, LLMs are uniquely equipped for such tasks due to their predictive nature, where they anticipate the next word, inherently understanding the contextual nuances of sentences. We aim to harness this inherent capability and build a versatile, context-aware framework driven by multiple agents. Evaluations on the CSQA dataset involve a one-agent GPT-3 model, a multi-agent GPT-3 model, and a multi-agent GPT-3 model integrated into our framework. The goal is to assess the performance gains achieved through collaborative, context-driven approaches in enhancing commonsense reasoning tasks.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1
+     </span>
+     Example 1
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS1.p1">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS1.p1.1">
+| Role Name | Student |
+| Chain of Thought Prompt | You are the student.
+The teacher agent will ask you a common sense problem,
+you solve the problem using the provided template:
+Input: Sammy wanted to go to where the people were.
+Where might he go?
+Options: (a) race track (b) populated areas
+(c) desert (d) apartment (e) roadblock
+Explanation: The answer must be a place with a lot of people.
+Race tracks, desert, apartments, and roadblocks
+don’t have a lot of people, but populated areas do.
+Answer: (b)
+If the teacher agent deems your answer incorrect,
+you are required to revisit the common sense problem.
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS1.p2">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS1.p2.1">
+| Role Name | Teacher |
+| Chain of Thought Prompt | You are the teacher.
+You will supply the common sense problem to the student agent.
+Once you receive the student agent’s answer, compare it against the final answer.
+The correct answer is (c).
+Let the student agent know if his answer is correct or not. |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS1.p3">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS1.p3.1">
+Teacher: **[Start Chat]**
+The accountant used a calculator regularly,
+he kept one at home and one at the what?
+Options: (a) desk drawer (b) desktop
+(c) office (d) wristwatch (e) city hall
+
+Student response:  The accountant used a calculator regularly,
+he kept one at home and one at the office.
+Explanation: The answer must be a place where the accountant goes to work.
+The options provided are a desk drawer, desktop,
+office, wristwatch, and city hall, but the correct answer is the office.
+Answer: (c) office
+
+Teacher response:
+Correct! The accountant used the calculator at the office. Great job!
+
+Student response
+Thank you! I’m glad I could help.
+</pre>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.2
+     </span>
+     Example 2
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS2.p1">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS2.p1.1">
+| Role Name | Student |
+| Chain of Thought Prompt | You are the student.
+The teacher agent will ask you a common sense problem,
+you solve the problem using the provided template:
+Input: Sammy wanted to go to where the people were.
+Where might he go?
+Options: (a) race track (b) populated areas
+(c) desert (d) apartment (e) roadblock
+Explanation: The answer must be a place with a lot of people.
+Race tracks, desert, apartments, and roadblocks
+don’t have a lot of people, but populated areas do.
+Answer: (b)
+If the teacher agent deems your answer incorrect,
+you are required to revisit the common sense problem.
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS2.p2">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS2.p2.1">
+| Role Name | Teacher |
+| Chain of Thought Prompt | You are the teacher.
+You will supply the common sense problem to the student agent.
+Once you receive the student agent’s answer, compare it against the final answer.
+The correct answer is (c).
+Let the student agent know if his answer is correct or not. |
+</pre>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS2.p3">
+     <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS2.p3.1">
+Teacher: **[Start Chat]**
+What leads to someone’s death
+when they are very depressed?
+Options: (a) suicide (b) overdosing
+(c) sadness (d) murder (e) cyanide
+
+Student response: The answer is (a) suicide
+Answer: (a) suicide
+
+Teacher response:
+Correct! Suicide leads to someone’s death. Great job!
+
+Student response
+Thank you! I’m glad I could help.
+</pre>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.3
+     </span>
+     Results
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS3.p1">
+     <p class="ltx_p" id="S3.SS2.SSS3.p1.1">
+      The results of the third experiment are detailed in Table
+      <a class="ltx_ref" href="#S3.T3" title="Table 3 ‣ 3.2.3 Results ‣ 3.2 Commonsense Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+      . The single-agent GPT-3 achieves an impressive 77% accuracy, while the multi-agent GPT-3 performs slightly better at 78%. However, our multi-agent approach substantially improves accuracy, surpassing the other two and reaching approximately 83% accuracy. Notably, this accuracy is attained through Few-Shot training, indicating there is room for further enhancement. Few-shot training involves providing the LLM with a few examples of a specific problem type, enabling it to learn the correct answer without retraining the entire model for novel problems. Examples can be found here
+      <a class="ltx_ref" href="#S3.SS2.SSS1" title="3.2.1 Example 1 ‣ 3.2 Commonsense Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        3.2.1
+       </span>
+      </a>
+      and here
+      <a class="ltx_ref" href="#S3.SS2.SSS2" title="3.2.2 Example 2 ‣ 3.2 Commonsense Reasoning ‣ 3 Experiments ‣ LLM Harmony: Multi-Agent Communication for Problem Solving">
+       <span class="ltx_text ltx_ref_tag">
+        3.2.2
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS3.p2">
+     <p class="ltx_p" id="S3.SS2.SSS3.p2.1">
+      In instances where the model provided incorrect answers, it often stemmed from making inaccurate correlations within the provided options. This incorrect correlation is a result of the underlying data set on which this particular model was trained. While retraining the model could improve the accuracy of this experiment, it’s considered a costly option. This poses an open question for future researchers to address: How can the model be trained with enough context to establish accurate correlations in commonsense word problems?
+     </p>
+    </div>
+    <figure class="ltx_table" id="S3.T3">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_table">
+       Table 3:
+      </span>
+      CSQA Data set Evaluation
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T3.1">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S3.T3.1.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T3.1.1.1.1">
+         Agent
+        </th>
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt" id="S3.T3.1.1.1.2">
+         Solve Rate
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S3.T3.1.2.1">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T3.1.2.1.1">
+         Single GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T3.1.2.1.2">
+         77%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T3.1.3.2">
+        <td class="ltx_td ltx_align_left" id="S3.T3.1.3.2.1">
+         Multi-Agent GPT3.5-turbo
+        </td>
+        <td class="ltx_td ltx_align_left" id="S3.T3.1.3.2.2">
+         78%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T3.1.4.3">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T3.1.4.3.1">
+         Multi-Agent GPT3.5-turbo
+         <span class="ltx_text ltx_font_bold" id="S3.T3.1.4.3.1.1">
+          (Our approach)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T3.1.4.3.2">
+         <span class="ltx_text ltx_font_bold" id="S3.T3.1.4.3.2.1">
+          83%
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </figure>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Limitations
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    While we recognize that our framework addresses numerous challenges, there are still a few aspects that remain unaddressed. Some of the reasoning capabilities may not see improvement unless the dataset used to train OpenAI’s "gpt3.5-turbo" is sufficiently diverse to comprehend the entirety of our surroundings. Additionally, the framework requires the capability to incorporate new information to stay updated with the constantly evolving data. Another necessary step involves implementing a data processing mechanism to filter out redundant information and prevent the inclusion of duplicate data.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Another limitation pertains to the context limit of each agent in multi-agent communication. Each agent is constrained by the maximum context, defined by the underlying model; for instance, the "gpt3-turbo" model has a context limit of 4096 tokens.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    We intend to address these limitations in our future work and strive to find effective solutions.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In conclusion, our exploration into the realm of multi-agent communication for Large Language Models (LLMs) has unveiled promising avenues for overcoming inherent limitations. While LLMs have revolutionized natural language processing, their efficacy is not without challenges, particularly in addressing novel problems, reasoning, and commonsense understanding. Our proposed approach leverages personas and chain-of-thought prompts, inspired by industry best practices and cognitive processes. By assigning distinct personalities and thoughtful prompts to each agent, we mitigate issues like hallucination and enhance the overall performance of multi-agent communication.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Through a series of experiments, we demonstrated the effectiveness of our approach, showcasing improvements in arithmetic reasoning and commonsense understanding. Our strategy of employing multiple agents, each with a specific role and reasoning prompt, facilitates collaborative problem-solving, providing a feasible alternative to the costly retraining of LLMs for novel challenges.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    By reducing reliance on human intervention, our approach paves the way for LLMs to tackle a myriad of tasks independently. The scalability and adaptability of our role-playing framework position it as a valuable asset in various domains, from software development to complex decision-making scenarios.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p4">
+   <p class="ltx_p" id="S5.p4.1">
+    In an era where artificial intelligence continues to evolve, our research contributes a novel perspective on enhancing the capabilities of LLMs through cooperative multi-agent communication. The journey from understanding limitations to proposing effective solutions marks a significant step forward, opening doors to future advancements in autonomous, context-aware language models.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bibx1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Amini et al., 2019]
+    </span>
+    <span class="ltx_bibblock">
+     Amini, A., Gabriel, S., Lin, P., Koncel-Kedziorski, R., Choi, Y., and Hajishirzi, H. (2019).
+    </span>
+    <span class="ltx_bibblock">
+     Mathqa: Towards interpretable math word problem solving with operation-based formalisms.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx1.1.1">
+      arXiv preprint arXiv:1905.13319
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Azamfirei et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Azamfirei, R., Kudchadkar, S. R., and Fackler, J. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Large language models and the perils of their hallucinations.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx2.1.1">
+      Critical Care
+     </span>
+     , 27(1):1–2.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Brown et al., 2020]
+    </span>
+    <span class="ltx_bibblock">
+     Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J. D., Dhariwal, P., Neelakantan, A., Shyam, P., Sastry, G., Askell, A., et al. (2020).
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx3.1.1">
+      Advances in neural information processing systems
+     </span>
+     , 33:1877–1901.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Bubeck et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Bubeck, S., Chandrasekaran, V., Eldan, R., Gehrke, J., Horvitz, E., Kamar, E., Lee, P., Lee, Y. T., Li, Y., Lundberg, S., et al. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Sparks of artificial general intelligence: Early experiments with gpt-4.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx4.1.1">
+      arXiv preprint arXiv:2303.12712
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Callison-Burch, 2009]
+    </span>
+    <span class="ltx_bibblock">
+     Callison-Burch, C. (2009).
+    </span>
+    <span class="ltx_bibblock">
+     Fast, cheap, and creative: Evaluating translation quality using amazon’s mechanical turk.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx5.1.1">
+      Proceedings of the 2009 conference on empirical methods in natural language processing
+     </span>
+     , pages 286–295.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Celikyilmaz et al., 2020]
+    </span>
+    <span class="ltx_bibblock">
+     Celikyilmaz, A., Clark, E., and Gao, J. (2020).
+    </span>
+    <span class="ltx_bibblock">
+     Evaluation of text generation: A survey. corr abs/2006.14799 (2020).
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx6.1.1">
+      arXiv preprint arXiv:2006.14799
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Chen et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Chen, M., Tworek, J., Jun, H., Yuan, Q., Pinto, H. P. d. O., Kaplan, J., Edwards, H., Burda, Y., Joseph, N., Brockman, G., et al. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating large language models trained on code.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx7.1.1">
+      arXiv preprint arXiv:2107.03374
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Chen et al., 2019]
+    </span>
+    <span class="ltx_bibblock">
+     Chen, X., Liang, C., Yu, A. W., Zhou, D., Song, D., and Le, Q. V. (2019).
+    </span>
+    <span class="ltx_bibblock">
+     Neural symbolic reader: Scalable integration of distributed and symbolic representations for reading comprehension.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx8.1.1">
+      International Conference on Learning Representations
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Chiang and Lee, 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Chiang, C.-H. and Lee, H.-y. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Can large language models be an alternative to human evaluations?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx9.1.1">
+      arXiv preprint arXiv:2305.01937
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Chiang and Chen, 2018]
+    </span>
+    <span class="ltx_bibblock">
+     Chiang, T.-R. and Chen, Y.-N. (2018).
+    </span>
+    <span class="ltx_bibblock">
+     Semantically-aligned equation generation for solving and reasoning math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx10.1.1">
+      arXiv preprint arXiv:1811.00720
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Cobbe et al., 2021a]
+    </span>
+    <span class="ltx_bibblock">
+     Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., et al. (2021a).
+    </span>
+    <span class="ltx_bibblock">
+     Training verifiers to solve math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx11.1.1">
+      arXiv preprint arXiv:2110.14168
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Cobbe et al., 2021b]
+    </span>
+    <span class="ltx_bibblock">
+     Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., and Schulman, J. (2021b).
+    </span>
+    <span class="ltx_bibblock">
+     Training verifiers to solve math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx12.1.1">
+      arXiv preprint arXiv:2110.14168
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Cohen et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Cohen, R., Hamri, M., Geva, M., and Globerson, A. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Lm vs lm: Detecting factual errors via cross examination.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx13.1.1">
+      arXiv preprint arXiv:2305.13281
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Dafoe et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Dafoe, A., Bachrach, Y., Hadfield, G., Horvitz, E., Larson, K., and Graepel, T. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     Cooperative ai: machines must learn to find common ground.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx14.1.1">
+      Nature
+     </span>
+     , 593(7857):33–36.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Dafoe et al., 2020]
+    </span>
+    <span class="ltx_bibblock">
+     Dafoe, A., Hughes, E., Bachrach, Y., Collins, T., McKee, K. R., Leibo, J. Z., Larson, K., and Graepel, T. (2020).
+    </span>
+    <span class="ltx_bibblock">
+     Open problems in cooperative ai.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx15.1.1">
+      arXiv preprint arXiv:2012.08630
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Devlin et al., 2018]
+    </span>
+    <span class="ltx_bibblock">
+     Devlin, J., Chang, M.-W., Lee, K., and Toutanova, K. (2018).
+    </span>
+    <span class="ltx_bibblock">
+     Bert: Pre-training of deep bidirectional transformers for language understanding.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx16.1.1">
+      arXiv preprint arXiv:1810.04805
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Du et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Du, Y., Li, S., Torralba, A., Tenenbaum, J. B., and Mordatch, I. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Improving factuality and reasoning in language models through multiagent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx17.1.1">
+      arXiv preprint arXiv:2305.14325
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Gao et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Gao, M., Ruan, J., Sun, R., Yin, X., Yang, S., and Wan, X. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Human-like summarization evaluation with chatgpt.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx18.1.1">
+      arXiv preprint arXiv:2304.02554
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Graesser et al., 2020]
+    </span>
+    <span class="ltx_bibblock">
+     Graesser, L., Cho, K., and Kiela, D. (2020).
+    </span>
+    <span class="ltx_bibblock">
+     Emergent linguistic phenomena in multi-agent communication games.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Hendrycks et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Hendrycks, D., Mazeika, M., Zou, A., Patel, S., Zhu, C., Navarro, J., Song, D., Li, B., and Steinhardt, J. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     What would jiminy cricket do? towards agents that behave morally.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx20.1.1">
+      arXiv preprint arXiv:2110.13136
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Karpinska et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Karpinska, M., Akoury, N., and Iyyer, M. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     The perils of using mechanical turk to evaluate open-ended text generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx21.1.1">
+      arXiv preprint arXiv:2109.06835
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Kondrak, 2005]
+    </span>
+    <span class="ltx_bibblock">
+     Kondrak, G. (2005).
+    </span>
+    <span class="ltx_bibblock">
+     N-gram similarity and distance.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx22.1.1">
+      International symposium on string processing and information retrieval
+     </span>
+     , pages 115–126. Springer.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Kramár et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Kramár, J., Eccles, T., Gemp, I., Tacchetti, A., McKee, K. R., Malinowski, M., Graepel, T., and Bachrach, Y. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     Negotiation and honesty in artificial intelligence methods for the board game of diplomacy.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx23.1.1">
+      Nature Communications
+     </span>
+     , 13(1):7214.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Lazaridou et al., 2020]
+    </span>
+    <span class="ltx_bibblock">
+     Lazaridou, A., Potapenko, A., and Tieleman, O. (2020).
+    </span>
+    <span class="ltx_bibblock">
+     Multi-agent communication meets natural language: Synergies between functional and structural language learning.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Lee et al., 2018]
+    </span>
+    <span class="ltx_bibblock">
+     Lee, J., Cho, K., Weston, J., and Kiela, D. (2018).
+    </span>
+    <span class="ltx_bibblock">
+     Emergent translation in multi-agent communication.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Li et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Li, G., Hammoud, H. A. A. K., Itani, H., Khizbullin, D., and Ghanem, B. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Camel: Communicative agents for" mind" exploration of large scale language model society.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx26.1.1">
+      arXiv preprint arXiv:2303.17760
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Liang et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Liang, T., He, Z., Jiao, W., Wang, X., Wang, Y., Wang, R., Yang, Y., Tu, Z., and Shi, S. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Encouraging divergent thinking in large language models through multi-agent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx27.1.1">
+      arXiv preprint arXiv:2305.19118
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Ling et al., 2017]
+    </span>
+    <span class="ltx_bibblock">
+     Ling, W., Yogatama, D., Dyer, C., and Blunsom, P. (2017).
+    </span>
+    <span class="ltx_bibblock">
+     Program induction by rationale generation: Learning to solve and explain algebraic word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx28.1.1">
+      arXiv preprint arXiv:1705.04146
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Liu et al., 2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Liu, J., Xia, C. S., Wang, Y., and Zhang, L. (2023a).
+    </span>
+    <span class="ltx_bibblock">
+     Is your code generated by chatgpt really correct? rigorous evaluation of large language models for code generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx29.1.1">
+      arXiv preprint arXiv:2305.01210
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Liu et al., 2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Liu, Y., Iter, D., Xu, Y., Wang, S., Xu, R., and Zhu, C. (2023b).
+    </span>
+    <span class="ltx_bibblock">
+     Gpteval: Nlg evaluation using gpt-4 with better human alignment.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx30.1.1">
+      arXiv preprint arXiv:2303.16634
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Lu et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Lu, P., Peng, B., Cheng, H., Galley, M., Chang, K.-W., Wu, Y. N., Zhu, S.-C., and Gao, J. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Chameleon: Plug-and-play compositional reasoning with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx31.1.1">
+      arXiv preprint arXiv:2304.09842
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Luppi et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Luppi, A. I., Mediano, P. A., Rosas, F. E., Holland, N., Fryer, T. D., O’Brien, J. T., Rowe, J. B., Menon, D. K., Bor, D., and Stamatakis, E. A. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     A synergistic core for human brain evolution and cognition.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx32.1.1">
+      Nature Neuroscience
+     </span>
+     , 25(6):771–782.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Novikova et al., 2017]
+    </span>
+    <span class="ltx_bibblock">
+     Novikova, J., Dušek, O., Curry, A. C., and Rieser, V. (2017).
+    </span>
+    <span class="ltx_bibblock">
+     Why we need new evaluation metrics for nlg.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx33.1.1">
+      arXiv preprint arXiv:1707.06875
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [OpenAI, 2023]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report. arxiv 2303.08774.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx34.1.1">
+      View in Article
+     </span>
+     , 2:13.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Ouyang et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     Training language models to follow instructions with human feedback, 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx35.1.1">
+      URL https://arxiv. org/abs/2203.02155
+     </span>
+     , 13.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Pan et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Pan, A., Chan, J. S., Zou, A., Li, N., Basart, S., Woodside, T., Zhang, H., Emmons, S., and Hendrycks, D. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Do the rewards justify the means? measuring trade-offs between rewards and ethical behavior in the machiavelli benchmark.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx36.1.1">
+      International Conference on Machine Learning
+     </span>
+     , pages 26837–26867. PMLR.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Patel et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Patel, A., Bhattamishra, S., and Goyal, N. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     Are nlp models really able to solve simple math word problems?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx37.1.1">
+      arXiv preprint arXiv:2103.07191
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Patil et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Patil, S. G., Zhang, T., Wang, X., and Gonzalez, J. E. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Gorilla: Large language model connected with massive apis.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx38.1.1">
+      arXiv preprint arXiv:2305.15334
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Qian et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Qian, C., Cong, X., Yang, C., Chen, W., Su, Y., Xu, J., Liu, Z., and Sun, M. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Communicative agents for software development.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx39.1.1">
+      arXiv preprint arXiv:2307.07924
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Rajani et al., 2019]
+    </span>
+    <span class="ltx_bibblock">
+     Rajani, N. F., McCann, B., Xiong, C., and Socher, R. (2019).
+    </span>
+    <span class="ltx_bibblock">
+     Explain yourself! leveraging language models for commonsense reasoning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx40.1.1">
+      arXiv preprint arXiv:1906.02361
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Rasal and Boddhu, 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Rasal, S. and Boddhu, S. K. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Beyond segmentation: Road network generation with multi-modal llms.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx41.1.1">
+      arXiv preprint arXiv:2310.09755
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [ROUGE, 2004]
+    </span>
+    <span class="ltx_bibblock">
+     ROUGE, L. C. (2004).
+    </span>
+    <span class="ltx_bibblock">
+     A package for automatic evaluation of summaries.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx42.1.1">
+      Proceedings of Workshop on Text Summarization of ACL, Spain
+     </span>
+     , volume 5.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx43">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Roy and Roth, 2016]
+    </span>
+    <span class="ltx_bibblock">
+     Roy, S. and Roth, D. (2016).
+    </span>
+    <span class="ltx_bibblock">
+     Solving general arithmetic word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx43.1.1">
+      arXiv preprint arXiv:1608.01413
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx44">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Sanh et al., 2021]
+    </span>
+    <span class="ltx_bibblock">
+     Sanh, V., Webson, A., Raffel, C., Bach, S. H., Sutawika, L., Alyafeai, Z., Chaffin, A., Stiegler, A., Scao, T. L., Raja, A., et al. (2021).
+    </span>
+    <span class="ltx_bibblock">
+     Multitask prompted training enables zero-shot task generalization.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx44.1.1">
+      arXiv preprint arXiv:2110.08207
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx45">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Sap et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Sap, M., LeBras, R., Fried, D., and Choi, Y. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     Neural theory-of-mind? on the limits of social intelligence in large lms.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx45.1.1">
+      arXiv preprint arXiv:2210.13312
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx46">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Sap et al., 2019]
+    </span>
+    <span class="ltx_bibblock">
+     Sap, M., Rashkin, H., Chen, D., LeBras, R., and Choi, Y. (2019).
+    </span>
+    <span class="ltx_bibblock">
+     Socialiqa: Commonsense reasoning about social interactions.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx46.1.1">
+      arXiv preprint arXiv:1904.09728
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx47">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Saunders et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Saunders, W., Yeh, C., Wu, J., Bills, S., Ouyang, L., Ward, J., and Leike, J. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     Self-critiquing models for assisting human evaluators.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx47.1.1">
+      arXiv preprint arXiv:2206.05802
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx48">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Schick et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Schick, T., Dwivedi-Yu, J., Dessì, R., Raileanu, R., Lomeli, M., Zettlemoyer, L., Cancedda, N., and Scialom, T. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Toolformer: Language models can teach themselves to use tools.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx48.1.1">
+      arXiv preprint arXiv:2302.04761
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx49">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Sclar et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Sclar, M., Kumar, S., West, P., Suhr, A., Choi, Y., and Tsvetkov, Y. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Minding language models’(lack of) theory of mind: A plug-and-play multi-character belief tracker.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx49.1.1">
+      arXiv preprint arXiv:2306.00924
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx50">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Shen et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shen, C., Cheng, L., You, Y., and Bing, L. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Are large language models good evaluators for abstractive summarization?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx50.1.1">
+      arXiv preprint arXiv:2305.13091
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx51">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Susskind, 1985]
+    </span>
+    <span class="ltx_bibblock">
+     Susskind, L. E. (1985).
+    </span>
+    <span class="ltx_bibblock">
+     Scorable games: A better way to teach negotiation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx51.1.1">
+      Negot. J.
+     </span>
+     , 1:205.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx52">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Susskind and Corburn, 2000]
+    </span>
+    <span class="ltx_bibblock">
+     Susskind, L. E. and Corburn, J. (2000).
+    </span>
+    <span class="ltx_bibblock">
+     Using simulations to teach negotiation: Pedagogical theory and practice.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx52.1.1">
+      Teaching negotiation: Ideas and innovations
+     </span>
+     , pages 285–310.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx53">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Talmor et al., 2018]
+    </span>
+    <span class="ltx_bibblock">
+     Talmor, A., Herzig, J., Lourie, N., and Berant, J. (2018).
+    </span>
+    <span class="ltx_bibblock">
+     Commonsenseqa: A question answering challenge targeting commonsense knowledge.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx53.1.1">
+      arXiv preprint arXiv:1811.00937
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx54">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Thoppilan et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Thoppilan, R., De Freitas, D., Hall, J., Shazeer, N., Kulshreshtha, A., Cheng, H.-T., Jin, A., Bos, T., Baker, L., Du, Y., et al. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     Lamda: Language models for dialog applications.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx54.1.1">
+      arXiv preprint arXiv:2201.08239
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx55">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Touvron et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Touvron, H., Lavril, T., Izacard, G., Martinet, X., Lachaux, M.-A., Lacroix, T., Rozière, B., Goyal, N., Hambro, E., Azhar, F., et al. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Llama: Open and efficient foundation language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx55.1.1">
+      arXiv preprint arXiv:2302.13971
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx56">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Van Der Lee et al., 2019]
+    </span>
+    <span class="ltx_bibblock">
+     Van Der Lee, C., Gatt, A., Van Miltenburg, E., Wubben, S., and Krahmer, E. (2019).
+    </span>
+    <span class="ltx_bibblock">
+     Best practices for the human evaluation of automatically generated text.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx56.1.1">
+      Proceedings of the 12th International Conference on Natural Language Generation
+     </span>
+     , pages 355–368.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx57">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Wei et al., 2022a]
+    </span>
+    <span class="ltx_bibblock">
+     Wei, J., Tay, Y., Bommasani, R., Raffel, C., Zoph, B., Borgeaud, S., Yogatama, D., Bosma, M., Zhou, D., Metzler, D., et al. (2022a).
+    </span>
+    <span class="ltx_bibblock">
+     Emergent abilities of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx57.1.1">
+      arXiv preprint arXiv:2206.07682
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx58">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Wei et al., 2022b]
+    </span>
+    <span class="ltx_bibblock">
+     Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., Le, Q. V., Zhou, D., et al. (2022b).
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx58.1.1">
+      Advances in Neural Information Processing Systems
+     </span>
+     , 35:24824–24837.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx59">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Woolley et al., 2010]
+    </span>
+    <span class="ltx_bibblock">
+     Woolley, A. W., Chabris, C. F., Pentland, A., Hashmi, N., and Malone, T. W. (2010).
+    </span>
+    <span class="ltx_bibblock">
+     Evidence for a collective intelligence factor in the performance of human groups.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx59.1.1">
+      science
+     </span>
+     , 330(6004):686–688.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx60">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Wu et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Wu, N., Gong, M., Shou, L., Liang, S., and Jiang, D. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Large language models are diverse role-players for summarization evaluation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx60.1.1">
+      arXiv preprint arXiv:2303.15078
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx61">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Yao et al., 2022]
+    </span>
+    <span class="ltx_bibblock">
+     Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., and Cao, Y. (2022).
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx61.1.1">
+      arXiv preprint arXiv:2210.03629
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx62">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Zheng et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E., et al. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     Judging llm-as-a-judge with mt-bench and chatbot arena.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bibx62.1.1">
+      arXiv preprint arXiv:2306.05685
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bibx63">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [Zhou et al., 2023]
+    </span>
+    <span class="ltx_bibblock">
+     Zhou, P., Zhu, A., Hu, J., Pujara, J., Ren, X., Callison-Burch, C., Choi, Y., and Ammanabrolu, P. (2023).
+    </span>
+    <span class="ltx_bibblock">
+     I cast detect thoughts: Learning to converse and guide with intents and theory-of-mind in dungeons and dragons.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bibx63.1.1">
+      Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)
+     </span>
+     , pages 11136–11155.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

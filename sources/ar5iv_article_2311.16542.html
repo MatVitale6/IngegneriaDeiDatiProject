@@ -1,0 +1,3730 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yi Zheng
+    <br class="ltx_break"/>
+    Communication University of China &amp; Kuaishou Technology
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     zhengyi7592@cuc.edu.cn
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id2.2.id2">
+     \AND
+    </span>
+    Chongyang Ma
+    <br class="ltx_break"/>
+    Kuaishou Technology
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id3.3.id3">
+     chongyangma@kuaishou.com
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id4.4.id4">
+     \AND
+    </span>
+    Kanle Shi
+    <br class="ltx_break"/>
+    Kuaishou Technology
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id5.5.id5">
+     shikanle@kuaishou.com
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id6.6.id6">
+     \AND
+    </span>
+    Haibin Huang
+    <br class="ltx_break"/>
+    Kuaishou Technology
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id7.7.id7">
+     jackiehuanghaibin@gmail.com
+    </span>
+    <br class="ltx_break"/>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id8.id1">
+   In this study, we introduce the concept of OKR-Agent, which is designed to enhance the capabilities of Large Language Models (LLMs) in task-solving. Our approach utilizes both self-collaboration and self-correction mechanisms, facilitated by hierarchical agents, to address the inherent complexities of target tasks. Our key observations are two-fold: first, effective task solving demands in-depth domain knowledge and intricate reasoning, for which deploying specialized agents for individual sub-tasks can markedly enhance LLM performance. Second, task solving intrinsically adheres to a hierarchical execution structure, comprising both high-level strategic planning and detailed task execution. Towards this end, our OKR-Agent paradigm aligns closely with this hierarchical structure, promising enhanced efficacy and adaptability across a wide range of scenarios. Specifically, our framework includes two novel modules, i.e., hierarchical
+   <span class="ltx_text ltx_font_bold" id="id8.id1.1">
+    O
+   </span>
+   bjects and
+   <span class="ltx_text ltx_font_bold" id="id8.id1.2">
+    K
+   </span>
+   ey
+   <span class="ltx_text ltx_font_bold" id="id8.id1.3">
+    R
+   </span>
+   esults generation and multi-level evaluation, both contributing to more efficient and robust task-solving. In practice, hierarchical OKR generation decomposes objects into multiple sub-objects and assigns new agents based on key results and agent responsibilities. These agents subsequently elaborate on their designated tasks and may further decompose them as necessary. Such generation operates recursively and hierarchically, culminating in a comprehensive set of detailed solutions. The multi-level evaluation module of OKR-Agent refines the solution by leveraging feedback from all associated agents, optimizing each step of the process. This scheme ensures the solution is accurate, practical, and meets the requirements of intricate tasks, enhancing the overall reliability and quality of the outcome. Experimental results demonstrate that our method outperforms previous methods on several tasks. Code and demo are available at
+   <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://okr-agent.github.io/" target="_blank" title="">
+    https://okr-agent.github.io/
+   </a>
+   .
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The widespread application of Large Language Models (LLMs) has elicited transformative advancements in various sectors. However, the intricate potential of LLMs remains underexplored, especially in tasks of high complexity
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Qin et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2023
+     </a>
+     ); OpenAI (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , such as curating movie scenes or designing sophisticated travel plans, where LLMs face challenges related to knowledge and reasoning intensity, due to issues such as hallucination
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bang et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ); Bubeck et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and lack of slow thinking
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Sloman (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      1996
+     </a>
+     ); Lin et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023a
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    In this study, we explore two crucial dimensions of utilizing LLMs for intricate tasks: enhancing self-collaboration and enabling self-evaluation. Our investigation is motivated by two key observations.
+Firstly, existing studies such as CoT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wei et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and ToT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Yao et al. (
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      2023a
+     </a>
+     )
+    </cite>
+    reveal that introducing intermediate steps and adopting a multi-persona approach can markedly enhance the performance of LLMs. Nevertheless, these methodologies necessitate manual workflow configuration and agent assignment. The study of SPP
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     )
+    </cite>
+    demonstrates the potential of LLMs to dynamically allocate agents, based on task inputs and user-specified requirements, and to produce rational outputs. This observation has led us to explore deeper into the capability of LLMs to autonomously decompose input tasks into meaningful goals and to formulate guidelines for agent collaboration from varied perspectives.
+Secondly, the inherent multiplicity of potential solutions in any collaborative undertaking necessitates the critical ability to discern, assess, and choose the most apt solutions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Hence, we aim to unearth a mechanism that enables LLMs to effectively evaluate and pinpoint the most promising solutions from a myriad of generated possibilities.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="176" id="S1.F1.g1" src="/html/2311.16542/assets/figures/pipeline.jpg" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Pipeline of OKR-Agent. We utilize a hierarchical approach, where agent (LLM) decomposes tasks into Objectives and Key Results, spawns role-specific agents, and fosters collaboration and evaluation.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Inspired by the renowned success of the Objectives and Key Results (OKR) system in guiding large corporations and organizations towards achievement, we have developed a unique goal-setting framework within our Large Language Model (LLM) task-solving pipeline, namely OKR-Agent.
+Specifically, OKR-Agent works in a hierarchical and self-collaboration manner. Given a concise description of the task, a primary agent undertakes the initial analysis and generates a spectrum of potential objectives, proceeding to select the most apt ones. Subsequently, this leading agent incorporates additional agents based on the finalized objectives, assigning to each the corresponding key results necessary for fulfillment. It is imperative to note that this process of agent assignment is comprehensive, encompassing both the delineation of roles for each agent and the establishment of inter-agent dependencies throughout the workflow. These newly incorporated agents possess the capability to further break down the key results into subordinate objectives and key results, enabling a substantial enlargement of the agent roster. This iterative and multi-level approach ensures that each layer of the task has a dedicated focus, fostering a nuanced and thorough exploration of potential solutions and strategies.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Another core component of OKR-Agent is multi-level self-evaluation. As illustrated in recent works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Park et al. (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023
+     </a>
+     ); Hong et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , assimilating evaluations from varied personas and perspectives substantially enhances the accuracy and quality of outputs generated by LLM agents. However, prevailing methodologies solicit feedback from agents based solely on their designated roles, often neglecting a holistic overview of the content. We postulate that an effective agent evaluation should not only be reflexive but also encompass assessments from agents in close relational proximity, offering a more rounded perspective. With the architectural design of OKR-Agent, each agent is cognizant of its relative position within the workflow, enabling it to furnish evaluations that encompass all correlated perspectives and make modifications accordingly. Moreover, proficient evaluations at both strategic and executional levels are crucial to guarantee the efficacy of the solution. The self-evaluation works in a coarse-to-fine manner, where top-level agents scrutinize overarching strategies, subsequently transitioning to lower-level agents who meticulously attend to execution details.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    We further validate the efficacy of OKR-Agent through experiments encompassing three diverse tasks: short video storyboard generation, multi-day trip planning, and trivia creative writing. Our empirical results demonstrate that OKR-Agent surpasses preceding LLM-based task-solving methodologies, exhibiting superior performance in both overarching planning and the intricacy of details, presenting a consistent enhancement across diverse domains.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    To summarize, our main contributions are as below:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We introduce a new hierarchical and self-collaborative approach for task solving. It analyzes and decomposes tasks into distinct objectives and assigns key results to various agents, based on their roles and the workflow’s relative positions, enabling a more structured and coherent approach to task execution.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       We propose a novel multi-level self-evaluation mechanism, allowing each agent to offer evaluations from all related perspectives. This feature not only refines the accuracy and quality of the outputs by incorporating various assessments and feedback but also ensures that the evaluations are comprehensive, covering both strategic and executional levels.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       OKR-Agent has demonstrated its supremacy over existing LLM-based task-solving models on on diverse tasks. It has shown consistent enhancements in both overall planning and detail execution, making it a robust solution for complex task-solving scenarios.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   related work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Prompting Framework and Pipeline
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wei et al. (
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     introduces the concept of Chain-of-Thought, which effectively enhances the reasoning ability of LLMs by generating a series of intermediate reasoning steps in response to a question.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Yao et al. (
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       2023a
+      </a>
+      )
+     </cite>
+     proposes to explore multiple feasible paths and combine searching and backtracking, which significantly improves the effectiveness in solving complex logical reasoning problems.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      )
+     </cite>
+     proposes a reasoning method with automatic evaluation. This approach involves automating the setup of multiple agents with different capabilities to evaluate and refine reasoning results multiple times. It endows LLMs with stronger reasoning abilities while effectively reducing hallucinations.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Besta et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      )
+     </cite>
+     introduces a GoT structure that can comprehensively utilize the optimal results generated during the reasoning process. While ongoing advancements aim to augment the task-solving capabilities of LLMs through the implementation of diverse reasoning pipelines, a notable performance gap persists, particularly in generating intricate content requisite for domains such as creative writing and storyboard generation.
+In this study, we explore an innovative pipeline imbued with a hierarchical structure specifically engineered to address the complexities inherent in such creative generation tasks.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Specific Tasks-Solving with Agent and LLMs
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Numerous studies have delved into the enhancement of LLMs’ task-solving capabilities, exploring innovative paradigms to boost their creative and problem-solving prowess in specific scenarios. Some studies introduce systems optimizing inter-agent communication
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Li et al. (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , whereas others harmoniously amalgamate the behavioral propensities of agent groups with the advanced reasoning capabilities of LLMs
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Park et al. (
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . These explorations, inclusive of works cited as
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Hong et al. (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      ); Cai et al. (
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023
+      </a>
+      ); Lin et al. (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     , have manifested remarkable advancements in tailoring Agent-Pipeline solutions, demonstrating unparalleled creativity and proficiency in problem resolution. Conversely, some research ventures
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Mirowski et al. (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2023
+      </a>
+      )
+     </cite>
+     have employed hierarchical and structured approaches combined with specific role assignments to leverage the capabilities of LLMs in generating long-form creative content, such as continuous scripts enriched with detailed contextual elements.
+These studies, along with
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Zhang et al. (
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       2019
+      </a>
+      ); Mishra et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023
+      </a>
+      ); Liu et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2023a
+      </a>
+      )
+     </cite>
+     , have exemplified commendable strides in integrating domain-specific knowledge to guide LLMs in executing tasks with enhanced precision in respective domains.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     Despite the plethora of advancements and innovations in LLMs, a common limitation is evident, i.e., the reliance on manual specification for both problem-solving processes and the determination of agent attributes, impeding their versatility in generalized applications. To address this issue, our study proposes leveraging LLMs as agents capable of self-collaboration and self-evaluation, a methodology we posit is adaptable across a myriad of tasks.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Cognitive Science and LLMs
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Researchers such as
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Piaget (
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       1954
+      </a>
+      ); Pellegrini (
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2009
+      </a>
+      ); Wason &amp; Johnson-Laird (
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       1972
+      </a>
+      ); Sloman (
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       1996
+      </a>
+      )
+     </cite>
+     have delved into the realms of human psychology and cognition, influencing subsequent developments in artificial intelligence theory
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chandrasekaran et al. (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2017
+      </a>
+      )
+     </cite>
+     .
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Devlin et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2019
+      </a>
+      ); Brown et al. (
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2020
+      </a>
+      ); OpenAI (
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2023
+      </a>
+      ); Chowdhery et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2022
+      </a>
+      ); Srivastava et al. (
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       2023
+      </a>
+      )
+     </cite>
+     demonstrate the capabilities of large language models (LLMs) to the public.
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Shuster et al. (
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       2022
+      </a>
+      ); Bang et al. (
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2023
+      </a>
+      ); Liu et al. (
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2023b
+      </a>
+      ); Yao et al. (
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       2023b
+      </a>
+      ); Lin et al. (
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2023a
+      </a>
+      ); Madaan et al. (
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2023
+      </a>
+      ); Shinn et al. (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , by integrating cognitive science with Large Language Models (LLMs), continuously explore methods to enhance the capabilities of LLMs.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     All of these approaches represent new explorations in both theoretical and methodological aspects, providing fresh perspectives for the enhancement and development of LLMs in the future.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   method
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    In this section, we formally introduce OKR-Agent, as demonstrated in Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 introduction ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . We first revisit the definition of task-solving of LLM Agents, and then provide details about OKR-Agent including Self-Collaboration, Self-Evaluation, and the complete workflow.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.3">
+    Given an input instruction
+    <math alttext="x" class="ltx_Math" display="inline" id="S3.p2.1.m1.1">
+     <semantics id="S3.p2.1.m1.1a">
+      <mi id="S3.p2.1.m1.1.1" xref="S3.p2.1.m1.1.1.cmml">
+       x
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.1.m1.1b">
+       <ci id="S3.p2.1.m1.1.1.cmml" xref="S3.p2.1.m1.1.1">
+        𝑥
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.1.m1.1c">
+       x
+      </annotation>
+     </semantics>
+    </math>
+    and a model
+    <math alttext="\mathcal{M}" class="ltx_Math" display="inline" id="S3.p2.2.m2.1">
+     <semantics id="S3.p2.2.m2.1a">
+      <mi class="ltx_font_mathcaligraphic" id="S3.p2.2.m2.1.1" xref="S3.p2.2.m2.1.1.cmml">
+       ℳ
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.2.m2.1b">
+       <ci id="S3.p2.2.m2.1.1.cmml" xref="S3.p2.2.m2.1.1">
+        ℳ
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.2.m2.1c">
+       \mathcal{M}
+      </annotation>
+     </semantics>
+    </math>
+    , if we denote the final output to be
+    <math alttext="y" class="ltx_Math" display="inline" id="S3.p2.3.m3.1">
+     <semantics id="S3.p2.3.m3.1a">
+      <mi id="S3.p2.3.m3.1.1" xref="S3.p2.3.m3.1.1.cmml">
+       y
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.3.m3.1b">
+       <ci id="S3.p2.3.m3.1.1.cmml" xref="S3.p2.3.m3.1.1">
+        𝑦
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.3.m3.1c">
+       y
+      </annotation>
+     </semantics>
+    </math>
+    , then the Standard Prompting can be formulated as:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex1">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="y=\mathcal{M}(x)" class="ltx_Math" display="block" id="S3.Ex1.m1.1">
+        <semantics id="S3.Ex1.m1.1a">
+         <mrow id="S3.Ex1.m1.1.2" xref="S3.Ex1.m1.1.2.cmml">
+          <mi id="S3.Ex1.m1.1.2.2" xref="S3.Ex1.m1.1.2.2.cmml">
+           y
+          </mi>
+          <mo id="S3.Ex1.m1.1.2.1" xref="S3.Ex1.m1.1.2.1.cmml">
+           =
+          </mo>
+          <mrow id="S3.Ex1.m1.1.2.3" xref="S3.Ex1.m1.1.2.3.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S3.Ex1.m1.1.2.3.2" xref="S3.Ex1.m1.1.2.3.2.cmml">
+            ℳ
+           </mi>
+           <mo id="S3.Ex1.m1.1.2.3.1" lspace="0em" rspace="0em" xref="S3.Ex1.m1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mrow id="S3.Ex1.m1.1.2.3.3.2" xref="S3.Ex1.m1.1.2.3.cmml">
+            <mo id="S3.Ex1.m1.1.2.3.3.2.1" stretchy="false" xref="S3.Ex1.m1.1.2.3.cmml">
+             (
+            </mo>
+            <mi id="S3.Ex1.m1.1.1" xref="S3.Ex1.m1.1.1.cmml">
+             x
+            </mi>
+            <mo id="S3.Ex1.m1.1.2.3.3.2.2" stretchy="false" xref="S3.Ex1.m1.1.2.3.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.Ex1.m1.1b">
+          <apply id="S3.Ex1.m1.1.2.cmml" xref="S3.Ex1.m1.1.2">
+           <eq id="S3.Ex1.m1.1.2.1.cmml" xref="S3.Ex1.m1.1.2.1">
+           </eq>
+           <ci id="S3.Ex1.m1.1.2.2.cmml" xref="S3.Ex1.m1.1.2.2">
+            𝑦
+           </ci>
+           <apply id="S3.Ex1.m1.1.2.3.cmml" xref="S3.Ex1.m1.1.2.3">
+            <times id="S3.Ex1.m1.1.2.3.1.cmml" xref="S3.Ex1.m1.1.2.3.1">
+            </times>
+            <ci id="S3.Ex1.m1.1.2.3.2.cmml" xref="S3.Ex1.m1.1.2.3.2">
+             ℳ
+            </ci>
+            <ci id="S3.Ex1.m1.1.1.cmml" xref="S3.Ex1.m1.1.1">
+             𝑥
+            </ci>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.Ex1.m1.1c">
+          y=\mathcal{M}(x)
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <p class="ltx_p" id="S3.p2.5">
+    with the additional prompt
+    <math alttext="p" class="ltx_Math" display="inline" id="S3.p2.4.m1.1">
+     <semantics id="S3.p2.4.m1.1a">
+      <mi id="S3.p2.4.m1.1.1" xref="S3.p2.4.m1.1.1.cmml">
+       p
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.4.m1.1b">
+       <ci id="S3.p2.4.m1.1.1.cmml" xref="S3.p2.4.m1.1.1">
+        𝑝
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.4.m1.1c">
+       p
+      </annotation>
+     </semantics>
+    </math>
+    and intermediate generations
+    <math alttext="z" class="ltx_Math" display="inline" id="S3.p2.5.m2.1">
+     <semantics id="S3.p2.5.m2.1a">
+      <mi id="S3.p2.5.m2.1.1" xref="S3.p2.5.m2.1.1.cmml">
+       z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.5.m2.1b">
+       <ci id="S3.p2.5.m2.1.1.cmml" xref="S3.p2.5.m2.1.1">
+        𝑧
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.5.m2.1c">
+       z
+      </annotation>
+     </semantics>
+    </math>
+    , Chain-Of-Thought(CoT)and Solo-Performance-Prompting(SPP) can be described as below respectively:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex2">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="y=\mathcal{M}(p_{cot}|x|\{z_{1},z_{2},...,z_{n}\})" class="ltx_Math" display="block" id="S3.Ex2.m1.3">
+        <semantics id="S3.Ex2.m1.3a">
+         <mrow id="S3.Ex2.m1.3.3" xref="S3.Ex2.m1.3.3.cmml">
+          <mi id="S3.Ex2.m1.3.3.3" xref="S3.Ex2.m1.3.3.3.cmml">
+           y
+          </mi>
+          <mo id="S3.Ex2.m1.3.3.2" xref="S3.Ex2.m1.3.3.2.cmml">
+           =
+          </mo>
+          <mrow id="S3.Ex2.m1.3.3.1" xref="S3.Ex2.m1.3.3.1.cmml">
+           <mi class="ltx_font_mathcaligraphic" id="S3.Ex2.m1.3.3.1.3" xref="S3.Ex2.m1.3.3.1.3.cmml">
+            ℳ
+           </mi>
+           <mo id="S3.Ex2.m1.3.3.1.2" lspace="0em" rspace="0em" xref="S3.Ex2.m1.3.3.1.2.cmml">
+            ​
+           </mo>
+           <mrow id="S3.Ex2.m1.3.3.1.1.1" xref="S3.Ex2.m1.3.3.1.1.1.1.cmml">
+            <mo id="S3.Ex2.m1.3.3.1.1.1.2" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.cmml">
+             (
+            </mo>
+            <mrow id="S3.Ex2.m1.3.3.1.1.1.1" xref="S3.Ex2.m1.3.3.1.1.1.1.cmml">
+             <msub id="S3.Ex2.m1.3.3.1.1.1.1.5" xref="S3.Ex2.m1.3.3.1.1.1.1.5.cmml">
+              <mi id="S3.Ex2.m1.3.3.1.1.1.1.5.2" xref="S3.Ex2.m1.3.3.1.1.1.1.5.2.cmml">
+               p
+              </mi>
+              <mrow id="S3.Ex2.m1.3.3.1.1.1.1.5.3" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.cmml">
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.5.3.2" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.2.cmml">
+                c
+               </mi>
+               <mo id="S3.Ex2.m1.3.3.1.1.1.1.5.3.1" lspace="0em" rspace="0em" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.5.3.3" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.3.cmml">
+                o
+               </mi>
+               <mo id="S3.Ex2.m1.3.3.1.1.1.1.5.3.1a" lspace="0em" rspace="0em" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.1.cmml">
+                ​
+               </mo>
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.5.3.4" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.4.cmml">
+                t
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S3.Ex2.m1.3.3.1.1.1.1.4" lspace="0em" rspace="0em" xref="S3.Ex2.m1.3.3.1.1.1.1.4.cmml">
+              ​
+             </mo>
+             <mrow id="S3.Ex2.m1.3.3.1.1.1.1.6.2" xref="S3.Ex2.m1.3.3.1.1.1.1.6.1.cmml">
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.6.2.1" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.6.1.1.cmml">
+               |
+              </mo>
+              <mi id="S3.Ex2.m1.2.2" xref="S3.Ex2.m1.2.2.cmml">
+               x
+              </mi>
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.6.2.2" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.6.1.1.cmml">
+               |
+              </mo>
+             </mrow>
+             <mo id="S3.Ex2.m1.3.3.1.1.1.1.4a" lspace="0em" rspace="0em" xref="S3.Ex2.m1.3.3.1.1.1.1.4.cmml">
+              ​
+             </mo>
+             <mrow id="S3.Ex2.m1.3.3.1.1.1.1.3.3" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.3.3.4" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+               {
+              </mo>
+              <msub id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.cmml">
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.2" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.2.cmml">
+                z
+               </mi>
+               <mn id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.3" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.3.cmml">
+                1
+               </mn>
+              </msub>
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.3.3.5" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+               ,
+              </mo>
+              <msub id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.cmml">
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.2" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.2.cmml">
+                z
+               </mi>
+               <mn id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.3" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.3.cmml">
+                2
+               </mn>
+              </msub>
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.3.3.6" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+               ,
+              </mo>
+              <mi id="S3.Ex2.m1.1.1" mathvariant="normal" xref="S3.Ex2.m1.1.1.cmml">
+               …
+              </mi>
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.3.3.7" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+               ,
+              </mo>
+              <msub id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.cmml">
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.2" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.2.cmml">
+                z
+               </mi>
+               <mi id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.3" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.3.cmml">
+                n
+               </mi>
+              </msub>
+              <mo id="S3.Ex2.m1.3.3.1.1.1.1.3.3.8" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml">
+               }
+              </mo>
+             </mrow>
+            </mrow>
+            <mo id="S3.Ex2.m1.3.3.1.1.1.3" stretchy="false" xref="S3.Ex2.m1.3.3.1.1.1.1.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+         <annotation-xml encoding="MathML-Content" id="S3.Ex2.m1.3b">
+          <apply id="S3.Ex2.m1.3.3.cmml" xref="S3.Ex2.m1.3.3">
+           <eq id="S3.Ex2.m1.3.3.2.cmml" xref="S3.Ex2.m1.3.3.2">
+           </eq>
+           <ci id="S3.Ex2.m1.3.3.3.cmml" xref="S3.Ex2.m1.3.3.3">
+            𝑦
+           </ci>
+           <apply id="S3.Ex2.m1.3.3.1.cmml" xref="S3.Ex2.m1.3.3.1">
+            <times id="S3.Ex2.m1.3.3.1.2.cmml" xref="S3.Ex2.m1.3.3.1.2">
+            </times>
+            <ci id="S3.Ex2.m1.3.3.1.3.cmml" xref="S3.Ex2.m1.3.3.1.3">
+             ℳ
+            </ci>
+            <apply id="S3.Ex2.m1.3.3.1.1.1.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1">
+             <times id="S3.Ex2.m1.3.3.1.1.1.1.4.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.4">
+             </times>
+             <apply id="S3.Ex2.m1.3.3.1.1.1.1.5.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5">
+              <csymbol cd="ambiguous" id="S3.Ex2.m1.3.3.1.1.1.1.5.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5">
+               subscript
+              </csymbol>
+              <ci id="S3.Ex2.m1.3.3.1.1.1.1.5.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.2">
+               𝑝
+              </ci>
+              <apply id="S3.Ex2.m1.3.3.1.1.1.1.5.3.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3">
+               <times id="S3.Ex2.m1.3.3.1.1.1.1.5.3.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.1">
+               </times>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.5.3.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.2">
+                𝑐
+               </ci>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.5.3.3.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.3">
+                𝑜
+               </ci>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.5.3.4.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.5.3.4">
+                𝑡
+               </ci>
+              </apply>
+             </apply>
+             <apply id="S3.Ex2.m1.3.3.1.1.1.1.6.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.6.2">
+              <abs id="S3.Ex2.m1.3.3.1.1.1.1.6.1.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.6.2.1">
+              </abs>
+              <ci id="S3.Ex2.m1.2.2.cmml" xref="S3.Ex2.m1.2.2">
+               𝑥
+              </ci>
+             </apply>
+             <set id="S3.Ex2.m1.3.3.1.1.1.1.3.4.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3">
+              <apply id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1">
+               <csymbol cd="ambiguous" id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1">
+                subscript
+               </csymbol>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.2">
+                𝑧
+               </ci>
+               <cn id="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.3.cmml" type="integer" xref="S3.Ex2.m1.3.3.1.1.1.1.1.1.1.3">
+                1
+               </cn>
+              </apply>
+              <apply id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2">
+               <csymbol cd="ambiguous" id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2">
+                subscript
+               </csymbol>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.2">
+                𝑧
+               </ci>
+               <cn id="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.3.cmml" type="integer" xref="S3.Ex2.m1.3.3.1.1.1.1.2.2.2.3">
+                2
+               </cn>
+              </apply>
+              <ci id="S3.Ex2.m1.1.1.cmml" xref="S3.Ex2.m1.1.1">
+               …
+              </ci>
+              <apply id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3">
+               <csymbol cd="ambiguous" id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.1.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3">
+                subscript
+               </csymbol>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.2.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.2">
+                𝑧
+               </ci>
+               <ci id="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.3.cmml" xref="S3.Ex2.m1.3.3.1.1.1.1.3.3.3.3">
+                𝑛
+               </ci>
+              </apply>
+             </set>
+            </apply>
+           </apply>
+          </apply>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.Ex2.m1.3c">
+          y=\mathcal{M}(p_{cot}|x|\{z_{1},z_{2},...,z_{n}\})
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <table class="ltx_equation ltx_eqn_table" id="S3.Ex3">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="y=\mathcal{M}(p_{spp}|x|z_{p}|\{z_{b}^{1},z_{b}^{2},...,z_{b}^{n}\}|\{z_{s}^{0},z_{f}^{1},...,z_{f}^{m}\}_{j=1,2,..n})" class="ltx_math_unparsed" display="block" id="S3.Ex3.m1.6">
+        <semantics id="S3.Ex3.m1.6a">
+         <mrow id="S3.Ex3.m1.6.6">
+          <mi id="S3.Ex3.m1.6.6.3">
+           y
+          </mi>
+          <mo id="S3.Ex3.m1.6.6.2">
+           =
+          </mo>
+          <mrow id="S3.Ex3.m1.6.6.1">
+           <mi class="ltx_font_mathcaligraphic" id="S3.Ex3.m1.6.6.1.3">
+            ℳ
+           </mi>
+           <mo id="S3.Ex3.m1.6.6.1.2" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mrow id="S3.Ex3.m1.6.6.1.1.1">
+            <mo id="S3.Ex3.m1.6.6.1.1.1.2" stretchy="false">
+             (
+            </mo>
+            <mrow id="S3.Ex3.m1.6.6.1.1.1.1">
+             <msub id="S3.Ex3.m1.6.6.1.1.1.1.6">
+              <mi id="S3.Ex3.m1.6.6.1.1.1.1.6.2">
+               p
+              </mi>
+              <mrow id="S3.Ex3.m1.6.6.1.1.1.1.6.3">
+               <mi id="S3.Ex3.m1.6.6.1.1.1.1.6.3.2">
+                s
+               </mi>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.6.3.1" lspace="0em" rspace="0em">
+                ​
+               </mo>
+               <mi id="S3.Ex3.m1.6.6.1.1.1.1.6.3.3">
+                p
+               </mi>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.6.3.1a" lspace="0em" rspace="0em">
+                ​
+               </mo>
+               <mi id="S3.Ex3.m1.6.6.1.1.1.1.6.3.4">
+                p
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S3.Ex3.m1.6.6.1.1.1.1.5" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <mrow id="S3.Ex3.m1.6.6.1.1.1.1.7.2">
+              <mo id="S3.Ex3.m1.6.6.1.1.1.1.7.2.1" stretchy="false">
+               |
+              </mo>
+              <mi id="S3.Ex3.m1.3.3">
+               x
+              </mi>
+              <mo id="S3.Ex3.m1.6.6.1.1.1.1.7.2.2" stretchy="false">
+               |
+              </mo>
+             </mrow>
+             <mo id="S3.Ex3.m1.6.6.1.1.1.1.5a" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <msub id="S3.Ex3.m1.6.6.1.1.1.1.8">
+              <mi id="S3.Ex3.m1.6.6.1.1.1.1.8.2">
+               z
+              </mi>
+              <mi id="S3.Ex3.m1.6.6.1.1.1.1.8.3">
+               p
+              </mi>
+             </msub>
+             <mo id="S3.Ex3.m1.6.6.1.1.1.1.5b" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <mrow id="S3.Ex3.m1.6.6.1.1.1.1.1.1">
+              <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.2" stretchy="false">
+               |
+              </mo>
+              <mrow id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3">
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.4" stretchy="false">
+                {
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.1.1">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.1.1.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.1.1.2.3">
+                 b
+                </mi>
+                <mn id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.1.1.3">
+                 1
+                </mn>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.5">
+                ,
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.2.2">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.2.2.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.2.2.2.3">
+                 b
+                </mi>
+                <mn id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.2.2.3">
+                 2
+                </mn>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.6">
+                ,
+               </mo>
+               <mi id="S3.Ex3.m1.4.4" mathvariant="normal">
+                …
+               </mi>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.7">
+                ,
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.3">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.3.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.3.2.3">
+                 b
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.3.3">
+                 n
+                </mi>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.1.3.8" stretchy="false">
+                }
+               </mo>
+              </mrow>
+              <mo id="S3.Ex3.m1.6.6.1.1.1.1.1.1.3" stretchy="false">
+               |
+              </mo>
+             </mrow>
+             <mo id="S3.Ex3.m1.6.6.1.1.1.1.5c" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <msub id="S3.Ex3.m1.6.6.1.1.1.1.4">
+              <mrow id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3">
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.4" stretchy="false">
+                {
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.2.1.1.1">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.2.1.1.1.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.2.1.1.1.2.3">
+                 s
+                </mi>
+                <mn id="S3.Ex3.m1.6.6.1.1.1.1.2.1.1.1.3">
+                 0
+                </mn>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.5">
+                ,
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.3.2.2.2">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.3.2.2.2.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.3.2.2.2.2.3">
+                 f
+                </mi>
+                <mn id="S3.Ex3.m1.6.6.1.1.1.1.3.2.2.2.3">
+                 1
+                </mn>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.6">
+                ,
+               </mo>
+               <mi id="S3.Ex3.m1.5.5" mathvariant="normal">
+                …
+               </mi>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.7">
+                ,
+               </mo>
+               <msubsup id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.3">
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.3.2.2">
+                 z
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.3.2.3">
+                 f
+                </mi>
+                <mi id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.3.3">
+                 m
+                </mi>
+               </msubsup>
+               <mo id="S3.Ex3.m1.6.6.1.1.1.1.4.3.3.8" stretchy="false">
+                }
+               </mo>
+              </mrow>
+              <mrow id="S3.Ex3.m1.2.2.2">
+               <mi id="S3.Ex3.m1.2.2.2.3">
+                j
+               </mi>
+               <mo id="S3.Ex3.m1.2.2.2.4">
+                =
+               </mo>
+               <mn id="S3.Ex3.m1.1.1.1.1">
+                1
+               </mn>
+               <mo id="S3.Ex3.m1.2.2.2.5">
+                ,
+               </mo>
+               <mn id="S3.Ex3.m1.2.2.2.2">
+                2
+               </mn>
+               <mo id="S3.Ex3.m1.2.2.2.6">
+                ,
+               </mo>
+               <mo id="S3.Ex3.m1.2.2.2.7" lspace="0em" rspace="0.0835em">
+                .
+               </mo>
+               <mo id="S3.Ex3.m1.2.2.2.8" lspace="0.0835em" rspace="0.167em">
+                .
+               </mo>
+               <mi id="S3.Ex3.m1.2.2.2.9">
+                n
+               </mi>
+              </mrow>
+             </msub>
+            </mrow>
+            <mo id="S3.Ex3.m1.6.6.1.1.1.3" stretchy="false">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+         <annotation encoding="application/x-tex" id="S3.Ex3.m1.6b">
+          y=\mathcal{M}(p_{spp}|x|z_{p}|\{z_{b}^{1},z_{b}^{2},...,z_{b}^{n}\}|\{z_{s}^{0},z_{f}^{1},...,z_{f}^{m}\}_{j=1,2,..n})
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <p class="ltx_p" id="S3.p2.12">
+    where
+    <math alttext="z_{i}" class="ltx_Math" display="inline" id="S3.p2.6.m1.1">
+     <semantics id="S3.p2.6.m1.1a">
+      <msub id="S3.p2.6.m1.1.1" xref="S3.p2.6.m1.1.1.cmml">
+       <mi id="S3.p2.6.m1.1.1.2" xref="S3.p2.6.m1.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.p2.6.m1.1.1.3" xref="S3.p2.6.m1.1.1.3.cmml">
+        i
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.6.m1.1b">
+       <apply id="S3.p2.6.m1.1.1.cmml" xref="S3.p2.6.m1.1.1">
+        <csymbol cd="ambiguous" id="S3.p2.6.m1.1.1.1.cmml" xref="S3.p2.6.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.p2.6.m1.1.1.2.cmml" xref="S3.p2.6.m1.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.p2.6.m1.1.1.3.cmml" xref="S3.p2.6.m1.1.1.3">
+         𝑖
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.6.m1.1c">
+       z_{i}
+      </annotation>
+     </semantics>
+    </math>
+    is the intermediate step in CoT,
+    <math alttext="z_{p},z_{b},z_{f}" class="ltx_Math" display="inline" id="S3.p2.7.m2.3">
+     <semantics id="S3.p2.7.m2.3a">
+      <mrow id="S3.p2.7.m2.3.3.3" xref="S3.p2.7.m2.3.3.4.cmml">
+       <msub id="S3.p2.7.m2.1.1.1.1" xref="S3.p2.7.m2.1.1.1.1.cmml">
+        <mi id="S3.p2.7.m2.1.1.1.1.2" xref="S3.p2.7.m2.1.1.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.p2.7.m2.1.1.1.1.3" xref="S3.p2.7.m2.1.1.1.1.3.cmml">
+         p
+        </mi>
+       </msub>
+       <mo id="S3.p2.7.m2.3.3.3.4" xref="S3.p2.7.m2.3.3.4.cmml">
+        ,
+       </mo>
+       <msub id="S3.p2.7.m2.2.2.2.2" xref="S3.p2.7.m2.2.2.2.2.cmml">
+        <mi id="S3.p2.7.m2.2.2.2.2.2" xref="S3.p2.7.m2.2.2.2.2.2.cmml">
+         z
+        </mi>
+        <mi id="S3.p2.7.m2.2.2.2.2.3" xref="S3.p2.7.m2.2.2.2.2.3.cmml">
+         b
+        </mi>
+       </msub>
+       <mo id="S3.p2.7.m2.3.3.3.5" xref="S3.p2.7.m2.3.3.4.cmml">
+        ,
+       </mo>
+       <msub id="S3.p2.7.m2.3.3.3.3" xref="S3.p2.7.m2.3.3.3.3.cmml">
+        <mi id="S3.p2.7.m2.3.3.3.3.2" xref="S3.p2.7.m2.3.3.3.3.2.cmml">
+         z
+        </mi>
+        <mi id="S3.p2.7.m2.3.3.3.3.3" xref="S3.p2.7.m2.3.3.3.3.3.cmml">
+         f
+        </mi>
+       </msub>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.7.m2.3b">
+       <list id="S3.p2.7.m2.3.3.4.cmml" xref="S3.p2.7.m2.3.3.3">
+        <apply id="S3.p2.7.m2.1.1.1.1.cmml" xref="S3.p2.7.m2.1.1.1.1">
+         <csymbol cd="ambiguous" id="S3.p2.7.m2.1.1.1.1.1.cmml" xref="S3.p2.7.m2.1.1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.p2.7.m2.1.1.1.1.2.cmml" xref="S3.p2.7.m2.1.1.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.p2.7.m2.1.1.1.1.3.cmml" xref="S3.p2.7.m2.1.1.1.1.3">
+          𝑝
+         </ci>
+        </apply>
+        <apply id="S3.p2.7.m2.2.2.2.2.cmml" xref="S3.p2.7.m2.2.2.2.2">
+         <csymbol cd="ambiguous" id="S3.p2.7.m2.2.2.2.2.1.cmml" xref="S3.p2.7.m2.2.2.2.2">
+          subscript
+         </csymbol>
+         <ci id="S3.p2.7.m2.2.2.2.2.2.cmml" xref="S3.p2.7.m2.2.2.2.2.2">
+          𝑧
+         </ci>
+         <ci id="S3.p2.7.m2.2.2.2.2.3.cmml" xref="S3.p2.7.m2.2.2.2.2.3">
+          𝑏
+         </ci>
+        </apply>
+        <apply id="S3.p2.7.m2.3.3.3.3.cmml" xref="S3.p2.7.m2.3.3.3.3">
+         <csymbol cd="ambiguous" id="S3.p2.7.m2.3.3.3.3.1.cmml" xref="S3.p2.7.m2.3.3.3.3">
+          subscript
+         </csymbol>
+         <ci id="S3.p2.7.m2.3.3.3.3.2.cmml" xref="S3.p2.7.m2.3.3.3.3.2">
+          𝑧
+         </ci>
+         <ci id="S3.p2.7.m2.3.3.3.3.3.cmml" xref="S3.p2.7.m2.3.3.3.3.3">
+          𝑓
+         </ci>
+        </apply>
+       </list>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.7.m2.3c">
+       z_{p},z_{b},z_{f}
+      </annotation>
+     </semantics>
+    </math>
+    are the multi-personas and multi-run feedback in SPP.
+For OKR-Agent, the goal is to hierarchically generate Objects(
+    <math alttext="z_{o}" class="ltx_Math" display="inline" id="S3.p2.8.m3.1">
+     <semantics id="S3.p2.8.m3.1a">
+      <msub id="S3.p2.8.m3.1.1" xref="S3.p2.8.m3.1.1.cmml">
+       <mi id="S3.p2.8.m3.1.1.2" xref="S3.p2.8.m3.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.p2.8.m3.1.1.3" xref="S3.p2.8.m3.1.1.3.cmml">
+        o
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.8.m3.1b">
+       <apply id="S3.p2.8.m3.1.1.cmml" xref="S3.p2.8.m3.1.1">
+        <csymbol cd="ambiguous" id="S3.p2.8.m3.1.1.1.cmml" xref="S3.p2.8.m3.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.p2.8.m3.1.1.2.cmml" xref="S3.p2.8.m3.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.p2.8.m3.1.1.3.cmml" xref="S3.p2.8.m3.1.1.3">
+         𝑜
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.8.m3.1c">
+       z_{o}
+      </annotation>
+     </semantics>
+    </math>
+    ) and Key Results(
+    <math alttext="z_{k}" class="ltx_Math" display="inline" id="S3.p2.9.m4.1">
+     <semantics id="S3.p2.9.m4.1a">
+      <msub id="S3.p2.9.m4.1.1" xref="S3.p2.9.m4.1.1.cmml">
+       <mi id="S3.p2.9.m4.1.1.2" xref="S3.p2.9.m4.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.p2.9.m4.1.1.3" xref="S3.p2.9.m4.1.1.3.cmml">
+        k
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.9.m4.1b">
+       <apply id="S3.p2.9.m4.1.1.cmml" xref="S3.p2.9.m4.1.1">
+        <csymbol cd="ambiguous" id="S3.p2.9.m4.1.1.1.cmml" xref="S3.p2.9.m4.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.p2.9.m4.1.1.2.cmml" xref="S3.p2.9.m4.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.p2.9.m4.1.1.3.cmml" xref="S3.p2.9.m4.1.1.3">
+         𝑘
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.9.m4.1c">
+       z_{k}
+      </annotation>
+     </semantics>
+    </math>
+    ) from user input
+    <math alttext="x" class="ltx_Math" display="inline" id="S3.p2.10.m5.1">
+     <semantics id="S3.p2.10.m5.1a">
+      <mi id="S3.p2.10.m5.1.1" xref="S3.p2.10.m5.1.1.cmml">
+       x
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.10.m5.1b">
+       <ci id="S3.p2.10.m5.1.1.cmml" xref="S3.p2.10.m5.1.1">
+        𝑥
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.10.m5.1c">
+       x
+      </annotation>
+     </semantics>
+    </math>
+    , and assign persona
+    <math alttext="z_{p}" class="ltx_Math" display="inline" id="S3.p2.11.m6.1">
+     <semantics id="S3.p2.11.m6.1a">
+      <msub id="S3.p2.11.m6.1.1" xref="S3.p2.11.m6.1.1.cmml">
+       <mi id="S3.p2.11.m6.1.1.2" xref="S3.p2.11.m6.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.p2.11.m6.1.1.3" xref="S3.p2.11.m6.1.1.3.cmml">
+        p
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.11.m6.1b">
+       <apply id="S3.p2.11.m6.1.1.cmml" xref="S3.p2.11.m6.1.1">
+        <csymbol cd="ambiguous" id="S3.p2.11.m6.1.1.1.cmml" xref="S3.p2.11.m6.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.p2.11.m6.1.1.2.cmml" xref="S3.p2.11.m6.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.p2.11.m6.1.1.3.cmml" xref="S3.p2.11.m6.1.1.3">
+         𝑝
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.11.m6.1c">
+       z_{p}
+      </annotation>
+     </semantics>
+    </math>
+    accordingly. We also want the system can generate evaluations(
+    <math alttext="z_{e}" class="ltx_Math" display="inline" id="S3.p2.12.m7.1">
+     <semantics id="S3.p2.12.m7.1a">
+      <msub id="S3.p2.12.m7.1.1" xref="S3.p2.12.m7.1.1.cmml">
+       <mi id="S3.p2.12.m7.1.1.2" xref="S3.p2.12.m7.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.p2.12.m7.1.1.3" xref="S3.p2.12.m7.1.1.3.cmml">
+        e
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.12.m7.1b">
+       <apply id="S3.p2.12.m7.1.1.cmml" xref="S3.p2.12.m7.1.1">
+        <csymbol cd="ambiguous" id="S3.p2.12.m7.1.1.1.cmml" xref="S3.p2.12.m7.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.p2.12.m7.1.1.2.cmml" xref="S3.p2.12.m7.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.p2.12.m7.1.1.3.cmml" xref="S3.p2.12.m7.1.1.3">
+         𝑒
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.12.m7.1c">
+       z_{e}
+      </annotation>
+     </semantics>
+    </math>
+    ) as guidance during execution. Our system then can formulated as:
+   </p>
+   <table class="ltx_equation ltx_eqn_table" id="S3.E1">
+    <tbody>
+     <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+      <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+      </td>
+      <td class="ltx_eqn_cell ltx_align_center">
+       <math alttext="y=\mathcal{M}(p_{okr}|x|z_{p}|\{z_{o}^{1},z_{o}^{2},...,z_{o}^{n}\}\{z_{k}^{1},z_{k}^{2},...,z_{k}^{n}\}\{z_{e}^{1},z_{e}^{2},...,z_{e}^{n}\}|_{j=1,2,..n})" class="ltx_math_unparsed" display="block" id="S3.E1.m1.7">
+        <semantics id="S3.E1.m1.7a">
+         <mrow id="S3.E1.m1.7.7">
+          <mi id="S3.E1.m1.7.7.3">
+           y
+          </mi>
+          <mo id="S3.E1.m1.7.7.2">
+           =
+          </mo>
+          <mrow id="S3.E1.m1.7.7.1">
+           <mi class="ltx_font_mathcaligraphic" id="S3.E1.m1.7.7.1.3">
+            ℳ
+           </mi>
+           <mo id="S3.E1.m1.7.7.1.2" lspace="0em" rspace="0em">
+            ​
+           </mo>
+           <mrow id="S3.E1.m1.7.7.1.1.1">
+            <mo id="S3.E1.m1.7.7.1.1.1.2" stretchy="false">
+             (
+            </mo>
+            <mrow id="S3.E1.m1.7.7.1.1.1.1">
+             <msub id="S3.E1.m1.7.7.1.1.1.1.3">
+              <mi id="S3.E1.m1.7.7.1.1.1.1.3.2">
+               p
+              </mi>
+              <mrow id="S3.E1.m1.7.7.1.1.1.1.3.3">
+               <mi id="S3.E1.m1.7.7.1.1.1.1.3.3.2">
+                o
+               </mi>
+               <mo id="S3.E1.m1.7.7.1.1.1.1.3.3.1" lspace="0em" rspace="0em">
+                ​
+               </mo>
+               <mi id="S3.E1.m1.7.7.1.1.1.1.3.3.3">
+                k
+               </mi>
+               <mo id="S3.E1.m1.7.7.1.1.1.1.3.3.1a" lspace="0em" rspace="0em">
+                ​
+               </mo>
+               <mi id="S3.E1.m1.7.7.1.1.1.1.3.3.4">
+                r
+               </mi>
+              </mrow>
+             </msub>
+             <mo id="S3.E1.m1.7.7.1.1.1.1.2" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <mrow id="S3.E1.m1.7.7.1.1.1.1.4.2">
+              <mo id="S3.E1.m1.7.7.1.1.1.1.4.2.1" stretchy="false">
+               |
+              </mo>
+              <mi id="S3.E1.m1.3.3">
+               x
+              </mi>
+              <mo id="S3.E1.m1.7.7.1.1.1.1.4.2.2" stretchy="false">
+               |
+              </mo>
+             </mrow>
+             <mo id="S3.E1.m1.7.7.1.1.1.1.2a" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <msub id="S3.E1.m1.7.7.1.1.1.1.5">
+              <mi id="S3.E1.m1.7.7.1.1.1.1.5.2">
+               z
+              </mi>
+              <mi id="S3.E1.m1.7.7.1.1.1.1.5.3">
+               p
+              </mi>
+             </msub>
+             <mo id="S3.E1.m1.7.7.1.1.1.1.2b" lspace="0em" rspace="0em">
+              ​
+             </mo>
+             <msub id="S3.E1.m1.7.7.1.1.1.1.1">
+              <mrow id="S3.E1.m1.7.7.1.1.1.1.1.1.1">
+               <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.2" stretchy="false">
+                |
+               </mo>
+               <mrow id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1">
+                <mrow id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3">
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.4" stretchy="false">
+                  {
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.1.1.1">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.1.1.1.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.1.1.1.2.3">
+                   o
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.1.1.1.3">
+                   1
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.5">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.2.2.2">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.2.2.2.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.2.2.2.2.3">
+                   o
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.2.2.2.3">
+                   2
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.6">
+                  ,
+                 </mo>
+                 <mi id="S3.E1.m1.4.4" mathvariant="normal">
+                  …
+                 </mi>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.7">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.3">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.3.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.3.2.3">
+                   o
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.3.3">
+                   n
+                  </mi>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.3.3.8" stretchy="false">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.10" lspace="0em" rspace="0em">
+                 ​
+                </mo>
+                <mrow id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3">
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.4" stretchy="false">
+                  {
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.4.1.1">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.4.1.1.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.4.1.1.2.3">
+                   k
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.4.1.1.3">
+                   1
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.5">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.5.2.2">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.5.2.2.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.5.2.2.2.3">
+                   k
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.5.2.2.3">
+                   2
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.6">
+                  ,
+                 </mo>
+                 <mi id="S3.E1.m1.5.5" mathvariant="normal">
+                  …
+                 </mi>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.7">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.3">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.3.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.3.2.3">
+                   k
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.3.3">
+                   n
+                  </mi>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.6.3.8" stretchy="false">
+                  }
+                 </mo>
+                </mrow>
+                <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.10a" lspace="0em" rspace="0em">
+                 ​
+                </mo>
+                <mrow id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3">
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.4" stretchy="false">
+                  {
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.7.1.1">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.7.1.1.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.7.1.1.2.3">
+                   e
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.7.1.1.3">
+                   1
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.5">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.8.2.2">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.8.2.2.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.8.2.2.2.3">
+                   e
+                  </mi>
+                  <mn id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.8.2.2.3">
+                   2
+                  </mn>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.6">
+                  ,
+                 </mo>
+                 <mi id="S3.E1.m1.6.6" mathvariant="normal">
+                  …
+                 </mi>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.7">
+                  ,
+                 </mo>
+                 <msubsup id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.3">
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.3.2.2">
+                   z
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.3.2.3">
+                   e
+                  </mi>
+                  <mi id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.3.3">
+                   n
+                  </mi>
+                 </msubsup>
+                 <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.1.9.3.8" stretchy="false">
+                  }
+                 </mo>
+                </mrow>
+               </mrow>
+               <mo id="S3.E1.m1.7.7.1.1.1.1.1.1.1.3" stretchy="false">
+                |
+               </mo>
+              </mrow>
+              <mrow id="S3.E1.m1.2.2.2">
+               <mi id="S3.E1.m1.2.2.2.3">
+                j
+               </mi>
+               <mo id="S3.E1.m1.2.2.2.4">
+                =
+               </mo>
+               <mn id="S3.E1.m1.1.1.1.1">
+                1
+               </mn>
+               <mo id="S3.E1.m1.2.2.2.5">
+                ,
+               </mo>
+               <mn id="S3.E1.m1.2.2.2.2">
+                2
+               </mn>
+               <mo id="S3.E1.m1.2.2.2.6">
+                ,
+               </mo>
+               <mo id="S3.E1.m1.2.2.2.7" lspace="0em" rspace="0.0835em">
+                .
+               </mo>
+               <mo id="S3.E1.m1.2.2.2.8" lspace="0.0835em" rspace="0.167em">
+                .
+               </mo>
+               <mi id="S3.E1.m1.2.2.2.9">
+                n
+               </mi>
+              </mrow>
+             </msub>
+            </mrow>
+            <mo id="S3.E1.m1.7.7.1.1.1.3" stretchy="false">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+         <annotation encoding="application/x-tex" id="S3.E1.m1.7b">
+          y=\mathcal{M}(p_{okr}|x|z_{p}|\{z_{o}^{1},z_{o}^{2},...,z_{o}^{n}\}\{z_{k}^{1},z_{k}^{2},...,z_{k}^{n}\}\{z_{e}^{1},z_{e}^{2},...,z_{e}^{n}\}|_{j=1,2,..n})
+         </annotation>
+        </semantics>
+       </math>
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_center_padright">
+      </td>
+      <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+       <span class="ltx_tag ltx_tag_equation ltx_align_right">
+        (1)
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <p class="ltx_p" id="S3.p2.13">
+    We now provide the details of the corresponding intermediate generations (
+    <math alttext="z" class="ltx_Math" display="inline" id="S3.p2.13.m1.1">
+     <semantics id="S3.p2.13.m1.1a">
+      <mi id="S3.p2.13.m1.1.1" xref="S3.p2.13.m1.1.1.cmml">
+       z
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S3.p2.13.m1.1b">
+       <ci id="S3.p2.13.m1.1.1.cmml" xref="S3.p2.13.m1.1.1">
+        𝑧
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.p2.13.m1.1c">
+       z
+      </annotation>
+     </semantics>
+    </math>
+    ) in OKR-Agent.
+   </p>
+  </div>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Objects(
+    <math alttext="z_{o}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px1.1.m1.1">
+     <semantics id="S3.SS0.SSS0.Px1.1.m1.1b">
+      <msub id="S3.SS0.SSS0.Px1.1.m1.1.1" xref="S3.SS0.SSS0.Px1.1.m1.1.1.cmml">
+       <mi id="S3.SS0.SSS0.Px1.1.m1.1.1.2" xref="S3.SS0.SSS0.Px1.1.m1.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.SS0.SSS0.Px1.1.m1.1.1.3" xref="S3.SS0.SSS0.Px1.1.m1.1.1.3.cmml">
+        o
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px1.1.m1.1c">
+       <apply id="S3.SS0.SSS0.Px1.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px1.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px1.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px1.1.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.SS0.SSS0.Px1.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px1.1.m1.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.SS0.SSS0.Px1.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px1.1.m1.1.1.3">
+         𝑜
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px1.1.m1.1d">
+       z_{o}
+      </annotation>
+     </semantics>
+    </math>
+    ) and Key Results(
+    <math alttext="z_{k}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px1.2.m2.1">
+     <semantics id="S3.SS0.SSS0.Px1.2.m2.1b">
+      <msub id="S3.SS0.SSS0.Px1.2.m2.1.1" xref="S3.SS0.SSS0.Px1.2.m2.1.1.cmml">
+       <mi id="S3.SS0.SSS0.Px1.2.m2.1.1.2" xref="S3.SS0.SSS0.Px1.2.m2.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.SS0.SSS0.Px1.2.m2.1.1.3" xref="S3.SS0.SSS0.Px1.2.m2.1.1.3.cmml">
+        k
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px1.2.m2.1c">
+       <apply id="S3.SS0.SSS0.Px1.2.m2.1.1.cmml" xref="S3.SS0.SSS0.Px1.2.m2.1.1">
+        <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px1.2.m2.1.1.1.cmml" xref="S3.SS0.SSS0.Px1.2.m2.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.SS0.SSS0.Px1.2.m2.1.1.2.cmml" xref="S3.SS0.SSS0.Px1.2.m2.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.SS0.SSS0.Px1.2.m2.1.1.3.cmml" xref="S3.SS0.SSS0.Px1.2.m2.1.1.3">
+         𝑘
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px1.2.m2.1d">
+       z_{k}
+      </annotation>
+     </semantics>
+    </math>
+    ).
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S3.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px1.p1.3">
+     At the core of our OKR-Agent pipeline is the hierarchical derivation of Objects and Key Results. Given a user input
+     <math alttext="x" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px1.p1.1.m1.1">
+      <semantics id="S3.SS0.SSS0.Px1.p1.1.m1.1a">
+       <mi id="S3.SS0.SSS0.Px1.p1.1.m1.1.1" xref="S3.SS0.SSS0.Px1.p1.1.m1.1.1.cmml">
+        x
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px1.p1.1.m1.1b">
+        <ci id="S3.SS0.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px1.p1.1.m1.1.1">
+         𝑥
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px1.p1.1.m1.1c">
+        x
+       </annotation>
+      </semantics>
+     </math>
+     , the LLM acts as a Leading Agent (LA), assigned to produce a set of potential targets that align with the user’s intentions. This generative process can occur multiple times, allowing the LA to consolidate a selection of the most relevant targets, referred to as the first level of Objects (
+     <math alttext="z_{o}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px1.p1.2.m2.1">
+      <semantics id="S3.SS0.SSS0.Px1.p1.2.m2.1a">
+       <msub id="S3.SS0.SSS0.Px1.p1.2.m2.1.1" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.2" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.3" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1.3.cmml">
+         o
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px1.p1.2.m2.1b">
+        <apply id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.cmml" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.1.cmml" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.2.cmml" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS0.SSS0.Px1.p1.2.m2.1.1.3.cmml" xref="S3.SS0.SSS0.Px1.p1.2.m2.1.1.3">
+          𝑜
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px1.p1.2.m2.1c">
+        z_{o}
+       </annotation>
+      </semantics>
+     </math>
+     ). Subsequently, each object can be elaborated into sub-objects, providing more nuanced details and forming the Key Results
+     <math alttext="z_{k}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px1.p1.3.m3.1">
+      <semantics id="S3.SS0.SSS0.Px1.p1.3.m3.1a">
+       <msub id="S3.SS0.SSS0.Px1.p1.3.m3.1.1" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.2" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.3" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1.3.cmml">
+         k
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px1.p1.3.m3.1b">
+        <apply id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.cmml" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.1.cmml" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.2.cmml" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS0.SSS0.Px1.p1.3.m3.1.1.3.cmml" xref="S3.SS0.SSS0.Px1.p1.3.m3.1.1.3">
+          𝑘
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px1.p1.3.m3.1c">
+        z_{k}
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Agent Assignment(
+    <math alttext="z_{p}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px2.1.m1.1">
+     <semantics id="S3.SS0.SSS0.Px2.1.m1.1b">
+      <msub id="S3.SS0.SSS0.Px2.1.m1.1.1" xref="S3.SS0.SSS0.Px2.1.m1.1.1.cmml">
+       <mi id="S3.SS0.SSS0.Px2.1.m1.1.1.2" xref="S3.SS0.SSS0.Px2.1.m1.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.SS0.SSS0.Px2.1.m1.1.1.3" xref="S3.SS0.SSS0.Px2.1.m1.1.1.3.cmml">
+        p
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px2.1.m1.1c">
+       <apply id="S3.SS0.SSS0.Px2.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px2.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px2.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px2.1.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.SS0.SSS0.Px2.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px2.1.m1.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.SS0.SSS0.Px2.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px2.1.m1.1.1.3">
+         𝑝
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px2.1.m1.1d">
+       z_{p}
+      </annotation>
+     </semantics>
+    </math>
+    ).
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S3.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px2.p1.2">
+     Given the generated Objects(
+     <math alttext="z_{o}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px2.p1.1.m1.1">
+      <semantics id="S3.SS0.SSS0.Px2.p1.1.m1.1a">
+       <msub id="S3.SS0.SSS0.Px2.p1.1.m1.1.1" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.2" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.3" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1.3.cmml">
+         o
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px2.p1.1.m1.1b">
+        <apply id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS0.SSS0.Px2.p1.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px2.p1.1.m1.1.1.3">
+          𝑜
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px2.p1.1.m1.1c">
+        z_{o}
+       </annotation>
+      </semantics>
+     </math>
+     ) and Key Results(
+     <math alttext="z_{k}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px2.p1.2.m2.1">
+      <semantics id="S3.SS0.SSS0.Px2.p1.2.m2.1a">
+       <msub id="S3.SS0.SSS0.Px2.p1.2.m2.1.1" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.2" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.3" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1.3.cmml">
+         k
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px2.p1.2.m2.1b">
+        <apply id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.1.cmml" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.2.cmml" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS0.SSS0.Px2.p1.2.m2.1.1.3.cmml" xref="S3.SS0.SSS0.Px2.p1.2.m2.1.1.3">
+          𝑘
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px2.p1.2.m2.1c">
+        z_{k}
+       </annotation>
+      </semantics>
+     </math>
+     ), each can be paired with an agent, constituting a structured set of agents.
+It is noteworthy that, unlike the SPP in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , our agents are not chosen from a predefined list but are dynamically incorporated based on OKR decomposition. This approach ensures that agent selection is not only task-driven but also inherently adaptive to the tasks at hand. Specifically, each agent is accountable for its assigned Object or Key Result: agents assigned to Objects oversee the broader aspects of the task, ensuring overarching coherence, while those paired with Key Results focus on the fine details, maintaining precision in execution.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px3">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Evaluations(
+    <math alttext="z_{e}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px3.1.m1.1">
+     <semantics id="S3.SS0.SSS0.Px3.1.m1.1b">
+      <msub id="S3.SS0.SSS0.Px3.1.m1.1.1" xref="S3.SS0.SSS0.Px3.1.m1.1.1.cmml">
+       <mi id="S3.SS0.SSS0.Px3.1.m1.1.1.2" xref="S3.SS0.SSS0.Px3.1.m1.1.1.2.cmml">
+        z
+       </mi>
+       <mi id="S3.SS0.SSS0.Px3.1.m1.1.1.3" xref="S3.SS0.SSS0.Px3.1.m1.1.1.3.cmml">
+        e
+       </mi>
+      </msub>
+      <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.1.m1.1c">
+       <apply id="S3.SS0.SSS0.Px3.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px3.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.1.m1.1.1">
+         subscript
+        </csymbol>
+        <ci id="S3.SS0.SSS0.Px3.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.1.m1.1.1.2">
+         𝑧
+        </ci>
+        <ci id="S3.SS0.SSS0.Px3.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.1.m1.1.1.3">
+         𝑒
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.1.m1.1d">
+       z_{e}
+      </annotation>
+     </semantics>
+    </math>
+    ).
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S3.SS0.SSS0.Px3.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px3.p1.1">
+     For each agent, it is crucial to develop evaluation criteria, represented as
+     <math alttext="z_{e}" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px3.p1.1.m1.1">
+      <semantics id="S3.SS0.SSS0.Px3.p1.1.m1.1a">
+       <msub id="S3.SS0.SSS0.Px3.p1.1.m1.1.1" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.1.m1.1b">
+        <apply id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.1.m1.1c">
+        z_{e}
+       </annotation>
+      </semantics>
+     </math>
+     , to direct its work. Once again, we employ LLM for criteria generation. Given the role definition and corresponding OKR for an agent, we prompt the LLM to formulate a concise, one-sentence criterion serving as the evaluation metric for the relevant segment in the final output.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Hierarchical Generation
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.3">
+     As depicted in Algorithm
+     <a class="ltx_ref" href="#alg1" title="Algorithm 1 ‣ Prompt generation. ‣ 3.1 Hierarchical Generation ‣ 3 method ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , the decomposition process of OKR, along with the generation of agents and evaluations, can be conducted iteratively, allowing for a meticulous and organized delineation of tasks, which ensures accuracy and uniformity throughout the task-solving trajectory. Formally, the output of this generation stage is the structured OKR
+     <math alttext="z_{o},z_{k}" class="ltx_Math" display="inline" id="S3.SS1.p1.1.m1.2">
+      <semantics id="S3.SS1.p1.1.m1.2a">
+       <mrow id="S3.SS1.p1.1.m1.2.2.2" xref="S3.SS1.p1.1.m1.2.2.3.cmml">
+        <msub id="S3.SS1.p1.1.m1.1.1.1.1" xref="S3.SS1.p1.1.m1.1.1.1.1.cmml">
+         <mi id="S3.SS1.p1.1.m1.1.1.1.1.2" xref="S3.SS1.p1.1.m1.1.1.1.1.2.cmml">
+          z
+         </mi>
+         <mi id="S3.SS1.p1.1.m1.1.1.1.1.3" xref="S3.SS1.p1.1.m1.1.1.1.1.3.cmml">
+          o
+         </mi>
+        </msub>
+        <mo id="S3.SS1.p1.1.m1.2.2.2.3" xref="S3.SS1.p1.1.m1.2.2.3.cmml">
+         ,
+        </mo>
+        <msub id="S3.SS1.p1.1.m1.2.2.2.2" xref="S3.SS1.p1.1.m1.2.2.2.2.cmml">
+         <mi id="S3.SS1.p1.1.m1.2.2.2.2.2" xref="S3.SS1.p1.1.m1.2.2.2.2.2.cmml">
+          z
+         </mi>
+         <mi id="S3.SS1.p1.1.m1.2.2.2.2.3" xref="S3.SS1.p1.1.m1.2.2.2.2.3.cmml">
+          k
+         </mi>
+        </msub>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.1.m1.2b">
+        <list id="S3.SS1.p1.1.m1.2.2.3.cmml" xref="S3.SS1.p1.1.m1.2.2.2">
+         <apply id="S3.SS1.p1.1.m1.1.1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1.1.1">
+          <csymbol cd="ambiguous" id="S3.SS1.p1.1.m1.1.1.1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.p1.1.m1.1.1.1.1.2.cmml" xref="S3.SS1.p1.1.m1.1.1.1.1.2">
+           𝑧
+          </ci>
+          <ci id="S3.SS1.p1.1.m1.1.1.1.1.3.cmml" xref="S3.SS1.p1.1.m1.1.1.1.1.3">
+           𝑜
+          </ci>
+         </apply>
+         <apply id="S3.SS1.p1.1.m1.2.2.2.2.cmml" xref="S3.SS1.p1.1.m1.2.2.2.2">
+          <csymbol cd="ambiguous" id="S3.SS1.p1.1.m1.2.2.2.2.1.cmml" xref="S3.SS1.p1.1.m1.2.2.2.2">
+           subscript
+          </csymbol>
+          <ci id="S3.SS1.p1.1.m1.2.2.2.2.2.cmml" xref="S3.SS1.p1.1.m1.2.2.2.2.2">
+           𝑧
+          </ci>
+          <ci id="S3.SS1.p1.1.m1.2.2.2.2.3.cmml" xref="S3.SS1.p1.1.m1.2.2.2.2.3">
+           𝑘
+          </ci>
+         </apply>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.1.m1.2c">
+        z_{o},z_{k}
+       </annotation>
+      </semantics>
+     </math>
+     with its associated agents
+     <math alttext="z_{p}" class="ltx_Math" display="inline" id="S3.SS1.p1.2.m2.1">
+      <semantics id="S3.SS1.p1.2.m2.1a">
+       <msub id="S3.SS1.p1.2.m2.1.1" xref="S3.SS1.p1.2.m2.1.1.cmml">
+        <mi id="S3.SS1.p1.2.m2.1.1.2" xref="S3.SS1.p1.2.m2.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS1.p1.2.m2.1.1.3" xref="S3.SS1.p1.2.m2.1.1.3.cmml">
+         p
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.2.m2.1b">
+        <apply id="S3.SS1.p1.2.m2.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p1.2.m2.1.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS1.p1.2.m2.1.1.2.cmml" xref="S3.SS1.p1.2.m2.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS1.p1.2.m2.1.1.3.cmml" xref="S3.SS1.p1.2.m2.1.1.3">
+          𝑝
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.2.m2.1c">
+        z_{p}
+       </annotation>
+      </semantics>
+     </math>
+     and the evaluations
+     <math alttext="z_{e}" class="ltx_Math" display="inline" id="S3.SS1.p1.3.m3.1">
+      <semantics id="S3.SS1.p1.3.m3.1a">
+       <msub id="S3.SS1.p1.3.m3.1.1" xref="S3.SS1.p1.3.m3.1.1.cmml">
+        <mi id="S3.SS1.p1.3.m3.1.1.2" xref="S3.SS1.p1.3.m3.1.1.2.cmml">
+         z
+        </mi>
+        <mi id="S3.SS1.p1.3.m3.1.1.3" xref="S3.SS1.p1.3.m3.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.3.m3.1b">
+        <apply id="S3.SS1.p1.3.m3.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p1.3.m3.1.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS1.p1.3.m3.1.1.2.cmml" xref="S3.SS1.p1.3.m3.1.1.2">
+          𝑧
+         </ci>
+         <ci id="S3.SS1.p1.3.m3.1.1.3.cmml" xref="S3.SS1.p1.3.m3.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.3.m3.1c">
+        z_{e}
+       </annotation>
+      </semantics>
+     </math>
+     . This hierarchical configuration intrinsically forms inter-dependencies among agents, enabling streamlined and efficient pathways for execution and evaluation.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Prompt generation.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p1.1">
+      To prompt an LLM to follow the generation procedure as mentioned above, we also designed the prompts of OKR decomposition and evaluation criteria, which help LLM to perform as expected. Specifically, we use the following for OKR decomposition:
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p2">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p2.1">
+      <span class="ltx_text ltx_font_bold" id="S3.SS1.SSS0.Px1.p2.1.1">
+       "You are an expert in ’Objective templates’. It is known that a key element of the ’Objective template’ includes ’KR0,KR1,…,KRn’. Expand the keywords ’KRx’ within this Objective. List keywords and separate each word with a comma, no extra words."
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p3">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p3.1">
+      For agent generation, we use:
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p4">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p4.1">
+      <span class="ltx_text ltx_font_bold" id="S3.SS1.SSS0.Px1.p4.1.1">
+       You are an expert in ’Objective’, tasked with creating content about ’KR0,KR1,…,KRn’. Summarize the required job positions as ’JobTitle’. Connect the ’JobTitle’ with ’-&gt;’, without unnecessary words.
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p5">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p5.1">
+      Moreover, we use this prompt to generate evaluation criteria:
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS0.Px1.p6">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p6.1">
+      <span class="ltx_text ltx_font_bold" id="S3.SS1.SSS0.Px1.p6.1.1">
+       You are an outstanding ’JobTitle Expert’. Provide a sentence that thoroughly describes the role of this position in ’Objective’ work, taking into account the professional characteristics of ’JobTitle’. The sentence should follow the structure "An excellent ’Objective’ should have the characteristic of… in the aspect of XXX;" and should not exceed 200 words. Avoid unnecessary words.
+      </span>
+     </p>
+    </div>
+    <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_float">
+       <span class="ltx_text ltx_font_bold" id="alg1.3.1.1">
+        Algorithm 1
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.4.2">
+       GenOKR(UserInput, Hierarchy)
+      </span>
+     </figcaption>
+     <div class="ltx_listing ltx_listing" id="alg1.5">
+      <div class="ltx_listingline" id="alg1.l1">
+       OKR = [], Agents = [], Evaluations = []
+      </div>
+      <div class="ltx_listingline" id="alg1.l2">
+       OKRTmp = [UserInput]
+      </div>
+      <div class="ltx_listingline" id="alg1.l3">
+       <span class="ltx_text ltx_font_bold" id="alg1.l3.1">
+        for
+       </span>
+       level in Hierarchy
+       <span class="ltx_text ltx_font_bold" id="alg1.l3.2">
+        do
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l4">
+       levelOKRs = Generate Objects and Key Results From OKRTmp using LLM
+      </div>
+      <div class="ltx_listingline" id="alg1.l5">
+       levelAgents = Generate Agents From OKRs using LLM
+      </div>
+      <div class="ltx_listingline" id="alg1.l6">
+       levelEvaluations = Generate Evaluations From OKRs using LLM
+      </div>
+      <div class="ltx_listingline" id="alg1.l7">
+       OKR += levelOKRs, Agents += levelAgents ,Evaluations += levelEvaluations
+      </div>
+      <div class="ltx_listingline" id="alg1.l8">
+       OKRTmp = levelOKRs
+      </div>
+      <div class="ltx_listingline" id="alg1.l9">
+       <span class="ltx_text ltx_font_bold" id="alg1.l9.1">
+        end
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg1.l9.2">
+        for
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg1.l10">
+       return OKR, Agents, Evaluations
+      </div>
+     </div>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    OKR-Agent Workflow
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Following the
+     <span class="ltx_text ltx_font_bold" id="S3.SS2.p1.1.1">
+      Hierarchical Generation
+     </span>
+     stage, the LLM advances to the execution phase. In this phase, each agent is tasked with extending the solution per its assigned OKR, scrutinizing the extended solution against its evaluation criteria and the accumulated ones from preceding agents, and refining the solution based on the evaluations before forwarding the refined version to the subsequent agent. This progression operates hierarchically, cascading from the Leading Agent down to the leaf-node agents, culminating in the formulation of the final solution. We now provide details for each component, the overall workflow is shown in Algorithm
+     <a class="ltx_ref" href="#alg2" title="Algorithm 2 ‣ Solution modification. ‣ 3.2 OKR-Agent Workflow ‣ 3 method ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Solution expanding.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px1.p1.1">
+      For each agent, the essential task is to elaborate on the existing solution per its designated OKR, which may involve enumerating sub-targets or enriching the details of key results. Given that we employ OKR decomposition for the input tasks, it offers an intuitive
+      <span class="ltx_text ltx_font_bold" id="S3.SS2.SSS0.Px1.p1.1.1">
+       key-value
+      </span>
+      method to represent the solution, wherein the keys can serve as objects and the values can retain the details. In our experiments, we discovered that such a representation is more conducive for LLMs in maintaining complicate information. We will provide examples in experiment section.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Solution review.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p1.1">
+      Once the solution is expanded, the subsequent step for the agent is its review. Our findings indicate that errors introduced at higher levels tend to propagate and accumulate in subsequent levels, making it challenging for later agents to rectify them. Therefore, post-generation review by the agent becomes imperative. To safeguard previously generated parts from unintended alterations, we catalog the evaluation criteria of all preceding agents. These criteria are then amalgamated with the current agent’s criteria, enabling a more precise and comprehensive evaluation.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Solution modification.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px3.p1.1">
+      Given the current solution and evaluation, the agent will be asked to modify the solution in case there are errors, missing parts and so on. This refinement process can be executed multiple times, allowing the agent to choose the iteration with the highest evaluation score.
+     </p>
+    </div>
+    <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg2">
+     <figcaption class="ltx_caption">
+      <span class="ltx_tag ltx_tag_float">
+       <span class="ltx_text ltx_font_bold" id="alg2.3.1.1">
+        Algorithm 2
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg2.4.2">
+       OKR-Agent Workflow
+      </span>
+     </figcaption>
+     <div class="ltx_listing ltx_listing" id="alg2.5">
+      <div class="ltx_listingline" id="alg2.l1">
+       Answer = Null
+      </div>
+      <div class="ltx_listingline" id="alg2.l2">
+       OKR,Agents,Evaluations =
+       <span class="ltx_text ltx_font_bold" id="alg2.l2.1">
+        GenOKR(UserInput)
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg2.l3">
+       WorkingEvaluation = []
+      </div>
+      <div class="ltx_listingline" id="alg2.l4">
+       <span class="ltx_text ltx_font_bold" id="alg2.l4.1">
+        for
+       </span>
+       Agent in Agents
+       <span class="ltx_text ltx_font_bold" id="alg2.l4.2">
+        do
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg2.l5">
+       WorkingEvaluation.append(Evaluations[Agent])
+      </div>
+      <div class="ltx_listingline" id="alg2.l6">
+       AnswerTemp = Agent update Answer with its OKR.
+      </div>
+      <div class="ltx_listingline" id="alg2.l7">
+       ReviewResult = Using WorkingEvaluation to get feedback for AnswerTemp
+      </div>
+      <div class="ltx_listingline" id="alg2.l8">
+       AnswerTemp = Modify AnswerTemp with ReviewResult
+      </div>
+      <div class="ltx_listingline" id="alg2.l9">
+       Answer = AnswerTemp
+      </div>
+      <div class="ltx_listingline" id="alg2.l10">
+       <span class="ltx_text ltx_font_bold" id="alg2.l10.1">
+        end
+       </span>
+       <span class="ltx_text ltx_font_bold" id="alg2.l10.2">
+        for
+       </span>
+      </div>
+      <div class="ltx_listingline" id="alg2.l11">
+       return Answer
+      </div>
+     </div>
+    </figure>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   experiments
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this section, we deploy the OKR-Agent to three distinct tasks: storyboard generation, creative writing, and trip planning, to evaluate its efficacy and versatility in varying applications. Across these diverse tasks, OKR-Agent exhibited exceptional capabilities in global task planning, maintaining high levels of correctness, and generating rich details.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Short Video Storyboard Generation
+   </h3>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Storyboard generation.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px1.p1.1">
+      In the creation of a short video, a storyboard plays a pivotal role by taking a writer’s narrative and structuring it for video production, delineating essential components like shot composition, scene setup, actor performance, and dialogue through textual representations. It acts as the linchpin, coordinating tasks across various roles in production. Nonetheless, crafting a proficient storyboard script necessitates extensive professional knowledge. To democratize the creation of visually compelling videos and make it accessible to everyone, we explored the proficiency of OKR-Agent in executing this intricate task.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     OKR Generation.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px2.p1.1">
+      In our experiment, we used the following user input: "A storyboard of ’The boy picked up a robot, the boy repaired the robot, the boy and the robot became friends’." Referencing
+      <a class="ltx_ref" href="#S4.F2" title="Figure 2 ‣ OKR Generation. ‣ 4.1 Short Video Storyboard Generation ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      , we contrast the Objects and Key Results produced by OKR-Agent and ChatGPT. Owing to its hierarchical structure, OKR-Agent elucidates more detailed and significant elements and requirements for video production than ChatGPT. Additionally, our method autonomously generates the requisite agents, deriving from the OKRs; for instance, the agents for OKR-L-2 include ’script writer’, ’director’, ’camera operator’, ’actor’, and ’musician’.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="172" id="S4.F2.g1" src="/html/2311.16542/assets/figures/OKR.jpg" width="439"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 2:
+      </span>
+      OKR-Agent vs ChatGPT
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Storyboard visuallization.
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p1.1">
+      Given the substantial visual and artistic elements in the storyboard produced by OKR-Agent, we proceeded with an evaluation, employing user-study based subjective assessments. We initiated the evaluation by generating results from OKR-Agent using the uniform story input ("The boy found a robot, fixed it, and they became friends.") and visually represented the script content utilizing AI "text to image" tools like MidJourney
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Midjourney.com (
+       <a class="ltx_ref" href="#bib.bib17" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , where the generated outputs served as prompts for deriving results. For comparative analysis, results were similarly procured using DramaTron
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Dramatron (
+       <a class="ltx_ref" href="#bib.bib9" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , with the comparative outputs illustrated in Figure
+      <a class="ltx_ref" href="#S4.F3" title="Figure 3 ‣ Storyboard visuallization. ‣ 4.1 Short Video Storyboard Generation ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+       <span class="ltx_text ltx_ref_tag">
+        3
+       </span>
+      </a>
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S4.SS1.SSS0.Px3.p2">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p2.1">
+      We subsequently conduct a user-study involving 30 participants, comprised of 20 professionals from the field of ’Digital Art Creation’ and 10 non-professionals. Participants were queried on various aspects including ’Plausibility of the Story,’ ’Text/Image Consistency,’ and ’Visual Continuity,’ with the responses statistically illustrated in Table
+      <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ Storyboard visuallization. ‣ 4.1 Short Video Storyboard Generation ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      . The compiled data revealed that OKR-Agent, leveraging its enhanced capability for text detail generation, demonstrated superior control over visual elements in the text-to-image transformation process, marking a 24% improvement, and yielded more consistent results, with a 28.9% increase compared to Dramatron. However, Dramatron exhibited a richer storyline content, surpassing OKR-Agent by 5.2%, attributed to its distinctive ability to define ’storyline styles.’ The comparison between ’Professional’ and ’Amateur Evaluation’ discernibly shows that professionals applied stricter assessment criteria, especially evident from Dramatron’s scores. However, this stringent assessment did not translate to substantial differences in the evaluation of OKR-Agent, underscoring the resilience and efficacy of OKR-Agent’s detailed output. More visualization results of another input is provied in
+      <a class="ltx_ref" href="#S4.F4" title="Figure 4 ‣ Storyboard visuallization. ‣ 4.1 Short Video Storyboard Generation ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F3">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="366" id="S4.F3.g1" src="/html/2311.16542/assets/figures/story-image.jpg" width="548"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 3:
+      </span>
+      Storyboard visualization. Left: OKR-Agent; Right: Dramatron.
+     </figcaption>
+    </figure>
+    <figure class="ltx_figure" id="S4.F4">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="280" id="S4.F4.g1" src="/html/2311.16542/assets/figures/MomBoyDog.jpg" width="548"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 4:
+      </span>
+      Another Story:Mom is making breakfast and calls for the boy to wake up. The boy lingers in bed. The puppy rushes in and wakes him up.
+     </figcaption>
+    </figure>
+    <figure class="ltx_table" id="S4.T1">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T1.1" style="width:683.9pt;height:568.6pt;vertical-align:-1.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(0.0pt,0.0pt) scale(1.0,1.0) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S4.T1.1.1">
+        <tbody class="ltx_tbody">
+         <tr class="ltx_tr" id="S4.T1.1.1.1.1">
+          <td class="ltx_td" id="S4.T1.1.1.1.1.1">
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.1.1.2">
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.1.1.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.1.1.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.1.1.3.1.1" style="width:0.0pt;">
+             Plausibility of the Story
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.1.1.4">
+           Text/Image Consistency
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.1.1.5">
+           Visual Continuity
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.1.1.6">
+           Average
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.1.1.7">
+           Advantages
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.1.1.8">
+           Weaknesses
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.2.2">
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.2.2.1">
+           OKRAgent
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.2.2.2">
+           Prof.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.2.2.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.2.2.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.2.2.3.1.1" style="width:0.0pt;">
+             3.24
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.2.2.4">
+           3.61
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.2.2.5">
+           3.34
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.2.2.6">
+           3.34
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.2.2.7">
+           Rich in details.
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.2.2.8">
+           The story may appear a bit flat.
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.3.3">
+          <td class="ltx_td" id="S4.T1.1.1.3.3.1">
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.3.3.2">
+           Amtr.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.3.3.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.3.3.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.3.3.3.1.1" style="width:0.0pt;">
+             3.25
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.3.4">
+           3.75
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.3.5">
+           3.5
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.3.3.6">
+           3.45
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.3.3.7">
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.3.3.8">
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.4.4">
+          <td class="ltx_td" id="S4.T1.1.1.4.4.1">
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.4.4.2">
+           W.M.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.4.4.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.4.4.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.4.4.3.1.1" style="width:0.0pt;">
+             3.24
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.4.4.4">
+           3.65
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.4.4.5">
+           3.39
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.4.4.6">
+           3.37
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.4.4.7">
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.4.4.8">
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.5.5">
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.5.5.1">
+           Dramatron
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.5.5.2">
+           Prof.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.5.5.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.5.5.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.5.5.3.1.1" style="width:0.0pt;">
+             3.3
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.5.5.4">
+           2.75
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.5.5.5">
+           2.48
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.5.5.6">
+           2.875
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.5.5.7">
+           The story is vivid.
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.5.5.8">
+           The coherence between text and visuals is weak
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.6.6">
+          <td class="ltx_td" id="S4.T1.1.1.6.6.1">
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.6.6.2">
+           Amtr.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.6.6.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.6.6.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.6.6.3.1.1" style="width:0.0pt;">
+             3.7
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.6.6.4">
+           3.3
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.6.6.5">
+           2.95
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.6.6.6">
+           3.25
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.6.6.7">
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.6.6.8">
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.1.1.7.7">
+          <td class="ltx_td" id="S4.T1.1.1.7.7.1">
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.7.7.2">
+           W.M.
+          </td>
+          <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T1.1.1.7.7.3">
+           <span class="ltx_inline-block ltx_align_top" id="S4.T1.1.1.7.7.3.1">
+            <span class="ltx_p" id="S4.T1.1.1.7.7.3.1.1" style="width:0.0pt;">
+             3.43
+            </span>
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.7.7.4">
+           2.93
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T1.1.1.7.7.5">
+           2.63
+          </td>
+          <td class="ltx_td ltx_align_left" id="S4.T1.1.1.7.7.6">
+           3
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.7.7.7">
+          </td>
+          <td class="ltx_td" id="S4.T1.1.1.7.7.8">
+          </td>
+         </tr>
+        </tbody>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      Subjective Evaluation of Comparative Experiment on Text-to-Image Generation between OKR-Agent and Dramatron.
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Multi-day Trip Planning
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     This task aims to assess the coordination of individual sub-item arrangements within OKR-Agent in multiple parallel planning scenarios, as well as the continuity and rationality of global planning. This feature is particularly prominent in real-world travel planning tasks. Such planning is conducted on a ’day’-by-’day’ basis, where multiple factors need to be taken into account within a single day, each with various inter-dependencies. Simultaneously, the overall arrangement also needs to be considered for its rationality.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     In this task, OKR-Agent breaks down the mission into four objectives: determining the travel destination and itinerary, booking transportation and accommodation, planning daily activities, and preparing contingency plans. This results in the corresponding agents: ’Travel Planner’, ’Accommodation and Transportation Booking Officer’, ’Emergency Management Commissioner’, responsible for ’itinerary arrangement’, ’transportation and accommodation planning’, and ’safety and financial management tasks’ respectively.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     Table
+     <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.2 Multi-day Trip Planning ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     illustrates the divergent output results from OKR-Agent and ChatGPT, both generated from identical user input—’Family Three-Day Hawaii Travel Plan.’ OKR-Agent exhibits a more thorough consideration of elements such as ’transportation’ and ’financial management’ compared to ChatGPT, which is evidenced by the detailed inclusion of aspects like ’round-trip time arrangements for the first and last days’ and ’airfare and car rental costs’ in the planning results. This reflects OKR-Agent’s superior capability in producing comprehensive and realistic travel plans, catering to multiple facets of trip planning.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T2.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T2.1.1.1">
+       <td class="ltx_td" id="S4.T2.1.1.1.1">
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T2.1.1.1.2">
+        Day 1
+       </td>
+       <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T2.1.1.1.3">
+        <span class="ltx_inline-block ltx_align_top" id="S4.T2.1.1.1.3.1">
+         <span class="ltx_p" id="S4.T2.1.1.1.3.1.1" style="width:0.0pt;">
+          Day 2
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T2.1.1.1.4">
+        Day 3
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.2.2">
+       <td class="ltx_td ltx_align_center" id="S4.T2.1.2.2.1">
+        <div class="ltx_inline-block ltx_transformed_outer" id="S4.T2.1.2.2.1.1" style="width:18.3pt;height:5.5pt;vertical-align:-0.0pt;">
+         <span class="ltx_transformed_inner" style="transform:translate(-2.3pt,0.7pt) scale(0.8,0.8) ;">
+          <div class="ltx_inline-block ltx_transformed_outer" id="S4.T2.1.2.2.1.1.1" style="width:22.9pt;height:6.8pt;vertical-align:-0.0pt;">
+           <span class="ltx_transformed_inner" style="width:22.9pt;transform:translate(0pt,0pt) rotate(-0deg) ;">
+            <p class="ltx_p" id="S4.T2.1.2.2.1.1.1.1">
+             OKR
+            </p>
+           </span>
+          </div>
+         </span>
+        </div>
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T2.1.2.2.2">
+        The destination is the famous
+        <span class="ltx_text" id="S4.T2.1.2.2.2.1" style="color:#FF0000;">
+         Waikiki Beach
+        </span>
+        , where visitors can enjoy traditional Hawaiian performances in the evening. The mode of
+        <span class="ltx_text" id="S4.T2.1.2.2.2.2" style="color:#FF0000;">
+         transportation is by plane
+        </span>
+        . Local cuisine includes traditional
+        <span class="ltx_text" id="S4.T2.1.2.2.2.3" style="color:#FF0000;">
+         Hawaiian BBQ and seafood
+        </span>
+        . As for the
+        <span class="ltx_text" id="S4.T2.1.2.2.2.4" style="color:#FF0000;">
+         budget
+        </span>
+        , transportation is estimated at
+        <span class="ltx_text" id="S4.T2.1.2.2.2.5" style="color:#FF0000;">
+         1000 USD
+        </span>
+        , dining at
+        <span class="ltx_text" id="S4.T2.1.2.2.2.6" style="color:#FF0000;">
+         200 USD
+        </span>
+        , and attraction
+        <span class="ltx_text" id="S4.T2.1.2.2.2.7" style="color:#FF0000;">
+         tickets at 100 USD
+        </span>
+        .
+        <span class="ltx_text" id="S4.T2.1.2.2.2.8" style="color:#FF0000;">
+         Accommodation
+        </span>
+        has been arranged at a luxury beachfront hotel with amenities like a swimming pool and gym. The itinerary also covers
+        <span class="ltx_text" id="S4.T2.1.2.2.2.9" style="color:#FF0000;">
+         taxi
+        </span>
+        transportation to the beach, sightseeing activities, and dining arrangements by the beach.
+       </td>
+       <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T2.1.2.2.3">
+        <span class="ltx_inline-block ltx_align_top" id="S4.T2.1.2.2.3.1">
+         <span class="ltx_p" id="S4.T2.1.2.2.3.1.1" style="width:0.0pt;">
+          This one-day itinerary revolves around a visit to the
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.1" style="color:#FF0000;">
+           Volcanoes National Park
+          </span>
+          in Hawaii. The mode of
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.2" style="color:#FF0000;">
+           transportation is by renting a car
+          </span>
+          , allowing for flexibility in exploration. A must-try local delicacy is the Hawaiian volcano stone-grilled chicken. The day’s activities include touring the Volcanoes National Park and experiencing its unique volcanic terrain. Dining arrangements offer the choice of dining with the tour group or sampling snacks at the park. The estimated budget covers transportation at
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.3" style="color:#FF0000;">
+           100 USD
+          </span>
+          , dining expenses of
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.4" style="color:#FF0000;">
+           40 USD
+          </span>
+          for lunch and
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.5" style="color:#FF0000;">
+           50 USD for dinner
+          </span>
+          , and attraction
+          <span class="ltx_text" id="S4.T2.1.2.2.3.1.1.6" style="color:#FF0000;">
+           tickets at 30 USD
+          </span>
+          . Accommodation is arranged at a luxurious beachfront hotel with amenities like a swimming pool and gym, situated conveniently by the beach.
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T2.1.2.2.4">
+        This
+        <span class="ltx_text" id="S4.T2.1.2.2.4.1" style="color:#FF0000;">
+         half-day itinerary
+        </span>
+        will take you to
+        <span class="ltx_text" id="S4.T2.1.2.2.4.2" style="color:#FF0000;">
+         Pearl Harbor
+        </span>
+        in Hawaii. The mode of
+        <span class="ltx_text" id="S4.T2.1.2.2.4.3" style="color:#FF0000;">
+         transportation is by taxi
+        </span>
+        , which is convenient and efficient. Local delicacies such as
+        <span class="ltx_text" id="S4.T2.1.2.2.4.4" style="color:#FF0000;">
+         American hamburgers
+        </span>
+        , offering delicious options. The itinerary includes taking a
+        <span class="ltx_text" id="S4.T2.1.2.2.4.5" style="color:#FF0000;">
+         taxi
+        </span>
+        to Pearl Harbor, participating in sightseeing activities at Pearl Harbor, and shopping. Dining arrangements will be made at restaurants within the tourist area for a convenient experience. In terms of
+        <span class="ltx_text" id="S4.T2.1.2.2.4.6" style="color:#FF0000;">
+         budget
+        </span>
+        , transportation is estimated at
+        <span class="ltx_text" id="S4.T2.1.2.2.4.7" style="color:#FF0000;">
+         70 USD
+        </span>
+        , dining expenses include lunch at
+        <span class="ltx_text" id="S4.T2.1.2.2.4.8" style="color:#FF0000;">
+         30 USD
+        </span>
+        and dinner at
+        <span class="ltx_text" id="S4.T2.1.2.2.4.9" style="color:#FF0000;">
+         50 USD
+        </span>
+        , and attraction
+        <span class="ltx_text" id="S4.T2.1.2.2.4.10" style="color:#FF0000;">
+         tickets are estimated at 20 USD
+        </span>
+        . Accommodation is arranged at a luxurious beachfront hotel, conveniently located by the beach, and offers amenities such as a swimming pool and gym. In the evening, prepare to back home by plane.
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.3.3">
+       <td class="ltx_td ltx_align_center" id="S4.T2.1.3.3.1">
+        <div class="ltx_inline-block ltx_transformed_outer" id="S4.T2.1.3.3.1.1" style="width:34.8pt;height:5.6pt;vertical-align:-0.0pt;">
+         <span class="ltx_transformed_inner" style="transform:translate(-4.4pt,0.7pt) scale(0.8,0.8) ;">
+          <div class="ltx_inline-block ltx_transformed_outer" id="S4.T2.1.3.3.1.1.1" style="width:43.5pt;height:6.9pt;vertical-align:-0.0pt;">
+           <span class="ltx_transformed_inner" style="width:43.5pt;transform:translate(0pt,0pt) rotate(-0deg) ;">
+            <p class="ltx_p" id="S4.T2.1.3.3.1.1.1.1">
+             ChatGPT
+            </p>
+           </span>
+          </div>
+         </span>
+        </div>
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T2.1.3.3.2">
+        On the first day, you will step onto the golden sands of
+        <span class="ltx_text" id="S4.T2.1.3.3.2.1" style="color:#FF0000;">
+         Waikiki Beach
+        </span>
+        , feeling the deep blue sea and the cheerful waves. You can choose to surf, take a leisurely stroll, or simply lie on the beach and bask in the sunlight. Come lunchtime, try the
+        <span class="ltx_text" id="S4.T2.1.3.3.2.2" style="color:#FF0000;">
+         local delicacies and savor fresh seafood and tropical fruits
+        </span>
+        . As evening approaches, opt for a meal at a beachside restaurant and enjoy the sunset casting its glow on the water’s surface.
+       </td>
+       <td class="ltx_td ltx_align_justify ltx_align_top" id="S4.T2.1.3.3.3">
+        <span class="ltx_inline-block ltx_align_top" id="S4.T2.1.3.3.3.1">
+         <span class="ltx_p" id="S4.T2.1.3.3.3.1.1" style="width:0.0pt;">
+          On the second day, you will head to the
+          <span class="ltx_text" id="S4.T2.1.3.3.3.1.1.1" style="color:#FF0000;">
+           Volcanoes National Park
+          </span>
+          to explore the magnificent landscapes of an active volcano. You can embark on a hiking adventure to witness the awe-inspiring sight of flowing lava, or
+          <span class="ltx_text" id="S4.T2.1.3.3.3.1.1.2" style="color:#FF0000;">
+           visit museums
+          </span>
+          to understand the formation process and history of volcanoes. For lunch, you can
+          <span class="ltx_text" id="S4.T2.1.3.3.3.1.1.3" style="color:#FF0000;">
+           choose to dine at one of the park’s restaurants
+          </span>
+          and savor delicious authentic cuisine. As evening approaches, you can unwind in the nearby hot spring area, immersing yourself in the unique charm of the volcanic region.
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T2.1.3.3.4">
+        On the third day, you will visit
+        <span class="ltx_text" id="S4.T2.1.3.3.4.1" style="color:#FF0000;">
+         Pearl Harbor
+        </span>
+        , exploring this place steeped in historical memory. You can visit
+        <span class="ltx_text" id="S4.T2.1.3.3.4.2" style="color:#FF0000;">
+         the USS Arizona Memorial
+        </span>
+        , gaining an understanding of the historical significance of the Pearl Harbor attack. Afterwards, you can explore other museums and historical sites, delving deeper into the history of World War II. Come lunchtime, savor the
+        <span class="ltx_text" id="S4.T2.1.3.3.4.3" style="color:#FF0000;">
+         local cuisine
+        </span>
+        near Pearl Harbor, immersing yourself in the local culture. In the afternoon, take a leisurely stroll on the docks of Pearl Harbor, feeling the tranquil and solemn sea breeze.
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Multi-day Trip Planning: Compared with ChatGPT, OKR-Agent presents more thorough consideration of elements.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Trivia Creative Writing
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Creative Writing is the art of crafting written content that explores thoughts, feelings, and ideas, utilizing narrative craft, character development, and literary tropes, often diverging from formal writing styles to convey emotions, create imagery, and experiment with language across various genres and forms like novels, poetry, and screenplays. In this task, we test the same input as in the SPP paper: "Generate a paragraph of fantasy creative story."
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     Table
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.3 Trivia Creative Writing ‣ 4 experiments ‣ Agents meet OKR: An Object and Key Results Driven Agent System with Hierarchical Self-Collaboration and Self-Evaluation">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     depicts the visual rendition of a fantastical adventure narrative, conceived by the OKR-Agent. Our method elaborated on the prompt: "one-paragraph background story of an NPC for the next Legend of Zelda game. The background story should mention … by Jay Chou," resulting in the creation of four enriched scenes.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     In this experiment, OKR-Agent demonstrated its prowess by producing narratives with richer and more layered content in comparison to SPP. The following is a narrative developed by OKR-Agent. Words highlighted in red represent the accurate responses to the input queries. Owing to space limitations, the comprehensive story has been relegated to the supplemental material:
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T3">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T3.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T3.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T3.1.1.1.1">
+        <div class="ltx_inline-block ltx_transformed_outer" id="S4.T3.1.1.1.1.1" style="width:41.9pt;height:7.1pt;vertical-align:-1.6pt;">
+         <span class="ltx_transformed_inner" style="transform:translate(-5.2pt,0.7pt) scale(0.8,0.8) ;">
+          <div class="ltx_inline-block ltx_transformed_outer" id="S4.T3.1.1.1.1.1.1" style="width:52.4pt;height:8.699999999999999pt;vertical-align:-1.9pt;">
+           <span class="ltx_transformed_inner" style="width:52.4pt;transform:translate(0pt,2.92pt) rotate(-0deg) ;">
+            <p class="ltx_p" id="S4.T3.1.1.1.1.1.1.1">
+             OKR-Agent
+            </p>
+           </span>
+          </div>
+         </span>
+        </div>
+       </th>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.1.1.2">
+        The camera reveals the mysterious and vast continent of
+        <span class="ltx_text" id="S4.T3.1.1.1.2.1" style="color:#FF0000;">
+         Hyrule
+        </span>
+        in the game world, with magnificent mountains, lush trees, and flowing streams in the distance. The protagonist confidently steps into
+        <span class="ltx_text" id="S4.T3.1.1.1.2.2" style="color:#FF0000;">
+         Hyrule
+        </span>
+        , while
+        <span class="ltx_text" id="S4.T3.1.1.1.2.3" style="color:#FF0000;">
+         Ed Stark
+        </span>
+        mysteriously emerges on the grass, his gaze unwaveringly fixed on the protagonist. A gentle piano melody resonates, gradually infused with Jay Chou’s song
+        <span class="ltx_text" id="S4.T3.1.1.1.2.4" style="color:#FF0000;">
+         "Slience"
+        </span>
+        , creating a tranquil and enigmatic atmosphere.
+        <span class="ltx_text" id="S4.T3.1.1.1.2.5" style="color:#FF0000;">
+         Ed
+        </span>
+        leads the protagonist through the dense forest, gradually guiding them towards a dark crevice.
+        <span class="ltx_text" id="S4.T3.1.1.1.2.6" style="color:#FF0000;">
+         Ed
+        </span>
+        swiftly navigates through the trees, displaying his combat skills and determination with the agility of a leopard. The incantation
+        <span class="ltx_text" id="S4.T3.1.1.1.2.7" style="color:#FF0000;">
+         "Expecto Patronum"
+        </span>
+        softly escapes from
+        <span class="ltx_text" id="S4.T3.1.1.1.2.8" style="color:#FF0000;">
+         Ed’s
+        </span>
+        lips…The protagonist successfully defeats the forces of darkness, causing the obscurity to gradually dissipate, revealing the beautiful scenery and peaceful
+        <span class="ltx_text" id="S4.T3.1.1.1.2.9" style="color:#FF0000;">
+         Hyrule
+        </span>
+        .
+        <span class="ltx_text" id="S4.T3.1.1.1.2.10" style="color:#FF0000;">
+         Ed
+        </span>
+        and the protagonist stand side by side on the mountain peak, victorious expressions gracing their faces. The music reaches its climax,
+        <span class="ltx_text" id="S4.T3.1.1.1.2.11" style="color:#FF0000;">
+         "Slience"
+        </span>
+        resounds with a majestic movement that echoes through the sky, exemplifying the triumph of righteousness over evil.
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.2.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row" id="S4.T3.1.2.2.1">
+        <div class="ltx_inline-block ltx_transformed_outer" id="S4.T3.1.2.2.1.1" style="width:15.3pt;height:5.5pt;vertical-align:-0.0pt;">
+         <span class="ltx_transformed_inner" style="transform:translate(-1.9pt,0.7pt) scale(0.8,0.8) ;">
+          <div class="ltx_inline-block ltx_transformed_outer" id="S4.T3.1.2.2.1.1.1" style="width:19.2pt;height:6.8pt;vertical-align:-0.0pt;">
+           <span class="ltx_transformed_inner" style="width:19.2pt;transform:translate(0pt,0pt) rotate(-0deg) ;">
+            <p class="ltx_p" id="S4.T3.1.2.2.1.1.1.1">
+             SPP
+            </p>
+           </span>
+          </div>
+         </span>
+        </div>
+       </th>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.2.2.2">
+        In the mystical land of
+        <span class="ltx_text" id="S4.T3.1.2.2.2.1" style="color:#FF0000;">
+         Hyrule
+        </span>
+        , there lived a wise and powerful sorcerer named
+        <span class="ltx_text" id="S4.T3.1.2.2.2.2" style="color:#FF0000;">
+         Eddard
+        </span>
+        .
+        <span class="ltx_text" id="S4.T3.1.2.2.2.3" style="color:#FF0000;">
+         Eddard
+        </span>
+        was known far and wide for his mastery of ancient spells, including the legendary
+        <span class="ltx_text" id="S4.T3.1.2.2.2.4" style="color:#FF0000;">
+         "Expecto Patronum"
+        </span>
+        incantation from a distant realm. One fateful day, Eddard stumbled upon a mysterious artifact that played a haunting melody called
+        <span class="ltx_text" id="S4.T3.1.2.2.2.5" style="color:#FF0000;">
+         "An Jing."
+        </span>
+        The melody resonated with his soul, unlocking a hidden power within him. With this newfound power,
+        <span class="ltx_text" id="S4.T3.1.2.2.2.6" style="color:#FF0000;">
+         Eddard
+        </span>
+        dedicated his life to protecting the people of
+        <span class="ltx_text" id="S4.T3.1.2.2.2.7" style="color:#FF0000;">
+         Hyrule
+        </span>
+        from the forces of darkness, becoming a beloved figure in the Legend of Zelda
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Trivia Creative Writing: OKR-Agent can produce richer and more layered content in comparison to SPP.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this study, we demonstrate the effectiveness of OKR-Agent in optimizing task-solving pathways within intricate domains such as storyboard generation and creative writing. By leveraging hierarchical structures and LLMs, it has enabled precise, coherent, and adaptive task planning and execution. The findings from the comparative experiments underscore OKR-Agent’s superior global task planning and detail generation capabilities, offering substantial contributions to artificial intelligence research.
+It will be worth investigating incorporating human-in-the-loop approaches to fine-tune and augment the capabilities of OKR-Agent, enabling real-time human interaction to enhance creative content generation and problem-solving processes.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yejin Bang, Samuel Cahyawijaya, Nayeon Lee, Wenliang Dai, Dan Su, Bryan Wilie, Holy Lovenia, Ziwei Ji, Tiezheng Yu, Willy Chung, Quyet V. Do, Yan Xu, and Pascale Fung.
+    </span>
+    <span class="ltx_bibblock">
+     A multitask, multilingual, multimodal evaluation of chatgpt on reasoning, hallucination, and interactivity.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2302.04023
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Besta et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Lukas Gianinazzi, Joanna Gajda, Tomasz Lehmann, Michal Podstawski, Hubert Niewiadomski, Piotr Nyczyk, and Torsten Hoefler.
+    </span>
+    <span class="ltx_bibblock">
+     Graph of thoughts: Solving elaborate problems with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2308.09687
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, and Prafulla Dhariwal et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2005.14165
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bubeck et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Sébastien Bubeck, Varun Chandrasekaran, Ronen Eldan, Johannes Gehrke, Eric Horvitz, Ece Kamar, Peter Lee, Yin Tat Lee, Yuanzhi Li, Scott Lundberg, Harsha Nori, Hamid Palangi, Marco Tulio Ribeiro, and Yi Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Sparks of artificial general intelligence: Early experiments with gpt-4.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2303.12712
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cai et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tianle Cai, Xuezhi Wang, Tengyu Ma, Xinyun Chen, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models as tool makers.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:2305.17126
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chandrasekaran et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Arjun Chandrasekaran, Deshraj Yadav, Prithvijit Chattopadhyay, Viraj Prabhu, and Devi Parikh.
+    </span>
+    <span class="ltx_bibblock">
+     It takes two to tango: Towards theory of ai’s mind.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:1704.00717
+     </em>
+     , 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chowdhery et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra, Adam Roberts, and Paul Barham et al.
+    </span>
+    <span class="ltx_bibblock">
+     Palm: Scaling language modeling with pathways.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2204.02311
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Devlin et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+    </span>
+    <span class="ltx_bibblock">
+     BERT: Pre-training of deep bidirectional transformers for language understanding.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)
+     </em>
+     , pp.  4171–4186, Minneapolis, Minnesota, June 2019. Association for Computational Linguistics.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.18653/v1/N19-1423
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aclanthology.org/N19-1423" target="_blank" title="">
+      https://aclanthology.org/N19-1423
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dramatron (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Dramatron.
+    </span>
+    <span class="ltx_bibblock">
+     Dramatron. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      https://www.deepmind.com/open-source/dramatron
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, Chenyu Ran, Lingfeng Xiao, and Chenglin Wu.
+    </span>
+    <span class="ltx_bibblock">
+     Metagpt: Meta programming for multi-agent collaborative framework.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2308.00352
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Guohao Li, Hasan Abed Al Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem.
+    </span>
+    <span class="ltx_bibblock">
+     Camel: Communicative agents for "mind" exploration of large scale language model society.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2303.17760
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Bill Yuchen Lin, Yicheng Fu, Karina Yang, Prithviraj Ammanabrolu, Faeze Brahman, Shiyu Huang, Chandra Bhagavatula, Yejin Choi, and Xiang Ren.
+    </span>
+    <span class="ltx_bibblock">
+     Swiftsage: A generative agent with fast and slow thinking for complex interactive tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2305.17390
+     </em>
+     , 2023a.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Jessy Lin, Nicholas Tomlin, Jacob Andreas, and Jason Eisner.
+    </span>
+    <span class="ltx_bibblock">
+     Decision-oriented dialogue for human-ai collaboration.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2305.20076
+     </em>
+     , 2023b.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Bo Liu, Yuqian Jiang, Xiaohan Zhang, Qiang Liu, Shiqi Zhang, Joydeep Biswas, and Peter Stone.
+    </span>
+    <span class="ltx_bibblock">
+     Llm+p: Empowering large language models with optimal planning proficiency.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2304.11477
+     </em>
+     , 2023a.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Hao Liu, Carmelo Sferrazza, and Pieter Abbeel.
+    </span>
+    <span class="ltx_bibblock">
+     Chain of hindsight aligns language models with feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2302.02676
+     </em>
+     , 2023b.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Shashank Gupta, Bodhisattwa Prasad Majumder, Katherine Hermann, Sean Welleck, Amir Yazdanbakhsh, and Peter Clark.
+    </span>
+    <span class="ltx_bibblock">
+     Self-refine: Iterative refinement with self-feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2303.17651
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Midjourney.com (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Midjourney.com.
+    </span>
+    <span class="ltx_bibblock">
+     Midjourney. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      https://www.midjourney.com
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mirowski et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Piotr Mirowski, Kory W. Mathewson, Jaylen Pittman, and Richard Evans.
+    </span>
+    <span class="ltx_bibblock">
+     Co-writing screenplays and theatre scripts with language models: Evaluation by industry professionals.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems
+     </em>
+     , CHI ’23, New York, NY, USA, 2023. Association for Computing Machinery.
+    </span>
+    <span class="ltx_bibblock">
+     ISBN 9781450394215.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1145/3544548.3581225
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1145/3544548.3581225" target="_blank" title="">
+      https://doi.org/10.1145/3544548.3581225
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mishra et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Prakhar Mishra, Chaitali Diwan, Srinath Srinivasa, and G. Srinivasaraghavan.
+    </span>
+    <span class="ltx_bibblock">
+     Ai based approach to trailer generation for online educational courses.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2301.03957
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2303.08774
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Park et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2304.03442
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pellegrini (2009)
+    </span>
+    <span class="ltx_bibblock">
+     Anthony Pellegrini.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      The Role of Play in Human Development
+     </em>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Oxford University Press, 10 2009.
+    </span>
+    <span class="ltx_bibblock">
+     ISBN 9780195367324.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1093/acprof:oso/9780195367324.001.0001
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://doi.org/10.1093/acprof:oso/9780195367324.001.0001" target="_blank" title="">
+      https://doi.org/10.1093/acprof:oso/9780195367324.001.0001
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Piaget (1954)
+    </span>
+    <span class="ltx_bibblock">
+     J. Piaget.
+    </span>
+    <span class="ltx_bibblock">
+     The construction of reality in the child.
+    </span>
+    <span class="ltx_bibblock">
+     1954.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1037/11168-000
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qin et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Chengwei Qin, Aston Zhang, Zhuosheng Zhang, Jiaao Chen, Michihiro Yasunaga, and Diyi Yang.
+    </span>
+    <span class="ltx_bibblock">
+     Is chatgpt a general-purpose natural language processing task solver?
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2302.06476
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Federico Cassano, Beck Labash, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: Language agents with verbal reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2303.11366
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shuster et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Kurt Shuster, Jing Xu, Mojtaba Komeili, Da Ju, Eric Michael Smith, Stephen Roller, Megan Ung, Moya Chen, Kushal Arora, Joshua Lane, Morteza Behrooz, William Ngan, Spencer Poff, Naman Goyal, Arthur Szlam, Y-Lan Boureau, Melanie Kambadur, and Jason Weston.
+    </span>
+    <span class="ltx_bibblock">
+     Blenderbot 3: a deployed conversational agent that continually learns to responsibly engage.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2208.03188
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sloman (1996)
+    </span>
+    <span class="ltx_bibblock">
+     Steven Sloman.
+    </span>
+    <span class="ltx_bibblock">
+     The empirical case for two systems of reasoning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      Psychological Bulletin
+     </em>
+     , 119:3–, 01 1996.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.1037/0033-2909.119.1.3
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Srivastava et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aarohi Srivastava, Abhinav Rastogi, Abhishek Rao, Abu Awal Md Shoeb, Abubakar Abid, Adam Fisch, Adam R. Brown, Adam Santoro, Aditya Gupta, and Adrià Garriga-Alonso et al.
+    </span>
+    <span class="ltx_bibblock">
+     Beyond the imitation game: Quantifying and extrapolating the capabilities of language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2206.04615
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhenhailong Wang, Shaoguang Mao, Wenshan Wu, Tao Ge, Furu Wei, and Heng Ji.
+    </span>
+    <span class="ltx_bibblock">
+     Unleashing cognitive synergy in large language models: A task-solving agent through multi-persona self-collaboration.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2307.05300
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wason &amp; Johnson-Laird (1972)
+    </span>
+    <span class="ltx_bibblock">
+     Peter Cathcart Wason and Philip Nicholas Johnson-Laird.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      Psychology of Reasoning: Structure and Content
+     </em>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Harvard University Press, Cambridge, MA, USA, 1972.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2201.11903
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L. Griffiths, Yuan Cao, and Karthik Narasimhan.
+    </span>
+    <span class="ltx_bibblock">
+     Tree of thoughts: Deliberate problem solving with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      arXiv preprint arXiv:2305.10601
+     </em>
+     , 2023a.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao.
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      arXiv preprint arXiv:2210.03629
+     </em>
+     , 2023b.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Yeyao Zhang, Eleftheria Tsipidi, Sasha Schriber, Mubbasir Kapadia, Markus Gross, and Ashutosh Modi.
+    </span>
+    <span class="ltx_bibblock">
+     Generating animations from screenplays.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      Proceedings of the Eighth Joint Conference on Lexical and Computational Semantics (*SEM 2019)
+     </em>
+     , pp.  292–307, Minneapolis, Minnesota, June 2019. Association for Computational Linguistics.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.18653/v1/S19-1032
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aclanthology.org/S19-1032" target="_blank" title="">
+      https://aclanthology.org/S19-1032
+     </a>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

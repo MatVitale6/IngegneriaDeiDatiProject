@@ -1,0 +1,4248 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  AgentCoder: Multiagent-Code Generation with
+  <br class="ltx_break"/>
+  Iterative Testing and Optimisation
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Dong Huang
+    <sup class="ltx_sup" id="id10.2.id1">
+     1
+    </sup>
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Qingwen Bu
+    <sup class="ltx_sup" id="id11.2.id1">
+     <span class="ltx_text ltx_font_italic" id="id11.2.id1.1">
+      2
+     </span>
+    </sup>
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Jie M. Zhang
+    <sup class="ltx_sup" id="id12.2.id1">
+     3
+    </sup>
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Michael Luck
+    <sup class="ltx_sup" id="id13.7.id1">
+     4
+    </sup>
+    &amp;Heming Cui
+    <sup class="ltx_sup" id="id14.8.id2">
+     <span class="ltx_text ltx_font_italic" id="id14.8.id2.1">
+      1
+     </span>
+    </sup>
+    <sup class="ltx_sup" id="id15.9.id3">
+     1
+    </sup>
+    The University of Hong Kong
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id16.10.id4">
+     2
+    </sup>
+    Shanghai Jiao Tong University
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id17.11.id5">
+     3
+    </sup>
+    King’s College London
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id18.12.id6">
+     4
+    </sup>
+    University of Sussex
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id19.13.id7">
+     {dhuang, heming}@cs.hku.hk,
+qwbu01@sjtu.edu.cn,
+jie.zhang@kcl.ac.uk,
+Michael.Luck@sussex.ac.uk
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id20.id1">
+   Advances in natural language processing (NLP) have been significantly boosted by the development of transformer-based large language models (LLMs). These models have revolutionized NLP tasks, particularly in code generation, aiding developers in creating software with enhanced efficiency. Despite their advances, challenges remain in balancing code snippet generation with effective test case generation and execution. To address these issues, this paper introduces Multiagent-Code Generation (AgentCoder), a novel solution comprising a multi-agent framework with specialized agents: the programmer agent, the test designer agent, and the test executor agent. During the coding procedure, the programmer agent focuses on the code generation and refinement based on the test executor agent’s feedback. The test designer agent generates test cases for the generated code, and the test executor agent runs the code with the test cases and writes feedback to the programmer. This collaborative system ensures more effective code generation, surpassing the limitations of single-agent models and previous strategies. Our extensive experiments on 12 LLMs and 13 optimisation approaches showcase AgentCoder’s superior performance over existing code generation models and prompt engineering techniques across various benchmarks. For example, AgentCoder achieves 77.4% and 89.1% pass@1 in HumanEval-ET and MBPP-ET with GPT-3.5, while state-of-the-art obtains only 69.5% and 63.0%.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In recent years, natural language processing (NLP) has been dramatically transformed by transformer-based large language models (LLMs). These models, notably exemplified by the GPT-x series
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Brown
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2020b
+     </a>
+     ); OpenAI (
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2023
+     </a>
+     )
+    </cite>
+    developed by OpenAI, have consistently set the benchmark for performance across a wide array of standard NLP tasks. One of the most pivotal applications for these LLMs is code generation for downstream tasks, where they play a vital role in aiding developers in creating software
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Feng
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2020
+     </a>
+     ); Wang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2021
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      2023b
+     </a>
+     ); Nijkamp
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2023b
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      a
+     </a>
+     ); Li
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023b
+     </a>
+     )
+    </cite>
+    . Through extensive pretraining on substantial code-related datasets, such as publicly available data on GitHub, these code LLMs acquire intricate contextual understanding that can be effectively applied to diverse code-related tasks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Numerous recent efforts have been made to improve the effectiveness of code generation models by incorporating in-context learning and its variations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Dong
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023b
+     </a>
+     ); Wei
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2022
+     </a>
+     ); Le
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     ); Huang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2023
+     </a>
+     ); Zhang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib37" title="">
+      2023b
+     </a>
+     ); Chen
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023b
+     </a>
+     ); Madaan
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , where an important optimization path is self-refinement. For example,
+    <cite class="ltx_cite ltx_citemacro_citeauthor">
+     <a class="ltx_ref" href="#bib.bib37" title="">
+      Zhang
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+     </a>
+    </cite>
+    proposed Self-Edit to enhance the performance of LLMs in code generation. In particular, Self-Edit runs the code generation model’s generated code against test cases that are manually written by developers. If the code fails to pass these test cases, Self-Edit prompts the code generation model to refine the function using the provided error messages with its fault-aware code editor. Nevertheless, Self-Edit requires that developers write test cases to verify the correctness of the generated function. This requirement can be particularly demanding and challenging for users who lack expertise in the specific domain, which potentially impedes the effectiveness of the self-editing process.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    To overcome this challenge,
+    <cite class="ltx_cite ltx_citemacro_citeauthor">
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      Huang
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+     </a>
+    </cite>
+    introduced CodeCoT, which adopts a step-by-step strategy for code generation, tasking the code generation model to generate both the function and the corresponding test cases.
+CodeCoT also establishes a connection with a terminal interface, instructing the code generation model to self-refine the code based on the error messages returned by the terminal. This approach not only reduces the burden on developers in terms of writing test cases but also ensures that the generated code undergoes software testing and refinement.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Although CodeCoT makes substantial strides in enhancing the effectiveness of code generation models, the tests and code are generated within the same conversation. In other words,
+the code generation and test generation processes are not independent. This practice brings constraints that arise from the potential trade-off between excelling in code generation and maintaining the effectiveness of test case generation: as the model achieves high performance in generating code snippets, there may be a corresponding decrease in the effectiveness of test case generation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023a
+     </a>
+     ); Zhang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      2023a
+     </a>
+     )
+    </cite>
+    . This trade-off scenario occurs due to the model’s limited resources and its focus on optimizing one aspect of the code generation process, which might inadvertently compromise the quality of other tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023a
+     </a>
+     ); Zhang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      2023a
+     </a>
+     )
+    </cite>
+    . In addition, the tests generated immediately following the code in one conversation can be biased and affected by the code, losing objectivity and diversity in the testing (See
+    <a class="ltx_ref" href="#S4.T5" title="In 4.6 RQ5: How adequate are AgentCoder’s test cases in terms of code coverage? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+     <span class="ltx_text ltx_ref_tag">
+      Tab.
+     </span>
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    ).
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    In this paper, we address the above-mentioned problems by proposing Multiagent-Code Generation, namely AgentCoder. AgentCoder contains three different agents, i.e., the programmer agent, the test designer agent, and the test executor agent. The programmer agent interacts with advanced code generation models to create code based on coding requirements. The test designer agent designs diverse and comprehensive test cases with code generation models independently based on the coding requirements. The test executor agent interacts with both the programmer agent and the test designer agent: it executes the tests from the test designer agent against the code generated by the programmer agent and then provides test execution results to the programmer agent. Once the feedback is obtained by the test executor agent from the local environment (i.e., local terminal), it checks whether the feedback contains error information (e.g., runtime error and assertion error). If all test cases pass the generated code, the test executor agent provides the code snippets with the human developer. Otherwise, the test executor agent feeds back to the programmer agent and then requires it to fix the bug reported in the feedback. Then the iteration continues once the feedback is that all test cases pass the code snippets or the iteration budget is done, when the code snippets will be reported to the human developer even if the code is still buggy.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our extensive experiments with 12 LLMs and 13 enhancement approaches demonstrate that AgentCoder significantly improves the effectiveness of existing code generation models, outperforming all baseline approaches.
+In particular, AgentCoder obtains an average of 91.5% and 84.1% pass@1 on all the datasets with GPT-4 and GPT-3.5, respectively, while the state-of-the-art approaches obtain 86.8% and 75.3%.
+On HumanEval-ET and MBPP-ET,
+AgentCoder obtains 77.4% and 89.1% pass@1 with GPT-3.5, while the state-of-the-art approaches obtain only 69.5% and 63.0%. The effectiveness of AgentCoder is fueled by the goal of leveraging collaborative synergy within its agents. Within this agent system, the programmer agent excels in crafting high-quality code snippets, complemented by the test designer agent’s expertise in designing varied, challenging, and objective test cases. The test executor agent plays a pivotal role by critically evaluating the code using these test cases, ensuring both functionality and reliability. Such collaboration fosters a dynamic feedback loop that facilitates successive enhancements. AgentCoder overcomes the constraints inherent in single-agent code generation models by allocating distinct tasks to different agents. This division not only balances the focus between code and test case generation but also strengthens a more objective testing process.
+Additionally, its modular design provides the flexibility and scalability crucial to adapting to technological advancements. Agents within AgentCoder can be individually
+updated or replaced with more sophisticated models, maintaining the framework’s technological edge. This adaptability positions AgentCoder as an effective and evolving solution in the ever-changing landscape of software development.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    Our main contributions are as follows:
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p8">
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       Introduction of AgentCoder: We propose AgentCoder, a novel multi-agent framework for code generation that contains three distinct agents, i.e., the programmer agent, the test designer agent, and the test executor agent.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Comprehensive Evaluation: We conduct an extensive evaluation with 12 LLMs and 13 LLM-based optimisation approaches which demonstrates that AgentCoder outperforms all the baselines in code generation. In particular, AgentCoder obtains 77.4% and 89.1% pass@1 with GPT-3.5, while state-of-the-art obtains only 69.5% and 63.0%.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       In-Depth Analysis and Ablation Studies: We conduct a deep analysis of our results and ablation studies, which demonstrate the contribution of different agents, the effectiveness of the tests generated by the test designer agent, and the necessity of using separate agents for code generation and test case design.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       Modularity: The modular structure of our framework not only ensures adaptability and scalability but also facilitates future enhancements and integration with more advanced models, positioning AgentCoder as a resilient solution in the evolving landscape of code generation.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Large Language Model for Code Generation
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Large Language Models (LLMs) have been widely studied for code generation tasks. Various architectures have been explored in these models, some notable examples being CodeBERT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Feng
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2020
+      </a>
+      )
+     </cite>
+     , PLBART
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Ahmad
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2021
+      </a>
+      )
+     </cite>
+     , and CodeGPT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Zan
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       2022
+      </a>
+      )
+     </cite>
+     . These models are pre-trained on code corpora to develop a deep understanding of code syntax, semantics, and idiomatic constructs. Some innovative approaches integrate structured representations to enhance their comprehension of the complexities in code. For example, GraphCodeBERT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Guo
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2020
+      </a>
+      )
+     </cite>
+     incorporates graph-based representations, while CodeT5+
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wang
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     combines the encoder-decoder paradigm with the structural essence of code. These enhancements aim to give the models a more fine-grained understanding of code relationships and dependencies beyond just syntactic patterns. A current trend is the construction of large scale models (e.g., Codex
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chen
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2021b
+      </a>
+      )
+     </cite>
+     and CodeGen
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Nijkamp
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     ) with billions of parameters, which have illustrated the performance of state-of-the-art in code generation tasks. Recently, foundation models (e.g., GPT-3.5-turbo, GPT-4) have also been used for code generations
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Madaan
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2023
+      </a>
+      ); Huang
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . These foundation models illustrated the state-of-the-art performance for code generation tasks.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Enhancing Code Generation through Prompt Engineering
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Recent advances in code generation have been significantly influenced by the integration of few-shot learning techniques with LLMs. A notable contribution in this realm is the concept of self-refinement with few-shot prompting, as proposed by
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       Madaan
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     . This approach involves an LLM iteratively refining its own generated code, leading to significant improvement in code quality. Another approach is the Self-Debugging technique introduced by
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       Chen
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     , which involves testing the generated code against user-provided test cases. In scenarios where such test cases are unavailable, the model engages in direct debugging by explaining the code, thus addressing potential issues. Complementing these methods,
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       Huang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     introduced CodeCoT, employing a Self-Exam Chain of Thought (CoT) process. This technique guides the model to generate code alongside test cases, particularly useful when external test cases are not available. CodeCoT adds a layer of logical reasoning to the code generation process. However, it is important to note that while this method can identify syntax errors, functional errors may still go undetected as both the code and its test cases are generated by the same model. Building upon these concepts,
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       Dong
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     proposed the Self-Collaboration model, which divides the LLMs into different roles: an analyst, a coder, and a tester. The tester is powered by an LLM which predicts whether the code is buggy. Such practice may ignore many bugs in the code because the code is not executed in the local environments.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Multi-agent Collaboration
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     A multi-agent system (MAS) is a framework where multiple autonomous agents interact with each other. These agents, which can be program scripts, software bots, or robots, operate in a shared environment and can communicate, cooperate, compete, or negotiate with each other. Each agent in a multi-agent system has its own capabilities, goals, and perceptions, and works either independently or together to achieve complex goals or solve problems. The integration of LLMs within multi-agent collaboration systems represents a cutting-edge area of research in the deep learning community. For example, HuggingFace proposes HuggingGPT to solve complex AI tasks with HuggingFace models.
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       Zhang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     propose ProAgent to address robotic tasks by analyzing the current context, anticipating teammates’ intentions, and formulating its strategies based on the above reasoning.
+     <cite class="ltx_cite ltx_citemacro_citeauthor">
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       Chen
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+      </a>
+     </cite>
+     propose VisualGPT to utilize vision PLM to address image captioning tasks.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F1">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="136" id="S2.F1.g1" src="/html/2312.13010/assets/x1.png" width="438"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 1:
+     </span>
+     Pipeline of AgentCoder with a code generation example from HumanEval
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Methodology
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    The framework of AgentCoder and its pipeline are illustrated in
+    <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+     <span class="ltx_text ltx_ref_tag">
+      Fig.
+     </span>
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . The process begins by inputting tasks/code generation requirements/descriptions into the code generation agent (Agent#1: the programmer agent).
+Subsequently, the test case generator (Agent#2: the test designer agent) is tasked with generating test cases, which are used to evaluate the correctness of the code snippets produced by the programmer agent.
+The code snippets and test cases are collected by the test executor agent (Agent#3) and executed in the local environment (local terminal) to obtain feedback (i.e., whether the code passes all tests and the error message if the code fails for some tests). If the test executor agent finds that the code snippets pass all test cases, it will return the code to the user and finish the iteration.
+Otherwise, the test executor agent will return the test execution error messages to the programmer agent.
+The iteration then continues, with the programmer agent regenerating code snippets to address the issues identified in the feedback,
+and the test executor agent re-executes the new code and provides new feedback to the programmer agent, until the test executor agent finds that the code passes all the tests.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Programmer agent: code generation with Chain-of-Thought instruction
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     In our framework, The programmer agent is powered by LLMs.
+It needs to consider two scenarios, i.e., code generation and code refinement. Specifically, as shown in
+     <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , during the code generation stage, the human developer will require the programmer agent to generate code snippets to complete specific tasks, the programmer agent employs a Chain-of-Thought approach to simulate the typical programming process, methodically breaking down the task into smaller, manageable steps.
+The Chain-of-Thought process is instructed to contain four steps, i.e., problem understanding and clarification, algorithm and method selection, pseudocode creation, and code generation (the prompt and response example is shown in Appendix A.3 Figure 6 and 7).
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Taking the coding task
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p2.1.1">
+      Check if in given list of numbers, are any two numbers closer to each other than given threshold
+     </span>
+     (shown in Figure
+     <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     ) as an example, during the initial code generation, the programmer agent will try to understand and clarify the given task, in this case interpreting the requirement to identify pairs of numbers in a list that are within a specified threshold of each other. The programmer agent will then decide on an algorithm or method to solve the problem. This could involve choosing an efficient way to compare each pair of numbers in the list. Next, during the pseudocode creation, the programmer agent will develop a step-by-step guide or pseudocode for the solution, ensuring a logical flow of operations. Finally, in the code generation stage, the programmer will translate the pseudocode into executable code.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     Code snippets generated by the programmer agent can be incorrect, containing various types of errors (e.g., syntax and runtime errors), leading to failed test cases provided by the test designer agent.
+Under such circumstances, the programmer agent will take feedback from other agents and refine the code snippets. The refinement process is iterative, with the programmer agent continuously enhancing the code based on feedback until the code successfully passes all test cases.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Test designer agent: generating basic, edge, and large scale tests
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     The test designer agent is also powered by LLMs. It is a crucial component of our AgentCoder’s framework to test the code and provide reliable feedback for the programmer agent to optimise the code iteratively.
+We carefully designed the prompts for the test designer agent to satisfy the following three expectations:
+(i) to generate basic test cases, (ii) to cover edge test cases, and (iii) to cover large scale inputs (the test designer agent’s prompt and response example is shown in Appendix Figure 8 and 9).
+The first aspect expects that the test designer agent designs test cases that cover the fundamental functionality of the code. These tests are designed to ensure that the code performs as expected under normal conditions. For instance, in a task that involves sorting a list, the basic test cases verify that the list is sorted correctly for typical inputs.
+The second aspect ensures that the code performs well under edge scenarios, which are critical for evaluating the code’s behavior under extreme or unusual conditions.
+These tests are designed to challenge the code with boundary conditions, unexpected inputs, and rare scenarios, to help in identifying potential bugs or weaknesses in the code that might not be evident during basic testing, such as using an empty list or a list with extremely large numbers to test the sorting algorithm.
+Finally, the test designer agent will also generate test cases with large scale values to assess the code’s performance and scalability,, such as testing the sorting algorithm with a list of millions of elements. This involves testing the code under high-load conditions to evaluate whether it maintains its functionality and performance.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Test executor agent: code validation and feedback Integration
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     Distinct from the programmer agent and test designer agent that are powered by LLMs, the test executor agent in our framework is implemented through a Python script interacting with a local environment and the other two agents (an example of the test executor agent is shown in Appendix Figure 10). As illustrated in
+     <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , the test executor agent plays a pivotal role in the final stage of the code generation process. Upon receiving code snippets generated by the programmer agent and test cases generated by the test designer agent, the test executor agent validates these code snippets along with the test cases in a local environment.
+The test executor agent closely monitors the return information from the execution environment (i.e., the terminal). This involves analyzing the output and determining whether the code snippets successfully pass all the test cases. If all test cases are passed, it returns the code to the human developer. Otherwise, if the execution results contain error information (e.g., syntax errors), the test executor agent will then return the error information to the programmer agent to fix the reported error.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T1">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:70%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     End-to-end results of AgentCoder and baseline approaches for HumanEval, HumanEval-ET, MBPP, and MBPP-ET datasets. The best approach is highlighted in bold. The baseline results are obtained from its paper report.
+We use “-” to indicate the cases where the results are absent. The percentages in brackets are the improvement rate over the base LLMs (zero-shot prompting). For the last three rows, no baseline optimisation approaches report effectiveness on these LLMs, therefore, we report the results of AgentCoder only.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S3.T1.3">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S3.T1.3.1.1">
+       <td class="ltx_td ltx_align_top ltx_border_tt" id="S3.T1.3.1.1.1">
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S3.T1.3.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.2.1" style="font-size:70%;">
+         Models
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_tt" id="S3.T1.3.1.1.3">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.3.1" style="font-size:70%;">
+         HumanEval
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_tt" id="S3.T1.3.1.1.4">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.4.1" style="font-size:70%;">
+         HumanEval-ET
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_tt" id="S3.T1.3.1.1.5">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.5.1" style="font-size:70%;">
+         MBPP
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S3.T1.3.1.1.6">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.6.1" style="font-size:70%;">
+         MBPP-ET
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_tt" id="S3.T1.3.1.1.7">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.7.1" style="font-size:70%;">
+         Mean
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.2.2">
+       <td class="ltx_td ltx_align_center ltx_align_top ltx_border_r ltx_border_t" colspan="2" id="S3.T1.3.2.2.1" rowspan="12">
+        <span class="ltx_text" id="S3.T1.3.2.2.1.1" style="font-size:70%;">
+        </span>
+        <span class="ltx_text" id="S3.T1.3.2.2.1.2" style="font-size:70%;">
+         LLMs (zero-shot prompting)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.2.2.2">
+        <span class="ltx_text" id="S3.T1.3.2.2.2.1" style="font-size:70%;">
+         AlphaCode (1.1B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.2.2.3">
+        <span class="ltx_text" id="S3.T1.3.2.2.3.1" style="font-size:70%;">
+         17.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.2.2.4">
+        <span class="ltx_text" id="S3.T1.3.2.2.4.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.2.2.5">
+        <span class="ltx_text" id="S3.T1.3.2.2.5.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T1.3.2.2.6">
+        <span class="ltx_text" id="S3.T1.3.2.2.6.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.2.2.7">
+        <span class="ltx_text" id="S3.T1.3.2.2.7.1" style="font-size:70%;">
+         17.1
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.3.3">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.3.3.1">
+        <span class="ltx_text" id="S3.T1.3.3.3.1.1" style="font-size:70%;">
+         Incoder (6.7B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.3.3.2">
+        <span class="ltx_text" id="S3.T1.3.3.3.2.1" style="font-size:70%;">
+         15.2
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.3.3.3">
+        <span class="ltx_text" id="S3.T1.3.3.3.3.1" style="font-size:70%;">
+         11.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.3.3.4">
+        <span class="ltx_text" id="S3.T1.3.3.3.4.1" style="font-size:70%;">
+         17.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.3.3.5">
+        <span class="ltx_text" id="S3.T1.3.3.3.5.1" style="font-size:70%;">
+         14.3
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.3.3.6">
+        <span class="ltx_text" id="S3.T1.3.3.3.6.1" style="font-size:70%;">
+         14.7
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.4.4">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.4.4.1">
+        <span class="ltx_text" id="S3.T1.3.4.4.1.1" style="font-size:70%;">
+         CodeGeeX (13B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.4.4.2">
+        <span class="ltx_text" id="S3.T1.3.4.4.2.1" style="font-size:70%;">
+         18.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.4.4.3">
+        <span class="ltx_text" id="S3.T1.3.4.4.3.1" style="font-size:70%;">
+         15.2
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.4.4.4">
+        <span class="ltx_text" id="S3.T1.3.4.4.4.1" style="font-size:70%;">
+         26.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.4.4.5">
+        <span class="ltx_text" id="S3.T1.3.4.4.5.1" style="font-size:70%;">
+         20.4
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.4.4.6">
+        <span class="ltx_text" id="S3.T1.3.4.4.6.1" style="font-size:70%;">
+         20.4
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.5.5">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.5.5.1">
+        <span class="ltx_text" id="S3.T1.3.5.5.1.1" style="font-size:70%;">
+         StarCoder (15.5B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.5.5.2">
+        <span class="ltx_text" id="S3.T1.3.5.5.2.1" style="font-size:70%;">
+         34.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.5.5.3">
+        <span class="ltx_text" id="S3.T1.3.5.5.3.1" style="font-size:70%;">
+         25.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.5.5.4">
+        <span class="ltx_text" id="S3.T1.3.5.5.4.1" style="font-size:70%;">
+         43.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.5.5.5">
+        <span class="ltx_text" id="S3.T1.3.5.5.5.1" style="font-size:70%;">
+         33.4
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.5.5.6">
+        <span class="ltx_text" id="S3.T1.3.5.5.6.1" style="font-size:70%;">
+         34.2
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.6.6">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.6.6.1">
+        <span class="ltx_text" id="S3.T1.3.6.6.1.1" style="font-size:70%;">
+         CodeGen-Mono (16.1B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.6.6.2">
+        <span class="ltx_text" id="S3.T1.3.6.6.2.1" style="font-size:70%;">
+         32.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.6.6.3">
+        <span class="ltx_text" id="S3.T1.3.6.6.3.1" style="font-size:70%;">
+         25.0
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.6.6.4">
+        <span class="ltx_text" id="S3.T1.3.6.6.4.1" style="font-size:70%;">
+         38.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.6.6.5">
+        <span class="ltx_text" id="S3.T1.3.6.6.5.1" style="font-size:70%;">
+         31.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.6.6.6">
+        <span class="ltx_text" id="S3.T1.3.6.6.6.1" style="font-size:70%;">
+         32.0
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.7.7">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.7.7.1">
+        <span class="ltx_text" id="S3.T1.3.7.7.1.1" style="font-size:70%;">
+         CodeX (175B)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.7.7.2">
+        <span class="ltx_text" id="S3.T1.3.7.7.2.1" style="font-size:70%;">
+         47.0
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.7.7.3">
+        <span class="ltx_text" id="S3.T1.3.7.7.3.1" style="font-size:70%;">
+         31.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.7.7.4">
+        <span class="ltx_text" id="S3.T1.3.7.7.4.1" style="font-size:70%;">
+         58.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.7.7.5">
+        <span class="ltx_text" id="S3.T1.3.7.7.5.1" style="font-size:70%;">
+         38.8
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.7.7.6">
+        <span class="ltx_text" id="S3.T1.3.7.7.6.1" style="font-size:70%;">
+         43.9
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.8.8">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.8.8.1">
+        <span class="ltx_text" id="S3.T1.3.8.8.1.1" style="font-size:70%;">
+         CodeX (175B)+CodeT
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.8.8.2">
+        <span class="ltx_text" id="S3.T1.3.8.8.2.1" style="font-size:70%;">
+         65.8
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.8.8.3">
+        <span class="ltx_text" id="S3.T1.3.8.8.3.1" style="font-size:70%;">
+         51.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.8.8.4">
+        <span class="ltx_text" id="S3.T1.3.8.8.4.1" style="font-size:70%;">
+         67.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.8.8.5">
+        <span class="ltx_text" id="S3.T1.3.8.8.5.1" style="font-size:70%;">
+         45.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.8.8.6">
+        <span class="ltx_text" id="S3.T1.3.8.8.6.1" style="font-size:70%;">
+         57.6
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.9.9">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.9.9.1">
+        <span class="ltx_text" id="S3.T1.3.9.9.1.1" style="font-size:70%;">
+         GPT-3.5-turbo
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.9.9.2">
+        <span class="ltx_text" id="S3.T1.3.9.9.2.1" style="font-size:70%;">
+         57.3
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.9.9.3">
+        <span class="ltx_text" id="S3.T1.3.9.9.3.1" style="font-size:70%;">
+         42.7
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.9.9.4">
+        <span class="ltx_text" id="S3.T1.3.9.9.4.1" style="font-size:70%;">
+         52.2
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.9.9.5">
+        <span class="ltx_text" id="S3.T1.3.9.9.5.1" style="font-size:70%;">
+         36.8
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.9.9.6">
+        <span class="ltx_text" id="S3.T1.3.9.9.6.1" style="font-size:70%;">
+         47.3
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.10.10">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.10.10.1">
+        <span class="ltx_text" id="S3.T1.3.10.10.1.1" style="font-size:70%;">
+         PaLM Coder
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.10.10.2">
+        <span class="ltx_text" id="S3.T1.3.10.10.2.1" style="font-size:70%;">
+         43.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.10.10.3">
+        <span class="ltx_text" id="S3.T1.3.10.10.3.1" style="font-size:70%;">
+         36.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.10.10.4">
+        <span class="ltx_text" id="S3.T1.3.10.10.4.1" style="font-size:70%;">
+         32.3
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.10.10.5">
+        <span class="ltx_text" id="S3.T1.3.10.10.5.1" style="font-size:70%;">
+         27.2
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.10.10.6">
+        <span class="ltx_text" id="S3.T1.3.10.10.6.1" style="font-size:70%;">
+         35.0
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.11.11">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.11.11.1">
+        <span class="ltx_text" id="S3.T1.3.11.11.1.1" style="font-size:70%;">
+         Claude-instant-1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.11.11.2">
+        <span class="ltx_text" id="S3.T1.3.11.11.2.1" style="font-size:70%;">
+         31.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.11.11.3">
+        <span class="ltx_text" id="S3.T1.3.11.11.3.1" style="font-size:70%;">
+         28.1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.11.11.4">
+        <span class="ltx_text" id="S3.T1.3.11.11.4.1" style="font-size:70%;">
+         26.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.11.11.5">
+        <span class="ltx_text" id="S3.T1.3.11.11.5.1" style="font-size:70%;">
+         19.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.11.11.6">
+        <span class="ltx_text" id="S3.T1.3.11.11.6.1" style="font-size:70%;">
+         26.5
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.12.12">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.12.12.1">
+        <span class="ltx_text" id="S3.T1.3.12.12.1.1" style="font-size:70%;">
+         GPT-4-turbo
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.12.12.2">
+        <span class="ltx_text" id="S3.T1.3.12.12.2.1" style="font-size:70%;">
+         57.9
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.12.12.3">
+        <span class="ltx_text" id="S3.T1.3.12.12.3.1" style="font-size:70%;">
+         48.8
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.12.12.4">
+        <span class="ltx_text" id="S3.T1.3.12.12.4.1" style="font-size:70%;">
+         63.4
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.12.12.5">
+        <span class="ltx_text" id="S3.T1.3.12.12.5.1" style="font-size:70%;">
+         47.5
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.12.12.6">
+        <span class="ltx_text" id="S3.T1.3.12.12.6.1" style="font-size:70%;">
+         54.4
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.13.13">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.13.13.1">
+        <span class="ltx_text" id="S3.T1.3.13.13.1.1" style="font-size:70%;">
+         GPT-4
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.13.13.2">
+        <span class="ltx_text" id="S3.T1.3.13.13.2.1" style="font-size:70%;">
+         67.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.13.13.3">
+        <span class="ltx_text" id="S3.T1.3.13.13.3.1" style="font-size:70%;">
+         50.6
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.13.13.4">
+        <span class="ltx_text" id="S3.T1.3.13.13.4.1" style="font-size:70%;">
+         68.3
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.13.13.5">
+        <span class="ltx_text" id="S3.T1.3.13.13.5.1" style="font-size:70%;">
+         52.2
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.13.13.6">
+        <span class="ltx_text" id="S3.T1.3.13.13.6.1" style="font-size:70%;">
+         59.7
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.14.14">
+       <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S3.T1.3.14.14.1" rowspan="21">
+        <span class="ltx_inline-block ltx_align_top" id="S3.T1.3.14.14.1.1">
+         <span class="ltx_p" id="S3.T1.3.14.14.1.1.1" style="width:42.7pt;">
+          <span class="ltx_text" id="S3.T1.3.14.14.1.1.1.1" style="font-size:70%;">
+           LLM-based optimisation approaches
+          </span>
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.14.14.2" rowspan="13">
+        <span class="ltx_text" id="S3.T1.3.14.14.2.1" style="font-size:70%;">
+         with GPT-3.5-turbo
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.14.14.3">
+        <span class="ltx_text" id="S3.T1.3.14.14.3.1" style="font-size:70%;">
+         Few-Shot
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.14.14.4">
+        <span class="ltx_text" id="S3.T1.3.14.14.4.1" style="font-size:70%;">
+         67.7 (18.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.14.14.5">
+        <span class="ltx_text" id="S3.T1.3.14.14.5.1" style="font-size:70%;">
+         54.9 (28.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.14.14.6">
+        <span class="ltx_text" id="S3.T1.3.14.14.6.1" style="font-size:70%;">
+         65.8 (26.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T1.3.14.14.7">
+        <span class="ltx_text" id="S3.T1.3.14.14.7.1" style="font-size:70%;">
+         48.3 (31.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.14.14.8">
+        <span class="ltx_text" id="S3.T1.3.14.14.8.1" style="font-size:70%;">
+         59.2 (25.2%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.15.15">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.15.15.1">
+        <span class="ltx_text" id="S3.T1.3.15.15.1.1" style="font-size:70%;">
+         CoT
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.15.15.2">
+        <span class="ltx_text" id="S3.T1.3.15.15.2.1" style="font-size:70%;">
+         44.6 (-22.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.15.15.3">
+        <span class="ltx_text" id="S3.T1.3.15.15.3.1" style="font-size:70%;">
+         37.2 (-12.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.15.15.4">
+        <span class="ltx_text" id="S3.T1.3.15.15.4.1" style="font-size:70%;">
+         46.1 (-11.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.15.15.5">
+        <span class="ltx_text" id="S3.T1.3.15.15.5.1" style="font-size:70%;">
+         34.8 (-5.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.15.15.6">
+        <span class="ltx_text" id="S3.T1.3.15.15.6.1" style="font-size:70%;">
+         40.7 (-14.0%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.16.16">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.16.16.1">
+        <span class="ltx_text" id="S3.T1.3.16.16.1.1" style="font-size:70%;">
+         ReAct
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.16.16.2">
+        <span class="ltx_text" id="S3.T1.3.16.16.2.1" style="font-size:70%;">
+         56.9 (-0.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.16.16.3">
+        <span class="ltx_text" id="S3.T1.3.16.16.3.1" style="font-size:70%;">
+         49.4 (15.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.16.16.4">
+        <span class="ltx_text" id="S3.T1.3.16.16.4.1" style="font-size:70%;">
+         67.0 (28.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.16.16.5">
+        <span class="ltx_text" id="S3.T1.3.16.16.5.1" style="font-size:70%;">
+         45.9 (24.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.16.16.6">
+        <span class="ltx_text" id="S3.T1.3.16.16.6.1" style="font-size:70%;">
+         54.8 (15.9%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.17.17">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.17.17.1">
+        <span class="ltx_text" id="S3.T1.3.17.17.1.1" style="font-size:70%;">
+         Reflexion
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.17.17.2">
+        <span class="ltx_text" id="S3.T1.3.17.17.2.1" style="font-size:70%;">
+         68.1 (18.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.17.17.3">
+        <span class="ltx_text" id="S3.T1.3.17.17.3.1" style="font-size:70%;">
+         50.6 (18.5%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.17.17.4">
+        <span class="ltx_text" id="S3.T1.3.17.17.4.1" style="font-size:70%;">
+         70.0 (34.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.17.17.5">
+        <span class="ltx_text" id="S3.T1.3.17.17.5.1" style="font-size:70%;">
+         47.5 (29.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.17.17.6">
+        <span class="ltx_text" id="S3.T1.3.17.17.6.1" style="font-size:70%;">
+         59.1 (24.9%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.18.18">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.18.18.1">
+        <span class="ltx_text" id="S3.T1.3.18.18.1.1" style="font-size:70%;">
+         ToT
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.18.18.2">
+        <span class="ltx_text" id="S3.T1.3.18.18.2.1" style="font-size:70%;">
+         54.4 (-5.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.18.18.3">
+        <span class="ltx_text" id="S3.T1.3.18.18.3.1" style="font-size:70%;">
+         42.7 (0.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.18.18.4">
+        <span class="ltx_text" id="S3.T1.3.18.18.4.1" style="font-size:70%;">
+         65.8 (26.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.18.18.5">
+        <span class="ltx_text" id="S3.T1.3.18.18.5.1" style="font-size:70%;">
+         40.8 (10.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.18.18.6">
+        <span class="ltx_text" id="S3.T1.3.18.18.6.1" style="font-size:70%;">
+         50.9 (7.6%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.19.19">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.19.19.1">
+        <span class="ltx_text" id="S3.T1.3.19.19.1.1" style="font-size:70%;">
+         RAP
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.19.19.2">
+        <span class="ltx_text" id="S3.T1.3.19.19.2.1" style="font-size:70%;">
+         63.1 (10.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.19.19.3">
+        <span class="ltx_text" id="S3.T1.3.19.19.3.1" style="font-size:70%;">
+         52.4 (22.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.19.19.4">
+        <span class="ltx_text" id="S3.T1.3.19.19.4.1" style="font-size:70%;">
+         71.4 (36.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.19.19.5">
+        <span class="ltx_text" id="S3.T1.3.19.19.5.1" style="font-size:70%;">
+         46.7 (26.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.19.19.6">
+        <span class="ltx_text" id="S3.T1.3.19.19.6.1" style="font-size:70%;">
+         58.4 (23.5%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.20.20">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.20.20.1">
+        <span class="ltx_text" id="S3.T1.3.20.20.1.1" style="font-size:70%;">
+         Self-Edit
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.20.20.2">
+        <span class="ltx_text" id="S3.T1.3.20.20.2.1" style="font-size:70%;">
+         62.2 (8.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.20.20.3">
+        <span class="ltx_text" id="S3.T1.3.20.20.3.1" style="font-size:70%;">
+         54.3 (27.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.20.20.4">
+        <span class="ltx_text" id="S3.T1.3.20.20.4.1" style="font-size:70%;">
+         56.4 (8.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.20.20.5">
+        <span class="ltx_text" id="S3.T1.3.20.20.5.1" style="font-size:70%;">
+         45.9 (24.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.20.20.6">
+        <span class="ltx_text" id="S3.T1.3.20.20.6.1" style="font-size:70%;">
+         54.7 (15.6%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.21.21">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.21.21.1">
+        <span class="ltx_text" id="S3.T1.3.21.21.1.1" style="font-size:70%;">
+         Self-Planing
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.21.21.2">
+        <span class="ltx_text" id="S3.T1.3.21.21.2.1" style="font-size:70%;">
+         65.2 (13.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.21.21.3">
+        <span class="ltx_text" id="S3.T1.3.21.21.3.1" style="font-size:70%;">
+         48.8 (14.3%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.21.21.4">
+        <span class="ltx_text" id="S3.T1.3.21.21.4.1" style="font-size:70%;">
+         58.6 (12.3%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.21.21.5">
+        <span class="ltx_text" id="S3.T1.3.21.21.5.1" style="font-size:70%;">
+         41.5 (12.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.21.21.6">
+        <span class="ltx_text" id="S3.T1.3.21.21.6.1" style="font-size:70%;">
+         53.5 (13.1%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.22.22">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.22.22.1">
+        <span class="ltx_text" id="S3.T1.3.22.22.1.1" style="font-size:70%;">
+         Self-debugging
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.22.22.2">
+        <span class="ltx_text" id="S3.T1.3.22.22.2.1" style="font-size:70%;">
+         61.6 (7.5%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.22.22.3">
+        <span class="ltx_text" id="S3.T1.3.22.22.3.1" style="font-size:70%;">
+         45.8 (7.3%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.22.22.4">
+        <span class="ltx_text" id="S3.T1.3.22.22.4.1" style="font-size:70%;">
+         60.1 (15.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.22.22.5">
+        <span class="ltx_text" id="S3.T1.3.22.22.5.1" style="font-size:70%;">
+         52.3 (42.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.22.22.6">
+        <span class="ltx_text" id="S3.T1.3.22.22.6.1" style="font-size:70%;">
+         55.0 (16.3%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.23.23">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.23.23.1">
+        <span class="ltx_text" id="S3.T1.3.23.23.1.1" style="font-size:70%;">
+         Self-Collaboration
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.23.23.2">
+        <span class="ltx_text" id="S3.T1.3.23.23.2.1" style="font-size:70%;">
+         74.4 (29.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.23.23.3">
+        <span class="ltx_text" id="S3.T1.3.23.23.3.1" style="font-size:70%;">
+         56.1 (31.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.23.23.4">
+        <span class="ltx_text" id="S3.T1.3.23.23.4.1" style="font-size:70%;">
+         68.2 (30.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.23.23.5">
+        <span class="ltx_text" id="S3.T1.3.23.23.5.1" style="font-size:70%;">
+         49.5 (34.5%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.23.23.6">
+        <span class="ltx_text" id="S3.T1.3.23.23.6.1" style="font-size:70%;">
+         62.1 (31.3%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.24.24">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.24.24.1">
+        <span class="ltx_text" id="S3.T1.3.24.24.1.1" style="font-size:70%;">
+         INTERVENOR
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.24.24.2">
+        <span class="ltx_text" id="S3.T1.3.24.24.2.1" style="font-size:70%;">
+         75.6 (31.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.24.24.3">
+        <span class="ltx_text" id="S3.T1.3.24.24.3.1" style="font-size:70%;">
+         54.8 (28.3%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.24.24.4">
+        <span class="ltx_text" id="S3.T1.3.24.24.4.1" style="font-size:70%;">
+         69.8 (33.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.24.24.5">
+        <span class="ltx_text" id="S3.T1.3.24.24.5.1" style="font-size:70%;">
+         47.1 (28.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.24.24.6">
+        <span class="ltx_text" id="S3.T1.3.24.24.6.1" style="font-size:70%;">
+         61.8 (30.7%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.25.25">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.25.25.1">
+        <span class="ltx_text" id="S3.T1.3.25.25.1.1" style="font-size:70%;">
+         CodeCoT
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.25.25.2">
+        <span class="ltx_text" id="S3.T1.3.25.25.2.1" style="font-size:70%;">
+         79.3 (38.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.25.25.3">
+        <span class="ltx_text" id="S3.T1.3.25.25.3.1" style="font-size:70%;">
+         69.5 (62.8%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.25.25.4">
+        <span class="ltx_text" id="S3.T1.3.25.25.4.1" style="font-size:70%;">
+         89.5 (71.5%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.25.25.5">
+        <span class="ltx_text" id="S3.T1.3.25.25.5.1" style="font-size:70%;">
+         63.0 (71.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.25.25.6">
+        <span class="ltx_text" id="S3.T1.3.25.25.6.1" style="font-size:70%;">
+         75.3 (59.2%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.26.26">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.26.26.1">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.1.1" style="font-size:70%;">
+         AgentCoder (ours)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.26.26.2" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.2.1" style="font-size:70%;background-color:#E6E6E6;">
+         79.9 (39.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.26.26.3" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.3.1" style="font-size:70%;background-color:#E6E6E6;">
+         77.4 (81.3%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.26.26.4" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.4.1" style="font-size:70%;background-color:#E6E6E6;">
+         89.9 (72.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.26.26.5" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.5.1" style="font-size:70%;background-color:#E6E6E6;">
+         89.1 (142.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.26.26.6" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.26.26.6.1" style="font-size:70%;background-color:#E6E6E6;">
+         84.1 (77.8%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.27.27">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.27.27.1" rowspan="5">
+        <span class="ltx_text" id="S3.T1.3.27.27.1.1" style="font-size:70%;">
+         with GPT-4
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.27.27.2">
+        <span class="ltx_text" id="S3.T1.3.27.27.2.1" style="font-size:70%;">
+         Reflexion
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.27.27.3">
+        <span class="ltx_text" id="S3.T1.3.27.27.3.1" style="font-size:70%;">
+         91.0 (34.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.27.27.4">
+        <span class="ltx_text" id="S3.T1.3.27.27.4.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.27.27.5">
+        <span class="ltx_text" id="S3.T1.3.27.27.5.1" style="font-size:70%;">
+         77.1 (12.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T1.3.27.27.6">
+        <span class="ltx_text" id="S3.T1.3.27.27.6.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.27.27.7">
+        <span class="ltx_text" id="S3.T1.3.27.27.7.1" style="font-size:70%;">
+         84.1 (40.9%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.28.28">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.28.28.1">
+        <span class="ltx_text" id="S3.T1.3.28.28.1.1" style="font-size:70%;">
+         Self-Debugging
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.28.28.2">
+        <span class="ltx_text" id="S3.T1.3.28.28.2.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.28.28.3">
+        <span class="ltx_text" id="S3.T1.3.28.28.3.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.28.28.4">
+        <span class="ltx_text" id="S3.T1.3.28.28.4.1" style="font-size:70%;">
+         80.6 (18.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.28.28.5">
+        <span class="ltx_text" id="S3.T1.3.28.28.5.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.28.28.6">
+        <span class="ltx_text" id="S3.T1.3.28.28.6.1" style="font-size:70%;">
+         80.6 (35.0%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.29.29">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.29.29.1">
+        <span class="ltx_text" id="S3.T1.3.29.29.1.1" style="font-size:70%;">
+         Self-Collaboration
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.29.29.2">
+        <span class="ltx_text" id="S3.T1.3.29.29.2.1" style="font-size:70%;">
+         90.2 (33.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.29.29.3">
+        <span class="ltx_text" id="S3.T1.3.29.29.3.1" style="font-size:70%;">
+         70.7 (39.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.29.29.4">
+        <span class="ltx_text" id="S3.T1.3.29.29.4.1" style="font-size:70%;">
+         78.9 (15.5%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.29.29.5">
+        <span class="ltx_text" id="S3.T1.3.29.29.5.1" style="font-size:70%;">
+         62.1 (19.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.29.29.6">
+        <span class="ltx_text" id="S3.T1.3.29.29.6.1" style="font-size:70%;">
+         75.5 (26.5%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.30.30">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.30.30.1">
+        <span class="ltx_text" id="S3.T1.3.30.30.1.1" style="font-size:70%;">
+         MetaGPT
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.30.30.2">
+        <span class="ltx_text" id="S3.T1.3.30.30.2.1" style="font-size:70%;">
+         85.9 (27.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.30.30.3">
+        <span class="ltx_text" id="S3.T1.3.30.30.3.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.30.30.4">
+        <span class="ltx_text" id="S3.T1.3.30.30.4.1" style="font-size:70%;">
+         87.7 (28.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.30.30.5">
+        <span class="ltx_text" id="S3.T1.3.30.30.5.1" style="font-size:70%;">
+         -
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.30.30.6">
+        <span class="ltx_text" id="S3.T1.3.30.30.6.1" style="font-size:70%;">
+         86.8 (45.4%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.31.31">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.31.31.1">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.1.1" style="font-size:70%;">
+         AgentCoder (ours)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.31.31.2" style="background-color:#E6E6E6;">
+        <span class="ltx_text" id="S3.T1.3.31.31.2.1" style="font-size:70%;background-color:#E6E6E6;">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.2.1.1" style="background-color:#E6E6E6;">
+          96.3 (42.5%)
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.31.31.3" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.3.1" style="font-size:70%;background-color:#E6E6E6;">
+         86.0 (70.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.31.31.4" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.4.1" style="font-size:70%;background-color:#E6E6E6;">
+         91.8 (34.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.31.31.5" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.5.1" style="font-size:70%;background-color:#E6E6E6;">
+         91.8 (75.9%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.31.31.6" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.31.31.6.1" style="font-size:70%;background-color:#E6E6E6;">
+         91.5 (53.3%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.32.32">
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.32.32.1">
+        <span class="ltx_text" id="S3.T1.3.32.32.1.1" style="font-size:70%;">
+         with PaLM Coder
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S3.T1.3.32.32.2">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.2.1" style="font-size:70%;">
+         AgentCoder (ours)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.32.32.3" style="background-color:#E6E6E6;">
+        <span class="ltx_text" id="S3.T1.3.32.32.3.1" style="font-size:70%;background-color:#E6E6E6;">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.3.1.1" style="background-color:#E6E6E6;">
+          64.0 (45.8%)
+         </span>
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.32.32.4" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.4.1" style="font-size:70%;background-color:#E6E6E6;">
+         55.5 (51.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.32.32.5" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.5.1" style="font-size:70%;background-color:#E6E6E6;">
+         75.9 (135.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T1.3.32.32.6" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.6.1" style="font-size:70%;background-color:#E6E6E6;">
+         75.5 (177.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S3.T1.3.32.32.7" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.32.32.7.1" style="font-size:70%;background-color:#E6E6E6;">
+         67.7 (93.4%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.33.33">
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.33.33.1">
+        <span class="ltx_text" id="S3.T1.3.33.33.1.1" style="font-size:70%;">
+         with Claude-instant-1
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_r" id="S3.T1.3.33.33.2">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.2.1" style="font-size:70%;">
+         AgentCoder (ours)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.33.33.3" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.3.1" style="font-size:70%;background-color:#E6E6E6;">
+         67.7 (117.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.33.33.4" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.4.1" style="font-size:70%;background-color:#E6E6E6;">
+         57.9 (106.0%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.33.33.5" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.5.1" style="font-size:70%;background-color:#E6E6E6;">
+         76.3 (183.6%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T1.3.33.33.6" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.6.1" style="font-size:70%;background-color:#E6E6E6;">
+         75.1 (277.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right" id="S3.T1.3.33.33.7" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.33.33.7.1" style="font-size:70%;background-color:#E6E6E6;">
+         69.3 (161.5%)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T1.3.34.34">
+       <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S3.T1.3.34.34.1">
+        <span class="ltx_text" id="S3.T1.3.34.34.1.1" style="font-size:70%;">
+         with GPT-4-turbo
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S3.T1.3.34.34.2">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.2.1" style="font-size:70%;">
+         AgentCoder (ours)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_bb" id="S3.T1.3.34.34.3" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.3.1" style="font-size:70%;background-color:#E6E6E6;">
+         89.6 (54.7%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_bb" id="S3.T1.3.34.34.4" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.4.1" style="font-size:70%;background-color:#E6E6E6;">
+         76.2 (56.1%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_bb" id="S3.T1.3.34.34.5" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.5.1" style="font-size:70%;background-color:#E6E6E6;">
+         91.4 (44.2%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S3.T1.3.34.34.6" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.6.1" style="font-size:70%;background-color:#E6E6E6;">
+         91.4 (92.4%)
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_bb" id="S3.T1.3.34.34.7" style="background-color:#E6E6E6;">
+        <span class="ltx_text ltx_font_bold" id="S3.T1.3.34.34.7.1" style="font-size:70%;background-color:#E6E6E6;">
+         87.2 (60.3%)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Evaluation
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this section, we conduct experiments to answer the following research questions:
+   </p>
+   <ul class="ltx_itemize" id="S4.I1">
+    <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i1.p1">
+      <p class="ltx_p" id="S4.I1.i1.p1.1">
+       RQ1: How does AgentCoder perform?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i2.p1">
+      <p class="ltx_p" id="S4.I1.i2.p1.1">
+       RQ2: How do different agents contribute to the effectiveness of AgentCoder?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i3.p1">
+      <p class="ltx_p" id="S4.I1.i3.p1.1">
+       RQ3: How do code refinement iterations affect AgentCoder’s effectiveness?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i4.p1">
+      <p class="ltx_p" id="S4.I1.i4.p1.1">
+       RQ4: How accurate are the tests generated by the test designer agent?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i5.p1">
+      <p class="ltx_p" id="S4.I1.i5.p1.1">
+       RQ5: How adequate are the tests generated by the test designer agent?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i6" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i6.p1">
+      <p class="ltx_p" id="S4.I1.i6.p1.1">
+       RQ6: Should the roles of programmer and test designer be separated and assigned to different agents?
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Experiment Setup
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     We use pass@1 as the evaluation metric for code correctness, the most widely adopted metric in the literature of automatic code generation
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chen
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2021c
+      </a>
+      ); Austin
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2021
+      </a>
+      ); Dong
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023a
+      </a>
+      ); Zhang
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       2023b
+      </a>
+      ); Dong
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Datasets.
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px1.p1.1">
+      In this paper, we evaluate AgentCoder’s effectiveness with four widely used code generation datasets, i.e., HumanEval
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Chen
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib6" title="">
+        2021b
+       </a>
+       )
+      </cite>
+      and MBPP
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Austin
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib2" title="">
+        2021
+       </a>
+       )
+      </cite>
+      , and their enhanced versions, i.e., HumanEval-ET and MBPP-ET
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Dong
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib10" title="">
+        2023a
+       </a>
+       )
+      </cite>
+      . HumanEval and HumanEval-ET focus on a range of programming challenges, offering a diverse set of problems to test the model’s problem-solving skills and adaptability. On the other hand, MBPP and MBPP-ET provide a comprehensive collection of Python programming problems, designed to evaluate the model’s proficiency in Python syntax and its ability to handle a variety of coding scenarios. The enhanced versions, HumanEval-ET and MBPP-ET, include more adequate test cases, making them more challenging and better suited for evaluating advanced models.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     LLMs that power the agents.
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px2.p1.1">
+      The programmer agent and the test designer agent in AgentCoder are powered by LLMs.
+We study the effectiveness of AgentCoder powered by five state-of-the-art LLMs, including GPT-4, GPT-4-turbo, GPT-3.5-turbo, PaLM Coder, and Claude (Claude-instant-1).
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Baselines.
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p1.1">
+      To illustrate the effectiveness of AgentCoder, we compare AgentCoder with 12 Large Language Models (LLMs), including open-source and closed-source ones, such as AlphaCode
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Li
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib19" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , Incoder
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Fried
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib13" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , CodeGeeX
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Zheng
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib38" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , StarCoder
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Li
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib21" title="">
+        2023b
+       </a>
+       )
+      </cite>
+      , CodeGen-Mono
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Nijkamp
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib24" title="">
+        2023b
+       </a>
+       )
+      </cite>
+      , CodeX
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Brown
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib3" title="">
+        2020a
+       </a>
+       )
+      </cite>
+      , GPT-3.5-turbo, and GPT4
+      <cite class="ltx_cite ltx_citemacro_cite">
+       OpenAI (
+       <a class="ltx_ref" href="#bib.bib25" title="">
+        2023
+       </a>
+       )
+      </cite>
+      . These models vary in architecture, training methodologies, and application scopes.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px3.p2">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p2.1">
+      Additionally, we compare AgentCoder with 13 state-of-the-art (SOTA) code generation methods that are based on LLMs but with various optimisation strategies, including Few-shot learning, Chain-of-Thought
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Wei
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib31" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , ReAct
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Yao
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib33" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , Reflexion
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Shinn
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib26" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , ToT
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Yao
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib34" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , RAP
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Hao
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib15" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , Self-Edit
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Zhang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib37" title="">
+        2023b
+       </a>
+       )
+      </cite>
+      , Self-Planing
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Jiang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib17" title="">
+        2023
+       </a>
+       )
+      </cite>
+      , Self-Debugging
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Chen
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib9" title="">
+        2023b
+       </a>
+       )
+      </cite>
+      , Self-Collaboration
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Dong
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib11" title="">
+        2023b
+       </a>
+       )
+      </cite>
+      , SCOT
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Li
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib20" title="">
+        2023a
+       </a>
+       )
+      </cite>
+      ,
+CodeCoT
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Huang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib16" title="">
+        2023
+       </a>
+       )
+      </cite>
+      ,
+and INTERVENOR
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Wang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib29" title="">
+        2023a
+       </a>
+       )
+      </cite>
+      .
+These methods have been shown to significantly enhance the performance of LLMs in complex problem-solving scenarios.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T2">
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 2:
+      </span>
+      Contribution of different agents in AgentCoder.
+     </figcaption>
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T2.1" style="width:208.1pt;height:43.9pt;vertical-align:-0.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-109.1pt,23.0pt) scale(0.488262188841397,0.488262188841397) ;">
+       <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T2.1.1">
+        <thead class="ltx_thead">
+         <tr class="ltx_tr" id="S4.T2.1.1.1.1">
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T2.1.1.1.1.1">
+           Agents
+          </th>
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1.2">
+           HumanEval
+          </th>
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1.3">
+           HumanEval-ET
+          </th>
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1.4">
+           MBPP
+          </th>
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T2.1.1.1.1.5">
+           MBPP-ET
+          </th>
+         </tr>
+        </thead>
+        <tbody class="ltx_tbody">
+         <tr class="ltx_tr" id="S4.T2.1.1.2.1">
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T2.1.1.2.1.1">
+           programmer agent only
+          </th>
+          <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.2.1.2">
+           61.0
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.2.1.3">
+           52.4
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.2.1.4">
+           47.9
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.2.1.5">
+           35.0
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T2.1.1.3.2">
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T2.1.1.3.2.1">
+           programmer + test designer
+          </th>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.3.2.2">
+           64.0 (11.7%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.3.2.3">
+           54.3 (27.2%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.3.2.4">
+           62.3 (19.3%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.3.2.5">
+           45.9 (24.7%)
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T2.1.1.4.3">
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T2.1.1.4.3.1">
+           programmer + test executor
+          </th>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.4.3.2">
+           64.6 (12.7%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.4.3.3">
+           55.5 (30.0%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.4.3.4">
+           69.3 (32.8%)
+          </td>
+          <td class="ltx_td ltx_align_center" id="S4.T2.1.1.4.3.5">
+           51.4 (39.7%)
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T2.1.1.5.4">
+          <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T2.1.1.5.4.1">
+           AgentCoder
+          </th>
+          <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.5.4.2">
+           <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.4.2.1">
+            79.9 (39.4%)
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.5.4.3">
+           <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.4.3.1">
+            77.4 (81.3%)
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.5.4.4">
+           <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.4.4.1">
+            89.9 (72.2%)
+           </span>
+          </td>
+          <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.5.4.5">
+           <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.4.5.1">
+            89.1 (142.1%)
+           </span>
+          </td>
+         </tr>
+        </tbody>
+       </table>
+      </span>
+     </div>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    RQ1: How does AgentCoder perform?
+   </h3>
+   <section class="ltx_paragraph" id="S4.SS2.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Setup.
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px1.p1.1">
+      AgentCoder is a multi-agent-based code generation framework that can be applied to any LLM.
+To answer the first research question, we evaluate the effectiveness of AgentCoder with five state-of-the-art LLMs, i.e., GPT-4, GPT-4-turbo, GPT-3.5-turbo, PaLM Coder, and Claude (Claude-instant-1).
+As introduced in Section
+      <a class="ltx_ref" href="#S4.SS1" title="4.1 Experiment Setup ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+       <span class="ltx_text ltx_ref_tag">
+        4.1
+       </span>
+      </a>
+      ,
+we compare the pass@1 of AgentCoder with 12 LLMs and 13 LLM-based optimisation approaches that enhance the code generation performance with different strategies.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS0.Px1.p2">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px1.p2.1">
+      <a class="ltx_ref" href="#S3.T1" title="In 3.3 Test executor agent: code validation and feedback Integration ‣ 3 Methodology ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+       <span class="ltx_text ltx_ref_tag">
+        Tab.
+       </span>
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      shows the results. we can observe that AgentCoder outpeforms all the base LLM models and all the baseline optimisation approaches in all the datasets.
+Specifically, if we focus on the improvement that AgentCoder achieves over the base LLMs, take GPT-3.5-turbo as an example,
+GPT-3.5-turbo obtains 57.3% pass@1 in the HumanEval dataset, while AgentCoder obtains 79.9%.
+For GPT-4, the mean pass@1 of AgentCoder is 91.5% across all the datasets,
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS0.Px1.p2.1.1">
+       32.7% improvement
+      </span>
+      over the baseline zero-shot GPT-4 model.
+For PaLM Coder, Claude-instant-1, and GPT-4-turbo, the mean improvement of AgentCoder over the base models are
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS0.Px1.p2.1.2">
+       32.7%, 42.8%, 32.8%
+      </span>
+      , respectively.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS0.Px1.p3">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px1.p3.1">
+      AgentCoder also demonstrates superiority over all optimization baselines.
+For example, for MBPP-ET with GPT-3.5-turbo,
+AgentCoder obtains 89.1% pass@1, while CodeCoT, the state-of-the-art approach, achieves only 63.0%.
+On average, the pass@1 of AgentCoder is 84.1%,
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS0.Px1.p3.1.1">
+       8.8% more than the state-of-the-art approach CodeCoT
+      </span>
+      .
+      <span class="ltx_text" id="S4.SS2.SSS0.Px1.p3.1.2">
+       One reason for AgentCoder’s superiority over CodeCoT is that CodeCoT generates tests and code at the same time with only one agent,
+       <span class="ltx_text" id="S4.SS2.SSS0.Px1.p3.1.2.1">
+        while AgentCoder has the test designer agent which generates more powerful test cases.
+RQ4 and RQ5 introduce more analysis on their comparison in terms of the effectiveness of test cases.
+       </span>
+      </span>
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS0.Px1.p4">
+     <p class="ltx_p" id="S4.SS2.SSS0.Px1.p4.1">
+      The HumanEval-ET and MBPP-ET datasets contain more comprehensive tests and are more challenging for code generation approaches to get high pass@1.
+We can observe that the base LLMs and the baseline optimisation approaches perform significantly worse on these two enhanced versions.
+However, AgentCoder’s performance on these enhanced datasets is comparative to the original datasets, which is another superiority of AgentCoder, largely because the test designer agent generates rigorous tests to ensure that the generated code is indeed reliable.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    RQ2: How do different agents contribute to the effectiveness of AgentCoder?
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     As illustrated in
+     <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , AgentCoder contains three agents, i.e., the programmer agent, the test designer agent, and the test executor agent, where the programmer agent focuses on generating code snippets based on the code generation requirements and feedback from other agents. The test designer agent focuses on generating test cases, which are used to evaluate the correctness of the code snippets produced by the programmer agent. The test executor agent interacts with the other two agents to collect the code snippets and test cases and executes them in a local environment to prepare feedback. This research question investigates how each agent contributes to AgentCoder’s effectiveness with four agent combination scenarios, i.e., the programmer agent itself, the programmer + test designer agent, where we feed the function and test cases into the programmer agent and require it to analyze whether it needs to refine the code to pass all test cases, and the programmer + test executor agent, where we directly run the generated code with the tests provided in the prompt
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         1
+        </span>
+        The code generation prompts in HumanEval and MBPP contain a few test cases.
+       </span>
+      </span>
+     </span>
+     (we provide the programmer + test designer/executor agent prompts in Appendix Figure 11 and 12).
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T3">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Pass@1 of AgentCoder with different number of iterations on GPT-3.5-turbo.
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.1" style="width:433.6pt;height:136.1pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(44.8pt,-14.1pt) scale(1.26062238309484,1.26062238309484) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T3.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T3.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.1.1">
+          Iterations
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.2">
+          HumanEval
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.3">
+          HumanEval-ET
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.4">
+          MBPP
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T3.1.1.1.1.5">
+          MBPP-ET
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T3.1.1.2.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T3.1.1.2.1.1">
+          1
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.2.1.2">
+          74.4 (29.8%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.2.1.3">
+          73.2 (71.4%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.2.1.4">
+          84.1 (61.1%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.1.1.2.1.5">
+          80.3 (118.2%)
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.3.2">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T3.1.1.3.2.1">
+          2
+         </th>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.3.2.2">
+          75.6 (31.9%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.3.2.3">
+          73.2 (71.4%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.3.2.4">
+          86.4 (65.5%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.3.2.5">
+          85.6 (132.6%)
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.4.3">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T3.1.1.4.3.1">
+          3
+         </th>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.3.2">
+          76.2 (33.0%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.3.3">
+          75.0 (75.6%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.3.4">
+          87.9 (68.4%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.4.3.5">
+          87.6 (138.0%)
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.5.4">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T3.1.1.5.4.1">
+          4
+         </th>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.4.2">
+          78.7 (37.3%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.4.3">
+          76.8 (79.9%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.4.4">
+          88.7 (69.9%)
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T3.1.1.5.4.5">
+          88.7 (141.0%)
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.1.1.6.5">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T3.1.1.6.5.1">
+          5
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.6.5.2">
+          79.9 (39.4%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.6.5.3">
+          77.4 (81.3%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.6.5.4">
+          89.9 (72.2%)
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.1.1.6.5.5">
+          89.1 (142.1%)
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     The evaluation results are shown in
+     <a class="ltx_ref" href="#S4.T2" title="In Baselines. ‣ 4.1 Experiment Setup ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . We can observe that first, with the assistant of the test designer and the test executor agent, the pass@1 increases compared with the result of only the programmer agent. For example, with both the programmer and the test designer agent, the pass@1 increases from 61.0% to 64.0%. However, without the test executor agent, the programmer agent is not able to get reliable feedback from dynamic test case execution. Therefore, the performance is significantly below AgentCoder.
+For the programer + test executor agent, it obtains 64.6% and 69.3% pass@1 in HumanEval and MBPP, which is also higher than the programmer agent itself which obtains 61.0% and 47.9%. This is because test executor agent detects some bugs in the code with the test cases provided by the prompt.
+However, the number of test cases is very limited, with only two to three tests in HumanEval and MBPP.
+The effectiveness of these tests are far below from the tests generated by the test designer agent.
+Therefore, without the test designer agent, the performance is also significantly below AgentCoder.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.4
+    </span>
+    RQ3: How do code refinement iterations affect AgentCoder’s effectiveness?
+   </h3>
+   <div class="ltx_para" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     As illustrated in
+     <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , AgentCoder will refine code snippets based on the feedback information provided by the test executor agent. In this experiment, we evaluate how the number of refinement iterations affect AgentCoder’s effectiveness. Specifically, we analyze AgentCoder’s effectiveness with its result for each refinement iteration. We can observe that the pass@1 increase with more iterations. In particular, when we increase the number of iterations from 1 to 5, the pass@1 of HumanEval and HumanEval-ET increases from 74.4% to 79.9% and 73.2% to 77.4%. We can also observe these behaviors for the MBPP and MBPP-ET datasets, where the pass@1 increases from 84.1% to 89.9% and 80.3% to 89.1%.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.5
+    </span>
+    RQ4: How accurate are the tests generated by the test designer agent?
+   </h3>
+   <div class="ltx_para" id="S4.SS5.p1">
+    <p class="ltx_p" id="S4.SS5.p1.1">
+     As we mentioned before, the test designer agent focuses on generating test cases to analyze whether the code has bugs and plays a crucial role in AgentCoder. However, once the test cases are incorrect (e.g., with incorrect test oracles), the feedback the test cases provide will be problematic, misleading the programmer agent and decreasing AgentCoder’s overall effectiveness.
+Therefore, this research question investigates how reliable the test designer agent is in generating accurate tests to aid the programmer agent.
+We evaluate the accuracy of the test cases under the datasets’
+     <span class="ltx_text ltx_font_bold" id="S4.SS5.p1.1.1">
+      canonical solution
+      <span class="ltx_note ltx_role_footnote" id="footnote2">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          2
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          <span class="ltx_text ltx_font_medium" id="footnote2.1.1.1">
+           2
+          </span>
+         </span>
+         <span class="ltx_text ltx_font_medium" id="footnote2.9">
+          Each coding task in the datasets has a canonical solution, which is the ground truth for code generation.
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+     on GPT-3.5-turbo. The tests that pass the canonical solution are correct.
+To demonstrate the effectiveness and superiority of the test designer agent in AgentCoder, we compare the accuracy of the tests generated by AgentCoder, the default zero-shot GPT-3.5-turbo model, as well as CodeCoT where the tests are generated at the same time with the code.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T4">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 4:
+     </span>
+     Accuracy of the generated test cases.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T4.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T4.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T4.1.1.1.1">
+        Models
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T4.1.1.1.2">
+        HumanEval
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T4.1.1.1.3">
+        MBPP
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T4.1.2.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T4.1.2.1.1">
+        GPT-3.5-turbo
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.2.1.2">
+        47.0
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T4.1.2.1.3">
+        57.2
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.3.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T4.1.3.2.1">
+        CodeCoT
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T4.1.3.2.2">
+        67.1
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T4.1.3.2.3">
+        79.0
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T4.1.4.3">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T4.1.4.3.1">
+        AgentCoder
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T4.1.4.3.2">
+        87.8
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T4.1.4.3.3">
+        89.9
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+   <div class="ltx_para" id="S4.SS5.p2">
+    <p class="ltx_p" id="S4.SS5.p2.1">
+     The evaluation results are shown in
+     <a class="ltx_ref" href="#S4.T4" title="In 4.5 RQ4: How accurate are the tests generated by the test designer agent? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     .
+First, we observe that the accuracy of the tests cases produced by the test designer agent in AgentCoder is 87.8% and 89.9% respectively in HumanEval and MBPP datasets, while GPT-3.5-turbo obtains only 47.0% and 57.2%.
+In addition, we observe that the test designer agent in AgentCoder is also more accurate than CodeCoT in test generation.
+For example, on HumanEval, the accuracy is 87.8% v.s. 67.1% for AgentCoder and CodeCoT.
+The superiority of AgentCoder demonstrates the effectiveness of the prompt engineering strategies we designed for the test designer agent.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS6">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.6
+    </span>
+    RQ5: How adequate are AgentCoder’s test cases in terms of code coverage?
+   </h3>
+   <div class="ltx_para" id="S4.SS6.p1">
+    <p class="ltx_p" id="S4.SS6.p1.1">
+     This research question explores the adequacy of the test cases generated by the test designer agent in terms of code coverage.
+Specifically, we evaluate how many lines of code in the canonical solution are covered by the test cases generated by the original GPT-3.5-turbo, CodeCoT, and AgentCoder.
+The evaluation results were illustrated in
+     <a class="ltx_ref" href="#S4.T5" title="In 4.6 RQ5: How adequate are AgentCoder’s test cases in terms of code coverage? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     , where we can observe that the tests generated by AgentCoder have the highest code coverage. For example, AgentCoder obtains 84.7 / 87.5% and 85.3 / 89.5% code coverage compared with CodeCoT, which only obtains 74.7 / 77.2% and 79.3 / 82.9%, on the two datasets when we calculate the code line coverage with the first five / all tests generated by each strategy.
+The results further demonstrate the effectiveness of the prompt engineering strategies we adopt for the test designer agent.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T5">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 5:
+     </span>
+     Code line coverage of the generated test cases. In our experiment, we follow CodeCoT to calculate the code line coverage with the first five / all test cases provided by the test designer agent for each function.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T5.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T5.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T5.1.1.1.1">
+        Models
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T5.1.1.1.2">
+        HumanEval
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T5.1.1.1.3">
+        MBPP
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T5.1.2.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T5.1.2.1.1">
+        GPT-3.5-turbo
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T5.1.2.1.2">
+        67.1 / 70.2
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T5.1.2.1.3">
+        58.4 / 61.3
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.3.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" id="S4.T5.1.3.2.1">
+        CodeCoT
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T5.1.3.2.2">
+        74.7 / 77.2
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T5.1.3.2.3">
+        79.3 / 82.9
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T5.1.4.3">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T5.1.4.3.1">
+        AgentCoder
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T5.1.4.3.2">
+        84.7 / 87.5
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T5.1.4.3.3">
+        85.3 / 89.5
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS7">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.7
+    </span>
+    RQ6: Should programmer and test designer be separated and assigned to different agents?
+   </h3>
+   <div class="ltx_para" id="S4.SS7.p1">
+    <p class="ltx_p" id="S4.SS7.p1.1">
+     As shown in
+     <a class="ltx_ref" href="#S2.F1" title="In 2.3 Multi-agent Collaboration ‣ 2 Related Work ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , AgentCoder requires separate agents for generating code and tests (i.e., the programmer agent and the test designer agent).
+Both agents are powered by LLMs.
+An alternative way is to let a single agent first generate code and then generate tests, within the same conversation.
+This research question investigates
+whether requiring one agent to finish two tasks, i.e., code generation and test case generation, is as effective as using separate agents.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS7.p2">
+    <p class="ltx_p" id="S4.SS7.p2.1">
+     The evaluation results are shown in
+     <a class="ltx_ref" href="#S4.T6" title="In 4.7 RQ6: Should programmer and test designer be separated and assigned to different agents? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S4.T7" title="In 4.7 RQ6: Should programmer and test designer be separated and assigned to different agents? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     , and
+     <a class="ltx_ref" href="#S4.T8" title="In 4.7 RQ6: Should programmer and test designer be separated and assigned to different agents? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     . We can observe that the pass@1 of using a single agent to generate both code and tests is lower than assigning the two tasks to different agents. For example, the pass@1 of the single agent has only 71.3% and 79.4% pass@1 for HumanEval and MBPP, while the multi-agent setup (AgentCoder) obtains 79.9% and 89.9% for HumanEval and MBPP. We also observe that the test case accuracy for the single agent is also lower than the multi-agent setting (AgentCoder). Specifically, the single agent only obtains 61.0% and 51.8% in HumanEval and MBPP datasets, while the multi-agent setup (AgentCoder) obtains 87.8% and 89.9% in HumanEval and MBPP.
+Finally, as shown in
+     <a class="ltx_ref" href="#S4.T8" title="In 4.7 RQ6: Should programmer and test designer be separated and assigned to different agents? ‣ 4 Evaluation ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Tab.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     , we can also observe that the tests’ coverage results of the single agent are also lower than in the multi-agent setup. For example, the single agent only obtains 72.5% and 75.9% code line coverage while multiple agents obtain 87.5% and 89.5% code line coverage.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T6">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 6:
+     </span>
+     Pass@1 for a single agent and multiple agents.
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T6.1" style="width:216.8pt;height:35.4pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-56.9pt,9.3pt) scale(0.655784327213988,0.655784327213988) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T6.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T6.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T6.1.1.1.1.1">
+          Models
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T6.1.1.1.1.2">
+          HumanEval
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T6.1.1.1.1.3">
+          HumanEval-ET
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T6.1.1.1.1.4">
+          MBPP
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T6.1.1.1.1.5">
+          MBPP-ET
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T6.1.1.2.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T6.1.1.2.1.1">
+          Single Agent
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T6.1.1.2.1.2">
+          71.3
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T6.1.1.2.1.3">
+          61.6
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T6.1.1.2.1.4">
+          79.4
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T6.1.1.2.1.5">
+          59.1
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T6.1.1.3.2">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T6.1.1.3.2.1">
+          Multiple Agents
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T6.1.1.3.2.2">
+          <span class="ltx_text ltx_font_bold" id="S4.T6.1.1.3.2.2.1">
+           79.9
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T6.1.1.3.2.3">
+          <span class="ltx_text ltx_font_bold" id="S4.T6.1.1.3.2.3.1">
+           77.4
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T6.1.1.3.2.4">
+          <span class="ltx_text ltx_font_bold" id="S4.T6.1.1.3.2.4.1">
+           89.9
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T6.1.1.3.2.5">
+          <span class="ltx_text ltx_font_bold" id="S4.T6.1.1.3.2.5.1">
+           89.1
+          </span>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <figure class="ltx_table" id="S4.T7">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 7:
+     </span>
+     Accuracy of the tests generated by single- and multi-agents.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T7.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T7.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T7.1.1.1.1">
+        Models
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T7.1.1.1.2">
+        HumanEval
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T7.1.1.1.3">
+        MBPP
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T7.1.2.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T7.1.2.1.1">
+        Single Agent
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T7.1.2.1.2">
+        61.0
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T7.1.2.1.3">
+        51.8
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T7.1.3.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T7.1.3.2.1">
+        Multiple Agents
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T7.1.3.2.2">
+        87.8
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T7.1.3.2.3">
+        89.9
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+   <figure class="ltx_table" id="S4.T8">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 8:
+     </span>
+     Code line coverage (with the first five / all test cases) of tests generated by single agent and multi-agent setup.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T8.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T8.1.1.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S4.T8.1.1.1.1">
+        Models
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T8.1.1.1.2">
+        HumanEval
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S4.T8.1.1.1.3">
+        MBPP
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T8.1.2.1">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T8.1.2.1.1">
+        Single Agent
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T8.1.2.1.2">
+        68.5 / 72.5
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T8.1.2.1.3">
+        72.2 / 75.9
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T8.1.3.2">
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S4.T8.1.3.2.1">
+        Multiple Agents
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T8.1.3.2.2">
+        84.7 / 87.5
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T8.1.3.2.3">
+        85.3 / 89.5
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+   <div class="ltx_para" id="S4.SS7.p3">
+    <p class="ltx_p" id="S4.SS7.p3.1">
+     There are two possible reasons for the superiority of the multi-agent setup. First, letting a single agent do both code generation and test case design may distract the agent’s focus; second, the tests designed by the same agent that generates the code can be biased by the code and lose objectivity, for example, if the generated code ignores the handling of edge cases, the generated tests can be affected by flaws in the code.
+These results demonstrate the necessity of using multiple agents to collaborate in code generation, with different agents taking different roles.
+     <span class="ltx_text" id="S4.SS7.p3.1.1">
+      Such benefit of multi-agent collaborations with LLMs has also been illustrated in other multi-agent systems
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Chen
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib8" title="">
+        2023a
+       </a>
+       ); Zhang
+       <span class="ltx_text ltx_font_italic">
+        et al.
+       </span>
+       (
+       <a class="ltx_ref" href="#bib.bib36" title="">
+        2023a
+       </a>
+       )
+      </cite>
+      .
+      <span class="ltx_text" id="S4.SS7.p3.1.1.1">
+      </span>
+     </span>
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we have proposed AgentCoder, which contains multiple agents to improve the code generation effectiveness of code generation models. AgentCoder contains three agents, i.e., the programmer, test designer, and test executor agent. During the code generation procedure, the programmer agent generates code snippets and then the test designer agent generates test cases for the code snippets. Next, the test executor agent tests the code snippets with test cases in the local environment. Once the feedback of the local environment contains an error message, the test executor agent feeds it into the programmer and test designer agent to require them fix the error information. Throughout our evaluations, AgentCoder demonstrated state-of-the-art performance, outperforming existing LLMs and prompt engineering methods in a variety of coding scenarios. For example, AgentCoder increases the pass@1 from 69.5% and 63.0% to 77.4% and 89.1% for HumanEval-ET and MBPP-ET datasets.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ahmad
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.2.2.1">
+      et al.
+     </span>
+     [2021]
+    </span>
+    <span class="ltx_bibblock">
+     Wasi Uddin Ahmad, Saikat Chakraborty, Baishakhi Ray, and Kai-Wei Chang.
+    </span>
+    <span class="ltx_bibblock">
+     Unified pre-training for program understanding and generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.3.1">
+      ArXiv
+     </span>
+     , abs/2103.06333, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Austin
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.2.2.1">
+      et al.
+     </span>
+     [2021]
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie J. Cai, Michael Terry, Quoc V. Le, and Charles Sutton.
+    </span>
+    <span class="ltx_bibblock">
+     Program synthesis with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.3.1">
+      ArXiv
+     </span>
+     , abs/2108.07732, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.2.2.1">
+      et al.
+     </span>
+     [2020a]
+    </span>
+    <span class="ltx_bibblock">
+     Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, T. J. Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler, Jeff Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.3.1">
+      ArXiv
+     </span>
+     , abs/2005.14165, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.2.2.1">
+      et al.
+     </span>
+     [2020b]
+    </span>
+    <span class="ltx_bibblock">
+     Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.3.1">
+      arXiv preprint arXiv:2005.14165
+     </span>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.2.2.1">
+      et al.
+     </span>
+     [2021a]
+    </span>
+    <span class="ltx_bibblock">
+     Jun Chen, Han Guo, Kai Yi, Boyang Albert Li, and Mohamed Elhoseiny.
+    </span>
+    <span class="ltx_bibblock">
+     Visualgpt: Data-efficient adaptation of pretrained language models for image captioning.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.3.1">
+      2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)
+     </span>
+     , pages 18009–18019, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.2.2.1">
+      et al.
+     </span>
+     [2021b]
+    </span>
+    <span class="ltx_bibblock">
+     Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating large language models trained on code.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.3.1">
+      arXiv preprint arXiv:2107.03374
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.2.2.1">
+      et al.
+     </span>
+     [2021c]
+    </span>
+    <span class="ltx_bibblock">
+     Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde, Jared Kaplan, Harrison Edwards, Yura Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, David W. Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William H. Guss, Alex Nichol, Igor Babuschkin, S. Arun Balaji, Shantanu Jain, Andrew Carr, Jan Leike, Joshua Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew M. Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba.
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating large language models trained on code.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.3.1">
+      ArXiv
+     </span>
+     , abs/2107.03374, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Weize Chen, Yusheng Su, Jingwei Zuo, Cheng Yang, Chenfei Yuan, Cheng Qian, Chi-Min Chan, Yujia Qin, Ya-Ting Lu, Ruobing Xie, Zhiyuan Liu, Maosong Sun, and Jie Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Agentverse: Facilitating multi-agent collaboration and exploring emergent behaviors in agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.3.1">
+      ArXiv
+     </span>
+     , abs/2308.10848, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Xinyun Chen, Maxwell Lin, Nathanael Schärli, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Teaching large language models to self-debug.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.3.1">
+      ArXiv
+     </span>
+     , abs/2304.05128, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dong
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Yihong Dong, Ji Ding, Xue Jiang, Zhuo Li, Ge Li, and Zhi Jin.
+    </span>
+    <span class="ltx_bibblock">
+     Codescore: Evaluating code generation by learning code execution.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.3.1">
+      ArXiv
+     </span>
+     , abs/2301.09043, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dong
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Yihong Dong, Xue Jiang, Zhi Jin, and Ge Li.
+    </span>
+    <span class="ltx_bibblock">
+     Self-collaboration code generation via chatgpt.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.3.1">
+      ArXiv
+     </span>
+     , abs/2304.07590, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Feng
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.2.2.1">
+      et al.
+     </span>
+     [2020]
+    </span>
+    <span class="ltx_bibblock">
+     Zhangyin Feng, Daya Guo, Duyu Tang, Nan Duan, Xiaocheng Feng, Ming Gong, Linjun Shou, Bing Qin, Ting Liu, Daxin Jiang, and Ming Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     CodeBERT: A pre-trained model for programming and natural languages.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.3.1">
+      Findings of the Association for Computational Linguistics: EMNLP 2020
+     </span>
+     , pages 1536–1547, Online, November 2020. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Fried
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Daniel Fried, Armen Aghajanyan, Jessy Lin, Sida I. Wang, Eric Wallace, Freda Shi, Ruiqi Zhong, Wen tau Yih, Luke Zettlemoyer, and Mike Lewis.
+    </span>
+    <span class="ltx_bibblock">
+     Incoder: A generative model for code infilling and synthesis.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.3.1">
+      ArXiv
+     </span>
+     , abs/2204.05999, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Guo
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.2.2.1">
+      et al.
+     </span>
+     [2020]
+    </span>
+    <span class="ltx_bibblock">
+     Daya Guo, Shuo Ren, Shuai Lu, Zhangyin Feng, Duyu Tang, Shujie Liu, Long Zhou, Nan Duan, Jian Yin, Daxin Jiang, and M. Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Graphcodebert: Pre-training code representations with data flow.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.3.1">
+      ArXiv
+     </span>
+     , abs/2009.08366, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hao
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shibo Hao, Yi Gu, Haodi Ma, Joshua Jiahua Hong, Zhen Wang, Daisy Zhe Wang, and Zhiting Hu.
+    </span>
+    <span class="ltx_bibblock">
+     Reasoning with language model is planning with world model.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.3.1">
+      ArXiv
+     </span>
+     , abs/2305.14992, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Dong Huang, Qi Bu, and Heming Cui.
+    </span>
+    <span class="ltx_bibblock">
+     Codecot and beyond: Learning to program and test like a developer.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.3.1">
+      ArXiv
+     </span>
+     , abs/2308.08784, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Jiang
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Xue Jiang, Yihong Dong, Lecheng Wang, Qiwei Shang, and Ge Li.
+    </span>
+    <span class="ltx_bibblock">
+     Self-planning code generation with large language model.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.3.1">
+      ArXiv
+     </span>
+     , abs/2303.06689, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Le
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Hung Le, Hailin Chen, Amrita Saha, Akash Gokul, Doyen Sahoo, and Shafiq R. Joty.
+    </span>
+    <span class="ltx_bibblock">
+     Codechain: Towards modular code generation through chain of self-revisions with representative sub-modules.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.3.1">
+      ArXiv
+     </span>
+     , abs/2310.08992, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Yujia Li, David H. Choi, Junyoung Chung, Nate Kushman, Julian Schrittwieser, Rémi Leblond, Tom, Eccles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de, Masson d’Autume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey, Cherepanov, James Molloy, Daniel Jaymin Mankowitz, Esme Sutherland Robson, Pushmeet Kohli, Nando de, Freitas, Koray Kavukcuoglu, and Oriol Vinyals.
+    </span>
+    <span class="ltx_bibblock">
+     Competition-level code generation with alphacode.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.3.1">
+      Science
+     </span>
+     , 378:1092 – 1097, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Jia Li, Ge Li, Yongming Li, and Zhi Jin.
+    </span>
+    <span class="ltx_bibblock">
+     Structured chain-of-thought prompting for code generation.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Raymond Li, Loubna Ben Allal, Yangtian Zi, Niklas Muennighoff, Denis Kocetkov, Chenghao Mou, Marc Marone, Christopher Akiki, Jia Li, Jenny Chim, Qian Liu, Evgenii Zheltonozhskii, Terry Yue Zhuo, Thomas Wang, Olivier Dehaene, Mishig Davaadorj, Joel Lamy-Poirier, João Monteiro, Oleh Shliazhko, Nicolas Gontier, Nicholas Meade, Armel Zebaze, Ming-Ho Yee, Logesh Kumar Umapathi, Jian Zhu, Benjamin Lipkin, Muhtasham Oblokulov, Zhiruo Wang, Rudra Murthy, Jason Stillerman, Siva Sankalp Patel, Dmitry Abulkhanov, Marco Zocca, Manan Dey, Zhihan Zhang, Nourhan Fahmy, Urvashi Bhattacharyya, W. Yu, Swayam Singh, Sasha Luccioni, Paulo Villegas, Maxim Kunakov, Fedor Zhdanov, Manuel Romero, Tony Lee, Nadav Timor, Jennifer Ding, Claire Schlesinger, Hailey Schoelkopf, Jana Ebert, Tri Dao, Mayank Mishra, Alexander Gu, Jennifer Robinson, Carolyn Jane Anderson, Brendan Dolan-Gavitt, Danish Contractor, Siva Reddy, Daniel Fried, Dzmitry Bahdanau, Yacine Jernite, Carlos Muñoz Ferrandis, Sean M. Hughes, Thomas Wolf, Arjun Guha,
+Leandro von Werra, and Harm de Vries.
+    </span>
+    <span class="ltx_bibblock">
+     Starcoder: may the source be with you!
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.3.1">
+      ArXiv
+     </span>
+     , abs/2305.06161, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Sean Welleck, Bodhisattwa Prasad Majumder, Shashank Gupta, Amir Yazdanbakhsh, and Peter Clark.
+    </span>
+    <span class="ltx_bibblock">
+     Self-refine: Iterative refinement with self-feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.3.1">
+      ArXiv
+     </span>
+     , abs/2303.17651, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nijkamp
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Erik Nijkamp, Hiroaki Hayashi, Caiming Xiong, Silvio Savarese, and Yingbo Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Codegen2: Lessons for training llms on programming and natural languages.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.3.1">
+      ICLR
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nijkamp
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Erik Nijkamp, Bo Pang, Hiroaki Hayashi, Lifu Tu, Huan Wang, Yingbo Zhou, Silvio Savarese, and Caiming Xiong.
+    </span>
+    <span class="ltx_bibblock">
+     Codegen: An open large language model for code with multi-turn program synthesis.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.3.1">
+      ICLR
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI [2023]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      ArXiv
+     </span>
+     , abs/2303.08774, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Federico Cassano, Beck Labash, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: Language agents with verbal reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.2.2.1">
+      et al.
+     </span>
+     [2021]
+    </span>
+    <span class="ltx_bibblock">
+     Yue Wang, Weishi Wang, Shafiq Joty, and Steven C.H. Hoi.
+    </span>
+    <span class="ltx_bibblock">
+     Codet5: Identifier-aware unified pre-trained encoder-decoder models for code understanding and generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.3.1">
+      EMNLP
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed Huai hsin Chi, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Self-consistency improves chain of thought reasoning in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.3.1">
+      ArXiv
+     </span>
+     , abs/2203.11171, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Hanbin Wang, Zhenghao Liu, Shuo Wang, Ganqu Cui, Ning Ding, Zhiyuan Liu, and Ge Yu.
+    </span>
+    <span class="ltx_bibblock">
+     Intervenor: Prompt the coding ability of large language models with the interactive chain of repairing.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.3.1">
+      ArXiv
+     </span>
+     , abs/2311.09868, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Yue Wang, Hung Le, Akhilesh Deepak Gotmare, Nghi DQ Bui, Junnan Li, and Steven CH Hoi.
+    </span>
+    <span class="ltx_bibblock">
+     Codet5+: Open code large language models for code understanding and generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.3.1">
+      arXiv preprint arXiv:2305.07922
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Ed Huai hsin Chi, F. Xia, Quoc Le, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Chain of thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.3.1">
+      ArXiv
+     </span>
+     , abs/2201.11903, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xi [2020]
+    </span>
+    <span class="ltx_bibblock">
+     Lin Xi.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      Pareto Multi-task Learning and Its Applications
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     PhD thesis, City University of Hong Kong, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao.
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.3.1">
+      ArXiv
+     </span>
+     , abs/2210.03629, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L. Griffiths, Yuan Cao, and Karthik Narasimhan.
+    </span>
+    <span class="ltx_bibblock">
+     Tree of thoughts: Deliberate problem solving with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.3.1">
+      ArXiv
+     </span>
+     , abs/2305.10601, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zan
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Daoguang Zan, Bei Chen, Dejian Yang, Zeqi Lin, Minsu Kim, Bei Guan, Yongji Wang, Weizhu Chen, and Jian-Guang Lou.
+    </span>
+    <span class="ltx_bibblock">
+     CERT: Continual pre-training on sketches for library-oriented code generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.3.1">
+      The 2022 International Joint Conference on Artificial Intelligence
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.2.2.1">
+      et al.
+     </span>
+     [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Ceyao Zhang, Kaijie Yang, Siyi Hu, Zihao Wang, Guanghe Li, Yi Eve Sun, Chen Zhang, Zhaowei Zhang, Anji Liu, Song-Chun Zhu, Xiaojun Chang, Junge Zhang, F. Yin, Yitao Liang, and Yaodong Yang.
+    </span>
+    <span class="ltx_bibblock">
+     Proagent: Building proactive cooperative ai with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.3.1">
+      ArXiv
+     </span>
+     , abs/2308.11339, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.2.2.1">
+      et al.
+     </span>
+     [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Kechi Zhang, Zhuo Li, Jia Li, Ge Li, and Zhi Jin.
+    </span>
+    <span class="ltx_bibblock">
+     Self-edit: Fault-aware code editor for code generation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.3.1">
+      ArXiv
+     </span>
+     , abs/2305.04087, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zheng
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Qinkai Zheng, Xiao Xia, Xu Zou, Yuxiao Dong, Shanshan Wang, Yufei Xue, Zi-Yuan Wang, Lei Shen, Andi Wang, Yang Li, Teng Su, Zhilin Yang, and Jie Tang.
+    </span>
+    <span class="ltx_bibblock">
+     Codegeex: A pre-trained model for code generation with multilingual evaluations on humaneval-x.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.3.1">
+      ArXiv
+     </span>
+     , abs/2303.17568, 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    Response Setup
+   </h3>
+   <div class="ltx_para" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     To ensure that the output of each agent follows our requirements for the execution of the test executor agent, we will require each agent’s output follow the architecture of
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p1.1.1">
+      ‘‘‘py[Code]’’’
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p1.1.2">
+      ‘‘‘py[TestCases]’’’
+     </span>
+     , where the [Code] and [TestCases] will be in the
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p1.1.3">
+      ‘‘‘py’’’
+     </span>
+     . With this format, the test executor agent can directly obtain [Code] and [TestCases] by removing the other sentences before and after these code blocks, ensuring an accurate and focused analysis.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="A1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.2
+    </span>
+    Case Illustration for CodeCoT and AgentCoder
+   </h3>
+   <div class="ltx_para" id="A1.SS2.p1">
+    <p class="ltx_p" id="A1.SS2.p1.1">
+     To provide a comprehensive illustration for CodeCoT and AgentCoder, we provide two code and tests generation examples
+for HumanEval and MBPP datasets from Fig.
+     <a class="ltx_ref" href="#A1.F2" title="Figure 2 ‣ A.2 Case Illustration for CodeCoT and AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     to Fig.
+     <a class="ltx_ref" href="#A1.F5" title="Figure 5 ‣ A.2 Case Illustration for CodeCoT and AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . We can observe that AgentCoder can generate more fine-grained tests for the generated code. For example, AgentCoder will consider the code execution results when the input list does not contain element (
+     <a class="ltx_ref" href="#A1.F3" title="In A.2 Case Illustration for CodeCoT and AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#A1.F5" title="In A.2 Case Illustration for CodeCoT and AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     ), which can improve code snippet reliability for edge behaviors.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="407" id="A1.F2.g1" src="/html/2312.13010/assets/x2.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     A case illustration of CodeCoT and AgentCoder generated code for HumanEval task. CodeCoT ignores to use of
+     <span class="ltx_text ltx_font_italic" id="A1.F2.2.1">
+      abs()
+     </span>
+     function to check further the absolute values are lower than the threshold, while AgentCoder employs it to handle the negative values.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="586" id="A1.F3.g1" src="/html/2312.13010/assets/x3.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     A case illustration of CodeCoT and AgentCoder generated tests for HumanEval task. CodeCoT only considers the left values to be lower than the right values, which is due to the tests generated with its code where it also ignores the use of the
+     <span class="ltx_text ltx_font_italic" id="A1.F3.2.1">
+      abs()
+     </span>
+     function, while AgentCoder considers two scenarios (i.e., left value lower/larger than the right values).
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="440" id="A1.F4.g1" src="/html/2312.13010/assets/x4.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     A case illustration of CodeCoT and AgentCoder generated code for MBPP task. Both CodeCoT and AgentCoder’s code are correct. However, CodeCoT ignores the edge cases (e.g., the list does not contain values).
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="340" id="A1.F5.g1" src="/html/2312.13010/assets/x5.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     A case illustration of CodeCoT and AgentCoder generated tests for MBPP task. CodeCoT ignores to consider the list does not contain values and in its generated code this scenario is also ignored. However, AgentCoder’s edge cases will cover these edge scenarios.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="A1.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.3
+    </span>
+    Case Illustration on HumanEval dataset using AgentCoder
+   </h3>
+   <div class="ltx_para" id="A1.SS3.p1">
+    <p class="ltx_p" id="A1.SS3.p1.1">
+     We also provide each agent’s prompt and response example (
+     <a class="ltx_ref" href="#A1.F6" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     to
+     <a class="ltx_ref" href="#A1.F10" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       10
+      </span>
+     </a>
+     ) to illustrate AgentCoder’s workflow.
+     <a class="ltx_ref" href="#A1.F6" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#A1.F7" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     illustrate AgentCoder’s programmer prompt and response example.
+     <a class="ltx_ref" href="#A1.F8" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#A1.F9" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       9
+      </span>
+     </a>
+     provide AgentCoder’s test designer prompt and response example.
+     <a class="ltx_ref" href="#A1.F10" title="In A.3 Case Illustration on HumanEval dataset using AgentCoder ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       10
+      </span>
+     </a>
+     illustrates AgentCoder’s test executor source code.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="287" id="A1.F6.g1" src="/html/2312.13010/assets/x6.png" width="370"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     AgentCoder programmer prompt example.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="447" id="A1.F7.g1" src="/html/2312.13010/assets/x7.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     AgentCoder programmer response example.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F8">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="297" id="A1.F8.g1" src="/html/2312.13010/assets/x8.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 8:
+     </span>
+     AgentCoder tester prompt example.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F9">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="408" id="A1.F9.g1" src="/html/2312.13010/assets/x9.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 9:
+     </span>
+     AgentCoder test designer response example.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="A1.F10">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="575" id="A1.F10.g1" src="/html/2312.13010/assets/x10.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 10:
+     </span>
+     AgentCoder test executor script.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="A1.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.4
+    </span>
+    Case Illustration of the programmer + test executor agent
+   </h3>
+   <div class="ltx_para" id="A1.SS4.p1">
+    <p class="ltx_p" id="A1.SS4.p1.1">
+     We illustrate the pipeline of the programmer + the test executor agent in
+     <a class="ltx_ref" href="#A1.F11" title="In A.4 Case Illustration of the programmer + test executor agent ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       11
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F11">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="541" id="A1.F11.g1" src="/html/2312.13010/assets/x11.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 11:
+     </span>
+     Programmer + test executor example.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="A1.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.5
+    </span>
+    Case Illustration of the programmer + test designer
+   </h3>
+   <div class="ltx_para" id="A1.SS5.p1">
+    <p class="ltx_p" id="A1.SS5.p1.1">
+     We illustrate the pipeline of the programmer + the test designer agent in
+     <a class="ltx_ref" href="#A1.F12" title="In A.5 Case Illustration of the programmer + test designer ‣ Appendix A Appendix ‣ AgentCoder: Multiagent-Code Generation with Iterative Testing and Optimisation">
+      <span class="ltx_text ltx_ref_tag">
+       Fig.
+      </span>
+      <span class="ltx_text ltx_ref_tag">
+       12
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F12">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="264" id="A1.F12.g1" src="/html/2312.13010/assets/x12.png" width="368"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 12:
+     </span>
+     Programmer + test designer example.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+</article>

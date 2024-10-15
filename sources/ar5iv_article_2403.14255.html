@@ -1,0 +1,3168 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  <span class="ltx_text ltx_font_typewriter" id="id4.id1">
+   ERD
+  </span>
+  : A Framework for Improving LLM Reasoning
+  <br class="ltx_break"/>
+  for Cognitive Distortion Classification
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Sehee Lim
+    <br class="ltx_break"/>
+    Yonsei University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id5.4.id1">
+     sehee0706@yonsei.ac.kr
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id6.5.id2">
+     \And
+    </span>
+    Yejin Kim
+    <sup class="ltx_sup" id="id7.6.id3">
+     ∗
+    </sup>
+    <br class="ltx_break"/>
+    Yonsei University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id8.7.id4">
+     yjkim.stat@yonsei.ac.kr
+     <br class="ltx_break"/>
+     <span class="ltx_ERROR undefined" id="id8.7.id4.1">
+      \And
+     </span>
+    </span>
+    Chi-Hyun Choi
+    <sup class="ltx_sup" id="id9.8.id5">
+     ∗
+    </sup>
+    <br class="ltx_break"/>
+    EverEx
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id10.9.id6">
+     leo@everex.co.kr
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id11.10.id7">
+     \AND
+    </span>
+    Jy-yong Sohn
+    <br class="ltx_break"/>
+    Yonsei University
+    <br class="ltx_break"/>
+    EverEx
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id12.11.id8">
+     jysohn1108@yonsei.ac.kr
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_ERROR undefined" id="id13.12.id9">
+     \And
+    </span>
+    Byung-Hoon Kim
+    <sup class="ltx_sup" id="id14.13.id10">
+     †
+    </sup>
+    <br class="ltx_break"/>
+    Yonsei University
+    <br class="ltx_break"/>
+    EverEx
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id15.14.id11">
+     egyptdj@yonsei.ac.kr
+    </span>
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    Equal contributionCorresponding authors
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id16.id1">
+   Improving the accessibility of psychotherapy with the aid of Large Language Models (LLMs) is garnering a significant attention in recent years. Recognizing cognitive distortions from the interviewee’s utterances can be an essential part of psychotherapy, especially for cognitive behavioral therapy.
+In this paper, we propose
+   <span class="ltx_text ltx_font_typewriter" id="id16.id1.1">
+    ERD
+   </span>
+   , which improves LLM-based cognitive distortion classification performance with the aid of additional modules of (1) extracting the parts related to cognitive distortion, and (2) debating the reasoning steps by multiple agents.
+Our experimental results on a public dataset show that
+   <span class="ltx_text ltx_font_typewriter" id="id16.id1.2">
+    ERD
+   </span>
+   improves the multi-class F1 score as well as binary specificity score. Regarding the latter score, it turns out that our method is effective in debiasing the baseline method which has high false positive rate, especially when the summary of multi-agent debate is provided to LLMs.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.3">
+   <p class="ltx_p" id="p1.3.4">
+    <span class="ltx_text ltx_font_typewriter" id="p1.3.4.1">
+     ERD
+    </span>
+    <span class="ltx_text ltx_font_bold" id="p1.3.4.2">
+     : A Framework for Improving LLM Reasoning
+     <br class="ltx_break"/>
+     for Cognitive Distortion Classification
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.2.2" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.2.2.3" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.2.2.3.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.2.2.3.1.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.3.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.2.2.3.1.1.1.1.1">
+          Sehee Lim
+          <span class="ltx_note ltx_role_thanks" id="p1.2.2.3.1.1.1.1.1.1">
+           <sup class="ltx_note_mark">
+            †
+           </sup>
+           <span class="ltx_note_outer">
+            <span class="ltx_note_content">
+             <sup class="ltx_note_mark">
+              †
+             </sup>
+             <span class="ltx_note_type">
+              thanks:
+             </span>
+             Equal contribution
+            </span>
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.2.2.3.1.2.2">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.3.1.2.2.1">
+         Yonsei University
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.2.2.3.1.3.3">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.3.1.3.3.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.2.2.3.1.3.3.1.1">
+          sehee0706@yonsei.ac.kr
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span class="ltx_text ltx_inline-block" id="p1.1.1.1" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.1.1.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.1.1.1.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.1.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.1.1.1.1.1.1.1">
+          Yejin Kim
+          <sup class="ltx_sup" id="p1.1.1.1.1.1.1.1.1">
+           <span class="ltx_text ltx_font_medium" id="p1.1.1.1.1.1.1.1.1.1">
+            ∗
+           </span>
+          </sup>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.1.1.1.1.2.1">
+        <span class="ltx_td ltx_align_center" id="p1.1.1.1.1.2.1.1">
+         Yonsei University
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.1.1.1.1.3.2">
+        <span class="ltx_td ltx_align_center" id="p1.1.1.1.1.3.2.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.1.1.1.1.3.2.1.1">
+          yjkim.stat@yonsei.ac.kr
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span class="ltx_text ltx_inline-block" id="p1.2.2.2" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.2.2.2.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.2.2.2.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.2.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.2.2.2.1.1.1.1">
+          Chi-Hyun Choi
+          <sup class="ltx_sup" id="p1.2.2.2.1.1.1.1.1">
+           <span class="ltx_text ltx_font_medium" id="p1.2.2.2.1.1.1.1.1.1">
+            ∗
+           </span>
+          </sup>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.2.2.2.1.2.1">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.2.1.2.1.1">
+         EverEx
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.2.2.2.1.3.2">
+        <span class="ltx_td ltx_align_center" id="p1.2.2.2.1.3.2.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.2.2.2.1.3.2.1.1">
+          leo@everex.co.kr
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.3.3" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.3.3.2" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.3.3.2.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.3.3.2.1.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.2.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.3.3.2.1.1.1.1.1">
+          Jy-yong Sohn
+          <span class="ltx_note ltx_role_thanks" id="p1.3.3.2.1.1.1.1.1.1">
+           <sup class="ltx_note_mark">
+            †
+           </sup>
+           <span class="ltx_note_outer">
+            <span class="ltx_note_content">
+             <sup class="ltx_note_mark">
+              †
+             </sup>
+             <span class="ltx_note_type">
+              thanks:
+             </span>
+             Corresponding authors
+            </span>
+           </span>
+          </span>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.2.1.2.2">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.2.1.2.2.1">
+         Yonsei University
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.2.1.3.3">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.2.1.3.3.1">
+         EverEx
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.2.1.4.4">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.2.1.4.4.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.3.3.2.1.4.4.1.1">
+          jysohn1108@yonsei.ac.kr
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span class="ltx_text ltx_inline-block" id="p1.3.3.1" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.3.3.1.1">
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.3.3.1.1.1">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="p1.3.3.1.1.1.1.1">
+          Byung-Hoon Kim
+          <sup class="ltx_sup" id="p1.3.3.1.1.1.1.1.1">
+           <span class="ltx_text ltx_font_medium" id="p1.3.3.1.1.1.1.1.1.1">
+            †
+           </span>
+          </sup>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.1.1.2.1">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.1.1.2.1.1">
+         Yonsei University
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.1.1.3.2">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.1.1.3.2.1">
+         EverEx
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.3.3.1.1.4.3">
+        <span class="ltx_td ltx_align_center" id="p1.3.3.1.1.4.3.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.3.3.1.1.4.3.1.1">
+          egyptdj@yonsei.ac.kr
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large Language Models (LLMs) are dominating the research areas in machine learning and artificial intelligence, broadening its usage in various applications
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Radford et al.,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2018
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2019
+     </a>
+     ; Brown et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2020
+     </a>
+     ; OpenAI,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023
+     </a>
+     ; Ouyang et al.,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . Especially in the medical domain, PaLM
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chowdhery et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and its variants, such as Med-PaLM
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Singhal et al.,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , are equipped with medical data and instructions to answer the questions from clinical field
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chowdhery et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2022
+     </a>
+     ; Singhal et al.,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+In addition, conversational AI assistant chatbots are devised to support patients with mental health issues
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Rathje et al.,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2023
+     </a>
+     ; Vaidyam et al.,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2019
+     </a>
+     ; Saha et al.,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2022
+     </a>
+     ; Stock et al.,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2023
+     </a>
+     ; Liu et al.,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     ; Welivita et al.,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2021
+     </a>
+     ; Sharma et al.,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2020
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Recognizing the fact that individuals with mental disorders hesitate to seek in-person medical consultations
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Steinberg et al.,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      1980
+     </a>
+     )
+    </cite>
+    , previous studies
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Yang et al.,
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2023
+     </a>
+     ; Lee et al.,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023
+     </a>
+     ; Chen et al.,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023b
+     </a>
+     )
+    </cite>
+    attempt to enhance the accessibility and quality of psychotherapy through the use of LLMs with Chain-of-Thought (CoT) reasoning
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wei et al.,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . These models aim to detect the user’s personality and interpret their mental state in order to generate more empathetic responses.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    For example, Diagnosis-of-Thought (DoT) uses LLMs to classify cognitive distortions from utterances, which is a crucial part of Cognitive Behavior Therapy (CBT)
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chen et al.,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023b
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    While the DoT method holds promise, one key challenge that remains an open issue is the tendency of the model to overdiagnose cognitive distortions, incorrectly inferring irrational thought patterns even when the user’s statements are benign. In addition, the distortion classification performance of DoT in multi-class setup is close to that of random guessing, which limits its usage in practice.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="178" id="S1.F1.1.g1" src="/html/2403.14255/assets/figure/figure1_v3.jpg" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    The pipeline of Extraction-Reasoning-Debate (
+    <span class="ltx_text ltx_font_typewriter" id="S1.F1.3.1">
+     ERD
+    </span>
+    ), which
+detects and classify the cognitive distortion from the input user speech. It begins with the identification and extraction of potential cognitive distortions from the user speech. These extracted elements are then utilized to construct an intermediate reasoning step. Subsequently, a debate is conducted, wherein multiple LLM agents deliberate to assess the presence and type of cognitive distortion. Finally, a judge integrates the entire debate process to get the final answer on the distortion classification problem.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    In this paper, we tackle these issues by proposing a new framework for classifying cognitive distortions from the user utterances, by introducing modules for debiasing the overdiagnosing tendency of existing methods and for improving the performance on classifying distortion types inferred from the utterances.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our main contributions can be summarized as below:
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We introduce
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i1.p1.1.1">
+        ERD
+       </span>
+       , a new framework for classifying cognitive distortions in the user utterances using three steps:
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i1.p1.1.2">
+        Extraction
+       </span>
+       ,
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i1.p1.1.3">
+        Reasoning
+       </span>
+       , and
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i1.p1.1.4">
+        Debate
+       </span>
+       , each of which uses LLMs. The first step lets LLM extract a part of the utterances that is related with the distortion, the second step uses LLM to generate the thought process of estimating cognitive distortions from the extracted part, and the third step uses multi-agent LLMs to discuss the thought process described in the second step and make the final decision.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Compared with existing baselines,
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i2.p1.1.1">
+        ERD
+       </span>
+       improves the multi-class F1 score for distortion classification task by more than 9% and improves the distortion assessment specificity score by more than 25%, when tested on the cognitive distortion detection dataset with 2530 samples in Kaggle.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       We provide factor analysis on
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i3.p1.1.1">
+        ERD
+       </span>
+       , showing that (1) multiple rounds of debate in
+       <span class="ltx_text ltx_font_typewriter" id="S1.I1.i3.p1.1.2">
+        ERD
+       </span>
+       is beneficial for improving the classification score, and (2) the summarization and the validity evaluation processes during the debate step enhance the debiasing effect.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   <span class="ltx_text ltx_font_typewriter" id="S2.1.1">
+    ERD
+   </span>
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    We propose Extraction-Reasoning-Debate (
+    <span class="ltx_text ltx_font_typewriter" id="S2.p1.1.1">
+     ERD
+    </span>
+    ), a framework for classifying distortions in a given user speech, as shown in Fig.
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    . Below we elaborate each step in our framework.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Extraction
+   </h3>
+   <figure class="ltx_table" id="S2.T1">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S2.T1.2">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S2.T1.2.3.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S2.T1.2.3.1.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+        <span class="ltx_text ltx_font_bold" id="S2.T1.2.3.1.1.1">
+         Input
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S2.T1.2.3.1.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+        <span class="ltx_text ltx_font_bold" id="S2.T1.2.3.1.2.1">
+         Distortion Classification
+        </span>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S2.T1.1.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S2.T1.1.1.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+        User Speech
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T1.1.1.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+        <math alttext="15.28_{0.65}" class="ltx_Math" display="inline" id="S2.T1.1.1.1.m1.1">
+         <semantics id="S2.T1.1.1.1.m1.1a">
+          <msub id="S2.T1.1.1.1.m1.1.1" xref="S2.T1.1.1.1.m1.1.1.cmml">
+           <mn id="S2.T1.1.1.1.m1.1.1.2" xref="S2.T1.1.1.1.m1.1.1.2.cmml">
+            15.28
+           </mn>
+           <mn id="S2.T1.1.1.1.m1.1.1.3" xref="S2.T1.1.1.1.m1.1.1.3.cmml">
+            0.65
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T1.1.1.1.m1.1b">
+           <apply id="S2.T1.1.1.1.m1.1.1.cmml" xref="S2.T1.1.1.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T1.1.1.1.m1.1.1.1.cmml" xref="S2.T1.1.1.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T1.1.1.1.m1.1.1.2.cmml" type="float" xref="S2.T1.1.1.1.m1.1.1.2">
+             15.28
+            </cn>
+            <cn id="S2.T1.1.1.1.m1.1.1.3.cmml" type="float" xref="S2.T1.1.1.1.m1.1.1.3">
+             0.65
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T1.1.1.1.m1.1c">
+           15.28_{0.65}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T1.2.2">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r" id="S2.T1.2.2.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+        Distorted Part of User Speech
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T1.2.2.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+        <math alttext="\textbf{27.08}_{0.27}" class="ltx_Math" display="inline" id="S2.T1.2.2.1.m1.1">
+         <semantics id="S2.T1.2.2.1.m1.1a">
+          <msub id="S2.T1.2.2.1.m1.1.1" xref="S2.T1.2.2.1.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T1.2.2.1.m1.1.1.2" xref="S2.T1.2.2.1.m1.1.1.2a.cmml">
+            27.08
+           </mtext>
+           <mn id="S2.T1.2.2.1.m1.1.1.3" xref="S2.T1.2.2.1.m1.1.1.3.cmml">
+            0.27
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T1.2.2.1.m1.1b">
+           <apply id="S2.T1.2.2.1.m1.1.1.cmml" xref="S2.T1.2.2.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T1.2.2.1.m1.1.1.1.cmml" xref="S2.T1.2.2.1.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T1.2.2.1.m1.1.1.2a.cmml" xref="S2.T1.2.2.1.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T1.2.2.1.m1.1.1.2.cmml" xref="S2.T1.2.2.1.m1.1.1.2">
+              27.08
+             </mtext>
+            </ci>
+            <cn id="S2.T1.2.2.1.m1.1.1.3.cmml" type="float" xref="S2.T1.2.2.1.m1.1.1.3">
+             0.27
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T1.2.2.1.m1.1c">
+           \textbf{27.08}_{0.27}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Multi-class F1 score of
+DoT
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     for the cognitive distortion classification problem, when two different inputs are given. The first option uses the user speech as the input, as done in
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     . The second option is considered by us, which only puts the ground-truth distorted part within the user speech.
+Putting only the distorted part significantly improves the classification performance, which motivates the
+     <span class="ltx_text ltx_font_typewriter" id="S2.T1.5.1">
+      Extraction
+     </span>
+     step in
+     <span class="ltx_text ltx_font_typewriter" id="S2.T1.6.2">
+      ERD
+     </span>
+     framework.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     To provide the motivation for the
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS1.p1.1.1">
+      Extraction
+     </span>
+     step proposed in our method, we first share our empirical results showing that
+extracting the distorted parts of user speech is beneficial for distortion classification.
+Table
+     <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2.1 Extraction ‣ 2 ERD ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     shows the multi-class F1 score of Diagnosis-of-Thought (DoT) method for distortion classification problem (predicting out of 10 classes), tested on a cognitive distortion detection dataset with 2530 samples in Kaggle
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         1
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.kaggle.com/datasets/sagarikashreevastava/cognitive-distortion-detetction-dataset" target="_blank" title="">
+         https://www.kaggle.com/datasets/sagarikashreevastava/cognitive-distortion-detetction-dataset
+        </a>
+       </span>
+      </span>
+     </span>
+     . We test on two different options: (1) putting the user speech as it is, and (2) putting the ground-truth part (provided in the ‘distorted part’ column of the dataset) within the speech, that indicates the distortion. Table
+     <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2.1 Extraction ‣ 2 ERD ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     shows that the multi-class F1 score increases more than 10% when the ground-truth distorted part is extracted before running DoT.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Motivated by this result, prior to the
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS1.p2.1.1">
+      Reasoning
+     </span>
+     step (e.g., DoT) which outputs the thought process for assessing/classifying the distortion, we add an
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS1.p2.1.2">
+      Extraction
+     </span>
+     step which instructs LLMs isolate the segments from the user’s utterance that may potentially exhibit cognitive distortions. This process of extraction is done
+     <em class="ltx_emph ltx_font_italic" id="S2.SS1.p2.1.3">
+      without
+     </em>
+     paraphrasing or summarizing, thereby preserving the original context and nuances for the subsequent thought process. In summary,
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS1.p2.1.4">
+      Extraction
+     </span>
+     process ensures that the LLMs’ responses hinge on the most informative facets of the utterance, which in turn enhance the quality of the distortion classification performance.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S2.T2">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S2.T2.16">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S2.T2.16.17.1">
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S2.T2.16.17.1.1">
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" colspan="3" id="S2.T2.16.17.1.2">
+        <span class="ltx_text ltx_font_bold" id="S2.T2.16.17.1.2.1">
+         Distortion Assessment
+        </span>
+        (True/False)
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S2.T2.16.17.1.3">
+        <span class="ltx_text ltx_font_bold" id="S2.T2.16.17.1.3.1">
+         Distortion Classification
+        </span>
+        (out of 10 types)
+       </th>
+      </tr>
+      <tr class="ltx_tr" id="S2.T2.16.18.2">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r" id="S2.T2.16.18.2.1">
+        <span class="ltx_text ltx_font_bold" id="S2.T2.16.18.2.1.1">
+         Method
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T2.16.18.2.2">
+        Sensitivity
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T2.16.18.2.3">
+        Specificity
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" id="S2.T2.16.18.2.4">
+        F1 Score
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T2.16.18.2.5">
+        Weighted F1 Score
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S2.T2.4.4">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S2.T2.4.4.5">
+        <span class="ltx_text ltx_font_typewriter" id="S2.T2.4.4.5.1">
+         Reasoning
+        </span>
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T2.1.1.1">
+        <math alttext="\underline{99.29}_{0.19}" class="ltx_Math" display="inline" id="S2.T2.1.1.1.m1.1">
+         <semantics id="S2.T2.1.1.1.m1.1a">
+          <msub id="S2.T2.1.1.1.m1.1.1" xref="S2.T2.1.1.1.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T2.1.1.1.m1.1.1.2" xref="S2.T2.1.1.1.m1.1.1.2.cmml">
+            <mn id="S2.T2.1.1.1.m1.1.1.2.2" xref="S2.T2.1.1.1.m1.1.1.2.2.cmml">
+             99.29
+            </mn>
+            <mo id="S2.T2.1.1.1.m1.1.1.2.1" xref="S2.T2.1.1.1.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T2.1.1.1.m1.1.1.3" xref="S2.T2.1.1.1.m1.1.1.3.cmml">
+            0.19
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.1.1.1.m1.1b">
+           <apply id="S2.T2.1.1.1.m1.1.1.cmml" xref="S2.T2.1.1.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.1.1.1.m1.1.1.1.cmml" xref="S2.T2.1.1.1.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T2.1.1.1.m1.1.1.2.cmml" xref="S2.T2.1.1.1.m1.1.1.2">
+             <ci id="S2.T2.1.1.1.m1.1.1.2.1.cmml" xref="S2.T2.1.1.1.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T2.1.1.1.m1.1.1.2.2.cmml" type="float" xref="S2.T2.1.1.1.m1.1.1.2.2">
+              99.29
+             </cn>
+            </apply>
+            <cn id="S2.T2.1.1.1.m1.1.1.3.cmml" type="float" xref="S2.T2.1.1.1.m1.1.1.3">
+             0.19
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.1.1.1.m1.1c">
+           \underline{99.29}_{0.19}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T2.2.2.2">
+        <math alttext="6.79_{0.34}" class="ltx_Math" display="inline" id="S2.T2.2.2.2.m1.1">
+         <semantics id="S2.T2.2.2.2.m1.1a">
+          <msub id="S2.T2.2.2.2.m1.1.1" xref="S2.T2.2.2.2.m1.1.1.cmml">
+           <mn id="S2.T2.2.2.2.m1.1.1.2" xref="S2.T2.2.2.2.m1.1.1.2.cmml">
+            6.79
+           </mn>
+           <mn id="S2.T2.2.2.2.m1.1.1.3" xref="S2.T2.2.2.2.m1.1.1.3.cmml">
+            0.34
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.2.2.2.m1.1b">
+           <apply id="S2.T2.2.2.2.m1.1.1.cmml" xref="S2.T2.2.2.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.2.2.2.m1.1.1.1.cmml" xref="S2.T2.2.2.2.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.2.2.2.m1.1.1.2.cmml" type="float" xref="S2.T2.2.2.2.m1.1.1.2">
+             6.79
+            </cn>
+            <cn id="S2.T2.2.2.2.m1.1.1.3.cmml" type="float" xref="S2.T2.2.2.2.m1.1.1.3">
+             0.34
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.2.2.2.m1.1c">
+           6.79_{0.34}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S2.T2.3.3.3">
+        <math alttext="\textbf{78.26}_{0.16}" class="ltx_Math" display="inline" id="S2.T2.3.3.3.m1.1">
+         <semantics id="S2.T2.3.3.3.m1.1a">
+          <msub id="S2.T2.3.3.3.m1.1.1" xref="S2.T2.3.3.3.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T2.3.3.3.m1.1.1.2" xref="S2.T2.3.3.3.m1.1.1.2a.cmml">
+            78.26
+           </mtext>
+           <mn id="S2.T2.3.3.3.m1.1.1.3" xref="S2.T2.3.3.3.m1.1.1.3.cmml">
+            0.16
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.3.3.3.m1.1b">
+           <apply id="S2.T2.3.3.3.m1.1.1.cmml" xref="S2.T2.3.3.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.3.3.3.m1.1.1.1.cmml" xref="S2.T2.3.3.3.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T2.3.3.3.m1.1.1.2a.cmml" xref="S2.T2.3.3.3.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T2.3.3.3.m1.1.1.2.cmml" xref="S2.T2.3.3.3.m1.1.1.2">
+              78.26
+             </mtext>
+            </ci>
+            <cn id="S2.T2.3.3.3.m1.1.1.3.cmml" type="float" xref="S2.T2.3.3.3.m1.1.1.3">
+             0.16
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.3.3.3.m1.1c">
+           \textbf{78.26}_{0.16}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T2.4.4.4">
+        <math alttext="15.28_{0.65}" class="ltx_Math" display="inline" id="S2.T2.4.4.4.m1.1">
+         <semantics id="S2.T2.4.4.4.m1.1a">
+          <msub id="S2.T2.4.4.4.m1.1.1" xref="S2.T2.4.4.4.m1.1.1.cmml">
+           <mn id="S2.T2.4.4.4.m1.1.1.2" xref="S2.T2.4.4.4.m1.1.1.2.cmml">
+            15.28
+           </mn>
+           <mn id="S2.T2.4.4.4.m1.1.1.3" xref="S2.T2.4.4.4.m1.1.1.3.cmml">
+            0.65
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.4.4.4.m1.1b">
+           <apply id="S2.T2.4.4.4.m1.1.1.cmml" xref="S2.T2.4.4.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.4.4.4.m1.1.1.1.cmml" xref="S2.T2.4.4.4.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.4.4.4.m1.1.1.2.cmml" type="float" xref="S2.T2.4.4.4.m1.1.1.2">
+             15.28
+            </cn>
+            <cn id="S2.T2.4.4.4.m1.1.1.3.cmml" type="float" xref="S2.T2.4.4.4.m1.1.1.3">
+             0.65
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.4.4.4.m1.1c">
+           15.28_{0.65}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T2.8.8">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S2.T2.8.8.5">
+        +
+        <span class="ltx_text ltx_font_typewriter" id="S2.T2.8.8.5.1">
+         Extraction
+        </span>
+       </th>
+       <td class="ltx_td ltx_align_center" id="S2.T2.5.5.1">
+        <math alttext="\textbf{99.83}_{0.03}" class="ltx_Math" display="inline" id="S2.T2.5.5.1.m1.1">
+         <semantics id="S2.T2.5.5.1.m1.1a">
+          <msub id="S2.T2.5.5.1.m1.1.1" xref="S2.T2.5.5.1.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T2.5.5.1.m1.1.1.2" xref="S2.T2.5.5.1.m1.1.1.2a.cmml">
+            99.83
+           </mtext>
+           <mn id="S2.T2.5.5.1.m1.1.1.3" xref="S2.T2.5.5.1.m1.1.1.3.cmml">
+            0.03
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.5.5.1.m1.1b">
+           <apply id="S2.T2.5.5.1.m1.1.1.cmml" xref="S2.T2.5.5.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.5.5.1.m1.1.1.1.cmml" xref="S2.T2.5.5.1.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T2.5.5.1.m1.1.1.2a.cmml" xref="S2.T2.5.5.1.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T2.5.5.1.m1.1.1.2.cmml" xref="S2.T2.5.5.1.m1.1.1.2">
+              99.83
+             </mtext>
+            </ci>
+            <cn id="S2.T2.5.5.1.m1.1.1.3.cmml" type="float" xref="S2.T2.5.5.1.m1.1.1.3">
+             0.03
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.5.5.1.m1.1c">
+           \textbf{99.83}_{0.03}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T2.6.6.2">
+        <math alttext="0.93_{0.22}" class="ltx_Math" display="inline" id="S2.T2.6.6.2.m1.1">
+         <semantics id="S2.T2.6.6.2.m1.1a">
+          <msub id="S2.T2.6.6.2.m1.1.1" xref="S2.T2.6.6.2.m1.1.1.cmml">
+           <mn id="S2.T2.6.6.2.m1.1.1.2" xref="S2.T2.6.6.2.m1.1.1.2.cmml">
+            0.93
+           </mn>
+           <mn id="S2.T2.6.6.2.m1.1.1.3" xref="S2.T2.6.6.2.m1.1.1.3.cmml">
+            0.22
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.6.6.2.m1.1b">
+           <apply id="S2.T2.6.6.2.m1.1.1.cmml" xref="S2.T2.6.6.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.6.6.2.m1.1.1.1.cmml" xref="S2.T2.6.6.2.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.6.6.2.m1.1.1.2.cmml" type="float" xref="S2.T2.6.6.2.m1.1.1.2">
+             0.93
+            </cn>
+            <cn id="S2.T2.6.6.2.m1.1.1.3.cmml" type="float" xref="S2.T2.6.6.2.m1.1.1.3">
+             0.22
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.6.6.2.m1.1c">
+           0.93_{0.22}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S2.T2.7.7.3">
+        <math alttext="\underline{77.48}_{0.04}" class="ltx_Math" display="inline" id="S2.T2.7.7.3.m1.1">
+         <semantics id="S2.T2.7.7.3.m1.1a">
+          <msub id="S2.T2.7.7.3.m1.1.1" xref="S2.T2.7.7.3.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T2.7.7.3.m1.1.1.2" xref="S2.T2.7.7.3.m1.1.1.2.cmml">
+            <mn id="S2.T2.7.7.3.m1.1.1.2.2" xref="S2.T2.7.7.3.m1.1.1.2.2.cmml">
+             77.48
+            </mn>
+            <mo id="S2.T2.7.7.3.m1.1.1.2.1" xref="S2.T2.7.7.3.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T2.7.7.3.m1.1.1.3" xref="S2.T2.7.7.3.m1.1.1.3.cmml">
+            0.04
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.7.7.3.m1.1b">
+           <apply id="S2.T2.7.7.3.m1.1.1.cmml" xref="S2.T2.7.7.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.7.7.3.m1.1.1.1.cmml" xref="S2.T2.7.7.3.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T2.7.7.3.m1.1.1.2.cmml" xref="S2.T2.7.7.3.m1.1.1.2">
+             <ci id="S2.T2.7.7.3.m1.1.1.2.1.cmml" xref="S2.T2.7.7.3.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T2.7.7.3.m1.1.1.2.2.cmml" type="float" xref="S2.T2.7.7.3.m1.1.1.2.2">
+              77.48
+             </cn>
+            </apply>
+            <cn id="S2.T2.7.7.3.m1.1.1.3.cmml" type="float" xref="S2.T2.7.7.3.m1.1.1.3">
+             0.04
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.7.7.3.m1.1c">
+           \underline{77.48}_{0.04}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T2.8.8.4">
+        <math alttext="\textbf{24.40}_{0.69}" class="ltx_Math" display="inline" id="S2.T2.8.8.4.m1.1">
+         <semantics id="S2.T2.8.8.4.m1.1a">
+          <msub id="S2.T2.8.8.4.m1.1.1" xref="S2.T2.8.8.4.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T2.8.8.4.m1.1.1.2" xref="S2.T2.8.8.4.m1.1.1.2a.cmml">
+            24.40
+           </mtext>
+           <mn id="S2.T2.8.8.4.m1.1.1.3" xref="S2.T2.8.8.4.m1.1.1.3.cmml">
+            0.69
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.8.8.4.m1.1b">
+           <apply id="S2.T2.8.8.4.m1.1.1.cmml" xref="S2.T2.8.8.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.8.8.4.m1.1.1.1.cmml" xref="S2.T2.8.8.4.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T2.8.8.4.m1.1.1.2a.cmml" xref="S2.T2.8.8.4.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T2.8.8.4.m1.1.1.2.cmml" xref="S2.T2.8.8.4.m1.1.1.2">
+              24.40
+             </mtext>
+            </ci>
+            <cn id="S2.T2.8.8.4.m1.1.1.3.cmml" type="float" xref="S2.T2.8.8.4.m1.1.1.3">
+             0.69
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.8.8.4.m1.1c">
+           \textbf{24.40}_{0.69}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T2.12.12">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S2.T2.12.12.5">
+        +
+        <span class="ltx_text ltx_font_typewriter" id="S2.T2.12.12.5.1">
+         Debate
+        </span>
+       </th>
+       <td class="ltx_td ltx_align_center" id="S2.T2.9.9.1">
+        <math alttext="73.10_{0.26}" class="ltx_Math" display="inline" id="S2.T2.9.9.1.m1.1">
+         <semantics id="S2.T2.9.9.1.m1.1a">
+          <msub id="S2.T2.9.9.1.m1.1.1" xref="S2.T2.9.9.1.m1.1.1.cmml">
+           <mn id="S2.T2.9.9.1.m1.1.1.2" xref="S2.T2.9.9.1.m1.1.1.2.cmml">
+            73.10
+           </mn>
+           <mn id="S2.T2.9.9.1.m1.1.1.3" xref="S2.T2.9.9.1.m1.1.1.3.cmml">
+            0.26
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.9.9.1.m1.1b">
+           <apply id="S2.T2.9.9.1.m1.1.1.cmml" xref="S2.T2.9.9.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.9.9.1.m1.1.1.1.cmml" xref="S2.T2.9.9.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.9.9.1.m1.1.1.2.cmml" type="float" xref="S2.T2.9.9.1.m1.1.1.2">
+             73.10
+            </cn>
+            <cn id="S2.T2.9.9.1.m1.1.1.3.cmml" type="float" xref="S2.T2.9.9.1.m1.1.1.3">
+             0.26
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.9.9.1.m1.1c">
+           73.10_{0.26}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T2.10.10.2">
+        <math alttext="\textbf{33.05}_{0.58}" class="ltx_Math" display="inline" id="S2.T2.10.10.2.m1.1">
+         <semantics id="S2.T2.10.10.2.m1.1a">
+          <msub id="S2.T2.10.10.2.m1.1.1" xref="S2.T2.10.10.2.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T2.10.10.2.m1.1.1.2" xref="S2.T2.10.10.2.m1.1.1.2a.cmml">
+            33.05
+           </mtext>
+           <mn id="S2.T2.10.10.2.m1.1.1.3" xref="S2.T2.10.10.2.m1.1.1.3.cmml">
+            0.58
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.10.10.2.m1.1b">
+           <apply id="S2.T2.10.10.2.m1.1.1.cmml" xref="S2.T2.10.10.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.10.10.2.m1.1.1.1.cmml" xref="S2.T2.10.10.2.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T2.10.10.2.m1.1.1.2a.cmml" xref="S2.T2.10.10.2.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T2.10.10.2.m1.1.1.2.cmml" xref="S2.T2.10.10.2.m1.1.1.2">
+              33.05
+             </mtext>
+            </ci>
+            <cn id="S2.T2.10.10.2.m1.1.1.3.cmml" type="float" xref="S2.T2.10.10.2.m1.1.1.3">
+             0.58
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.10.10.2.m1.1c">
+           \textbf{33.05}_{0.58}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S2.T2.11.11.3">
+        <math alttext="68.89_{0.24}" class="ltx_Math" display="inline" id="S2.T2.11.11.3.m1.1">
+         <semantics id="S2.T2.11.11.3.m1.1a">
+          <msub id="S2.T2.11.11.3.m1.1.1" xref="S2.T2.11.11.3.m1.1.1.cmml">
+           <mn id="S2.T2.11.11.3.m1.1.1.2" xref="S2.T2.11.11.3.m1.1.1.2.cmml">
+            68.89
+           </mn>
+           <mn id="S2.T2.11.11.3.m1.1.1.3" xref="S2.T2.11.11.3.m1.1.1.3.cmml">
+            0.24
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.11.11.3.m1.1b">
+           <apply id="S2.T2.11.11.3.m1.1.1.cmml" xref="S2.T2.11.11.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.11.11.3.m1.1.1.1.cmml" xref="S2.T2.11.11.3.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.11.11.3.m1.1.1.2.cmml" type="float" xref="S2.T2.11.11.3.m1.1.1.2">
+             68.89
+            </cn>
+            <cn id="S2.T2.11.11.3.m1.1.1.3.cmml" type="float" xref="S2.T2.11.11.3.m1.1.1.3">
+             0.24
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.11.11.3.m1.1c">
+           68.89_{0.24}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T2.12.12.4">
+        <math alttext="22.18_{0.99}" class="ltx_Math" display="inline" id="S2.T2.12.12.4.m1.1">
+         <semantics id="S2.T2.12.12.4.m1.1a">
+          <msub id="S2.T2.12.12.4.m1.1.1" xref="S2.T2.12.12.4.m1.1.1.cmml">
+           <mn id="S2.T2.12.12.4.m1.1.1.2" xref="S2.T2.12.12.4.m1.1.1.2.cmml">
+            22.18
+           </mn>
+           <mn id="S2.T2.12.12.4.m1.1.1.3" xref="S2.T2.12.12.4.m1.1.1.3.cmml">
+            0.99
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.12.12.4.m1.1b">
+           <apply id="S2.T2.12.12.4.m1.1.1.cmml" xref="S2.T2.12.12.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.12.12.4.m1.1.1.1.cmml" xref="S2.T2.12.12.4.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.12.12.4.m1.1.1.2.cmml" type="float" xref="S2.T2.12.12.4.m1.1.1.2">
+             22.18
+            </cn>
+            <cn id="S2.T2.12.12.4.m1.1.1.3.cmml" type="float" xref="S2.T2.12.12.4.m1.1.1.3">
+             0.99
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.12.12.4.m1.1c">
+           22.18_{0.99}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T2.16.16">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r" id="S2.T2.16.16.5">
+        +
+        <span class="ltx_text ltx_font_typewriter" id="S2.T2.16.16.5.1">
+         Extraction
+        </span>
+        +
+        <span class="ltx_text ltx_font_typewriter" id="S2.T2.16.16.5.2">
+         Debate
+        </span>
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T2.13.13.1">
+        <math alttext="74.89_{2.31}" class="ltx_Math" display="inline" id="S2.T2.13.13.1.m1.1">
+         <semantics id="S2.T2.13.13.1.m1.1a">
+          <msub id="S2.T2.13.13.1.m1.1.1" xref="S2.T2.13.13.1.m1.1.1.cmml">
+           <mn id="S2.T2.13.13.1.m1.1.1.2" xref="S2.T2.13.13.1.m1.1.1.2.cmml">
+            74.89
+           </mn>
+           <mn id="S2.T2.13.13.1.m1.1.1.3" xref="S2.T2.13.13.1.m1.1.1.3.cmml">
+            2.31
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.13.13.1.m1.1b">
+           <apply id="S2.T2.13.13.1.m1.1.1.cmml" xref="S2.T2.13.13.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.13.13.1.m1.1.1.1.cmml" xref="S2.T2.13.13.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.13.13.1.m1.1.1.2.cmml" type="float" xref="S2.T2.13.13.1.m1.1.1.2">
+             74.89
+            </cn>
+            <cn id="S2.T2.13.13.1.m1.1.1.3.cmml" type="float" xref="S2.T2.13.13.1.m1.1.1.3">
+             2.31
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.13.13.1.m1.1c">
+           74.89_{2.31}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T2.14.14.2">
+        <math alttext="\underline{30.74}_{3.92}" class="ltx_Math" display="inline" id="S2.T2.14.14.2.m1.1">
+         <semantics id="S2.T2.14.14.2.m1.1a">
+          <msub id="S2.T2.14.14.2.m1.1.1" xref="S2.T2.14.14.2.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T2.14.14.2.m1.1.1.2" xref="S2.T2.14.14.2.m1.1.1.2.cmml">
+            <mn id="S2.T2.14.14.2.m1.1.1.2.2" xref="S2.T2.14.14.2.m1.1.1.2.2.cmml">
+             30.74
+            </mn>
+            <mo id="S2.T2.14.14.2.m1.1.1.2.1" xref="S2.T2.14.14.2.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T2.14.14.2.m1.1.1.3" xref="S2.T2.14.14.2.m1.1.1.3.cmml">
+            3.92
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.14.14.2.m1.1b">
+           <apply id="S2.T2.14.14.2.m1.1.1.cmml" xref="S2.T2.14.14.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.14.14.2.m1.1.1.1.cmml" xref="S2.T2.14.14.2.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T2.14.14.2.m1.1.1.2.cmml" xref="S2.T2.14.14.2.m1.1.1.2">
+             <ci id="S2.T2.14.14.2.m1.1.1.2.1.cmml" xref="S2.T2.14.14.2.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T2.14.14.2.m1.1.1.2.2.cmml" type="float" xref="S2.T2.14.14.2.m1.1.1.2.2">
+              30.74
+             </cn>
+            </apply>
+            <cn id="S2.T2.14.14.2.m1.1.1.3.cmml" type="float" xref="S2.T2.14.14.2.m1.1.1.3">
+             3.92
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.14.14.2.m1.1c">
+           \underline{30.74}_{3.92}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S2.T2.15.15.3">
+        <math alttext="69.49_{0.62}" class="ltx_Math" display="inline" id="S2.T2.15.15.3.m1.1">
+         <semantics id="S2.T2.15.15.3.m1.1a">
+          <msub id="S2.T2.15.15.3.m1.1.1" xref="S2.T2.15.15.3.m1.1.1.cmml">
+           <mn id="S2.T2.15.15.3.m1.1.1.2" xref="S2.T2.15.15.3.m1.1.1.2.cmml">
+            69.49
+           </mn>
+           <mn id="S2.T2.15.15.3.m1.1.1.3" xref="S2.T2.15.15.3.m1.1.1.3.cmml">
+            0.62
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.15.15.3.m1.1b">
+           <apply id="S2.T2.15.15.3.m1.1.1.cmml" xref="S2.T2.15.15.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.15.15.3.m1.1.1.1.cmml" xref="S2.T2.15.15.3.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T2.15.15.3.m1.1.1.2.cmml" type="float" xref="S2.T2.15.15.3.m1.1.1.2">
+             69.49
+            </cn>
+            <cn id="S2.T2.15.15.3.m1.1.1.3.cmml" type="float" xref="S2.T2.15.15.3.m1.1.1.3">
+             0.62
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.15.15.3.m1.1c">
+           69.49_{0.62}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T2.16.16.4">
+        <math alttext="\underline{24.27}_{1.14}" class="ltx_Math" display="inline" id="S2.T2.16.16.4.m1.1">
+         <semantics id="S2.T2.16.16.4.m1.1a">
+          <msub id="S2.T2.16.16.4.m1.1.1" xref="S2.T2.16.16.4.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T2.16.16.4.m1.1.1.2" xref="S2.T2.16.16.4.m1.1.1.2.cmml">
+            <mn id="S2.T2.16.16.4.m1.1.1.2.2" xref="S2.T2.16.16.4.m1.1.1.2.2.cmml">
+             24.27
+            </mn>
+            <mo id="S2.T2.16.16.4.m1.1.1.2.1" xref="S2.T2.16.16.4.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T2.16.16.4.m1.1.1.3" xref="S2.T2.16.16.4.m1.1.1.3.cmml">
+            1.14
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T2.16.16.4.m1.1b">
+           <apply id="S2.T2.16.16.4.m1.1.1.cmml" xref="S2.T2.16.16.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T2.16.16.4.m1.1.1.1.cmml" xref="S2.T2.16.16.4.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T2.16.16.4.m1.1.1.2.cmml" xref="S2.T2.16.16.4.m1.1.1.2">
+             <ci id="S2.T2.16.16.4.m1.1.1.2.1.cmml" xref="S2.T2.16.16.4.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T2.16.16.4.m1.1.1.2.2.cmml" type="float" xref="S2.T2.16.16.4.m1.1.1.2.2">
+              24.27
+             </cn>
+            </apply>
+            <cn id="S2.T2.16.16.4.m1.1.1.3.cmml" type="float" xref="S2.T2.16.16.4.m1.1.1.3">
+             1.14
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T2.16.16.4.m1.1c">
+           \underline{24.27}_{1.14}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Cognitive distortion assessment/classification results of
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.25.1">
+      ERD
+     </span>
+     when various modules (
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.26.2">
+      Extraction
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.27.3">
+      Debate
+     </span>
+     ) are added. Here, we test on cognitive distortion detection dataset in Kaggle, and
+use DoT
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     method for the
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.28.4">
+      Reasoning
+     </span>
+     step. Upon the above results,
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.29.5">
+      Extraction
+     </span>
+     improves the distortion classification performance and
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.30.6">
+      Debate
+     </span>
+     increases the distortion assessment specificity significantly. Combining both
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.31.7">
+      Extraction
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S2.T2.32.8">
+      Debate
+     </span>
+     takes the sweet spot, simultaneously enhancing both performances.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S2.F2">
+    <br class="ltx_break"/>
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="211" id="S2.F2.1.g1" src="/html/2403.14255/assets/figure/confusion_matrix.png" width="538"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Confusion matrices of
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.9.1">
+      ERD
+     </span>
+     when tested on 2530 samples: (Left) only
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.10.2">
+      Reasoning
+     </span>
+     is used, (Right)
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.11.3">
+      Extraction
+     </span>
+     ,
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.12.4">
+      Reasoning
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.13.5">
+      Debate
+     </span>
+     steps are used. Including
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.14.6">
+      Extraction
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S2.F2.15.7">
+      Debate
+     </span>
+     modules increases the number of true negatives from 61 to 322, thus correctly identifying the samples with ‘no distortion’.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Reasoning
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     Our target task (cognitive distortion classification from the user speech) is naturally considered as a task that requires logical thinking, if we imagine how doctors classify the patients. In recent years, various methods propose letting LLMs mimic the logical thought process or reasoning steps. For example, chain-of-thought (CoT) prompting and its variants
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wei et al.,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2022
+      </a>
+      ; Kojima et al.,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2022
+      </a>
+      ; Yao et al.,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      ; Besta et al.,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2023
+      </a>
+      ; Chen et al.,
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       2023a
+      </a>
+      ; Yang et al.,
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       2023
+      </a>
+      ; Lee et al.,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2023
+      </a>
+      )
+     </cite>
+     provide a significant performance improvement in various reasoning tasks including common sense reasoning and mathematical reasoning.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     Our
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS2.p2.1.1">
+      Reasoning
+     </span>
+     step chooses any existing methods which let LLMs output the thought process for performing the target task. By default, we use diagnosis-of-thought (DoT)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023b
+      </a>
+      )
+     </cite>
+     comprised of three critical stages (subjectivity assessment, contrastive reasoning, and schema analysis) that construct rationales for the detection of cognitive distortions.
+At the
+     <em class="ltx_emph ltx_font_italic" id="S2.SS2.p2.1.2">
+      subjectivity assessment
+     </em>
+     stage, the input utterances are differentiated between the objective facts and the subjective thoughts.
+This is followed by the
+     <em class="ltx_emph ltx_font_italic" id="S2.SS2.p2.1.3">
+      contrastive reasoning
+     </em>
+     stage, where the process elicits both supportive and contradictory perspectives to the speaker’s viewpoint.
+The final stage,
+     <em class="ltx_emph ltx_font_italic" id="S2.SS2.p2.1.4">
+      schema analysis
+     </em>
+     , involves delving into the underlying thought schema.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Debate
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     Several recent works on using LLMs for reasoning tasks show that multiple LLM agents debating their thought processes significantly improve the performance
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Liang et al.,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      ; Zheng et al.,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2023
+      </a>
+      ; Xiong et al.,
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2023
+      </a>
+      ; Chan et al.,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2023
+      </a>
+      ; Du et al.,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+Motivated by this observation, we add multi-agent debate (or
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p1.1.1">
+      Debate
+     </span>
+     ) step following the
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p1.1.2">
+      Reasoning
+     </span>
+     step.
+In Figure
+     <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     ,
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p1.1.3">
+      ERD
+     </span>
+     employs three LLM agents, each designated with the role of “physician” to simulate a professional medical debate. The discussion between first two agents (two debators) is overseen by the third agent (called the judge agent), bearing the role of “head doctor” who monitors the entire debate to ensure a fair evaluation. The third agent is introduced, motivated by recent result showing that LLMs can behave as a good judge
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Zheng et al.,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+The first debater presents arguments for the presence or absence of cognitive distortion in the user speech, based on the LLM outputs obtained in the
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p1.1.4">
+      Extraction
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p1.1.5">
+      Reasoning
+     </span>
+     steps.
+Subsequently, the second debator counters the initial assertions, presenting a contradicting viewpoint.
+The first debater then responds to this counterargument, followed by a second round of rebuttal from the second debater, resulting in two rounds of argumentation.
+One can consider repeating this iterative exchange of thoughts for multiple rounds.
+After this iterative process, the judge agent integrates the entire discourse, employing two proposed methodologies to reach a final decision.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     We consider two different options for controlling the behavior of the judge agent to get better performances.
+The first option involves a straightforward summarization of the total debate process.
+The second option involves summarizing the debate and evaluating which side’s arguments are more valid.
+By adding such summarization process, we expect that the final answer of
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS3.p2.1.1">
+      ERD
+     </span>
+     is based on a comprehensive consideration of all presented viewpoints.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S2.T3">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S2.T3.12">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S2.T3.12.13.1">
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S2.T3.12.13.1.1">
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t" colspan="3" id="S2.T3.12.13.1.2">
+        <span class="ltx_text ltx_font_bold" id="S2.T3.12.13.1.2.1">
+         Distortion Assessment
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S2.T3.12.13.1.3">
+        <span class="ltx_text ltx_font_bold" id="S2.T3.12.13.1.3.1">
+         Distortion Classification
+        </span>
+       </th>
+      </tr>
+      <tr class="ltx_tr" id="S2.T3.12.14.2">
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r" id="S2.T3.12.14.2.1">
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T3.12.14.2.2">
+        Sensitivity
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T3.12.14.2.3">
+        Specificity
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" id="S2.T3.12.14.2.4">
+        F1 Score
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S2.T3.12.14.2.5">
+        Weighted F1 Score
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S2.T3.4.4">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S2.T3.4.4.5">
+        <span class="ltx_text ltx_font_typewriter" id="S2.T3.4.4.5.1">
+         ERD
+        </span>
+        without Summarization
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T3.1.1.1">
+        <math alttext="\textbf{92.13}_{0.38}" class="ltx_Math" display="inline" id="S2.T3.1.1.1.m1.1">
+         <semantics id="S2.T3.1.1.1.m1.1a">
+          <msub id="S2.T3.1.1.1.m1.1.1" xref="S2.T3.1.1.1.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T3.1.1.1.m1.1.1.2" xref="S2.T3.1.1.1.m1.1.1.2a.cmml">
+            92.13
+           </mtext>
+           <mn id="S2.T3.1.1.1.m1.1.1.3" xref="S2.T3.1.1.1.m1.1.1.3.cmml">
+            0.38
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.1.1.1.m1.1b">
+           <apply id="S2.T3.1.1.1.m1.1.1.cmml" xref="S2.T3.1.1.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.1.1.1.m1.1.1.1.cmml" xref="S2.T3.1.1.1.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T3.1.1.1.m1.1.1.2a.cmml" xref="S2.T3.1.1.1.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T3.1.1.1.m1.1.1.2.cmml" xref="S2.T3.1.1.1.m1.1.1.2">
+              92.13
+             </mtext>
+            </ci>
+            <cn id="S2.T3.1.1.1.m1.1.1.3.cmml" type="float" xref="S2.T3.1.1.1.m1.1.1.3">
+             0.38
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.1.1.1.m1.1c">
+           \textbf{92.13}_{0.38}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T3.2.2.2">
+        <math alttext="11.01_{0.66}" class="ltx_Math" display="inline" id="S2.T3.2.2.2.m1.1">
+         <semantics id="S2.T3.2.2.2.m1.1a">
+          <msub id="S2.T3.2.2.2.m1.1.1" xref="S2.T3.2.2.2.m1.1.1.cmml">
+           <mn id="S2.T3.2.2.2.m1.1.1.2" xref="S2.T3.2.2.2.m1.1.1.2.cmml">
+            11.01
+           </mn>
+           <mn id="S2.T3.2.2.2.m1.1.1.3" xref="S2.T3.2.2.2.m1.1.1.3.cmml">
+            0.66
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.2.2.2.m1.1b">
+           <apply id="S2.T3.2.2.2.m1.1.1.cmml" xref="S2.T3.2.2.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.2.2.2.m1.1.1.1.cmml" xref="S2.T3.2.2.2.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T3.2.2.2.m1.1.1.2.cmml" type="float" xref="S2.T3.2.2.2.m1.1.1.2">
+             11.01
+            </cn>
+            <cn id="S2.T3.2.2.2.m1.1.1.3.cmml" type="float" xref="S2.T3.2.2.2.m1.1.1.3">
+             0.66
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.2.2.2.m1.1c">
+           11.01_{0.66}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S2.T3.3.3.3">
+        <math alttext="\textbf{75.48}_{0.23}" class="ltx_Math" display="inline" id="S2.T3.3.3.3.m1.1">
+         <semantics id="S2.T3.3.3.3.m1.1a">
+          <msub id="S2.T3.3.3.3.m1.1.1" xref="S2.T3.3.3.3.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T3.3.3.3.m1.1.1.2" xref="S2.T3.3.3.3.m1.1.1.2a.cmml">
+            75.48
+           </mtext>
+           <mn id="S2.T3.3.3.3.m1.1.1.3" xref="S2.T3.3.3.3.m1.1.1.3.cmml">
+            0.23
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.3.3.3.m1.1b">
+           <apply id="S2.T3.3.3.3.m1.1.1.cmml" xref="S2.T3.3.3.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.3.3.3.m1.1.1.1.cmml" xref="S2.T3.3.3.3.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T3.3.3.3.m1.1.1.2a.cmml" xref="S2.T3.3.3.3.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T3.3.3.3.m1.1.1.2.cmml" xref="S2.T3.3.3.3.m1.1.1.2">
+              75.48
+             </mtext>
+            </ci>
+            <cn id="S2.T3.3.3.3.m1.1.1.3.cmml" type="float" xref="S2.T3.3.3.3.m1.1.1.3">
+             0.23
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.3.3.3.m1.1c">
+           \textbf{75.48}_{0.23}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S2.T3.4.4.4">
+        <math alttext="\textbf{25.28}_{0.46}" class="ltx_Math" display="inline" id="S2.T3.4.4.4.m1.1">
+         <semantics id="S2.T3.4.4.4.m1.1a">
+          <msub id="S2.T3.4.4.4.m1.1.1" xref="S2.T3.4.4.4.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T3.4.4.4.m1.1.1.2" xref="S2.T3.4.4.4.m1.1.1.2a.cmml">
+            25.28
+           </mtext>
+           <mn id="S2.T3.4.4.4.m1.1.1.3" xref="S2.T3.4.4.4.m1.1.1.3.cmml">
+            0.46
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.4.4.4.m1.1b">
+           <apply id="S2.T3.4.4.4.m1.1.1.cmml" xref="S2.T3.4.4.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.4.4.4.m1.1.1.1.cmml" xref="S2.T3.4.4.4.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T3.4.4.4.m1.1.1.2a.cmml" xref="S2.T3.4.4.4.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T3.4.4.4.m1.1.1.2.cmml" xref="S2.T3.4.4.4.m1.1.1.2">
+              25.28
+             </mtext>
+            </ci>
+            <cn id="S2.T3.4.4.4.m1.1.1.3.cmml" type="float" xref="S2.T3.4.4.4.m1.1.1.3">
+             0.46
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.4.4.4.m1.1c">
+           \textbf{25.28}_{0.46}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T3.8.8">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S2.T3.8.8.5">
+        +Summarization
+       </th>
+       <td class="ltx_td ltx_align_center" id="S2.T3.5.5.1">
+        <math alttext="\underline{86.10}_{0.58}" class="ltx_Math" display="inline" id="S2.T3.5.5.1.m1.1">
+         <semantics id="S2.T3.5.5.1.m1.1a">
+          <msub id="S2.T3.5.5.1.m1.1.1" xref="S2.T3.5.5.1.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T3.5.5.1.m1.1.1.2" xref="S2.T3.5.5.1.m1.1.1.2.cmml">
+            <mn id="S2.T3.5.5.1.m1.1.1.2.2" xref="S2.T3.5.5.1.m1.1.1.2.2.cmml">
+             86.10
+            </mn>
+            <mo id="S2.T3.5.5.1.m1.1.1.2.1" xref="S2.T3.5.5.1.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T3.5.5.1.m1.1.1.3" xref="S2.T3.5.5.1.m1.1.1.3.cmml">
+            0.58
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.5.5.1.m1.1b">
+           <apply id="S2.T3.5.5.1.m1.1.1.cmml" xref="S2.T3.5.5.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.5.5.1.m1.1.1.1.cmml" xref="S2.T3.5.5.1.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T3.5.5.1.m1.1.1.2.cmml" xref="S2.T3.5.5.1.m1.1.1.2">
+             <ci id="S2.T3.5.5.1.m1.1.1.2.1.cmml" xref="S2.T3.5.5.1.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T3.5.5.1.m1.1.1.2.2.cmml" type="float" xref="S2.T3.5.5.1.m1.1.1.2.2">
+              86.10
+             </cn>
+            </apply>
+            <cn id="S2.T3.5.5.1.m1.1.1.3.cmml" type="float" xref="S2.T3.5.5.1.m1.1.1.3">
+             0.58
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.5.5.1.m1.1c">
+           \underline{86.10}_{0.58}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T3.6.6.2">
+        <math alttext="\underline{19.58}_{1.36}" class="ltx_Math" display="inline" id="S2.T3.6.6.2.m1.1">
+         <semantics id="S2.T3.6.6.2.m1.1a">
+          <msub id="S2.T3.6.6.2.m1.1.1" xref="S2.T3.6.6.2.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T3.6.6.2.m1.1.1.2" xref="S2.T3.6.6.2.m1.1.1.2.cmml">
+            <mn id="S2.T3.6.6.2.m1.1.1.2.2" xref="S2.T3.6.6.2.m1.1.1.2.2.cmml">
+             19.58
+            </mn>
+            <mo id="S2.T3.6.6.2.m1.1.1.2.1" xref="S2.T3.6.6.2.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T3.6.6.2.m1.1.1.3" xref="S2.T3.6.6.2.m1.1.1.3.cmml">
+            1.36
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.6.6.2.m1.1b">
+           <apply id="S2.T3.6.6.2.m1.1.1.cmml" xref="S2.T3.6.6.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.6.6.2.m1.1.1.1.cmml" xref="S2.T3.6.6.2.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T3.6.6.2.m1.1.1.2.cmml" xref="S2.T3.6.6.2.m1.1.1.2">
+             <ci id="S2.T3.6.6.2.m1.1.1.2.1.cmml" xref="S2.T3.6.6.2.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T3.6.6.2.m1.1.1.2.2.cmml" type="float" xref="S2.T3.6.6.2.m1.1.1.2.2">
+              19.58
+             </cn>
+            </apply>
+            <cn id="S2.T3.6.6.2.m1.1.1.3.cmml" type="float" xref="S2.T3.6.6.2.m1.1.1.3">
+             1.36
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.6.6.2.m1.1c">
+           \underline{19.58}_{1.36}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S2.T3.7.7.3">
+        <math alttext="\underline{73.88}_{0.36}" class="ltx_Math" display="inline" id="S2.T3.7.7.3.m1.1">
+         <semantics id="S2.T3.7.7.3.m1.1a">
+          <msub id="S2.T3.7.7.3.m1.1.1" xref="S2.T3.7.7.3.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T3.7.7.3.m1.1.1.2" xref="S2.T3.7.7.3.m1.1.1.2.cmml">
+            <mn id="S2.T3.7.7.3.m1.1.1.2.2" xref="S2.T3.7.7.3.m1.1.1.2.2.cmml">
+             73.88
+            </mn>
+            <mo id="S2.T3.7.7.3.m1.1.1.2.1" xref="S2.T3.7.7.3.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T3.7.7.3.m1.1.1.3" xref="S2.T3.7.7.3.m1.1.1.3.cmml">
+            0.36
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.7.7.3.m1.1b">
+           <apply id="S2.T3.7.7.3.m1.1.1.cmml" xref="S2.T3.7.7.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.7.7.3.m1.1.1.1.cmml" xref="S2.T3.7.7.3.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T3.7.7.3.m1.1.1.2.cmml" xref="S2.T3.7.7.3.m1.1.1.2">
+             <ci id="S2.T3.7.7.3.m1.1.1.2.1.cmml" xref="S2.T3.7.7.3.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T3.7.7.3.m1.1.1.2.2.cmml" type="float" xref="S2.T3.7.7.3.m1.1.1.2.2">
+              73.88
+             </cn>
+            </apply>
+            <cn id="S2.T3.7.7.3.m1.1.1.3.cmml" type="float" xref="S2.T3.7.7.3.m1.1.1.3">
+             0.36
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.7.7.3.m1.1c">
+           \underline{73.88}_{0.36}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S2.T3.8.8.4">
+        <math alttext="23.96_{1.05}" class="ltx_Math" display="inline" id="S2.T3.8.8.4.m1.1">
+         <semantics id="S2.T3.8.8.4.m1.1a">
+          <msub id="S2.T3.8.8.4.m1.1.1" xref="S2.T3.8.8.4.m1.1.1.cmml">
+           <mn id="S2.T3.8.8.4.m1.1.1.2" xref="S2.T3.8.8.4.m1.1.1.2.cmml">
+            23.96
+           </mn>
+           <mn id="S2.T3.8.8.4.m1.1.1.3" xref="S2.T3.8.8.4.m1.1.1.3.cmml">
+            1.05
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.8.8.4.m1.1b">
+           <apply id="S2.T3.8.8.4.m1.1.1.cmml" xref="S2.T3.8.8.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.8.8.4.m1.1.1.1.cmml" xref="S2.T3.8.8.4.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T3.8.8.4.m1.1.1.2.cmml" type="float" xref="S2.T3.8.8.4.m1.1.1.2">
+             23.96
+            </cn>
+            <cn id="S2.T3.8.8.4.m1.1.1.3.cmml" type="float" xref="S2.T3.8.8.4.m1.1.1.3">
+             1.05
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.8.8.4.m1.1c">
+           23.96_{1.05}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S2.T3.12.12">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r" id="S2.T3.12.12.5">
+        +Summarization+Validity Evaluation
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T3.9.9.1">
+        <math alttext="74.89_{2.31}" class="ltx_Math" display="inline" id="S2.T3.9.9.1.m1.1">
+         <semantics id="S2.T3.9.9.1.m1.1a">
+          <msub id="S2.T3.9.9.1.m1.1.1" xref="S2.T3.9.9.1.m1.1.1.cmml">
+           <mn id="S2.T3.9.9.1.m1.1.1.2" xref="S2.T3.9.9.1.m1.1.1.2.cmml">
+            74.89
+           </mn>
+           <mn id="S2.T3.9.9.1.m1.1.1.3" xref="S2.T3.9.9.1.m1.1.1.3.cmml">
+            2.31
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.9.9.1.m1.1b">
+           <apply id="S2.T3.9.9.1.m1.1.1.cmml" xref="S2.T3.9.9.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.9.9.1.m1.1.1.1.cmml" xref="S2.T3.9.9.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T3.9.9.1.m1.1.1.2.cmml" type="float" xref="S2.T3.9.9.1.m1.1.1.2">
+             74.89
+            </cn>
+            <cn id="S2.T3.9.9.1.m1.1.1.3.cmml" type="float" xref="S2.T3.9.9.1.m1.1.1.3">
+             2.31
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.9.9.1.m1.1c">
+           74.89_{2.31}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T3.10.10.2">
+        <math alttext="\textbf{30.74}_{3.92}" class="ltx_Math" display="inline" id="S2.T3.10.10.2.m1.1">
+         <semantics id="S2.T3.10.10.2.m1.1a">
+          <msub id="S2.T3.10.10.2.m1.1.1" xref="S2.T3.10.10.2.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S2.T3.10.10.2.m1.1.1.2" xref="S2.T3.10.10.2.m1.1.1.2a.cmml">
+            30.74
+           </mtext>
+           <mn id="S2.T3.10.10.2.m1.1.1.3" xref="S2.T3.10.10.2.m1.1.1.3.cmml">
+            3.92
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.10.10.2.m1.1b">
+           <apply id="S2.T3.10.10.2.m1.1.1.cmml" xref="S2.T3.10.10.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.10.10.2.m1.1.1.1.cmml" xref="S2.T3.10.10.2.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S2.T3.10.10.2.m1.1.1.2a.cmml" xref="S2.T3.10.10.2.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S2.T3.10.10.2.m1.1.1.2.cmml" xref="S2.T3.10.10.2.m1.1.1.2">
+              30.74
+             </mtext>
+            </ci>
+            <cn id="S2.T3.10.10.2.m1.1.1.3.cmml" type="float" xref="S2.T3.10.10.2.m1.1.1.3">
+             3.92
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.10.10.2.m1.1c">
+           \textbf{30.74}_{3.92}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S2.T3.11.11.3">
+        <math alttext="69.49_{0.62}" class="ltx_Math" display="inline" id="S2.T3.11.11.3.m1.1">
+         <semantics id="S2.T3.11.11.3.m1.1a">
+          <msub id="S2.T3.11.11.3.m1.1.1" xref="S2.T3.11.11.3.m1.1.1.cmml">
+           <mn id="S2.T3.11.11.3.m1.1.1.2" xref="S2.T3.11.11.3.m1.1.1.2.cmml">
+            69.49
+           </mn>
+           <mn id="S2.T3.11.11.3.m1.1.1.3" xref="S2.T3.11.11.3.m1.1.1.3.cmml">
+            0.62
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.11.11.3.m1.1b">
+           <apply id="S2.T3.11.11.3.m1.1.1.cmml" xref="S2.T3.11.11.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.11.11.3.m1.1.1.1.cmml" xref="S2.T3.11.11.3.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S2.T3.11.11.3.m1.1.1.2.cmml" type="float" xref="S2.T3.11.11.3.m1.1.1.2">
+             69.49
+            </cn>
+            <cn id="S2.T3.11.11.3.m1.1.1.3.cmml" type="float" xref="S2.T3.11.11.3.m1.1.1.3">
+             0.62
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.11.11.3.m1.1c">
+           69.49_{0.62}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S2.T3.12.12.4">
+        <math alttext="\underline{24.27}_{1.14}" class="ltx_Math" display="inline" id="S2.T3.12.12.4.m1.1">
+         <semantics id="S2.T3.12.12.4.m1.1a">
+          <msub id="S2.T3.12.12.4.m1.1.1" xref="S2.T3.12.12.4.m1.1.1.cmml">
+           <munder accentunder="true" id="S2.T3.12.12.4.m1.1.1.2" xref="S2.T3.12.12.4.m1.1.1.2.cmml">
+            <mn id="S2.T3.12.12.4.m1.1.1.2.2" xref="S2.T3.12.12.4.m1.1.1.2.2.cmml">
+             24.27
+            </mn>
+            <mo id="S2.T3.12.12.4.m1.1.1.2.1" xref="S2.T3.12.12.4.m1.1.1.2.1.cmml">
+             ¯
+            </mo>
+           </munder>
+           <mn id="S2.T3.12.12.4.m1.1.1.3" xref="S2.T3.12.12.4.m1.1.1.3.cmml">
+            1.14
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S2.T3.12.12.4.m1.1b">
+           <apply id="S2.T3.12.12.4.m1.1.1.cmml" xref="S2.T3.12.12.4.m1.1.1">
+            <csymbol cd="ambiguous" id="S2.T3.12.12.4.m1.1.1.1.cmml" xref="S2.T3.12.12.4.m1.1.1">
+             subscript
+            </csymbol>
+            <apply id="S2.T3.12.12.4.m1.1.1.2.cmml" xref="S2.T3.12.12.4.m1.1.1.2">
+             <ci id="S2.T3.12.12.4.m1.1.1.2.1.cmml" xref="S2.T3.12.12.4.m1.1.1.2.1">
+              ¯
+             </ci>
+             <cn id="S2.T3.12.12.4.m1.1.1.2.2.cmml" type="float" xref="S2.T3.12.12.4.m1.1.1.2.2">
+              24.27
+             </cn>
+            </apply>
+            <cn id="S2.T3.12.12.4.m1.1.1.3.cmml" type="float" xref="S2.T3.12.12.4.m1.1.1.3">
+             1.14
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.T3.12.12.4.m1.1c">
+           \underline{24.27}_{1.14}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Comparison of
+     <span class="ltx_text ltx_font_typewriter" id="S2.T3.17.1">
+      ERD
+     </span>
+     with three different prompting options that control the behavior of the judge.
+For the first option, judge predicts the cognitive distortion type only based on the debate process log, without any summarization step. For the second option, judge first
+     <em class="ltx_emph ltx_font_italic" id="S2.T3.18.2">
+      summarizes
+     </em>
+     the debate and then predicts the cognitive distortion type. In the final option, judge
+     <em class="ltx_emph ltx_font_italic" id="S2.T3.19.3">
+      summarizes
+     </em>
+     the debate,
+     <em class="ltx_emph ltx_font_italic" id="S2.T3.20.4">
+      evaluates the validity
+     </em>
+     of the claims in the debate, and then predicts the cognitive distortion type.
+Both summarization and validity evaluation steps improve the performance in terms of specificity.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Settings
+   </h4>
+   <div class="ltx_para" id="S3.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px1.p1.1">
+     We use a cognitive distortion detection dataset
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Shreevastava and Foltz,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2021
+      </a>
+      )
+     </cite>
+     composed of speeches that correspond to 10 types of cognitive distortions and neutral speeches.
+This dataset, sourced from Kaggle
+     <span class="ltx_ERROR undefined" id="S3.SS0.SSS0.Px1.p1.1.1">
+      \@footnotemark
+     </span>
+     , contains 2530 annotated examples by experts and is designed to facilitate two tasks: distortion assessment and distortion classification.
+In the distortion assessment task, the model determines whether cognitive distortion is present in the patient’s utterance.
+In the distortion classification task, the model identifies the specific type of cognitive distortion.
+We report the Sensitivity, Specificity and F1 score for the distortion assessment task, and the weighted F1 score for the distortion classification task.
+We run 3 random trials and report the mean and standard deviation values.
+We employ the model gpt-3.5-turbo, and set the temperature to 0.1.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Experimental results
+   </h4>
+   <div class="ltx_para" id="S3.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px2.p1.1">
+     Table
+     <a class="ltx_ref" href="#S2.T2" title="Table 2 ‣ 2.1 Extraction ‣ 2 ERD ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     shows the performances of
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.1">
+      ERD
+     </span>
+     , when different modules are plugged in. Compared with naive method using
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.2">
+      Reasoning
+     </span>
+     module only, adding
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.3">
+      Extraction
+     </span>
+     module improves the distortion classification score by more than 9%, and adding
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.4">
+      Debate
+     </span>
+     module not only improves the distortion classification score by around 7%, but also improves the distortion assessment specificity by more than 25%.
+Fig.
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.1 Extraction ‣ 2 ERD ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     shows the confusion matrix of the
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.5">
+      ERD
+     </span>
+     for two cases: (1) when only the
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.6">
+      Reasoning
+     </span>
+     module is used, and (2) when
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.7">
+      Extraction
+     </span>
+     ,
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.8">
+      Reasoning
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.9">
+      Debate
+     </span>
+     are used. This result shows that adding
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.10">
+      Extraction
+     </span>
+     and
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p1.1.11">
+      Debate
+     </span>
+     modules promotes the correct estimation of utterances with no distortion.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS0.SSS0.Px2.p2">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px2.p2.1">
+     Recall that in
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p2.1.1">
+      Debate
+     </span>
+     step of
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p2.1.2">
+      ERD
+     </span>
+     , we consider different prompting techniques to control the behavior of the judge agent when making the final decision. Table
+     <a class="ltx_ref" href="#S2.T3" title="Table 3 ‣ 2.3 Debate ‣ 2 ERD ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     shows the effect of such prompts for three variants:
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS0.SSS0.Px2.p3">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px2.p3.1">
+     (1) “
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p3.1.1">
+      ERD
+     </span>
+     without summarization” does not instruct judge to summarize the claims of debate and just directly make decision, (2) “
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p3.1.2">
+      ERD
+     </span>
+     with summarization” instructs judge to summarize the claims before making the decision, and “
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p3.1.3">
+      ERD
+     </span>
+     with summarization and validity evaluation” instructs judge to summarize and evaluate the claims of debate before making the decision.
+Note that the specificity is keep improved as we provide more detailed instructions to the judge agent.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T4">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T4.6">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S3.T4.6.7.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S3.T4.6.7.1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.T4.6.7.1.1.1">
+         Metric
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T4.6.7.1.2">
+        <span class="ltx_text ltx_font_bold" id="S3.T4.6.7.1.2.1">
+         Round 1
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T4.6.7.1.3">
+        <span class="ltx_text ltx_font_bold" id="S3.T4.6.7.1.3.1">
+         Round 2
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S3.T4.6.7.1.4">
+        <span class="ltx_text ltx_font_bold" id="S3.T4.6.7.1.4.1">
+         Round 3
+        </span>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S3.T4.3.3">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T4.3.3.4">
+        Binary F1
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.1.1.1">
+        <math alttext="52.13_{1.25}" class="ltx_Math" display="inline" id="S3.T4.1.1.1.m1.1">
+         <semantics id="S3.T4.1.1.1.m1.1a">
+          <msub id="S3.T4.1.1.1.m1.1.1" xref="S3.T4.1.1.1.m1.1.1.cmml">
+           <mn id="S3.T4.1.1.1.m1.1.1.2" xref="S3.T4.1.1.1.m1.1.1.2.cmml">
+            52.13
+           </mn>
+           <mn id="S3.T4.1.1.1.m1.1.1.3" xref="S3.T4.1.1.1.m1.1.1.3.cmml">
+            1.25
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.1.1.1.m1.1b">
+           <apply id="S3.T4.1.1.1.m1.1.1.cmml" xref="S3.T4.1.1.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.1.1.1.m1.1.1.1.cmml" xref="S3.T4.1.1.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S3.T4.1.1.1.m1.1.1.2.cmml" type="float" xref="S3.T4.1.1.1.m1.1.1.2">
+             52.13
+            </cn>
+            <cn id="S3.T4.1.1.1.m1.1.1.3.cmml" type="float" xref="S3.T4.1.1.1.m1.1.1.3">
+             1.25
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.1.1.1.m1.1c">
+           52.13_{1.25}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.2.2.2">
+        <math alttext="69.49_{0.62}" class="ltx_Math" display="inline" id="S3.T4.2.2.2.m1.1">
+         <semantics id="S3.T4.2.2.2.m1.1a">
+          <msub id="S3.T4.2.2.2.m1.1.1" xref="S3.T4.2.2.2.m1.1.1.cmml">
+           <mn id="S3.T4.2.2.2.m1.1.1.2" xref="S3.T4.2.2.2.m1.1.1.2.cmml">
+            69.49
+           </mn>
+           <mn id="S3.T4.2.2.2.m1.1.1.3" xref="S3.T4.2.2.2.m1.1.1.3.cmml">
+            0.62
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.2.2.2.m1.1b">
+           <apply id="S3.T4.2.2.2.m1.1.1.cmml" xref="S3.T4.2.2.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.2.2.2.m1.1.1.1.cmml" xref="S3.T4.2.2.2.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S3.T4.2.2.2.m1.1.1.2.cmml" type="float" xref="S3.T4.2.2.2.m1.1.1.2">
+             69.49
+            </cn>
+            <cn id="S3.T4.2.2.2.m1.1.1.3.cmml" type="float" xref="S3.T4.2.2.2.m1.1.1.3">
+             0.62
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.2.2.2.m1.1c">
+           69.49_{0.62}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.3.3.3">
+        <math alttext="\textbf{70.74}_{0.44}" class="ltx_Math" display="inline" id="S3.T4.3.3.3.m1.1">
+         <semantics id="S3.T4.3.3.3.m1.1a">
+          <msub id="S3.T4.3.3.3.m1.1.1" xref="S3.T4.3.3.3.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S3.T4.3.3.3.m1.1.1.2" xref="S3.T4.3.3.3.m1.1.1.2a.cmml">
+            70.74
+           </mtext>
+           <mn id="S3.T4.3.3.3.m1.1.1.3" xref="S3.T4.3.3.3.m1.1.1.3.cmml">
+            0.44
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.3.3.3.m1.1b">
+           <apply id="S3.T4.3.3.3.m1.1.1.cmml" xref="S3.T4.3.3.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.3.3.3.m1.1.1.1.cmml" xref="S3.T4.3.3.3.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S3.T4.3.3.3.m1.1.1.2a.cmml" xref="S3.T4.3.3.3.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S3.T4.3.3.3.m1.1.1.2.cmml" xref="S3.T4.3.3.3.m1.1.1.2">
+              70.74
+             </mtext>
+            </ci>
+            <cn id="S3.T4.3.3.3.m1.1.1.3.cmml" type="float" xref="S3.T4.3.3.3.m1.1.1.3">
+             0.44
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.3.3.3.m1.1c">
+           \textbf{70.74}_{0.44}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S3.T4.6.6">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r" id="S3.T4.6.6.4">
+        Multi-class F1
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S3.T4.4.4.1">
+        <math alttext="22.79_{1.62}" class="ltx_Math" display="inline" id="S3.T4.4.4.1.m1.1">
+         <semantics id="S3.T4.4.4.1.m1.1a">
+          <msub id="S3.T4.4.4.1.m1.1.1" xref="S3.T4.4.4.1.m1.1.1.cmml">
+           <mn id="S3.T4.4.4.1.m1.1.1.2" xref="S3.T4.4.4.1.m1.1.1.2.cmml">
+            22.79
+           </mn>
+           <mn id="S3.T4.4.4.1.m1.1.1.3" xref="S3.T4.4.4.1.m1.1.1.3.cmml">
+            1.62
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.4.4.1.m1.1b">
+           <apply id="S3.T4.4.4.1.m1.1.1.cmml" xref="S3.T4.4.4.1.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.4.4.1.m1.1.1.1.cmml" xref="S3.T4.4.4.1.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S3.T4.4.4.1.m1.1.1.2.cmml" type="float" xref="S3.T4.4.4.1.m1.1.1.2">
+             22.79
+            </cn>
+            <cn id="S3.T4.4.4.1.m1.1.1.3.cmml" type="float" xref="S3.T4.4.4.1.m1.1.1.3">
+             1.62
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.4.4.1.m1.1c">
+           22.79_{1.62}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S3.T4.5.5.2">
+        <math alttext="24.27_{1.14}" class="ltx_Math" display="inline" id="S3.T4.5.5.2.m1.1">
+         <semantics id="S3.T4.5.5.2.m1.1a">
+          <msub id="S3.T4.5.5.2.m1.1.1" xref="S3.T4.5.5.2.m1.1.1.cmml">
+           <mn id="S3.T4.5.5.2.m1.1.1.2" xref="S3.T4.5.5.2.m1.1.1.2.cmml">
+            24.27
+           </mn>
+           <mn id="S3.T4.5.5.2.m1.1.1.3" xref="S3.T4.5.5.2.m1.1.1.3.cmml">
+            1.14
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.5.5.2.m1.1b">
+           <apply id="S3.T4.5.5.2.m1.1.1.cmml" xref="S3.T4.5.5.2.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.5.5.2.m1.1.1.1.cmml" xref="S3.T4.5.5.2.m1.1.1">
+             subscript
+            </csymbol>
+            <cn id="S3.T4.5.5.2.m1.1.1.2.cmml" type="float" xref="S3.T4.5.5.2.m1.1.1.2">
+             24.27
+            </cn>
+            <cn id="S3.T4.5.5.2.m1.1.1.3.cmml" type="float" xref="S3.T4.5.5.2.m1.1.1.3">
+             1.14
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.5.5.2.m1.1c">
+           24.27_{1.14}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S3.T4.6.6.3">
+        <math alttext="\textbf{24.83}_{0.81}" class="ltx_Math" display="inline" id="S3.T4.6.6.3.m1.1">
+         <semantics id="S3.T4.6.6.3.m1.1a">
+          <msub id="S3.T4.6.6.3.m1.1.1" xref="S3.T4.6.6.3.m1.1.1.cmml">
+           <mtext class="ltx_mathvariant_bold" id="S3.T4.6.6.3.m1.1.1.2" xref="S3.T4.6.6.3.m1.1.1.2a.cmml">
+            24.83
+           </mtext>
+           <mn id="S3.T4.6.6.3.m1.1.1.3" xref="S3.T4.6.6.3.m1.1.1.3.cmml">
+            0.81
+           </mn>
+          </msub>
+          <annotation-xml encoding="MathML-Content" id="S3.T4.6.6.3.m1.1b">
+           <apply id="S3.T4.6.6.3.m1.1.1.cmml" xref="S3.T4.6.6.3.m1.1.1">
+            <csymbol cd="ambiguous" id="S3.T4.6.6.3.m1.1.1.1.cmml" xref="S3.T4.6.6.3.m1.1.1">
+             subscript
+            </csymbol>
+            <ci id="S3.T4.6.6.3.m1.1.1.2a.cmml" xref="S3.T4.6.6.3.m1.1.1.2">
+             <mtext class="ltx_mathvariant_bold" id="S3.T4.6.6.3.m1.1.1.2.cmml" xref="S3.T4.6.6.3.m1.1.1.2">
+              24.83
+             </mtext>
+            </ci>
+            <cn id="S3.T4.6.6.3.m1.1.1.3.cmml" type="float" xref="S3.T4.6.6.3.m1.1.1.3">
+             0.81
+            </cn>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.T4.6.6.3.m1.1c">
+           \textbf{24.83}_{0.81}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 4:
+     </span>
+     F1 scores for different
+     <math alttext="r" class="ltx_Math" display="inline" id="S3.T4.9.m1.1">
+      <semantics id="S3.T4.9.m1.1b">
+       <mi id="S3.T4.9.m1.1.1" xref="S3.T4.9.m1.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.T4.9.m1.1c">
+        <ci id="S3.T4.9.m1.1.1.cmml" xref="S3.T4.9.m1.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.T4.9.m1.1d">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     , the number of
+     <span class="ltx_text ltx_font_typewriter" id="S3.T4.12.1">
+      Debate
+     </span>
+     rounds.
+The performances improve as
+     <math alttext="r" class="ltx_Math" display="inline" id="S3.T4.10.m2.1">
+      <semantics id="S3.T4.10.m2.1b">
+       <mi id="S3.T4.10.m2.1.1" xref="S3.T4.10.m2.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.T4.10.m2.1c">
+        <ci id="S3.T4.10.m2.1.1.cmml" xref="S3.T4.10.m2.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.T4.10.m2.1d">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     increases.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS0.SSS0.Px2.p4">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px2.p4.2">
+     Table
+     <a class="ltx_ref" href="#S3.T4" title="Table 4 ‣ Experimental results ‣ 3 Experiments ‣ ERD: A Framework for Improving LLM Reasoning for Cognitive Distortion Classification">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     shows how the performance improves as we increase
+     <math alttext="r" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px2.p4.1.m1.1">
+      <semantics id="S3.SS0.SSS0.Px2.p4.1.m1.1a">
+       <mi id="S3.SS0.SSS0.Px2.p4.1.m1.1.1" xref="S3.SS0.SSS0.Px2.p4.1.m1.1.1.cmml">
+        r
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px2.p4.1.m1.1b">
+        <ci id="S3.SS0.SSS0.Px2.p4.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px2.p4.1.m1.1.1">
+         𝑟
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px2.p4.1.m1.1c">
+        r
+       </annotation>
+      </semantics>
+     </math>
+     , the number of
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p4.2.1">
+      Debate
+     </span>
+     rounds used in
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p4.2.2">
+      ERD
+     </span>
+     . The results show that increasing the number of
+     <span class="ltx_text ltx_font_typewriter" id="S3.SS0.SSS0.Px2.p4.2.3">
+      Debate
+     </span>
+     rounds led to enhancements in both the binary F1 score and the multi-class F1 score. The performance saturates after
+     <math alttext="r=2" class="ltx_Math" display="inline" id="S3.SS0.SSS0.Px2.p4.2.m2.1">
+      <semantics id="S3.SS0.SSS0.Px2.p4.2.m2.1a">
+       <mrow id="S3.SS0.SSS0.Px2.p4.2.m2.1.1" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.cmml">
+        <mi id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.2" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.2.cmml">
+         r
+        </mi>
+        <mo id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.1" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.3" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.3.cmml">
+         2
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px2.p4.2.m2.1b">
+        <apply id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.cmml" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1">
+         <eq id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.1.cmml" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.1">
+         </eq>
+         <ci id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.2.cmml" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.2">
+          𝑟
+         </ci>
+         <cn id="S3.SS0.SSS0.Px2.p4.2.m2.1.1.3.cmml" type="integer" xref="S3.SS0.SSS0.Px2.p4.2.m2.1.1.3">
+          2
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px2.p4.2.m2.1c">
+        r=2
+       </annotation>
+      </semantics>
+     </math>
+     , thus better to use two rounds of debate considering the token efficiency.
+This finding aligns with the results presented in a related work on multi-agent debate of LLMs, demonstrating a similar pattern in the impact of the number of debate rounds on the model performance
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Du et al.,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    We introduce
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.1">
+     ERD
+    </span>
+    , a framework
+using LLMs to estimate the cognitive distortion contained in the user utterances through three steps:
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.2">
+     Extracting
+    </span>
+    distorted parts within the utterances,
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.3">
+     Reasoning
+    </span>
+    the estimation of the corresponding distortion classes, and
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.4">
+     Debating
+    </span>
+    the initial estimation using multiple agents.
+Compared with existing baselines only having the
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.5">
+     reasoning
+    </span>
+    step, including the
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.6">
+     extraction
+    </span>
+    and
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.7">
+     debating
+    </span>
+    steps improve the distortion classification performance by 9% and improve the distortion assessment specificity by over 25%.
+Such improvements is crucial to cognitive behavior therapy since
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.8">
+     ERD
+    </span>
+    is more adept at correctly identifying cases without distortions, avoiding the pitfall of over-diagnosing cognitive distortions.
+Furthermore, experimental results reveal that we can control the behavior of
+    <span class="ltx_text ltx_font_typewriter" id="S4.p1.1.9">
+     ERD
+    </span>
+    with various prompting options.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Besta et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Lukas Gianinazzi, Joanna Gajda, Tomasz Lehmann, Michal Podstawski, Hubert Niewiadomski, Piotr Nyczyk, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Graph of thoughts: Solving elaborate problems with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2308.09687
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Advances in neural information processing systems
+     </em>
+     , 33:1877–1901.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Chi-Min Chan, Weize Chen, Yusheng Su, Jianxuan Yu, Wei Xue, Shanghang Zhang, Jie Fu, and Zhiyuan Liu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2308.07201" target="_blank" title="">
+      Chateval: Towards better llm-based evaluators through multi-agent debate
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Wenhu Chen, Xueguang Ma, Xinyi Wang, and William W. Cohen. 2023a.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2211.12588" target="_blank" title="">
+      Program of thoughts prompting: Disentangling computation from reasoning for numerical reasoning tasks
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Zhiyu Chen, Yujie Lu, and William Wang. 2023b.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2023.findings-emnlp.284" target="_blank" title="">
+      Empowering psychotherapy with large language models: Cognitive distortion detection through diagnosis of thought prompting
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Findings of the Association for Computational Linguistics: EMNLP 2023
+     </em>
+     , pages 4295–4304, Singapore. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chowdhery et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra, Adam Roberts, Paul Barham, Hyung Won Chung, Charles Sutton, Sebastian Gehrmann, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Palm: Scaling language modeling with pathways.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2204.02311
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Du et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yilun Du, Shuang Li, Antonio Torralba, Joshua B. Tenenbaum, and Igor Mordatch. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.14325" target="_blank" title="">
+      Improving factuality and reasoning in language models through multiagent debate
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kojima et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Takeshi Kojima, Shixiang Shane Gu, Machel Reid, Yutaka Matsuo, and Yusuke Iwasawa. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models are zero-shot reasoners.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Advances in neural information processing systems
+     </em>
+     , 35:22199–22213.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lee et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yoon Kyung Lee, Inju Lee, Minjung Shin, Seoyeon Bae, and Sowon Hahn. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Chain of empathy: Enhancing empathetic response of large language models based on psychotherapy models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2311.04915
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Zhaopeng Tu, and Shuming Shi. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.19118" target="_blank" title="">
+      Encouraging divergent thinking in large language models through multi-agent debate
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     June M Liu, Donghao Li, He Cao, Tianhe Ren, Zeyi Liao, and Jiamin Wu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Chatcounselor: A large language models for mental health support.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2309.15461
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     R OpenAI. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      arXiv
+     </em>
+     , pages 2303–08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ouyang et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Training language models to follow instructions with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:27730–27744.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Radford et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Alec Radford, Karthik Narasimhan, Tim Salimans, Ilya Sutskever, et al. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Improving language understanding by generative pre-training.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Radford et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya Sutskever, et al. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are unsupervised multitask learners.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      OpenAI blog
+     </em>
+     , 1(8):9.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Rathje et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Steve Rathje, Dan-Mircea Mirea, Ilia Sucholutsky, Raja Marjieh, Claire Robertson, and Jay J Van Bavel. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt is an effective tool for multilingual psychological text analysis.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Saha et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Tulika Saha, Saichethan Reddy, Anindya Das, Sriparna Saha, and Pushpak Bhattacharyya. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.naacl-main.174" target="_blank" title="">
+      A shoulder to cry on: Towards a motivational virtual assistant for assuaging mental agony
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies
+     </em>
+     , pages 2436–2449, Seattle, United States. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sharma et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Ashish Sharma, Adam S. Miner, David C. Atkins, and Tim Althoff. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2009.08441" target="_blank" title="">
+      A computational approach to understanding empathy expressed in text-based mental health support
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shreevastava and Foltz (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Sagarika Shreevastava and Peter Foltz. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2021.clpsych-1.17" target="_blank" title="">
+      Detecting cognitive distortions from patient-therapist interactions
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      Proceedings of the Seventh Workshop on Computational Linguistics and Clinical Psychology: Improving Access
+     </em>
+     , pages 151–158, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Singhal et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Karan Singhal, Shekoofeh Azizi, Tao Tu, S Sara Mahdavi, Jason Wei, Hyung Won Chung, Nathan Scales, Ajay Tanwani, Heather Cole-Lewis, Stephen Pfohl, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models encode clinical knowledge.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2212.13138
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Singhal et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Karan Singhal, Tao Tu, Juraj Gottweis, Rory Sayres, Ellery Wulczyn, Le Hou, Kevin Clark, Stephen Pfohl, Heather Cole-Lewis, Darlene Neal, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Towards expert-level medical question answering with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2305.09617
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Steinberg et al. (1980)
+    </span>
+    <span class="ltx_bibblock">
+     Herbert Steinberg, Moshe Torem, and Stephen M. Saravay. 1980.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1001/archpsyc.1980.01780220045004" target="_blank" title="">
+      An Analysis of Physician Resistance to Psychiatric Consultations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      Archives of General Psychiatry
+     </em>
+     , 37(9):1007–1012.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Stock et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Anna Stock, Stephan Schlögl, and Aleksander Groth. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1007/978-3-031-35894-4_13" target="_blank" title="">
+      Tell me, what are you most afraid of? exploring the effects of agent representation on information disclosure in human-chatbot interaction
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      Artificial Intelligence in HCI: 4th International Conference, AI-HCI 2023, Held as Part of the 25th HCI International Conference, HCII 2023, Copenhagen, Denmark, July 23–28, 2023, Proceedings, Part II
+     </em>
+     , page 179–191, Berlin, Heidelberg. Springer-Verlag.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Vaidyam et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Aditya Nrusimha Vaidyam, Hannah Wisniewski, John David Halamka, Matcheri S. Kashavan, and John Blake Torous. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1177/0706743719828977" target="_blank" title="">
+      Chatbots and conversational agents in mental health: A review of the psychiatric landscape
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      The Canadian Journal of Psychiatry
+     </em>
+     , 64(7):456–464.
+    </span>
+    <span class="ltx_bibblock">
+     PMID: 30897957.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:24824–24837.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Welivita et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Anuradha Welivita, Yubo Xie, and Pearl Pu. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2021.emnlp-main.96" target="_blank" title="">
+      A large-scale dataset for empathetic response generation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 1251–1264, Online and Punta Cana, Dominican Republic. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xiong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Kai Xiong, Xiao Ding, Yixin Cao, Ting Liu, and Bing Qin. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.11595" target="_blank" title="">
+      Examining inter-consistency of large language models collaboration: An in-depth analysis via debate
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tao Yang, Tianyuan Shi, Fanqi Wan, Xiaojun Quan, Qifan Wang, Bingzhe Wu, and Jiaxiang Wu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=pW6xXXnCQu" target="_blank" title="">
+      Psycot: Psychological questionnaire as powerful chain-of-thought for personality detection
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      The 2023 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L Griffiths, Yuan Cao, and Karthik Narasimhan. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Tree of thoughts: Deliberate problem solving with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2305.10601
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zheng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2306.05685" target="_blank" title="">
+      Judging llm-as-a-judge with mt-bench and chatbot arena
+     </a>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

@@ -1,0 +1,3930 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yuanzhi Liang
+    <br class="ltx_break"/>
+    University of Technology Sydney
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     liangyzh18@outlook.com
+    </span>
+    <br class="ltx_break"/>
+    &amp;Linchao Zhu
+    <br class="ltx_break"/>
+    Zhejiang University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id2">
+     zhulinchao7@gmail.com
+    </span>
+    <br class="ltx_break"/>
+    &amp;Yi Yang
+    <br class="ltx_break"/>
+    Zhejiang University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id3.3.id3">
+     yangyics@zju.edu.cn
+    </span>
+    <br class="ltx_break"/>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id4.id1">
+   While Large Language Models (LLMs) based agents have successfully mimicked human behaviors in various scenarios, the realm of complex, multi-character social interactions within extended contexts remains underexplored. The challenge is compounded by privacy concerns, making it difficult to capture and utilize intricate real-life interactions. More importantly, the absence of quantitative evaluation methods hampers the pursuit of high-quality agent interactions, often leading to interactions that are limited in informativeness and expressiveness, characterized by superficial small talk without clear intentions.
+In this work, we leverage the rules of Tabletop Role-Playing Games (TRPG) to create an environment conducive to complex, context-rich interactions, emphasizing informativeness and expressiveness. This virtual setting alleviates privacy concerns and motivates agents to engage in meaningful, high-quality interactions as part of their in-game objectives. To assess these interactions, we introduce the Agent interaction Evaluation framework (AntEval), targeting the qualitative evaluation of interaction informativeness and expressiveness. Specifically, we propose two novel evaluation metrics: Information Exchanging Precision (IEP) and Interaction Expressiveness Gap (IEG). These metrics are designed to assess interactions in scenarios focused on information exchange and intention expression, respectively. Our experimental results demonstrate the effectiveness of these metrics in evaluating interaction quality. Notably, we identify significant areas for improvement in LLMs regarding social interactions, as highlighted by our metrics. We believe AntEval will guide further exploration in complex agent interactions, bringing them closer to emulating real human behavior and enhancing their integration and utility in real-world applications.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Advancements in Large Language Models (LLMs) have led to significant changes in AI research and applications. These models demonstrate exceptional abilities in understanding complex human semantics, addressing reasoning problems, and producing human-like expressions. Recent efforts have utilized LLMs to construct various agents, achieving notable success in diverse domains, including translation, question answering, writing, and complex tasks such as SAT and law examinations. However, the rapid progress of these models has outpaced the development of corresponding evaluation methods, challenging the AI community to explore new frontiers for AI intelligence.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Current frameworks predominantly focus on domain-specific knowledge and abilities, such as mathematical reasoning and logical inference. Yet, a crucial aspect often overlooked is social interaction. Sociologically and anthropologically, human beings are inherently social, with interactions forming the backbone of societal structures and personal development. Previous studies have suggested potential links between intelligence and social interactions, underscoring the need to explore agents’ capabilities in this realm.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    The absence of effective and quantitative frameworks significantly impedes the exploration of human-like social interactions by AI agents. Human interactions, marked by their inherent flexibility and subtlety, pose a challenge in terms of definition, collection, and annotation for analytical purposes. Common conversational exchanges often lack explicit intentions or detailed information, e.g., small talk, diminishing their utility in representing the complexity of real-world interactions. Additionally, interactions that are rich in nuance and strategy, e.g., business negotiations, are rarely recorded due to privacy concerns. As a result, agents trained on these superficial interactions typically demonstrate limited informativeness and expressiveness, failing to adequately capture the depth and nuances of genuine human communication.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    In this paper, we introduce AntEval, a novel evaluation framework specifically designed for assessing agent interactions. Diverging from previous frameworks that focus on general social scenarios, AntEval incorporates Tabletop Role-Playing Games (TRPG) as a novel platform for interaction generation. TRPGs offer a richly narrative environment, replete with characters (both players and Non-Player Characters) endowed with diverse personalities, ideals, bonds, flaws, backgrounds, races, and talents. This diverse setting lays the base for substantive communication, avoiding the privacy issues associated with real-world data collection. Successful engagement in these games requires players to not only demonstrate varied gameplay strategies but also to partake in meaningful, information-rich interactions that transcend mere pleasantries. The game’s mechanics facilitate the standardization and explicit expression of player intentions within the narrative framework. A key aspect of TRPGs is the Dungeon Master (DM), who oversees gameplay and implements necessary skill checks. This, coupled with the game’s special rules, ensures a detailed and accurate documentation of players’ intentions in the game logs, capturing the essence of real-human player interactions. This distinct characteristic of TRPGs offers a valuable opportunity to analyze and evaluate the complexity and depth of interactions in a manner previously unattainable.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Following some rules of TRPG, AntEval introduces an interaction framework that prompts agents to engage in interactions focused on information and intention. Specifically, we create a variety of characters with detailed settings based on TRPG rulebooks. Agents are then prompted to interact in two distinct scenarios: information exchange and intention expression. To quantitatively assess the quality of these interactions, AntEval introduces two evaluation metrics: Informativeness in Information Exchange and Expressiveness in Intention. For information exchange, we propose the Information Exchange Precision (IEP) metric, assessing the accuracy of information communication and reflecting the agents’ capability for informative interactions. For intention expression, we introduce the Intention Expressiveness Gap (IEG). In this metric, we incorporate a virtual DM role, fine-tuned by both real interactions from human players and virtual interactions generated by agents, to evaluate performance disparities in intention estimation tasks. IEG quantitatively measures the gap in expressiveness between generated and real data, thus providing an objective method to evaluate the capability of LLMs in producing effective social interactions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our contributions are as follows:
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    1. We introduce AntEval, a novel framework specifically designed for evaluating the quality of agent interactions, offering a new perspective in the quantitive assessment of AI capabilities.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p8">
+   <p class="ltx_p" id="S1.p8.1">
+    2. AntEval introduces two principal metrics: Information Exchange Precision (IEP) and Intention Expressiveness Gap (IEG), enabling the quantitative assessment of informativeness and expressiveness in agent interactions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p9">
+   <p class="ltx_p" id="S1.p9.1">
+    3. We conduct comprehensive experiments using AntEval to evaluate a range of Large Language Models (LLMs) in agent interaction scenarios. These experiments provide insights into areas for improvement and inform future research directions in enhancing AI agent performance.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p1.1.1">
+     Evaluation of Large Language Models (LLMs).
+    </span>
+    The rapid progression in large-scale models has outstripped the effectiveness of traditional benchmarks, which often focus on some NLP tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zellers et al. (
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2019
+     </a>
+     ); Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023
+     </a>
+     ); Hendrycks et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2020
+     </a>
+     )
+    </cite>
+    , visual perception
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2022d
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      c
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2020
+     </a>
+     )
+    </cite>
+    , multi-modal tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023b
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      a
+     </a>
+     )
+    </cite>
+    , or generation tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2022b
+     </a>
+     )
+    </cite>
+    . This evolution demands a more nuanced and comprehensive approach to evaluate the capabilities of Large Language Models (LLMs), especially given their significant advancements in understanding and generating language data. Previous benchmarks for LLMs generally fall into two categories. The first involves evaluations considering multiple aspects using a variety of tasks. For instance, MMLU
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Hendrycks et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2020
+     </a>
+     )
+    </cite>
+    introduces a benchmark consisting of 57 tasks covering a wide range of domains including elementary mathematics, US history, and computer science. Big-bench
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Srivastava et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2022
+     </a>
+     )
+    </cite>
+    extends this idea further, featuring over 200 tasks to create an expansive benchmark for assessing LLMs across various dimensions. Meanwhile, HELM
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2022a
+     </a>
+     )
+    </cite>
+    offers a more structured evaluation, providing a top-down taxonomy to cover all major scenarios and metrics.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    The second category focuses on real-world applications of LLMs. AGIEval
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhong et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     )
+    </cite>
+    employs human-centric standardized exams, such as college entrance and law school admission tests, to measure understanding and commonsense knowledge
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Clark et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2018
+     </a>
+     ); Sakaguchi et al. (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2021
+     </a>
+     ); Zellers et al. (
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2019
+     </a>
+     )
+    </cite>
+    . Evaluation of coding abilities is another significant aspect, with works like Codex
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2021
+     </a>
+     )
+    </cite>
+    , StudentEval
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Babe et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , and Austin et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Austin et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2021
+     </a>
+     )
+    </cite>
+    assessing LLMs’ abilities of programming. Additionally, benchmarks for mathematical problem-solving
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Cobbe et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2021
+     </a>
+     ); Imani et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    are introduced to test logical understanding. Evaluations also extend to various languages
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023
+     </a>
+     ); Xu et al. (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , tool usage
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , reasoning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Valmeekam et al. (
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , and real-world interactions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Ahn et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2022
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    We admire the significant progress made by previous benchmarks in evaluating LLMs but aim to delve deeper into their capabilities. Prior research often relies on well-annotated data with explicit ground truths, where agents are designed to respond with specific answers in particular domains. This evaluation approach, however, does not fully consider the flexible, grounded, and general interactions in the real human society. Recognizing the importance of social interactions in human development, our work seeks to fill this gap by exploring a new paradigm for evaluating LLMs. In detail, we employ multiple LLM-based agents and facilitate their interactions with each other. Then, we evaluate the generated interactions in terms of informativeness and expressiveness. Without explicit annotations, we present a assessment method that more closely mirrors the complexities of real-world social interactions. Our methodology aims to provide a better understanding of LLMs’ capabilities in social interactions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p4">
+   <p class="ltx_p" id="S2.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p4.1.1">
+     TRPG in LLM Research.
+    </span>
+    Tabletop Role-Playing Games (TRPGs) are immersive games where players assume different character roles in fictional settings, guided by a Game Master (GM) who provides relevant information to progress the game. These games involve diverse and complex grounded natural language interactions among multiple characters with distinct personalities and backgrounds. Due to the diversity and complexity, TRPGs serve as valuable testbeds
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Weir et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2022
+     </a>
+     ); Louis and Sutton (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2018
+     </a>
+     ); Callison-Burch et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2022
+     </a>
+     )
+    </cite>
+    for research in Natural Language Processing (NLP). Several works have explored NLP problems using TRPG game records. For instance, Louis et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Louis and Sutton (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2018
+     </a>
+     )
+    </cite>
+    proposed predicting character actions based on previous interactions. Other works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Si et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2021
+     </a>
+     ); Newman and Liu (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2022
+     </a>
+     )
+    </cite>
+    focused on generating flexible dialogue or descriptions in accordance with varying contexts or specific rules in TRPGs.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p5">
+   <p class="ltx_p" id="S2.p5.1">
+    Furthermore, recent studies have commonly utilized play-by-post data from popular DND forums, providing a substantial corpus for research. This play-by-post format allows players to interact by posting replies, reducing participation barriers and generating a significant number of game rounds on the forum. Chris et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Callison-Burch et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2022
+     </a>
+     )
+    </cite>
+    have collected extensive corpus from these forums, resulting in the creation of TRPG dialogue datasets. Subsequently, Pei et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhou et al. (
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      2022
+     </a>
+     )
+    </cite>
+    filtered the dataset and developed a guidance generation task called GANDALF. Given the context from a single round, GANDALF predicts the guidance provided by the DM under the DND rule. Zhu et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhu et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     )
+    </cite>
+    further extended the approach by constructing a more comprehensive and larger dataset using the play-by-post format in Discord, a messaging program. This dataset, named FIREBALL, contains additional game details such as dialogues, states, combat procedures, etc. It serves as a versatile testbed for language generation, particularly focusing on generating commands for games, including combat actions, checks, and dice rolls.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p6">
+   <p class="ltx_p" id="S2.p6.1">
+    In our study, we identify TRPG as a valuable testbed for evaluating agent interactions. We incorporate the mechanics of TRPG games, encouraging agents to engage in role-playing, freely interact with others, exchange information, and act with specific intentions. We provide these agents with predefined information, enabling them to autonomously perform actions within the game environment. The interactions of the agents are then assessed. We measure the humanoid degree of these actions using a set of metrics that we have developed specifically for this purpose. This approach enable to evaluate the agents’ abilities for interactions, which are uncertain, flexible and implicit, closely mirroring real-world social interactions.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="342" id="S2.F1.g1" src="/html/2401.06509/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Framework illustration for AntEval, showcasing the use of TRPG rules to create an interactive environment for agents. Agents engage in role-playing, aiming to participate in high-quality interactions for information exchange and intention expression, with the goal of completing game adventures. The framework involves detailed and diverse character settings based on the DND rulebook. Agents are involved in two types of scenarios: interacting based on intentions and exchanging knowledge, highlighting their capabilities in informative and expressive interactions.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   AntEval
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    We introduce AntEval, a novel framework specifically designed to evaluate agent interactions within a fantasy game setting. AntEval incorporates a framework for agent interactions, focusing on two critical aspects: informativeness and expressiveness. Agents are equipped with detailed settings and background knowledge, simulating a fantasy world where they are encouraged to engage in adventures. The evaluation assesses these interactions by measuring the precision of information exchange and the performance of intention expression, comparing them to interactions in real human contexts.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Agent Interaction Framework
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Our framework for multi-agent interactions in a Dungeons and Dragons (DND) game setting comprises four key components: character generation, intention generation, external knowledge generation, and agent interaction generation. Detailed character settings, knowledge settings, intention settings, prompts and additional information for Large Language Models (LLMs) are provided in the supplementary materials.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p2.1.1">
+      Character Generation:
+     </span>
+     We start by constructing a character following DND rules, focusing on essential attributes such as name, race, background, class, alignment, personality, ideals, bonds, flaws, and appearance. Specifically, race, background, class and alignment are pre-defined categories in DND rules, as shown in Fig
+     <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 Related Work ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . We randomly select these attributes to construct a character. Then, we use LLMs to generate character names and detailed descriptions involving personality, ideals, bonds, flaws, and appearance, taking into acount the selected pre-defined attributes and following some settings in the games’ rulebook.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p3.1.1">
+      Intention Generation:
+     </span>
+     In DND, characters’ actions are often linked to specific skills as in the rulebook. The Dungeon Master (DM) interprets players’ intentions and determines the appropriate skill checks. We adopt this mechanism by pre-assigning skill checks to characters, which represent their intentions for the adventure, as shown in Fig
+     <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 Related Work ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . LLMs generate narratives explaining why a character wishes to perform a particular skill, integrating this intention into the character’s description.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p4.1.1">
+      External Knowledge Generation:
+     </span>
+     To assess informativeness, we endow Non-Player Characters (NPCs) with exclusive knowledge that player agents lack. This external knowledge encompasses five categories: magic items, weapons, landmarks, monsters, and adventure hooks. LLMs generate both the names and descriptions of these elements, as illustrated in Fig
+     <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 Related Work ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p5">
+    <p class="ltx_p" id="S3.SS1.p5.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p5.1.1">
+      Agent Interaction Generation:
+     </span>
+     In this section, we outline two distinct interaction scenarios for AntEval: information exchange and intention expression, both based on Dungeons and Dragons (DND) game settings. We create scenarios with
+     <math alttext="T" class="ltx_Math" display="inline" id="S3.SS1.p5.1.m1.1">
+      <semantics id="S3.SS1.p5.1.m1.1a">
+       <mi id="S3.SS1.p5.1.m1.1.1" xref="S3.SS1.p5.1.m1.1.1.cmml">
+        T
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p5.1.m1.1b">
+        <ci id="S3.SS1.p5.1.m1.1.1.cmml" xref="S3.SS1.p5.1.m1.1.1">
+         𝑇
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p5.1.m1.1c">
+        T
+       </annotation>
+      </semantics>
+     </math>
+     player agents and one Non-Player Character (NPC) agent, with characters crafted by LLMs following DND rules. Each character, including NPCs, possesses distinct attributes such as name, race, background, and personality traits as mentioned above. More details for two scenarios are as follows:
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p6">
+    <p class="ltx_p" id="S3.SS1.p6.1">
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p6.1.1">
+      Information Exchange:
+     </span>
+     In this scenario, the NPC agent holds vital but undisclosed knowledge about the adventure, crucial for the player agents. This knowledge spans five categories: magic items, weapons, task landmarks, monsters, and special hooks, each with unique names and descriptions. The NPC, adhering to its character, does not reveal this information spontaneously. Player agents must actively engage in role-play to discover these clues, necessary for their adventures. They interact with other agents, including the NPC, to gather this information, unaware that the NPC holds key knowledge. After
+     <math alttext="N" class="ltx_Math" display="inline" id="S3.SS1.p6.1.m1.1">
+      <semantics id="S3.SS1.p6.1.m1.1a">
+       <mi id="S3.SS1.p6.1.m1.1.1" xref="S3.SS1.p6.1.m1.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p6.1.m1.1b">
+        <ci id="S3.SS1.p6.1.m1.1.1.cmml" xref="S3.SS1.p6.1.m1.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p6.1.m1.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+     interaction turns, we assess the player agents’ gathered information against the NPC’s pre-known ground truth. The specifics of this evaluation are discussed later.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p7">
+    <p class="ltx_p" id="S3.SS1.p7.1">
+     For instance, as illustrated in Fig
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Agent Interaction Framework ‣ 3 AntEval ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , the NPC agent Keyleth possesses knowledge about a magic item, the Heavenly Chalice, which is unknown to the other player agents Orisik, Adrie, and Valna. These players, each with their own detailed background, interact with Keyleth and others to advance their quest, unaware of the Heavenly Chalice’s existence or Keyleth’s knowledge. They must communicate effectively to uncover clues and progress in their adventure.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p8">
+    <p class="ltx_p" id="S3.SS1.p8.1">
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p8.1.1">
+      Intention Expression:
+     </span>
+     This scenario involves four player agents, each with their own predetermined intentions, interacting over
+     <math alttext="N" class="ltx_Math" display="inline" id="S3.SS1.p8.1.m1.1">
+      <semantics id="S3.SS1.p8.1.m1.1a">
+       <mi id="S3.SS1.p8.1.m1.1.1" xref="S3.SS1.p8.1.m1.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p8.1.m1.1b">
+        <ci id="S3.SS1.p8.1.m1.1.1.cmml" xref="S3.SS1.p8.1.m1.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p8.1.m1.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+     turns. They engage in role-play and adventure activities, reflecting their unique character settings and intentions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p9">
+    <p class="ltx_p" id="S3.SS1.p9.1">
+     As depicted in Fig
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Agent Interaction Framework ‣ 3 AntEval ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , upon discovering a room in the dungeon, each of the four agents is assigned specific intentions based on the rule books. They then interact, taking into account their character profiles and goals. For example, Valna, intending to explore the maze, searches the room for clues. Conversely, Keyleth, with no specific intention, remains passive, observing the surroundings without engaging actively.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="216" id="S3.F2.g1" src="/html/2401.06509/assets/x2.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Evaluation Pipeline for Informativeness and Expressiveness: We initiate the process by having agents interact in two scenarios: one focused on expressing intentions, and the other on exchanging knowledge. To evaluate expressiveness, we utilize both agent-generated and real game interactions
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     to fine-tune and assess the LLMs’ performance. For informativeness, agents are questioned about the information they gathered during interactions, and their responses are compared with predefined ground truths to evaluate the precision of the information they acquired. The proposed approach efficiently assesses the agents in terms of both informativeness and expressiveness.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Evaluation of Informativeness in Agent Interactions
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     To encourage agents to move beyond basic, repetitive interactions such as greetings, and instead engage in more substantial and informative exchanges, we propose a metric called Information Exchange Precision (IEP). This metric is specifically designed to evaluate the quality of interactions in the information exchange scenarios of our framework.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.3">
+     The evaluation procedure commences by asking each player agent, ‘What information did you gather from the previous interactions?’ Following this, we employ a summarization model, developed using LLMs, to condense the agents’ responses into
+     <math alttext="k" class="ltx_Math" display="inline" id="S3.SS2.p2.1.m1.1">
+      <semantics id="S3.SS2.p2.1.m1.1a">
+       <mi id="S3.SS2.p2.1.m1.1.1" xref="S3.SS2.p2.1.m1.1.1.cmml">
+        k
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.1.m1.1b">
+        <ci id="S3.SS2.p2.1.m1.1.1.cmml" xref="S3.SS2.p2.1.m1.1.1">
+         𝑘
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.1.m1.1c">
+        k
+       </annotation>
+      </semantics>
+     </math>
+     key points. This summarization model simultaneously processes the pre-defined knowledge possessed by the NPC agent, summarize it into an equivalent set of
+     <math alttext="k" class="ltx_Math" display="inline" id="S3.SS2.p2.2.m2.1">
+      <semantics id="S3.SS2.p2.2.m2.1a">
+       <mi id="S3.SS2.p2.2.m2.1.1" xref="S3.SS2.p2.2.m2.1.1.cmml">
+        k
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.2.m2.1b">
+        <ci id="S3.SS2.p2.2.m2.1.1.cmml" xref="S3.SS2.p2.2.m2.1.1">
+         𝑘
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.2.m2.1c">
+        k
+       </annotation>
+      </semantics>
+     </math>
+     key points. It then performs a comparison between these two sets of key points to ascertain the number of overlaps, which we denote as
+     <math alttext="s" class="ltx_Math" display="inline" id="S3.SS2.p2.3.m3.1">
+      <semantics id="S3.SS2.p2.3.m3.1a">
+       <mi id="S3.SS2.p2.3.m3.1.1" xref="S3.SS2.p2.3.m3.1.1.cmml">
+        s
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.3.m3.1b">
+        <ci id="S3.SS2.p2.3.m3.1.1.cmml" xref="S3.SS2.p2.3.m3.1.1">
+         𝑠
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.3.m3.1c">
+        s
+       </annotation>
+      </semantics>
+     </math>
+     . The Information Exchange Precision (IEP) for each agent is calculated following the equation:
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <table class="ltx_equation ltx_eqn_table" id="S3.E1">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="p=\frac{s}{k}" class="ltx_Math" display="block" id="S3.E1.m1.1">
+         <semantics id="S3.E1.m1.1a">
+          <mrow id="S3.E1.m1.1.1" xref="S3.E1.m1.1.1.cmml">
+           <mi id="S3.E1.m1.1.1.2" xref="S3.E1.m1.1.1.2.cmml">
+            p
+           </mi>
+           <mo id="S3.E1.m1.1.1.1" xref="S3.E1.m1.1.1.1.cmml">
+            =
+           </mo>
+           <mfrac id="S3.E1.m1.1.1.3" xref="S3.E1.m1.1.1.3.cmml">
+            <mi id="S3.E1.m1.1.1.3.2" xref="S3.E1.m1.1.1.3.2.cmml">
+             s
+            </mi>
+            <mi id="S3.E1.m1.1.1.3.3" xref="S3.E1.m1.1.1.3.3.cmml">
+             k
+            </mi>
+           </mfrac>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E1.m1.1b">
+           <apply id="S3.E1.m1.1.1.cmml" xref="S3.E1.m1.1.1">
+            <eq id="S3.E1.m1.1.1.1.cmml" xref="S3.E1.m1.1.1.1">
+            </eq>
+            <ci id="S3.E1.m1.1.1.2.cmml" xref="S3.E1.m1.1.1.2">
+             𝑝
+            </ci>
+            <apply id="S3.E1.m1.1.1.3.cmml" xref="S3.E1.m1.1.1.3">
+             <divide id="S3.E1.m1.1.1.3.1.cmml" xref="S3.E1.m1.1.1.3">
+             </divide>
+             <ci id="S3.E1.m1.1.1.3.2.cmml" xref="S3.E1.m1.1.1.3.2">
+              𝑠
+             </ci>
+             <ci id="S3.E1.m1.1.1.3.3.cmml" xref="S3.E1.m1.1.1.3.3">
+              𝑘
+             </ci>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E1.m1.1c">
+           p=\frac{s}{k}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (1)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p4">
+    <p class="ltx_p" id="S3.SS2.p4.5">
+     As part of the evaluation, illustrated in Fig
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.1 Agent Interaction Framework ‣ 3 AntEval ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , we initiate
+     <math alttext="H" class="ltx_Math" display="inline" id="S3.SS2.p4.1.m1.1">
+      <semantics id="S3.SS2.p4.1.m1.1a">
+       <mi id="S3.SS2.p4.1.m1.1.1" xref="S3.SS2.p4.1.m1.1.1.cmml">
+        H
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.1.m1.1b">
+        <ci id="S3.SS2.p4.1.m1.1.1.cmml" xref="S3.SS2.p4.1.m1.1.1">
+         𝐻
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.1.m1.1c">
+        H
+       </annotation>
+      </semantics>
+     </math>
+     different scenarios with varying character setups and knowledge bases, conducting separate interaction sessions for each. In each interaction session, there are
+     <math alttext="T" class="ltx_Math" display="inline" id="S3.SS2.p4.2.m2.1">
+      <semantics id="S3.SS2.p4.2.m2.1a">
+       <mi id="S3.SS2.p4.2.m2.1.1" xref="S3.SS2.p4.2.m2.1.1.cmml">
+        T
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.2.m2.1b">
+        <ci id="S3.SS2.p4.2.m2.1.1.cmml" xref="S3.SS2.p4.2.m2.1.1">
+         𝑇
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.2.m2.1c">
+        T
+       </annotation>
+      </semantics>
+     </math>
+     player agents, and for each agent, an IEP is calculated, resulting in a set of the IEP
+     <math alttext="\{p_{1},...,p_{T}\}" class="ltx_Math" display="inline" id="S3.SS2.p4.3.m3.3">
+      <semantics id="S3.SS2.p4.3.m3.3a">
+       <mrow id="S3.SS2.p4.3.m3.3.3.2" xref="S3.SS2.p4.3.m3.3.3.3.cmml">
+        <mo id="S3.SS2.p4.3.m3.3.3.2.3" stretchy="false" xref="S3.SS2.p4.3.m3.3.3.3.cmml">
+         {
+        </mo>
+        <msub id="S3.SS2.p4.3.m3.2.2.1.1" xref="S3.SS2.p4.3.m3.2.2.1.1.cmml">
+         <mi id="S3.SS2.p4.3.m3.2.2.1.1.2" xref="S3.SS2.p4.3.m3.2.2.1.1.2.cmml">
+          p
+         </mi>
+         <mn id="S3.SS2.p4.3.m3.2.2.1.1.3" xref="S3.SS2.p4.3.m3.2.2.1.1.3.cmml">
+          1
+         </mn>
+        </msub>
+        <mo id="S3.SS2.p4.3.m3.3.3.2.4" xref="S3.SS2.p4.3.m3.3.3.3.cmml">
+         ,
+        </mo>
+        <mi id="S3.SS2.p4.3.m3.1.1" mathvariant="normal" xref="S3.SS2.p4.3.m3.1.1.cmml">
+         …
+        </mi>
+        <mo id="S3.SS2.p4.3.m3.3.3.2.5" xref="S3.SS2.p4.3.m3.3.3.3.cmml">
+         ,
+        </mo>
+        <msub id="S3.SS2.p4.3.m3.3.3.2.2" xref="S3.SS2.p4.3.m3.3.3.2.2.cmml">
+         <mi id="S3.SS2.p4.3.m3.3.3.2.2.2" xref="S3.SS2.p4.3.m3.3.3.2.2.2.cmml">
+          p
+         </mi>
+         <mi id="S3.SS2.p4.3.m3.3.3.2.2.3" xref="S3.SS2.p4.3.m3.3.3.2.2.3.cmml">
+          T
+         </mi>
+        </msub>
+        <mo id="S3.SS2.p4.3.m3.3.3.2.6" stretchy="false" xref="S3.SS2.p4.3.m3.3.3.3.cmml">
+         }
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.3.m3.3b">
+        <set id="S3.SS2.p4.3.m3.3.3.3.cmml" xref="S3.SS2.p4.3.m3.3.3.2">
+         <apply id="S3.SS2.p4.3.m3.2.2.1.1.cmml" xref="S3.SS2.p4.3.m3.2.2.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.p4.3.m3.2.2.1.1.1.cmml" xref="S3.SS2.p4.3.m3.2.2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.p4.3.m3.2.2.1.1.2.cmml" xref="S3.SS2.p4.3.m3.2.2.1.1.2">
+           𝑝
+          </ci>
+          <cn id="S3.SS2.p4.3.m3.2.2.1.1.3.cmml" type="integer" xref="S3.SS2.p4.3.m3.2.2.1.1.3">
+           1
+          </cn>
+         </apply>
+         <ci id="S3.SS2.p4.3.m3.1.1.cmml" xref="S3.SS2.p4.3.m3.1.1">
+          …
+         </ci>
+         <apply id="S3.SS2.p4.3.m3.3.3.2.2.cmml" xref="S3.SS2.p4.3.m3.3.3.2.2">
+          <csymbol cd="ambiguous" id="S3.SS2.p4.3.m3.3.3.2.2.1.cmml" xref="S3.SS2.p4.3.m3.3.3.2.2">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.p4.3.m3.3.3.2.2.2.cmml" xref="S3.SS2.p4.3.m3.3.3.2.2.2">
+           𝑝
+          </ci>
+          <ci id="S3.SS2.p4.3.m3.3.3.2.2.3.cmml" xref="S3.SS2.p4.3.m3.3.3.2.2.3">
+           𝑇
+          </ci>
+         </apply>
+        </set>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.3.m3.3c">
+        \{p_{1},...,p_{T}\}
+       </annotation>
+      </semantics>
+     </math>
+     . Across all sessions, this leads to a comprehensive set of the IEP
+     <math alttext="\{p_{1},...,p_{H*T}\}" class="ltx_Math" display="inline" id="S3.SS2.p4.4.m4.3">
+      <semantics id="S3.SS2.p4.4.m4.3a">
+       <mrow id="S3.SS2.p4.4.m4.3.3.2" xref="S3.SS2.p4.4.m4.3.3.3.cmml">
+        <mo id="S3.SS2.p4.4.m4.3.3.2.3" stretchy="false" xref="S3.SS2.p4.4.m4.3.3.3.cmml">
+         {
+        </mo>
+        <msub id="S3.SS2.p4.4.m4.2.2.1.1" xref="S3.SS2.p4.4.m4.2.2.1.1.cmml">
+         <mi id="S3.SS2.p4.4.m4.2.2.1.1.2" xref="S3.SS2.p4.4.m4.2.2.1.1.2.cmml">
+          p
+         </mi>
+         <mn id="S3.SS2.p4.4.m4.2.2.1.1.3" xref="S3.SS2.p4.4.m4.2.2.1.1.3.cmml">
+          1
+         </mn>
+        </msub>
+        <mo id="S3.SS2.p4.4.m4.3.3.2.4" xref="S3.SS2.p4.4.m4.3.3.3.cmml">
+         ,
+        </mo>
+        <mi id="S3.SS2.p4.4.m4.1.1" mathvariant="normal" xref="S3.SS2.p4.4.m4.1.1.cmml">
+         …
+        </mi>
+        <mo id="S3.SS2.p4.4.m4.3.3.2.5" xref="S3.SS2.p4.4.m4.3.3.3.cmml">
+         ,
+        </mo>
+        <msub id="S3.SS2.p4.4.m4.3.3.2.2" xref="S3.SS2.p4.4.m4.3.3.2.2.cmml">
+         <mi id="S3.SS2.p4.4.m4.3.3.2.2.2" xref="S3.SS2.p4.4.m4.3.3.2.2.2.cmml">
+          p
+         </mi>
+         <mrow id="S3.SS2.p4.4.m4.3.3.2.2.3" xref="S3.SS2.p4.4.m4.3.3.2.2.3.cmml">
+          <mi id="S3.SS2.p4.4.m4.3.3.2.2.3.2" xref="S3.SS2.p4.4.m4.3.3.2.2.3.2.cmml">
+           H
+          </mi>
+          <mo id="S3.SS2.p4.4.m4.3.3.2.2.3.1" lspace="0.222em" rspace="0.222em" xref="S3.SS2.p4.4.m4.3.3.2.2.3.1.cmml">
+           ∗
+          </mo>
+          <mi id="S3.SS2.p4.4.m4.3.3.2.2.3.3" xref="S3.SS2.p4.4.m4.3.3.2.2.3.3.cmml">
+           T
+          </mi>
+         </mrow>
+        </msub>
+        <mo id="S3.SS2.p4.4.m4.3.3.2.6" stretchy="false" xref="S3.SS2.p4.4.m4.3.3.3.cmml">
+         }
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.4.m4.3b">
+        <set id="S3.SS2.p4.4.m4.3.3.3.cmml" xref="S3.SS2.p4.4.m4.3.3.2">
+         <apply id="S3.SS2.p4.4.m4.2.2.1.1.cmml" xref="S3.SS2.p4.4.m4.2.2.1.1">
+          <csymbol cd="ambiguous" id="S3.SS2.p4.4.m4.2.2.1.1.1.cmml" xref="S3.SS2.p4.4.m4.2.2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.p4.4.m4.2.2.1.1.2.cmml" xref="S3.SS2.p4.4.m4.2.2.1.1.2">
+           𝑝
+          </ci>
+          <cn id="S3.SS2.p4.4.m4.2.2.1.1.3.cmml" type="integer" xref="S3.SS2.p4.4.m4.2.2.1.1.3">
+           1
+          </cn>
+         </apply>
+         <ci id="S3.SS2.p4.4.m4.1.1.cmml" xref="S3.SS2.p4.4.m4.1.1">
+          …
+         </ci>
+         <apply id="S3.SS2.p4.4.m4.3.3.2.2.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2">
+          <csymbol cd="ambiguous" id="S3.SS2.p4.4.m4.3.3.2.2.1.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2">
+           subscript
+          </csymbol>
+          <ci id="S3.SS2.p4.4.m4.3.3.2.2.2.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2.2">
+           𝑝
+          </ci>
+          <apply id="S3.SS2.p4.4.m4.3.3.2.2.3.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2.3">
+           <times id="S3.SS2.p4.4.m4.3.3.2.2.3.1.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2.3.1">
+           </times>
+           <ci id="S3.SS2.p4.4.m4.3.3.2.2.3.2.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2.3.2">
+            𝐻
+           </ci>
+           <ci id="S3.SS2.p4.4.m4.3.3.2.2.3.3.cmml" xref="S3.SS2.p4.4.m4.3.3.2.2.3.3">
+            𝑇
+           </ci>
+          </apply>
+         </apply>
+        </set>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.4.m4.3c">
+        \{p_{1},...,p_{H*T}\}
+       </annotation>
+      </semantics>
+     </math>
+     . The final step involves computing the average IEP, denoted as
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p4.5.m5.1">
+      <semantics id="S3.SS2.p4.5.m5.1a">
+       <mi id="S3.SS2.p4.5.m5.1.1" xref="S3.SS2.p4.5.m5.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.5.m5.1b">
+        <ci id="S3.SS2.p4.5.m5.1.1.cmml" xref="S3.SS2.p4.5.m5.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.5.m5.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     , which serves as the final result for evaluating the informativeness of the agent interactions.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Evaluation of Expressiveness in Agent Interaction
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.5">
+     For the expressiveness evaluation, we adopt the approach of using a virtual Dungeon Master (DM) and an intention estimation task, as outlined in previous work
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . We aim to gauge the quality of interactions qualitatively. In this process, LLMs are fine-tuned and used to construct virtual DM to estimate intentions, learning from both generated and real data. The unique mechanism of TRPGs allows character intentions to be annotated through skill checks during games, as recorded in real game logs. We denote the interactions between human players as
+     <math alttext="x_{r}" class="ltx_Math" display="inline" id="S3.SS3.p1.1.m1.1">
+      <semantics id="S3.SS3.p1.1.m1.1a">
+       <msub id="S3.SS3.p1.1.m1.1.1" xref="S3.SS3.p1.1.m1.1.1.cmml">
+        <mi id="S3.SS3.p1.1.m1.1.1.2" xref="S3.SS3.p1.1.m1.1.1.2.cmml">
+         x
+        </mi>
+        <mi id="S3.SS3.p1.1.m1.1.1.3" xref="S3.SS3.p1.1.m1.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p1.1.m1.1b">
+        <apply id="S3.SS3.p1.1.m1.1.1.cmml" xref="S3.SS3.p1.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p1.1.m1.1.1.1.cmml" xref="S3.SS3.p1.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p1.1.m1.1.1.2.cmml" xref="S3.SS3.p1.1.m1.1.1.2">
+          𝑥
+         </ci>
+         <ci id="S3.SS3.p1.1.m1.1.1.3.cmml" xref="S3.SS3.p1.1.m1.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p1.1.m1.1c">
+        x_{r}
+       </annotation>
+      </semantics>
+     </math>
+     and the corresponding skill checks, which serve as intention labels, as
+     <math alttext="y_{r}" class="ltx_Math" display="inline" id="S3.SS3.p1.2.m2.1">
+      <semantics id="S3.SS3.p1.2.m2.1a">
+       <msub id="S3.SS3.p1.2.m2.1.1" xref="S3.SS3.p1.2.m2.1.1.cmml">
+        <mi id="S3.SS3.p1.2.m2.1.1.2" xref="S3.SS3.p1.2.m2.1.1.2.cmml">
+         y
+        </mi>
+        <mi id="S3.SS3.p1.2.m2.1.1.3" xref="S3.SS3.p1.2.m2.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p1.2.m2.1b">
+        <apply id="S3.SS3.p1.2.m2.1.1.cmml" xref="S3.SS3.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p1.2.m2.1.1.1.cmml" xref="S3.SS3.p1.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p1.2.m2.1.1.2.cmml" xref="S3.SS3.p1.2.m2.1.1.2">
+          𝑦
+         </ci>
+         <ci id="S3.SS3.p1.2.m2.1.1.3.cmml" xref="S3.SS3.p1.2.m2.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p1.2.m2.1c">
+        y_{r}
+       </annotation>
+      </semantics>
+     </math>
+     . For our framework, agent interactions are driven by predefined intentions, naturally incorporating intention labels. We denote these generated interactions as
+     <math alttext="x_{v}" class="ltx_Math" display="inline" id="S3.SS3.p1.3.m3.1">
+      <semantics id="S3.SS3.p1.3.m3.1a">
+       <msub id="S3.SS3.p1.3.m3.1.1" xref="S3.SS3.p1.3.m3.1.1.cmml">
+        <mi id="S3.SS3.p1.3.m3.1.1.2" xref="S3.SS3.p1.3.m3.1.1.2.cmml">
+         x
+        </mi>
+        <mi id="S3.SS3.p1.3.m3.1.1.3" xref="S3.SS3.p1.3.m3.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p1.3.m3.1b">
+        <apply id="S3.SS3.p1.3.m3.1.1.cmml" xref="S3.SS3.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p1.3.m3.1.1.1.cmml" xref="S3.SS3.p1.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p1.3.m3.1.1.2.cmml" xref="S3.SS3.p1.3.m3.1.1.2">
+          𝑥
+         </ci>
+         <ci id="S3.SS3.p1.3.m3.1.1.3.cmml" xref="S3.SS3.p1.3.m3.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p1.3.m3.1c">
+        x_{v}
+       </annotation>
+      </semantics>
+     </math>
+     and their predefined intentions as
+     <math alttext="y_{v}" class="ltx_Math" display="inline" id="S3.SS3.p1.4.m4.1">
+      <semantics id="S3.SS3.p1.4.m4.1a">
+       <msub id="S3.SS3.p1.4.m4.1.1" xref="S3.SS3.p1.4.m4.1.1.cmml">
+        <mi id="S3.SS3.p1.4.m4.1.1.2" xref="S3.SS3.p1.4.m4.1.1.2.cmml">
+         y
+        </mi>
+        <mi id="S3.SS3.p1.4.m4.1.1.3" xref="S3.SS3.p1.4.m4.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p1.4.m4.1b">
+        <apply id="S3.SS3.p1.4.m4.1.1.cmml" xref="S3.SS3.p1.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p1.4.m4.1.1.1.cmml" xref="S3.SS3.p1.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p1.4.m4.1.1.2.cmml" xref="S3.SS3.p1.4.m4.1.1.2">
+          𝑦
+         </ci>
+         <ci id="S3.SS3.p1.4.m4.1.1.3.cmml" xref="S3.SS3.p1.4.m4.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p1.4.m4.1c">
+        y_{v}
+       </annotation>
+      </semantics>
+     </math>
+     . All intention labels
+     <math alttext="y" class="ltx_Math" display="inline" id="S3.SS3.p1.5.m5.1">
+      <semantics id="S3.SS3.p1.5.m5.1a">
+       <mi id="S3.SS3.p1.5.m5.1.1" xref="S3.SS3.p1.5.m5.1.1.cmml">
+        y
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p1.5.m5.1b">
+        <ci id="S3.SS3.p1.5.m5.1.1.cmml" xref="S3.SS3.p1.5.m5.1.1">
+         𝑦
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p1.5.m5.1c">
+        y
+       </annotation>
+      </semantics>
+     </math>
+     are formulated as a triplet (character name, skill name), as in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . We assess the F-score of predicted character names, indicating who is acting, and the F-score of the overall triplet, indicating both who and how they act.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     To assess the quality of interactions, we focus on the performance disparity in the intention estimation task between models fine-tuned with agent-generated data and those with real data. The central premise is that if agent-generated interactions effectively mirror the expressiveness and complexity of real human interactions, then a virtual Dungeon Master (DM) fine-tuned with this generated data should competently understand real human interactions. Previous research indicates that training with real data typically improves the understanding abilities of virtual DMs
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . Consequently, a smaller performance gap between virtual DMs fine-tuned with real data and those with generated data suggests that the agent-generated interactions closely approximate the nuanced, expressive nature of authentic human interactions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p3">
+    <p class="ltx_p" id="S3.SS3.p3.7">
+     Specifically, AntEval quantifies expressiveness by measuring the difference in intention understanding between agent-generated and real-human interactions. We introduce two virtual DM agents,
+     <math alttext="D_{r}" class="ltx_Math" display="inline" id="S3.SS3.p3.1.m1.1">
+      <semantics id="S3.SS3.p3.1.m1.1a">
+       <msub id="S3.SS3.p3.1.m1.1.1" xref="S3.SS3.p3.1.m1.1.1.cmml">
+        <mi id="S3.SS3.p3.1.m1.1.1.2" xref="S3.SS3.p3.1.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S3.SS3.p3.1.m1.1.1.3" xref="S3.SS3.p3.1.m1.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.1.m1.1b">
+        <apply id="S3.SS3.p3.1.m1.1.1.cmml" xref="S3.SS3.p3.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.1.m1.1.1.1.cmml" xref="S3.SS3.p3.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.1.m1.1.1.2.cmml" xref="S3.SS3.p3.1.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S3.SS3.p3.1.m1.1.1.3.cmml" xref="S3.SS3.p3.1.m1.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.1.m1.1c">
+        D_{r}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="D_{v}" class="ltx_Math" display="inline" id="S3.SS3.p3.2.m2.1">
+      <semantics id="S3.SS3.p3.2.m2.1a">
+       <msub id="S3.SS3.p3.2.m2.1.1" xref="S3.SS3.p3.2.m2.1.1.cmml">
+        <mi id="S3.SS3.p3.2.m2.1.1.2" xref="S3.SS3.p3.2.m2.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S3.SS3.p3.2.m2.1.1.3" xref="S3.SS3.p3.2.m2.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.2.m2.1b">
+        <apply id="S3.SS3.p3.2.m2.1.1.cmml" xref="S3.SS3.p3.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.2.m2.1.1.1.cmml" xref="S3.SS3.p3.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.2.m2.1.1.2.cmml" xref="S3.SS3.p3.2.m2.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S3.SS3.p3.2.m2.1.1.3.cmml" xref="S3.SS3.p3.2.m2.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.2.m2.1c">
+        D_{v}
+       </annotation>
+      </semantics>
+     </math>
+     , fine-tuned on real interactions (
+     <math alttext="x_{r}" class="ltx_Math" display="inline" id="S3.SS3.p3.3.m3.1">
+      <semantics id="S3.SS3.p3.3.m3.1a">
+       <msub id="S3.SS3.p3.3.m3.1.1" xref="S3.SS3.p3.3.m3.1.1.cmml">
+        <mi id="S3.SS3.p3.3.m3.1.1.2" xref="S3.SS3.p3.3.m3.1.1.2.cmml">
+         x
+        </mi>
+        <mi id="S3.SS3.p3.3.m3.1.1.3" xref="S3.SS3.p3.3.m3.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.3.m3.1b">
+        <apply id="S3.SS3.p3.3.m3.1.1.cmml" xref="S3.SS3.p3.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.3.m3.1.1.1.cmml" xref="S3.SS3.p3.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.3.m3.1.1.2.cmml" xref="S3.SS3.p3.3.m3.1.1.2">
+          𝑥
+         </ci>
+         <ci id="S3.SS3.p3.3.m3.1.1.3.cmml" xref="S3.SS3.p3.3.m3.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.3.m3.1c">
+        x_{r}
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="y_{r}" class="ltx_Math" display="inline" id="S3.SS3.p3.4.m4.1">
+      <semantics id="S3.SS3.p3.4.m4.1a">
+       <msub id="S3.SS3.p3.4.m4.1.1" xref="S3.SS3.p3.4.m4.1.1.cmml">
+        <mi id="S3.SS3.p3.4.m4.1.1.2" xref="S3.SS3.p3.4.m4.1.1.2.cmml">
+         y
+        </mi>
+        <mi id="S3.SS3.p3.4.m4.1.1.3" xref="S3.SS3.p3.4.m4.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.4.m4.1b">
+        <apply id="S3.SS3.p3.4.m4.1.1.cmml" xref="S3.SS3.p3.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.4.m4.1.1.1.cmml" xref="S3.SS3.p3.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.4.m4.1.1.2.cmml" xref="S3.SS3.p3.4.m4.1.1.2">
+          𝑦
+         </ci>
+         <ci id="S3.SS3.p3.4.m4.1.1.3.cmml" xref="S3.SS3.p3.4.m4.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.4.m4.1c">
+        y_{r}
+       </annotation>
+      </semantics>
+     </math>
+     ) and agent-generated interactions (
+     <math alttext="x_{v}" class="ltx_Math" display="inline" id="S3.SS3.p3.5.m5.1">
+      <semantics id="S3.SS3.p3.5.m5.1a">
+       <msub id="S3.SS3.p3.5.m5.1.1" xref="S3.SS3.p3.5.m5.1.1.cmml">
+        <mi id="S3.SS3.p3.5.m5.1.1.2" xref="S3.SS3.p3.5.m5.1.1.2.cmml">
+         x
+        </mi>
+        <mi id="S3.SS3.p3.5.m5.1.1.3" xref="S3.SS3.p3.5.m5.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.5.m5.1b">
+        <apply id="S3.SS3.p3.5.m5.1.1.cmml" xref="S3.SS3.p3.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.5.m5.1.1.1.cmml" xref="S3.SS3.p3.5.m5.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.5.m5.1.1.2.cmml" xref="S3.SS3.p3.5.m5.1.1.2">
+          𝑥
+         </ci>
+         <ci id="S3.SS3.p3.5.m5.1.1.3.cmml" xref="S3.SS3.p3.5.m5.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.5.m5.1c">
+        x_{v}
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="y_{v}" class="ltx_Math" display="inline" id="S3.SS3.p3.6.m6.1">
+      <semantics id="S3.SS3.p3.6.m6.1a">
+       <msub id="S3.SS3.p3.6.m6.1.1" xref="S3.SS3.p3.6.m6.1.1.cmml">
+        <mi id="S3.SS3.p3.6.m6.1.1.2" xref="S3.SS3.p3.6.m6.1.1.2.cmml">
+         y
+        </mi>
+        <mi id="S3.SS3.p3.6.m6.1.1.3" xref="S3.SS3.p3.6.m6.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.6.m6.1b">
+        <apply id="S3.SS3.p3.6.m6.1.1.cmml" xref="S3.SS3.p3.6.m6.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p3.6.m6.1.1.1.cmml" xref="S3.SS3.p3.6.m6.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p3.6.m6.1.1.2.cmml" xref="S3.SS3.p3.6.m6.1.1.2">
+          𝑦
+         </ci>
+         <ci id="S3.SS3.p3.6.m6.1.1.3.cmml" xref="S3.SS3.p3.6.m6.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.6.m6.1c">
+        y_{v}
+       </annotation>
+      </semantics>
+     </math>
+     ), respectively. The performance gap,
+     <math alttext="G" class="ltx_Math" display="inline" id="S3.SS3.p3.7.m7.1">
+      <semantics id="S3.SS3.p3.7.m7.1a">
+       <mi id="S3.SS3.p3.7.m7.1.1" xref="S3.SS3.p3.7.m7.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p3.7.m7.1b">
+        <ci id="S3.SS3.p3.7.m7.1.1.cmml" xref="S3.SS3.p3.7.m7.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p3.7.m7.1c">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     , is calculated by comparing the F-scores of their intention predictions:
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p4">
+    <table class="ltx_equationgroup ltx_eqn_table" id="S3.E2">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline" id="S3.E2X">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_eqn_cell">
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle f_{r}=F(D_{r}(x_{r}),y_{r})," class="ltx_Math" display="inline" id="S3.E2X.2.1.1.m1.1">
+         <semantics id="S3.E2X.2.1.1.m1.1a">
+          <mrow id="S3.E2X.2.1.1.m1.1.1.1" xref="S3.E2X.2.1.1.m1.1.1.1.1.cmml">
+           <mrow id="S3.E2X.2.1.1.m1.1.1.1.1" xref="S3.E2X.2.1.1.m1.1.1.1.1.cmml">
+            <msub id="S3.E2X.2.1.1.m1.1.1.1.1.4" xref="S3.E2X.2.1.1.m1.1.1.1.1.4.cmml">
+             <mi id="S3.E2X.2.1.1.m1.1.1.1.1.4.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.4.2.cmml">
+              f
+             </mi>
+             <mi id="S3.E2X.2.1.1.m1.1.1.1.1.4.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.4.3.cmml">
+              r
+             </mi>
+            </msub>
+            <mo id="S3.E2X.2.1.1.m1.1.1.1.1.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.3.cmml">
+             =
+            </mo>
+            <mrow id="S3.E2X.2.1.1.m1.1.1.1.1.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.cmml">
+             <mi id="S3.E2X.2.1.1.m1.1.1.1.1.2.4" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.4.cmml">
+              F
+             </mi>
+             <mo id="S3.E2X.2.1.1.m1.1.1.1.1.2.3" lspace="0em" rspace="0em" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.3.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+              <mo id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.3" stretchy="false" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               (
+              </mo>
+              <mrow id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.cmml">
+               <msub id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.cmml">
+                <mi id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.2.cmml">
+                 D
+                </mi>
+                <mi id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.3.cmml">
+                 r
+                </mi>
+               </msub>
+               <mo id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.2" lspace="0em" rspace="0em" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.2.cmml">
+                ​
+               </mo>
+               <mrow id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                <mo id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 (
+                </mo>
+                <msub id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 <mi id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                  x
+                 </mi>
+                 <mi id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                  r
+                 </mi>
+                </msub>
+                <mo id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.3" stretchy="false" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 )
+                </mo>
+               </mrow>
+              </mrow>
+              <mo id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.4" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               ,
+              </mo>
+              <msub id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.cmml">
+               <mi id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.2.cmml">
+                y
+               </mi>
+               <mi id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.3" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.3.cmml">
+                r
+               </mi>
+              </msub>
+              <mo id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.5" stretchy="false" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+           </mrow>
+           <mo id="S3.E2X.2.1.1.m1.1.1.1.2" xref="S3.E2X.2.1.1.m1.1.1.1.1.cmml">
+            ,
+           </mo>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E2X.2.1.1.m1.1b">
+           <apply id="S3.E2X.2.1.1.m1.1.1.1.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1">
+            <eq id="S3.E2X.2.1.1.m1.1.1.1.1.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.3">
+            </eq>
+            <apply id="S3.E2X.2.1.1.m1.1.1.1.1.4.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.4">
+             <csymbol cd="ambiguous" id="S3.E2X.2.1.1.m1.1.1.1.1.4.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.4">
+              subscript
+             </csymbol>
+             <ci id="S3.E2X.2.1.1.m1.1.1.1.1.4.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.4.2">
+              𝑓
+             </ci>
+             <ci id="S3.E2X.2.1.1.m1.1.1.1.1.4.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.4.3">
+              𝑟
+             </ci>
+            </apply>
+            <apply id="S3.E2X.2.1.1.m1.1.1.1.1.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2">
+             <times id="S3.E2X.2.1.1.m1.1.1.1.1.2.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.3">
+             </times>
+             <ci id="S3.E2X.2.1.1.m1.1.1.1.1.2.4.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.4">
+              𝐹
+             </ci>
+             <interval closure="open" id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2">
+              <apply id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1">
+               <times id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.2">
+               </times>
+               <apply id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3">
+                <csymbol cd="ambiguous" id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.2">
+                 𝐷
+                </ci>
+                <ci id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.3.3">
+                 𝑟
+                </ci>
+               </apply>
+               <apply id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1">
+                <csymbol cd="ambiguous" id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1">
+                 subscript
+                </csymbol>
+                <ci id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2">
+                 𝑥
+                </ci>
+                <ci id="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3">
+                 𝑟
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2">
+               <csymbol cd="ambiguous" id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.1.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2">
+                subscript
+               </csymbol>
+               <ci id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.2.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.2">
+                𝑦
+               </ci>
+               <ci id="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.3.cmml" xref="S3.E2X.2.1.1.m1.1.1.1.1.2.2.2.2.3">
+                𝑟
+               </ci>
+              </apply>
+             </interval>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E2X.2.1.1.m1.1c">
+           \displaystyle f_{r}=F(D_{r}(x_{r}),y_{r}),
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="2">
+        <span class="ltx_tag ltx_tag_equationgroup ltx_align_right">
+         (2)
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline" id="S3.E2Xa">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_eqn_cell">
+       </td>
+       <td class="ltx_td ltx_align_left ltx_eqn_cell">
+        <math alttext="\displaystyle f_{v}=F(D_{v}(x_{r}),y_{r})," class="ltx_Math" display="inline" id="S3.E2Xa.2.1.1.m1.1">
+         <semantics id="S3.E2Xa.2.1.1.m1.1a">
+          <mrow id="S3.E2Xa.2.1.1.m1.1.1.1" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.cmml">
+           <mrow id="S3.E2Xa.2.1.1.m1.1.1.1.1" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.cmml">
+            <msub id="S3.E2Xa.2.1.1.m1.1.1.1.1.4" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4.cmml">
+             <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4.2.cmml">
+              f
+             </mi>
+             <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4.3.cmml">
+              v
+             </mi>
+            </msub>
+            <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.3.cmml">
+             =
+            </mo>
+            <mrow id="S3.E2Xa.2.1.1.m1.1.1.1.1.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.cmml">
+             <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.4" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.4.cmml">
+              F
+             </mi>
+             <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.3" lspace="0em" rspace="0em" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.3.cmml">
+              ​
+             </mo>
+             <mrow id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+              <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.3" stretchy="false" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               (
+              </mo>
+              <mrow id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.cmml">
+               <msub id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.cmml">
+                <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.2.cmml">
+                 D
+                </mi>
+                <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.3.cmml">
+                 v
+                </mi>
+               </msub>
+               <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.2" lspace="0em" rspace="0em" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.2.cmml">
+                ​
+               </mo>
+               <mrow id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.2" stretchy="false" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 (
+                </mo>
+                <msub id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                  x
+                 </mi>
+                 <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                  r
+                 </mi>
+                </msub>
+                <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.3" stretchy="false" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                 )
+                </mo>
+               </mrow>
+              </mrow>
+              <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.4" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               ,
+              </mo>
+              <msub id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.cmml">
+               <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.2.cmml">
+                y
+               </mi>
+               <mi id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.3" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.3.cmml">
+                r
+               </mi>
+              </msub>
+              <mo id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.5" stretchy="false" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.3.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+           </mrow>
+           <mo id="S3.E2Xa.2.1.1.m1.1.1.1.2" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.cmml">
+            ,
+           </mo>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E2Xa.2.1.1.m1.1b">
+           <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1">
+            <eq id="S3.E2Xa.2.1.1.m1.1.1.1.1.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.3">
+            </eq>
+            <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4">
+             <csymbol cd="ambiguous" id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4">
+              subscript
+             </csymbol>
+             <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4.2">
+              𝑓
+             </ci>
+             <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.4.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.4.3">
+              𝑣
+             </ci>
+            </apply>
+            <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2">
+             <times id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.3">
+             </times>
+             <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.4.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.4">
+              𝐹
+             </ci>
+             <interval closure="open" id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2">
+              <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1">
+               <times id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.2">
+               </times>
+               <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3">
+                <csymbol cd="ambiguous" id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.2">
+                 𝐷
+                </ci>
+                <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.3.3">
+                 𝑣
+                </ci>
+               </apply>
+               <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1">
+                <csymbol cd="ambiguous" id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1">
+                 subscript
+                </csymbol>
+                <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.2">
+                 𝑥
+                </ci>
+                <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.1.1.1.1.1.1.1.3">
+                 𝑟
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2">
+               <csymbol cd="ambiguous" id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.1.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2">
+                subscript
+               </csymbol>
+               <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.2.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.2">
+                𝑦
+               </ci>
+               <ci id="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.3.cmml" xref="S3.E2Xa.2.1.1.m1.1.1.1.1.2.2.2.2.3">
+                𝑟
+               </ci>
+              </apply>
+             </interval>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E2Xa.2.1.1.m1.1c">
+           \displaystyle f_{v}=F(D_{v}(x_{r}),y_{r}),
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p5">
+    <table class="ltx_equationgroup ltx_eqn_table" id="S3.E3">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline" id="S3.E3X">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_td ltx_align_right ltx_eqn_cell">
+        <math alttext="\displaystyle G=\left|\frac{f_{r}-f_{v}}{f_{r}+f_{v}}\right|" class="ltx_Math" display="inline" id="S3.E3X.2.1.1.m1.1">
+         <semantics id="S3.E3X.2.1.1.m1.1a">
+          <mrow id="S3.E3X.2.1.1.m1.1.2" xref="S3.E3X.2.1.1.m1.1.2.cmml">
+           <mi id="S3.E3X.2.1.1.m1.1.2.2" xref="S3.E3X.2.1.1.m1.1.2.2.cmml">
+            G
+           </mi>
+           <mo id="S3.E3X.2.1.1.m1.1.2.1" xref="S3.E3X.2.1.1.m1.1.2.1.cmml">
+            =
+           </mo>
+           <mrow id="S3.E3X.2.1.1.m1.1.2.3.2" xref="S3.E3X.2.1.1.m1.1.2.3.1.cmml">
+            <mo id="S3.E3X.2.1.1.m1.1.2.3.2.1" xref="S3.E3X.2.1.1.m1.1.2.3.1.1.cmml">
+             |
+            </mo>
+            <mstyle displaystyle="true" id="S3.E3X.2.1.1.m1.1.1" xref="S3.E3X.2.1.1.m1.1.1.cmml">
+             <mfrac id="S3.E3X.2.1.1.m1.1.1a" xref="S3.E3X.2.1.1.m1.1.1.cmml">
+              <mrow id="S3.E3X.2.1.1.m1.1.1.2" xref="S3.E3X.2.1.1.m1.1.1.2.cmml">
+               <msub id="S3.E3X.2.1.1.m1.1.1.2.2" xref="S3.E3X.2.1.1.m1.1.1.2.2.cmml">
+                <mi id="S3.E3X.2.1.1.m1.1.1.2.2.2" xref="S3.E3X.2.1.1.m1.1.1.2.2.2.cmml">
+                 f
+                </mi>
+                <mi id="S3.E3X.2.1.1.m1.1.1.2.2.3" xref="S3.E3X.2.1.1.m1.1.1.2.2.3.cmml">
+                 r
+                </mi>
+               </msub>
+               <mo id="S3.E3X.2.1.1.m1.1.1.2.1" xref="S3.E3X.2.1.1.m1.1.1.2.1.cmml">
+                −
+               </mo>
+               <msub id="S3.E3X.2.1.1.m1.1.1.2.3" xref="S3.E3X.2.1.1.m1.1.1.2.3.cmml">
+                <mi id="S3.E3X.2.1.1.m1.1.1.2.3.2" xref="S3.E3X.2.1.1.m1.1.1.2.3.2.cmml">
+                 f
+                </mi>
+                <mi id="S3.E3X.2.1.1.m1.1.1.2.3.3" xref="S3.E3X.2.1.1.m1.1.1.2.3.3.cmml">
+                 v
+                </mi>
+               </msub>
+              </mrow>
+              <mrow id="S3.E3X.2.1.1.m1.1.1.3" xref="S3.E3X.2.1.1.m1.1.1.3.cmml">
+               <msub id="S3.E3X.2.1.1.m1.1.1.3.2" xref="S3.E3X.2.1.1.m1.1.1.3.2.cmml">
+                <mi id="S3.E3X.2.1.1.m1.1.1.3.2.2" xref="S3.E3X.2.1.1.m1.1.1.3.2.2.cmml">
+                 f
+                </mi>
+                <mi id="S3.E3X.2.1.1.m1.1.1.3.2.3" xref="S3.E3X.2.1.1.m1.1.1.3.2.3.cmml">
+                 r
+                </mi>
+               </msub>
+               <mo id="S3.E3X.2.1.1.m1.1.1.3.1" xref="S3.E3X.2.1.1.m1.1.1.3.1.cmml">
+                +
+               </mo>
+               <msub id="S3.E3X.2.1.1.m1.1.1.3.3" xref="S3.E3X.2.1.1.m1.1.1.3.3.cmml">
+                <mi id="S3.E3X.2.1.1.m1.1.1.3.3.2" xref="S3.E3X.2.1.1.m1.1.1.3.3.2.cmml">
+                 f
+                </mi>
+                <mi id="S3.E3X.2.1.1.m1.1.1.3.3.3" xref="S3.E3X.2.1.1.m1.1.1.3.3.3.cmml">
+                 v
+                </mi>
+               </msub>
+              </mrow>
+             </mfrac>
+            </mstyle>
+            <mo id="S3.E3X.2.1.1.m1.1.2.3.2.2" xref="S3.E3X.2.1.1.m1.1.2.3.1.1.cmml">
+             |
+            </mo>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S3.E3X.2.1.1.m1.1b">
+           <apply id="S3.E3X.2.1.1.m1.1.2.cmml" xref="S3.E3X.2.1.1.m1.1.2">
+            <eq id="S3.E3X.2.1.1.m1.1.2.1.cmml" xref="S3.E3X.2.1.1.m1.1.2.1">
+            </eq>
+            <ci id="S3.E3X.2.1.1.m1.1.2.2.cmml" xref="S3.E3X.2.1.1.m1.1.2.2">
+             𝐺
+            </ci>
+            <apply id="S3.E3X.2.1.1.m1.1.2.3.1.cmml" xref="S3.E3X.2.1.1.m1.1.2.3.2">
+             <abs id="S3.E3X.2.1.1.m1.1.2.3.1.1.cmml" xref="S3.E3X.2.1.1.m1.1.2.3.2.1">
+             </abs>
+             <apply id="S3.E3X.2.1.1.m1.1.1.cmml" xref="S3.E3X.2.1.1.m1.1.1">
+              <divide id="S3.E3X.2.1.1.m1.1.1.1.cmml" xref="S3.E3X.2.1.1.m1.1.1">
+              </divide>
+              <apply id="S3.E3X.2.1.1.m1.1.1.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.2">
+               <minus id="S3.E3X.2.1.1.m1.1.1.2.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.1">
+               </minus>
+               <apply id="S3.E3X.2.1.1.m1.1.1.2.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.2">
+                <csymbol cd="ambiguous" id="S3.E3X.2.1.1.m1.1.1.2.2.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.2">
+                 subscript
+                </csymbol>
+                <ci id="S3.E3X.2.1.1.m1.1.1.2.2.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.2.2">
+                 𝑓
+                </ci>
+                <ci id="S3.E3X.2.1.1.m1.1.1.2.2.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.2.3">
+                 𝑟
+                </ci>
+               </apply>
+               <apply id="S3.E3X.2.1.1.m1.1.1.2.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.3">
+                <csymbol cd="ambiguous" id="S3.E3X.2.1.1.m1.1.1.2.3.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E3X.2.1.1.m1.1.1.2.3.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.3.2">
+                 𝑓
+                </ci>
+                <ci id="S3.E3X.2.1.1.m1.1.1.2.3.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.2.3.3">
+                 𝑣
+                </ci>
+               </apply>
+              </apply>
+              <apply id="S3.E3X.2.1.1.m1.1.1.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.3">
+               <plus id="S3.E3X.2.1.1.m1.1.1.3.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.1">
+               </plus>
+               <apply id="S3.E3X.2.1.1.m1.1.1.3.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.2">
+                <csymbol cd="ambiguous" id="S3.E3X.2.1.1.m1.1.1.3.2.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.2">
+                 subscript
+                </csymbol>
+                <ci id="S3.E3X.2.1.1.m1.1.1.3.2.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.2.2">
+                 𝑓
+                </ci>
+                <ci id="S3.E3X.2.1.1.m1.1.1.3.2.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.2.3">
+                 𝑟
+                </ci>
+               </apply>
+               <apply id="S3.E3X.2.1.1.m1.1.1.3.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.3">
+                <csymbol cd="ambiguous" id="S3.E3X.2.1.1.m1.1.1.3.3.1.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.3">
+                 subscript
+                </csymbol>
+                <ci id="S3.E3X.2.1.1.m1.1.1.3.3.2.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.3.2">
+                 𝑓
+                </ci>
+                <ci id="S3.E3X.2.1.1.m1.1.1.3.3.3.cmml" xref="S3.E3X.2.1.1.m1.1.1.3.3.3">
+                 𝑣
+                </ci>
+               </apply>
+              </apply>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S3.E3X.2.1.1.m1.1c">
+           \displaystyle G=\left|\frac{f_{r}-f_{v}}{f_{r}+f_{v}}\right|
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equationgroup ltx_align_right">
+         (3)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p6">
+    <p class="ltx_p" id="S3.SS3.p6.5">
+     Ideally, minimal difference in performance between
+     <math alttext="D_{r}" class="ltx_Math" display="inline" id="S3.SS3.p6.1.m1.1">
+      <semantics id="S3.SS3.p6.1.m1.1a">
+       <msub id="S3.SS3.p6.1.m1.1.1" xref="S3.SS3.p6.1.m1.1.1.cmml">
+        <mi id="S3.SS3.p6.1.m1.1.1.2" xref="S3.SS3.p6.1.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S3.SS3.p6.1.m1.1.1.3" xref="S3.SS3.p6.1.m1.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p6.1.m1.1b">
+        <apply id="S3.SS3.p6.1.m1.1.1.cmml" xref="S3.SS3.p6.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p6.1.m1.1.1.1.cmml" xref="S3.SS3.p6.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p6.1.m1.1.1.2.cmml" xref="S3.SS3.p6.1.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S3.SS3.p6.1.m1.1.1.3.cmml" xref="S3.SS3.p6.1.m1.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p6.1.m1.1c">
+        D_{r}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="D_{v}" class="ltx_Math" display="inline" id="S3.SS3.p6.2.m2.1">
+      <semantics id="S3.SS3.p6.2.m2.1a">
+       <msub id="S3.SS3.p6.2.m2.1.1" xref="S3.SS3.p6.2.m2.1.1.cmml">
+        <mi id="S3.SS3.p6.2.m2.1.1.2" xref="S3.SS3.p6.2.m2.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S3.SS3.p6.2.m2.1.1.3" xref="S3.SS3.p6.2.m2.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p6.2.m2.1b">
+        <apply id="S3.SS3.p6.2.m2.1.1.cmml" xref="S3.SS3.p6.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS3.p6.2.m2.1.1.1.cmml" xref="S3.SS3.p6.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS3.p6.2.m2.1.1.2.cmml" xref="S3.SS3.p6.2.m2.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S3.SS3.p6.2.m2.1.1.3.cmml" xref="S3.SS3.p6.2.m2.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p6.2.m2.1c">
+        D_{v}
+       </annotation>
+      </semantics>
+     </math>
+     would suggest that agents can understand and generate realistic interactions. A lower value of
+     <math alttext="|f_{r}-f_{v}|" class="ltx_Math" display="inline" id="S3.SS3.p6.3.m3.1">
+      <semantics id="S3.SS3.p6.3.m3.1a">
+       <mrow id="S3.SS3.p6.3.m3.1.1.1" xref="S3.SS3.p6.3.m3.1.1.2.cmml">
+        <mo id="S3.SS3.p6.3.m3.1.1.1.2" stretchy="false" xref="S3.SS3.p6.3.m3.1.1.2.1.cmml">
+         |
+        </mo>
+        <mrow id="S3.SS3.p6.3.m3.1.1.1.1" xref="S3.SS3.p6.3.m3.1.1.1.1.cmml">
+         <msub id="S3.SS3.p6.3.m3.1.1.1.1.2" xref="S3.SS3.p6.3.m3.1.1.1.1.2.cmml">
+          <mi id="S3.SS3.p6.3.m3.1.1.1.1.2.2" xref="S3.SS3.p6.3.m3.1.1.1.1.2.2.cmml">
+           f
+          </mi>
+          <mi id="S3.SS3.p6.3.m3.1.1.1.1.2.3" xref="S3.SS3.p6.3.m3.1.1.1.1.2.3.cmml">
+           r
+          </mi>
+         </msub>
+         <mo id="S3.SS3.p6.3.m3.1.1.1.1.1" xref="S3.SS3.p6.3.m3.1.1.1.1.1.cmml">
+          −
+         </mo>
+         <msub id="S3.SS3.p6.3.m3.1.1.1.1.3" xref="S3.SS3.p6.3.m3.1.1.1.1.3.cmml">
+          <mi id="S3.SS3.p6.3.m3.1.1.1.1.3.2" xref="S3.SS3.p6.3.m3.1.1.1.1.3.2.cmml">
+           f
+          </mi>
+          <mi id="S3.SS3.p6.3.m3.1.1.1.1.3.3" xref="S3.SS3.p6.3.m3.1.1.1.1.3.3.cmml">
+           v
+          </mi>
+         </msub>
+        </mrow>
+        <mo id="S3.SS3.p6.3.m3.1.1.1.3" stretchy="false" xref="S3.SS3.p6.3.m3.1.1.2.1.cmml">
+         |
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p6.3.m3.1b">
+        <apply id="S3.SS3.p6.3.m3.1.1.2.cmml" xref="S3.SS3.p6.3.m3.1.1.1">
+         <abs id="S3.SS3.p6.3.m3.1.1.2.1.cmml" xref="S3.SS3.p6.3.m3.1.1.1.2">
+         </abs>
+         <apply id="S3.SS3.p6.3.m3.1.1.1.1.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1">
+          <minus id="S3.SS3.p6.3.m3.1.1.1.1.1.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.1">
+          </minus>
+          <apply id="S3.SS3.p6.3.m3.1.1.1.1.2.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.2">
+           <csymbol cd="ambiguous" id="S3.SS3.p6.3.m3.1.1.1.1.2.1.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.2">
+            subscript
+           </csymbol>
+           <ci id="S3.SS3.p6.3.m3.1.1.1.1.2.2.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.2.2">
+            𝑓
+           </ci>
+           <ci id="S3.SS3.p6.3.m3.1.1.1.1.2.3.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.2.3">
+            𝑟
+           </ci>
+          </apply>
+          <apply id="S3.SS3.p6.3.m3.1.1.1.1.3.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.3">
+           <csymbol cd="ambiguous" id="S3.SS3.p6.3.m3.1.1.1.1.3.1.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.3">
+            subscript
+           </csymbol>
+           <ci id="S3.SS3.p6.3.m3.1.1.1.1.3.2.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.3.2">
+            𝑓
+           </ci>
+           <ci id="S3.SS3.p6.3.m3.1.1.1.1.3.3.cmml" xref="S3.SS3.p6.3.m3.1.1.1.1.3.3">
+            𝑣
+           </ci>
+          </apply>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p6.3.m3.1c">
+        |f_{r}-f_{v}|
+       </annotation>
+      </semantics>
+     </math>
+     is desirable. Furthermore, we expect high F-scores for models fine-tuned on both real and generated data, indicated by a higher value of
+     <math alttext="f_{r}+f_{v}" class="ltx_Math" display="inline" id="S3.SS3.p6.4.m4.1">
+      <semantics id="S3.SS3.p6.4.m4.1a">
+       <mrow id="S3.SS3.p6.4.m4.1.1" xref="S3.SS3.p6.4.m4.1.1.cmml">
+        <msub id="S3.SS3.p6.4.m4.1.1.2" xref="S3.SS3.p6.4.m4.1.1.2.cmml">
+         <mi id="S3.SS3.p6.4.m4.1.1.2.2" xref="S3.SS3.p6.4.m4.1.1.2.2.cmml">
+          f
+         </mi>
+         <mi id="S3.SS3.p6.4.m4.1.1.2.3" xref="S3.SS3.p6.4.m4.1.1.2.3.cmml">
+          r
+         </mi>
+        </msub>
+        <mo id="S3.SS3.p6.4.m4.1.1.1" xref="S3.SS3.p6.4.m4.1.1.1.cmml">
+         +
+        </mo>
+        <msub id="S3.SS3.p6.4.m4.1.1.3" xref="S3.SS3.p6.4.m4.1.1.3.cmml">
+         <mi id="S3.SS3.p6.4.m4.1.1.3.2" xref="S3.SS3.p6.4.m4.1.1.3.2.cmml">
+          f
+         </mi>
+         <mi id="S3.SS3.p6.4.m4.1.1.3.3" xref="S3.SS3.p6.4.m4.1.1.3.3.cmml">
+          v
+         </mi>
+        </msub>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p6.4.m4.1b">
+        <apply id="S3.SS3.p6.4.m4.1.1.cmml" xref="S3.SS3.p6.4.m4.1.1">
+         <plus id="S3.SS3.p6.4.m4.1.1.1.cmml" xref="S3.SS3.p6.4.m4.1.1.1">
+         </plus>
+         <apply id="S3.SS3.p6.4.m4.1.1.2.cmml" xref="S3.SS3.p6.4.m4.1.1.2">
+          <csymbol cd="ambiguous" id="S3.SS3.p6.4.m4.1.1.2.1.cmml" xref="S3.SS3.p6.4.m4.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S3.SS3.p6.4.m4.1.1.2.2.cmml" xref="S3.SS3.p6.4.m4.1.1.2.2">
+           𝑓
+          </ci>
+          <ci id="S3.SS3.p6.4.m4.1.1.2.3.cmml" xref="S3.SS3.p6.4.m4.1.1.2.3">
+           𝑟
+          </ci>
+         </apply>
+         <apply id="S3.SS3.p6.4.m4.1.1.3.cmml" xref="S3.SS3.p6.4.m4.1.1.3">
+          <csymbol cd="ambiguous" id="S3.SS3.p6.4.m4.1.1.3.1.cmml" xref="S3.SS3.p6.4.m4.1.1.3">
+           subscript
+          </csymbol>
+          <ci id="S3.SS3.p6.4.m4.1.1.3.2.cmml" xref="S3.SS3.p6.4.m4.1.1.3.2">
+           𝑓
+          </ci>
+          <ci id="S3.SS3.p6.4.m4.1.1.3.3.cmml" xref="S3.SS3.p6.4.m4.1.1.3.3">
+           𝑣
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p6.4.m4.1c">
+        f_{r}+f_{v}
+       </annotation>
+      </semantics>
+     </math>
+     . Consequently, a lower overall metric
+     <math alttext="G" class="ltx_Math" display="inline" id="S3.SS3.p6.5.m5.1">
+      <semantics id="S3.SS3.p6.5.m5.1a">
+       <mi id="S3.SS3.p6.5.m5.1.1" xref="S3.SS3.p6.5.m5.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS3.p6.5.m5.1b">
+        <ci id="S3.SS3.p6.5.m5.1.1.cmml" xref="S3.SS3.p6.5.m5.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS3.p6.5.m5.1c">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     , which takes both factors into account, is preferable.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p7">
+    <p class="ltx_p" id="S3.SS3.p7.1">
+     Additionally, relying on a single virtual Dungeon Master (DM) to evaluate both real and generated interactions might not effectively gauge the quality of these interactions. This is because generated interactions could be overly simplistic, with agents explicitly stating their intentions. In such cases, the virtual DM might easily interpret these low-quality interactions, yet struggle to understand the more complex and nuanced interactions typical of real human players. Moreover, there is a possibility that generated interactions could veer towards trivial small talk, lacking in intention expressiveness. These less informative and unproductive interactions would likely diminish the virtual DM’s performance. Therefore, directly comparing the performance gap between generated and real data may not yield a valuable assessment.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p8">
+    <p class="ltx_p" id="S3.SS3.p8.1">
+     In our approach, we fine-tune the LLMs separately with generated and real data. We then evaluate the performance gap using only real data. This method more effectively reflects the quality of interactions, taking into account both expressiveness and informativeness. By focusing the evaluation on real data, we ensure a more robust and realistic assessment of how well the generated interactions approximate the complexity of actual human communication.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiment
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Implementation Details
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     Our implementation of multi-agent interactions builds upon existing methodologies. Each agent responds sequentially and has the option to perform an action, communicate verbally, or do both simultaneously. Consistent with standard Dungeons and Dragons (DND) game settings, we configure four player agents (
+     <math alttext="T=4" class="ltx_Math" display="inline" id="S4.SS1.p1.1.m1.1">
+      <semantics id="S4.SS1.p1.1.m1.1a">
+       <mrow id="S4.SS1.p1.1.m1.1.1" xref="S4.SS1.p1.1.m1.1.1.cmml">
+        <mi id="S4.SS1.p1.1.m1.1.1.2" xref="S4.SS1.p1.1.m1.1.1.2.cmml">
+         T
+        </mi>
+        <mo id="S4.SS1.p1.1.m1.1.1.1" xref="S4.SS1.p1.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p1.1.m1.1.1.3" xref="S4.SS1.p1.1.m1.1.1.3.cmml">
+         4
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p1.1.m1.1b">
+        <apply id="S4.SS1.p1.1.m1.1.1.cmml" xref="S4.SS1.p1.1.m1.1.1">
+         <eq id="S4.SS1.p1.1.m1.1.1.1.cmml" xref="S4.SS1.p1.1.m1.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p1.1.m1.1.1.2.cmml" xref="S4.SS1.p1.1.m1.1.1.2">
+          𝑇
+         </ci>
+         <cn id="S4.SS1.p1.1.m1.1.1.3.cmml" type="integer" xref="S4.SS1.p1.1.m1.1.1.3">
+          4
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p1.1.m1.1c">
+        T=4
+       </annotation>
+      </semantics>
+     </math>
+     ) and one NPC agent in each session.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.4">
+     To evaluate informativeness, we use prompts that require the LLMs to answer questions in character after
+     <math alttext="100" class="ltx_Math" display="inline" id="S4.SS1.p2.1.m1.1">
+      <semantics id="S4.SS1.p2.1.m1.1a">
+       <mn id="S4.SS1.p2.1.m1.1.1" xref="S4.SS1.p2.1.m1.1.1.cmml">
+        100
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.1.m1.1b">
+        <cn id="S4.SS1.p2.1.m1.1.1.cmml" type="integer" xref="S4.SS1.p2.1.m1.1.1">
+         100
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.1.m1.1c">
+        100
+       </annotation>
+      </semantics>
+     </math>
+     turns of interaction (
+     <math alttext="M=100" class="ltx_Math" display="inline" id="S4.SS1.p2.2.m2.1">
+      <semantics id="S4.SS1.p2.2.m2.1a">
+       <mrow id="S4.SS1.p2.2.m2.1.1" xref="S4.SS1.p2.2.m2.1.1.cmml">
+        <mi id="S4.SS1.p2.2.m2.1.1.2" xref="S4.SS1.p2.2.m2.1.1.2.cmml">
+         M
+        </mi>
+        <mo id="S4.SS1.p2.2.m2.1.1.1" xref="S4.SS1.p2.2.m2.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.2.m2.1.1.3" xref="S4.SS1.p2.2.m2.1.1.3.cmml">
+         100
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.2.m2.1b">
+        <apply id="S4.SS1.p2.2.m2.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1">
+         <eq id="S4.SS1.p2.2.m2.1.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.2.m2.1.1.2.cmml" xref="S4.SS1.p2.2.m2.1.1.2">
+          𝑀
+         </ci>
+         <cn id="S4.SS1.p2.2.m2.1.1.3.cmml" type="integer" xref="S4.SS1.p2.2.m2.1.1.3">
+          100
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.2.m2.1c">
+        M=100
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="N=100" class="ltx_Math" display="inline" id="S4.SS1.p2.3.m3.1">
+      <semantics id="S4.SS1.p2.3.m3.1a">
+       <mrow id="S4.SS1.p2.3.m3.1.1" xref="S4.SS1.p2.3.m3.1.1.cmml">
+        <mi id="S4.SS1.p2.3.m3.1.1.2" xref="S4.SS1.p2.3.m3.1.1.2.cmml">
+         N
+        </mi>
+        <mo id="S4.SS1.p2.3.m3.1.1.1" xref="S4.SS1.p2.3.m3.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.3.m3.1.1.3" xref="S4.SS1.p2.3.m3.1.1.3.cmml">
+         100
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.3.m3.1b">
+        <apply id="S4.SS1.p2.3.m3.1.1.cmml" xref="S4.SS1.p2.3.m3.1.1">
+         <eq id="S4.SS1.p2.3.m3.1.1.1.cmml" xref="S4.SS1.p2.3.m3.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.3.m3.1.1.2.cmml" xref="S4.SS1.p2.3.m3.1.1.2">
+          𝑁
+         </ci>
+         <cn id="S4.SS1.p2.3.m3.1.1.3.cmml" type="integer" xref="S4.SS1.p2.3.m3.1.1.3">
+          100
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.3.m3.1c">
+        N=100
+       </annotation>
+      </semantics>
+     </math>
+     ). Different LLMs are employed as summarization models to summarize the agents’ responses. These summaries are then compared with predefined ground truths to determine the number of matching key points and calculate a match score. We present both the average precision and variance in our experiments. To account for variability in summarization and prediction, each interaction set undergoes
+     <math alttext="5" class="ltx_Math" display="inline" id="S4.SS1.p2.4.m4.1">
+      <semantics id="S4.SS1.p2.4.m4.1a">
+       <mn id="S4.SS1.p2.4.m4.1.1" xref="S4.SS1.p2.4.m4.1.1.cmml">
+        5
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.4.m4.1b">
+        <cn id="S4.SS1.p2.4.m4.1.1.cmml" type="integer" xref="S4.SS1.p2.4.m4.1.1">
+         5
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.4.m4.1c">
+        5
+       </annotation>
+      </semantics>
+     </math>
+     times of prediction and evaluation. The average precision of matching key points and the variance in these precisions are then calculated.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.6">
+     In assessing the expressiveness of LLMs in role-playing scenarios, we fine-tune LLMs using both real and generated data. For model training, real player interactions and generated interactions are uploaded to the OpenAI website for fine-tuning GPT models. In our experiment, the real interaction data comprises
+     <math alttext="838" class="ltx_Math" display="inline" id="S4.SS1.p3.1.m1.1">
+      <semantics id="S4.SS1.p3.1.m1.1a">
+       <mn id="S4.SS1.p3.1.m1.1.1" xref="S4.SS1.p3.1.m1.1.1.cmml">
+        838
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.1.m1.1b">
+        <cn id="S4.SS1.p3.1.m1.1.1.cmml" type="integer" xref="S4.SS1.p3.1.m1.1.1">
+         838
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.1.m1.1c">
+        838
+       </annotation>
+      </semantics>
+     </math>
+     logs, sourced from game logs of human players as detailed in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . We utilize
+     <math alttext="661" class="ltx_Math" display="inline" id="S4.SS1.p3.2.m2.1">
+      <semantics id="S4.SS1.p3.2.m2.1a">
+       <mn id="S4.SS1.p3.2.m2.1.1" xref="S4.SS1.p3.2.m2.1.1.cmml">
+        661
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.2.m2.1b">
+        <cn id="S4.SS1.p3.2.m2.1.1.cmml" type="integer" xref="S4.SS1.p3.2.m2.1.1">
+         661
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.2.m2.1c">
+        661
+       </annotation>
+      </semantics>
+     </math>
+     of these logs for fine-tuning our models, while the remaining
+     <math alttext="177" class="ltx_Math" display="inline" id="S4.SS1.p3.3.m3.1">
+      <semantics id="S4.SS1.p3.3.m3.1a">
+       <mn id="S4.SS1.p3.3.m3.1.1" xref="S4.SS1.p3.3.m3.1.1.cmml">
+        177
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.3.m3.1b">
+        <cn id="S4.SS1.p3.3.m3.1.1.cmml" type="integer" xref="S4.SS1.p3.3.m3.1.1">
+         177
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.3.m3.1c">
+        177
+       </annotation>
+      </semantics>
+     </math>
+     logs serve as the evaluation dataset. The real data selected for fine-tuning encompasses a total of
+     <math alttext="24,615" class="ltx_Math" display="inline" id="S4.SS1.p3.4.m4.2">
+      <semantics id="S4.SS1.p3.4.m4.2a">
+       <mrow id="S4.SS1.p3.4.m4.2.3.2" xref="S4.SS1.p3.4.m4.2.3.1.cmml">
+        <mn id="S4.SS1.p3.4.m4.1.1" xref="S4.SS1.p3.4.m4.1.1.cmml">
+         24
+        </mn>
+        <mo id="S4.SS1.p3.4.m4.2.3.2.1" xref="S4.SS1.p3.4.m4.2.3.1.cmml">
+         ,
+        </mo>
+        <mn id="S4.SS1.p3.4.m4.2.2" xref="S4.SS1.p3.4.m4.2.2.cmml">
+         615
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.4.m4.2b">
+        <list id="S4.SS1.p3.4.m4.2.3.1.cmml" xref="S4.SS1.p3.4.m4.2.3.2">
+         <cn id="S4.SS1.p3.4.m4.1.1.cmml" type="integer" xref="S4.SS1.p3.4.m4.1.1">
+          24
+         </cn>
+         <cn id="S4.SS1.p3.4.m4.2.2.cmml" type="integer" xref="S4.SS1.p3.4.m4.2.2">
+          615
+         </cn>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.4.m4.2c">
+        24,615
+       </annotation>
+      </semantics>
+     </math>
+     interactions. Comparatively, we generate agent interactions across
+     <math alttext="25" class="ltx_Math" display="inline" id="S4.SS1.p3.5.m5.1">
+      <semantics id="S4.SS1.p3.5.m5.1a">
+       <mn id="S4.SS1.p3.5.m5.1.1" xref="S4.SS1.p3.5.m5.1.1.cmml">
+        25
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.5.m5.1b">
+        <cn id="S4.SS1.p3.5.m5.1.1.cmml" type="integer" xref="S4.SS1.p3.5.m5.1.1">
+         25
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.5.m5.1c">
+        25
+       </annotation>
+      </semantics>
+     </math>
+     different sessions, each consisting of
+     <math alttext="100" class="ltx_Math" display="inline" id="S4.SS1.p3.6.m6.1">
+      <semantics id="S4.SS1.p3.6.m6.1a">
+       <mn id="S4.SS1.p3.6.m6.1.1" xref="S4.SS1.p3.6.m6.1.1.cmml">
+        100
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p3.6.m6.1b">
+        <cn id="S4.SS1.p3.6.m6.1.1.cmml" type="integer" xref="S4.SS1.p3.6.m6.1.1">
+         100
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p3.6.m6.1c">
+        100
+       </annotation>
+      </semantics>
+     </math>
+     turns. This approach ensures that the volume of generated data closely aligns with that of the real data, minimizing any potential performance biases attributed to data size disparities. Plans to incorporate more open-source models are slated for future work, expanding the scope and applicability of our research.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Informativeness Evaluation
+   </h3>
+   <figure class="ltx_table" id="S4.T1">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T1.1" style="width:346.9pt;height:120.3pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(69.7pt,-24.2pt) scale(1.67134405787574,1.67134405787574) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T1.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T1.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.1.1.1.1" rowspan="2">
+          <span class="ltx_text" id="S4.T1.1.1.1.1.1.1">
+           Summarization Model
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2" id="S4.T1.1.1.1.1.2">
+          Evaluation Model
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S4.T1.1.1.2.2">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.1.1.2.2.1">
+          GPT-3.5
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.1.1.2.2.2">
+          GPT-4
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T1.1.1.3.1">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_tt" id="S4.T1.1.1.3.1.1">
+          GPT-3.5
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T1.1.1.3.1.2">
+          39.22
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T1.1.1.3.1.3">
+          36.80
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T1.1.1.4.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.1.1.4.2.1">
+          GPT-4
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.1.4.2.2">
+          55.93
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.1.4.2.3">
+          60.40
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Comparison for the mean precision of key point prediction in AntEval.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.2">
+     In our informativeness evaluation, we compare the GPT-3.5 and GPT-4 models. These models act as characters in DND, generating interactions and responding to queries about the information they gather during these interactions. A summarization model is then used to summarize the responses into key points for comparison with predefined ground truths. We report the average precision of these key points in Tab
+     <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.2 Informativeness Evaluation ‣ 4 Experiment ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     . Our experiments show that the performance gap between the GPT-3.5 and GPT-4 models is modest. When GPT-3.5 serves as the summarization model, it slightly outperforms GPT-4 by
+     <math alttext="2.42\%" class="ltx_Math" display="inline" id="S4.SS2.p1.1.m1.1">
+      <semantics id="S4.SS2.p1.1.m1.1a">
+       <mrow id="S4.SS2.p1.1.m1.1.1" xref="S4.SS2.p1.1.m1.1.1.cmml">
+        <mn id="S4.SS2.p1.1.m1.1.1.2" xref="S4.SS2.p1.1.m1.1.1.2.cmml">
+         2.42
+        </mn>
+        <mo id="S4.SS2.p1.1.m1.1.1.1" xref="S4.SS2.p1.1.m1.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.1.m1.1b">
+        <apply id="S4.SS2.p1.1.m1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1">
+         <csymbol cd="latexml" id="S4.SS2.p1.1.m1.1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS2.p1.1.m1.1.1.2.cmml" type="float" xref="S4.SS2.p1.1.m1.1.1.2">
+          2.42
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.1.m1.1c">
+        2.42\%
+       </annotation>
+      </semantics>
+     </math>
+     . In contrast, when GPT-4 is used as the summarization model, it outperforms GPT-3.5 by
+     <math alttext="4.47\%" class="ltx_Math" display="inline" id="S4.SS2.p1.2.m2.1">
+      <semantics id="S4.SS2.p1.2.m2.1a">
+       <mrow id="S4.SS2.p1.2.m2.1.1" xref="S4.SS2.p1.2.m2.1.1.cmml">
+        <mn id="S4.SS2.p1.2.m2.1.1.2" xref="S4.SS2.p1.2.m2.1.1.2.cmml">
+         4.47
+        </mn>
+        <mo id="S4.SS2.p1.2.m2.1.1.1" xref="S4.SS2.p1.2.m2.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.2.m2.1b">
+        <apply id="S4.SS2.p1.2.m2.1.1.cmml" xref="S4.SS2.p1.2.m2.1.1">
+         <csymbol cd="latexml" id="S4.SS2.p1.2.m2.1.1.1.cmml" xref="S4.SS2.p1.2.m2.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS2.p1.2.m2.1.1.2.cmml" type="float" xref="S4.SS2.p1.2.m2.1.1.2">
+          4.47
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.2.m2.1c">
+        4.47\%
+       </annotation>
+      </semantics>
+     </math>
+     , which is also relatively modest. These results lead to two key observations:
+1). Improving informativeness in agent interactions is challenging. All models, despite their advanced capabilities, struggle in this framework. Social interactions, which are typically more straightforward for humans and do not require extensive logical analysis or reasoning, pose a significant challenge to LLMs, highlighting their limitations in social interaction processing and pointing to areas for improvement.
+2). The performance gap between models of different capacities is not significant. Although GPT-4 is more advanced than GPT-3.5, it does not consistently outperform in every scenario. This suggests that current LLMs might not be fully optimized for long-context interactions and may lack the necessary capabilities for effective and informative expression. Interactions often tend to be conservative and repetitive, lacking the depth and richness of real-life human communication.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.2">
+     Furthermore, the choice of the summarization model plays a crucial role. Summarizing with GPT-4 significantly improves performance compared to using GPT-3.5. This implies that while agents might be conveying useful information, the ability of the summarization model to capture these nuances varies, reflecting the different semantic understanding capabilities of LLMs. The notable performance improvements of
+     <math alttext="16.71\%" class="ltx_Math" display="inline" id="S4.SS2.p2.1.m1.1">
+      <semantics id="S4.SS2.p2.1.m1.1a">
+       <mrow id="S4.SS2.p2.1.m1.1.1" xref="S4.SS2.p2.1.m1.1.1.cmml">
+        <mn id="S4.SS2.p2.1.m1.1.1.2" xref="S4.SS2.p2.1.m1.1.1.2.cmml">
+         16.71
+        </mn>
+        <mo id="S4.SS2.p2.1.m1.1.1.1" xref="S4.SS2.p2.1.m1.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.1.m1.1b">
+        <apply id="S4.SS2.p2.1.m1.1.1.cmml" xref="S4.SS2.p2.1.m1.1.1">
+         <csymbol cd="latexml" id="S4.SS2.p2.1.m1.1.1.1.cmml" xref="S4.SS2.p2.1.m1.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS2.p2.1.m1.1.1.2.cmml" type="float" xref="S4.SS2.p2.1.m1.1.1.2">
+          16.71
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.1.m1.1c">
+        16.71\%
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="23.60\%" class="ltx_Math" display="inline" id="S4.SS2.p2.2.m2.1">
+      <semantics id="S4.SS2.p2.2.m2.1a">
+       <mrow id="S4.SS2.p2.2.m2.1.1" xref="S4.SS2.p2.2.m2.1.1.cmml">
+        <mn id="S4.SS2.p2.2.m2.1.1.2" xref="S4.SS2.p2.2.m2.1.1.2.cmml">
+         23.60
+        </mn>
+        <mo id="S4.SS2.p2.2.m2.1.1.1" xref="S4.SS2.p2.2.m2.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p2.2.m2.1b">
+        <apply id="S4.SS2.p2.2.m2.1.1.cmml" xref="S4.SS2.p2.2.m2.1.1">
+         <csymbol cd="latexml" id="S4.SS2.p2.2.m2.1.1.1.cmml" xref="S4.SS2.p2.2.m2.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS2.p2.2.m2.1.1.2.cmml" type="float" xref="S4.SS2.p2.2.m2.1.1.2">
+          23.60
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p2.2.m2.1c">
+        23.60\%
+       </annotation>
+      </semantics>
+     </math>
+     , respectively, when using GPT-4 as opposed to GPT-3.5 as a summarization model, underscore the importance of enhancing LLMs’ comprehension abilities. More sophisticated LLMs, proficient in interpreting human semantics, could potentially lead to better performance in summarizing key points, thereby increasing the precision and efficacy of our framework.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T2.1" style="width:346.9pt;height:120.3pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(69.7pt,-24.2pt) scale(1.67134405787574,1.67134405787574) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T2.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T2.1.1.1.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.1.1.1.1" rowspan="2">
+          <span class="ltx_text" id="S4.T2.1.1.1.1.1.1">
+           Summarization Model
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2" id="S4.T2.1.1.1.1.2">
+          Evaluation Model
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.2.2">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T2.1.1.2.2.1">
+          GPT-3.5
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T2.1.1.2.2.2">
+          GPT-4
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T2.1.1.3.1">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_tt" id="S4.T2.1.1.3.1.1">
+          GPT-3.5
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.3.1.2">
+          5.28
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.3.1.3">
+          5.42
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.4.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.1.4.2.1">
+          GPT-4
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T2.1.1.4.2.2">
+          6.55
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T2.1.1.4.2.3">
+          4.44
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Comparison for the variances of prediction in AntEval.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     Additionally, as illustrated in Tab
+     <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.2 Informativeness Evaluation ‣ 4 Experiment ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , we present the variances calculated for the matching precision of key points. Across all combinations of interaction models and summarization models, the variances are similar, indicating a consistent level of fluctuation in predictions and summarizations. Despite these fluctuations, the variances remain relatively stable, averaging around
+     <math alttext="5\%" class="ltx_Math" display="inline" id="S4.SS2.p3.1.m1.1">
+      <semantics id="S4.SS2.p3.1.m1.1a">
+       <mrow id="S4.SS2.p3.1.m1.1.1" xref="S4.SS2.p3.1.m1.1.1.cmml">
+        <mn id="S4.SS2.p3.1.m1.1.1.2" xref="S4.SS2.p3.1.m1.1.1.2.cmml">
+         5
+        </mn>
+        <mo id="S4.SS2.p3.1.m1.1.1.1" xref="S4.SS2.p3.1.m1.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p3.1.m1.1b">
+        <apply id="S4.SS2.p3.1.m1.1.1.cmml" xref="S4.SS2.p3.1.m1.1.1">
+         <csymbol cd="latexml" id="S4.SS2.p3.1.m1.1.1.1.cmml" xref="S4.SS2.p3.1.m1.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS2.p3.1.m1.1.1.2.cmml" type="integer" xref="S4.SS2.p3.1.m1.1.1.2">
+          5
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p3.1.m1.1c">
+        5\%
+       </annotation>
+      </semantics>
+     </math>
+     . This stability suggests that our evaluation method is not only effective but also demonstrates a considerable degree of robustness. The consistency in variance across different model combinations reinforces the reliability of our approach in assessing the informativeness of agent interactions.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T3">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.8.8" style="width:672.1pt;height:140.1pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(163.3pt,-34.0pt) scale(1.94571992258917,1.94571992258917) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T3.8.8.8">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T3.8.8.8.9.1">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.8.8.8.9.1.1" rowspan="2">
+          <span class="ltx_text" id="S4.T3.8.8.8.9.1.1.1">
+           Model
+          </span>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="4" id="S4.T3.8.8.8.9.1.2">
+          Character Prediction
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="4" id="S4.T3.8.8.8.9.1.3">
+          Intention Prediction
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.8.8.8.8">
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.1.1.1.1.1">
+          <math alttext="f_{0}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.1.1.1.1.1.m1.1">
+           <semantics id="S4.T3.1.1.1.1.1.m1.1a">
+            <mrow id="S4.T3.1.1.1.1.1.m1.1.2" xref="S4.T3.1.1.1.1.1.m1.1.2.cmml">
+             <msub id="S4.T3.1.1.1.1.1.m1.1.2.2" xref="S4.T3.1.1.1.1.1.m1.1.2.2.cmml">
+              <mi id="S4.T3.1.1.1.1.1.m1.1.2.2.2" xref="S4.T3.1.1.1.1.1.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mn id="S4.T3.1.1.1.1.1.m1.1.2.2.3" xref="S4.T3.1.1.1.1.1.m1.1.2.2.3.cmml">
+               0
+              </mn>
+             </msub>
+             <mo id="S4.T3.1.1.1.1.1.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.1.1.1.1.1.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.1.1.1.1.1.m1.1.2.3.2" xref="S4.T3.1.1.1.1.1.m1.1.2.cmml">
+              <mo id="S4.T3.1.1.1.1.1.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.1.1.1.1.1.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.1.1.1.1.1.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.1.1.1.1.1.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.1.1.1.1.1.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.1.1.1.1.1.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.1.1.1.1.1.m1.1b">
+             <apply id="S4.T3.1.1.1.1.1.m1.1.2.cmml" xref="S4.T3.1.1.1.1.1.m1.1.2">
+              <times id="S4.T3.1.1.1.1.1.m1.1.2.1.cmml" xref="S4.T3.1.1.1.1.1.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.1.1.1.1.1.m1.1.2.2.cmml" xref="S4.T3.1.1.1.1.1.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.1.1.1.1.1.m1.1.2.2.1.cmml" xref="S4.T3.1.1.1.1.1.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.1.1.1.1.1.m1.1.2.2.2.cmml" xref="S4.T3.1.1.1.1.1.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <cn id="S4.T3.1.1.1.1.1.m1.1.2.2.3.cmml" type="integer" xref="S4.T3.1.1.1.1.1.m1.1.2.2.3">
+                0
+               </cn>
+              </apply>
+              <ci id="S4.T3.1.1.1.1.1.m1.1.1.cmml" xref="S4.T3.1.1.1.1.1.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.1.1.1.1.1.m1.1c">
+             f_{0}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.2.2.2.2.2">
+          <math alttext="f_{v}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.2.2.2.2.2.m1.1">
+           <semantics id="S4.T3.2.2.2.2.2.m1.1a">
+            <mrow id="S4.T3.2.2.2.2.2.m1.1.2" xref="S4.T3.2.2.2.2.2.m1.1.2.cmml">
+             <msub id="S4.T3.2.2.2.2.2.m1.1.2.2" xref="S4.T3.2.2.2.2.2.m1.1.2.2.cmml">
+              <mi id="S4.T3.2.2.2.2.2.m1.1.2.2.2" xref="S4.T3.2.2.2.2.2.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mi id="S4.T3.2.2.2.2.2.m1.1.2.2.3" xref="S4.T3.2.2.2.2.2.m1.1.2.2.3.cmml">
+               v
+              </mi>
+             </msub>
+             <mo id="S4.T3.2.2.2.2.2.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.2.2.2.2.2.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.2.2.2.2.2.m1.1.2.3.2" xref="S4.T3.2.2.2.2.2.m1.1.2.cmml">
+              <mo id="S4.T3.2.2.2.2.2.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.2.2.2.2.2.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.2.2.2.2.2.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.2.2.2.2.2.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.2.2.2.2.2.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.2.2.2.2.2.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.2.2.2.2.2.m1.1b">
+             <apply id="S4.T3.2.2.2.2.2.m1.1.2.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2">
+              <times id="S4.T3.2.2.2.2.2.m1.1.2.1.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.2.2.2.2.2.m1.1.2.2.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.2.2.2.2.2.m1.1.2.2.1.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.2.2.2.2.2.m1.1.2.2.2.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <ci id="S4.T3.2.2.2.2.2.m1.1.2.2.3.cmml" xref="S4.T3.2.2.2.2.2.m1.1.2.2.3">
+                𝑣
+               </ci>
+              </apply>
+              <ci id="S4.T3.2.2.2.2.2.m1.1.1.cmml" xref="S4.T3.2.2.2.2.2.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.2.2.2.2.2.m1.1c">
+             f_{v}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.3.3.3.3.3">
+          <math alttext="f_{r}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.3.3.3.3.3.m1.1">
+           <semantics id="S4.T3.3.3.3.3.3.m1.1a">
+            <mrow id="S4.T3.3.3.3.3.3.m1.1.2" xref="S4.T3.3.3.3.3.3.m1.1.2.cmml">
+             <msub id="S4.T3.3.3.3.3.3.m1.1.2.2" xref="S4.T3.3.3.3.3.3.m1.1.2.2.cmml">
+              <mi id="S4.T3.3.3.3.3.3.m1.1.2.2.2" xref="S4.T3.3.3.3.3.3.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mi id="S4.T3.3.3.3.3.3.m1.1.2.2.3" xref="S4.T3.3.3.3.3.3.m1.1.2.2.3.cmml">
+               r
+              </mi>
+             </msub>
+             <mo id="S4.T3.3.3.3.3.3.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.3.3.3.3.3.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.3.3.3.3.3.m1.1.2.3.2" xref="S4.T3.3.3.3.3.3.m1.1.2.cmml">
+              <mo id="S4.T3.3.3.3.3.3.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.3.3.3.3.3.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.3.3.3.3.3.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.3.3.3.3.3.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.3.3.3.3.3.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.3.3.3.3.3.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.3.3.3.3.3.m1.1b">
+             <apply id="S4.T3.3.3.3.3.3.m1.1.2.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2">
+              <times id="S4.T3.3.3.3.3.3.m1.1.2.1.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.3.3.3.3.3.m1.1.2.2.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.3.3.3.3.3.m1.1.2.2.1.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.3.3.3.3.3.m1.1.2.2.2.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <ci id="S4.T3.3.3.3.3.3.m1.1.2.2.3.cmml" xref="S4.T3.3.3.3.3.3.m1.1.2.2.3">
+                𝑟
+               </ci>
+              </apply>
+              <ci id="S4.T3.3.3.3.3.3.m1.1.1.cmml" xref="S4.T3.3.3.3.3.3.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.3.3.3.3.3.m1.1c">
+             f_{r}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.4.4.4.4.4">
+          <math alttext="G(\downarrow)" class="ltx_Math" display="inline" id="S4.T3.4.4.4.4.4.m1.1">
+           <semantics id="S4.T3.4.4.4.4.4.m1.1a">
+            <mrow id="S4.T3.4.4.4.4.4.m1.1.2" xref="S4.T3.4.4.4.4.4.m1.1.2.cmml">
+             <mi id="S4.T3.4.4.4.4.4.m1.1.2.2" xref="S4.T3.4.4.4.4.4.m1.1.2.2.cmml">
+              G
+             </mi>
+             <mo id="S4.T3.4.4.4.4.4.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.4.4.4.4.4.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.4.4.4.4.4.m1.1.2.3.2" xref="S4.T3.4.4.4.4.4.m1.1.2.cmml">
+              <mo id="S4.T3.4.4.4.4.4.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.4.4.4.4.4.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.4.4.4.4.4.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.4.4.4.4.4.m1.1.1.cmml">
+               ↓
+              </mo>
+              <mo id="S4.T3.4.4.4.4.4.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.4.4.4.4.4.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.4.4.4.4.4.m1.1b">
+             <apply id="S4.T3.4.4.4.4.4.m1.1.2.cmml" xref="S4.T3.4.4.4.4.4.m1.1.2">
+              <times id="S4.T3.4.4.4.4.4.m1.1.2.1.cmml" xref="S4.T3.4.4.4.4.4.m1.1.2.1">
+              </times>
+              <ci id="S4.T3.4.4.4.4.4.m1.1.2.2.cmml" xref="S4.T3.4.4.4.4.4.m1.1.2.2">
+               𝐺
+              </ci>
+              <ci id="S4.T3.4.4.4.4.4.m1.1.1.cmml" xref="S4.T3.4.4.4.4.4.m1.1.1">
+               ↓
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.4.4.4.4.4.m1.1c">
+             G(\downarrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.5.5.5.5.5">
+          <math alttext="f_{0}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.5.5.5.5.5.m1.1">
+           <semantics id="S4.T3.5.5.5.5.5.m1.1a">
+            <mrow id="S4.T3.5.5.5.5.5.m1.1.2" xref="S4.T3.5.5.5.5.5.m1.1.2.cmml">
+             <msub id="S4.T3.5.5.5.5.5.m1.1.2.2" xref="S4.T3.5.5.5.5.5.m1.1.2.2.cmml">
+              <mi id="S4.T3.5.5.5.5.5.m1.1.2.2.2" xref="S4.T3.5.5.5.5.5.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mn id="S4.T3.5.5.5.5.5.m1.1.2.2.3" xref="S4.T3.5.5.5.5.5.m1.1.2.2.3.cmml">
+               0
+              </mn>
+             </msub>
+             <mo id="S4.T3.5.5.5.5.5.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.5.5.5.5.5.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.5.5.5.5.5.m1.1.2.3.2" xref="S4.T3.5.5.5.5.5.m1.1.2.cmml">
+              <mo id="S4.T3.5.5.5.5.5.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.5.5.5.5.5.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.5.5.5.5.5.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.5.5.5.5.5.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.5.5.5.5.5.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.5.5.5.5.5.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.5.5.5.5.5.m1.1b">
+             <apply id="S4.T3.5.5.5.5.5.m1.1.2.cmml" xref="S4.T3.5.5.5.5.5.m1.1.2">
+              <times id="S4.T3.5.5.5.5.5.m1.1.2.1.cmml" xref="S4.T3.5.5.5.5.5.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.5.5.5.5.5.m1.1.2.2.cmml" xref="S4.T3.5.5.5.5.5.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.5.5.5.5.5.m1.1.2.2.1.cmml" xref="S4.T3.5.5.5.5.5.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.5.5.5.5.5.m1.1.2.2.2.cmml" xref="S4.T3.5.5.5.5.5.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <cn id="S4.T3.5.5.5.5.5.m1.1.2.2.3.cmml" type="integer" xref="S4.T3.5.5.5.5.5.m1.1.2.2.3">
+                0
+               </cn>
+              </apply>
+              <ci id="S4.T3.5.5.5.5.5.m1.1.1.cmml" xref="S4.T3.5.5.5.5.5.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.5.5.5.5.5.m1.1c">
+             f_{0}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.6.6.6.6.6">
+          <math alttext="f_{v}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.6.6.6.6.6.m1.1">
+           <semantics id="S4.T3.6.6.6.6.6.m1.1a">
+            <mrow id="S4.T3.6.6.6.6.6.m1.1.2" xref="S4.T3.6.6.6.6.6.m1.1.2.cmml">
+             <msub id="S4.T3.6.6.6.6.6.m1.1.2.2" xref="S4.T3.6.6.6.6.6.m1.1.2.2.cmml">
+              <mi id="S4.T3.6.6.6.6.6.m1.1.2.2.2" xref="S4.T3.6.6.6.6.6.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mi id="S4.T3.6.6.6.6.6.m1.1.2.2.3" xref="S4.T3.6.6.6.6.6.m1.1.2.2.3.cmml">
+               v
+              </mi>
+             </msub>
+             <mo id="S4.T3.6.6.6.6.6.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.6.6.6.6.6.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.6.6.6.6.6.m1.1.2.3.2" xref="S4.T3.6.6.6.6.6.m1.1.2.cmml">
+              <mo id="S4.T3.6.6.6.6.6.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.6.6.6.6.6.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.6.6.6.6.6.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.6.6.6.6.6.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.6.6.6.6.6.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.6.6.6.6.6.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.6.6.6.6.6.m1.1b">
+             <apply id="S4.T3.6.6.6.6.6.m1.1.2.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2">
+              <times id="S4.T3.6.6.6.6.6.m1.1.2.1.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.6.6.6.6.6.m1.1.2.2.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.6.6.6.6.6.m1.1.2.2.1.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.6.6.6.6.6.m1.1.2.2.2.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <ci id="S4.T3.6.6.6.6.6.m1.1.2.2.3.cmml" xref="S4.T3.6.6.6.6.6.m1.1.2.2.3">
+                𝑣
+               </ci>
+              </apply>
+              <ci id="S4.T3.6.6.6.6.6.m1.1.1.cmml" xref="S4.T3.6.6.6.6.6.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.6.6.6.6.6.m1.1c">
+             f_{v}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.7.7.7.7.7">
+          <math alttext="f_{r}(\uparrow)" class="ltx_Math" display="inline" id="S4.T3.7.7.7.7.7.m1.1">
+           <semantics id="S4.T3.7.7.7.7.7.m1.1a">
+            <mrow id="S4.T3.7.7.7.7.7.m1.1.2" xref="S4.T3.7.7.7.7.7.m1.1.2.cmml">
+             <msub id="S4.T3.7.7.7.7.7.m1.1.2.2" xref="S4.T3.7.7.7.7.7.m1.1.2.2.cmml">
+              <mi id="S4.T3.7.7.7.7.7.m1.1.2.2.2" xref="S4.T3.7.7.7.7.7.m1.1.2.2.2.cmml">
+               f
+              </mi>
+              <mi id="S4.T3.7.7.7.7.7.m1.1.2.2.3" xref="S4.T3.7.7.7.7.7.m1.1.2.2.3.cmml">
+               r
+              </mi>
+             </msub>
+             <mo id="S4.T3.7.7.7.7.7.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.7.7.7.7.7.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.7.7.7.7.7.m1.1.2.3.2" xref="S4.T3.7.7.7.7.7.m1.1.2.cmml">
+              <mo id="S4.T3.7.7.7.7.7.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.7.7.7.7.7.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.7.7.7.7.7.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.7.7.7.7.7.m1.1.1.cmml">
+               ↑
+              </mo>
+              <mo id="S4.T3.7.7.7.7.7.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.7.7.7.7.7.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.7.7.7.7.7.m1.1b">
+             <apply id="S4.T3.7.7.7.7.7.m1.1.2.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2">
+              <times id="S4.T3.7.7.7.7.7.m1.1.2.1.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2.1">
+              </times>
+              <apply id="S4.T3.7.7.7.7.7.m1.1.2.2.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2.2">
+               <csymbol cd="ambiguous" id="S4.T3.7.7.7.7.7.m1.1.2.2.1.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2.2">
+                subscript
+               </csymbol>
+               <ci id="S4.T3.7.7.7.7.7.m1.1.2.2.2.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2.2.2">
+                𝑓
+               </ci>
+               <ci id="S4.T3.7.7.7.7.7.m1.1.2.2.3.cmml" xref="S4.T3.7.7.7.7.7.m1.1.2.2.3">
+                𝑟
+               </ci>
+              </apply>
+              <ci id="S4.T3.7.7.7.7.7.m1.1.1.cmml" xref="S4.T3.7.7.7.7.7.m1.1.1">
+               ↑
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.7.7.7.7.7.m1.1c">
+             f_{r}(\uparrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T3.8.8.8.8.8">
+          <math alttext="G(\downarrow)" class="ltx_Math" display="inline" id="S4.T3.8.8.8.8.8.m1.1">
+           <semantics id="S4.T3.8.8.8.8.8.m1.1a">
+            <mrow id="S4.T3.8.8.8.8.8.m1.1.2" xref="S4.T3.8.8.8.8.8.m1.1.2.cmml">
+             <mi id="S4.T3.8.8.8.8.8.m1.1.2.2" xref="S4.T3.8.8.8.8.8.m1.1.2.2.cmml">
+              G
+             </mi>
+             <mo id="S4.T3.8.8.8.8.8.m1.1.2.1" lspace="0em" rspace="0em" xref="S4.T3.8.8.8.8.8.m1.1.2.1.cmml">
+              ​
+             </mo>
+             <mrow id="S4.T3.8.8.8.8.8.m1.1.2.3.2" xref="S4.T3.8.8.8.8.8.m1.1.2.cmml">
+              <mo id="S4.T3.8.8.8.8.8.m1.1.2.3.2.1" stretchy="false" xref="S4.T3.8.8.8.8.8.m1.1.2.cmml">
+               (
+              </mo>
+              <mo id="S4.T3.8.8.8.8.8.m1.1.1" lspace="0em" rspace="0em" stretchy="false" xref="S4.T3.8.8.8.8.8.m1.1.1.cmml">
+               ↓
+              </mo>
+              <mo id="S4.T3.8.8.8.8.8.m1.1.2.3.2.2" stretchy="false" xref="S4.T3.8.8.8.8.8.m1.1.2.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content" id="S4.T3.8.8.8.8.8.m1.1b">
+             <apply id="S4.T3.8.8.8.8.8.m1.1.2.cmml" xref="S4.T3.8.8.8.8.8.m1.1.2">
+              <times id="S4.T3.8.8.8.8.8.m1.1.2.1.cmml" xref="S4.T3.8.8.8.8.8.m1.1.2.1">
+              </times>
+              <ci id="S4.T3.8.8.8.8.8.m1.1.2.2.cmml" xref="S4.T3.8.8.8.8.8.m1.1.2.2">
+               𝐺
+              </ci>
+              <ci id="S4.T3.8.8.8.8.8.m1.1.1.cmml" xref="S4.T3.8.8.8.8.8.m1.1.1">
+               ↓
+              </ci>
+             </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S4.T3.8.8.8.8.8.m1.1c">
+             G(\downarrow)
+            </annotation>
+           </semantics>
+          </math>
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T3.8.8.8.10.1">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.1">
+          GPT-3.5
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.2">
+          26.48
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.3">
+          29.28
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.4">
+          39.73
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.5">
+          15.14
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.6">
+          8.32
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.7">
+          10.12
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.8">
+          30.61
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T3.8.8.8.10.1.9">
+          50.31
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T3.8.8.8.11.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.1">
+          GPT-3.5-lc
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.2">
+          29.89
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.3">
+          33.92
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.4">
+          44.01
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.5">
+          12.94
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.6">
+          12.22
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.7">
+          20.33
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.8">
+          33.48
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S4.T3.8.8.8.11.2.9">
+          24.44
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Comparison for the gaps between different models trained using real and generated interactions. GPT-3.5-lc represents the recently released long-context version. The metric
+     <math alttext="f_{0}" class="ltx_Math" display="inline" id="S4.T3.12.m1.1">
+      <semantics id="S4.T3.12.m1.1b">
+       <msub id="S4.T3.12.m1.1.1" xref="S4.T3.12.m1.1.1.cmml">
+        <mi id="S4.T3.12.m1.1.1.2" xref="S4.T3.12.m1.1.1.2.cmml">
+         f
+        </mi>
+        <mn id="S4.T3.12.m1.1.1.3" xref="S4.T3.12.m1.1.1.3.cmml">
+         0
+        </mn>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.T3.12.m1.1c">
+        <apply id="S4.T3.12.m1.1.1.cmml" xref="S4.T3.12.m1.1.1">
+         <csymbol cd="ambiguous" id="S4.T3.12.m1.1.1.1.cmml" xref="S4.T3.12.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.T3.12.m1.1.1.2.cmml" xref="S4.T3.12.m1.1.1.2">
+          𝑓
+         </ci>
+         <cn id="S4.T3.12.m1.1.1.3.cmml" type="integer" xref="S4.T3.12.m1.1.1.3">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T3.12.m1.1d">
+        f_{0}
+       </annotation>
+      </semantics>
+     </math>
+     reflects results obtained using LLMs without fine-tuning. Metrics
+     <math alttext="f_{r}" class="ltx_Math" display="inline" id="S4.T3.13.m2.1">
+      <semantics id="S4.T3.13.m2.1b">
+       <msub id="S4.T3.13.m2.1.1" xref="S4.T3.13.m2.1.1.cmml">
+        <mi id="S4.T3.13.m2.1.1.2" xref="S4.T3.13.m2.1.1.2.cmml">
+         f
+        </mi>
+        <mi id="S4.T3.13.m2.1.1.3" xref="S4.T3.13.m2.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.T3.13.m2.1c">
+        <apply id="S4.T3.13.m2.1.1.cmml" xref="S4.T3.13.m2.1.1">
+         <csymbol cd="ambiguous" id="S4.T3.13.m2.1.1.1.cmml" xref="S4.T3.13.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.T3.13.m2.1.1.2.cmml" xref="S4.T3.13.m2.1.1.2">
+          𝑓
+         </ci>
+         <ci id="S4.T3.13.m2.1.1.3.cmml" xref="S4.T3.13.m2.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T3.13.m2.1d">
+        f_{r}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="f_{v}" class="ltx_Math" display="inline" id="S4.T3.14.m3.1">
+      <semantics id="S4.T3.14.m3.1b">
+       <msub id="S4.T3.14.m3.1.1" xref="S4.T3.14.m3.1.1.cmml">
+        <mi id="S4.T3.14.m3.1.1.2" xref="S4.T3.14.m3.1.1.2.cmml">
+         f
+        </mi>
+        <mi id="S4.T3.14.m3.1.1.3" xref="S4.T3.14.m3.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.T3.14.m3.1c">
+        <apply id="S4.T3.14.m3.1.1.cmml" xref="S4.T3.14.m3.1.1">
+         <csymbol cd="ambiguous" id="S4.T3.14.m3.1.1.1.cmml" xref="S4.T3.14.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.T3.14.m3.1.1.2.cmml" xref="S4.T3.14.m3.1.1.2">
+          𝑓
+         </ci>
+         <ci id="S4.T3.14.m3.1.1.3.cmml" xref="S4.T3.14.m3.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T3.14.m3.1d">
+        f_{v}
+       </annotation>
+      </semantics>
+     </math>
+     denote results from LLMs fine-tuned with real interactions from human players and virtual interactions generated by agents, respectively.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S4.SS2.tab1">
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Expressiveness Evaluation
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.4">
+     In expressiveness evaluation, we fine-tune LLMs using both real and generated interaction data. These models then construct virtual DMs and engage in the intention estimation task as in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . As shown in Fig
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.2 Informativeness Evaluation ‣ 4 Experiment ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , we observe significant gap
+     <math alttext="G" class="ltx_Math" display="inline" id="S4.SS3.p1.1.m1.1">
+      <semantics id="S4.SS3.p1.1.m1.1a">
+       <mi id="S4.SS3.p1.1.m1.1.1" xref="S4.SS3.p1.1.m1.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.1.m1.1b">
+        <ci id="S4.SS3.p1.1.m1.1.1.cmml" xref="S4.SS3.p1.1.m1.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.1.m1.1c">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     in all settings, with values exceeding
+     <math alttext="12\%" class="ltx_Math" display="inline" id="S4.SS3.p1.2.m2.1">
+      <semantics id="S4.SS3.p1.2.m2.1a">
+       <mrow id="S4.SS3.p1.2.m2.1.1" xref="S4.SS3.p1.2.m2.1.1.cmml">
+        <mn id="S4.SS3.p1.2.m2.1.1.2" xref="S4.SS3.p1.2.m2.1.1.2.cmml">
+         12
+        </mn>
+        <mo id="S4.SS3.p1.2.m2.1.1.1" xref="S4.SS3.p1.2.m2.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.2.m2.1b">
+        <apply id="S4.SS3.p1.2.m2.1.1.cmml" xref="S4.SS3.p1.2.m2.1.1">
+         <csymbol cd="latexml" id="S4.SS3.p1.2.m2.1.1.1.cmml" xref="S4.SS3.p1.2.m2.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS3.p1.2.m2.1.1.2.cmml" type="integer" xref="S4.SS3.p1.2.m2.1.1.2">
+          12
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.2.m2.1c">
+        12\%
+       </annotation>
+      </semantics>
+     </math>
+     . These high values of IEG indicates a marked difference between generated and real interactions, suggesting that real data provide more substantial insights than generated interactions. The F-score results offer additional detail, supporting this conclusion. Notably, models fine-tuned with real data consistently outperform those tuned with generated data. For example, GPT-3.5, when fine-tuned with real interactions, exceeds the performance of those fine-tuned with generated data by
+     <math alttext="10.45\%" class="ltx_Math" display="inline" id="S4.SS3.p1.3.m3.1">
+      <semantics id="S4.SS3.p1.3.m3.1a">
+       <mrow id="S4.SS3.p1.3.m3.1.1" xref="S4.SS3.p1.3.m3.1.1.cmml">
+        <mn id="S4.SS3.p1.3.m3.1.1.2" xref="S4.SS3.p1.3.m3.1.1.2.cmml">
+         10.45
+        </mn>
+        <mo id="S4.SS3.p1.3.m3.1.1.1" xref="S4.SS3.p1.3.m3.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.3.m3.1b">
+        <apply id="S4.SS3.p1.3.m3.1.1.cmml" xref="S4.SS3.p1.3.m3.1.1">
+         <csymbol cd="latexml" id="S4.SS3.p1.3.m3.1.1.1.cmml" xref="S4.SS3.p1.3.m3.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS3.p1.3.m3.1.1.2.cmml" type="float" xref="S4.SS3.p1.3.m3.1.1.2">
+          10.45
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.3.m3.1c">
+        10.45\%
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="20.49\%" class="ltx_Math" display="inline" id="S4.SS3.p1.4.m4.1">
+      <semantics id="S4.SS3.p1.4.m4.1a">
+       <mrow id="S4.SS3.p1.4.m4.1.1" xref="S4.SS3.p1.4.m4.1.1.cmml">
+        <mn id="S4.SS3.p1.4.m4.1.1.2" xref="S4.SS3.p1.4.m4.1.1.2.cmml">
+         20.49
+        </mn>
+        <mo id="S4.SS3.p1.4.m4.1.1.1" xref="S4.SS3.p1.4.m4.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.4.m4.1b">
+        <apply id="S4.SS3.p1.4.m4.1.1.cmml" xref="S4.SS3.p1.4.m4.1.1">
+         <csymbol cd="latexml" id="S4.SS3.p1.4.m4.1.1.1.cmml" xref="S4.SS3.p1.4.m4.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS3.p1.4.m4.1.1.2.cmml" type="float" xref="S4.SS3.p1.4.m4.1.1.2">
+          20.49
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.4.m4.1c">
+        20.49\%
+       </annotation>
+      </semantics>
+     </math>
+     in character and skill checks, respectively. This disparity underscores the importance of high-quality interactions for effective intention estimation. Given the difficulty in obtaining high-quality real-world interactions, our framework proves to be an essential tool for driving forward research into improving agent interactions. The significant disparity in skill checks, as opposed to character checks, further emphasizes the complexity of intention prediction and reinforces the notion that generated interactions lag behind real interactions in quality. LLMs appear to extract more meaningful information from real data.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.4">
+     To offer a baseline for comparison, we introduce an additional evaluation metric,
+     <math alttext="f_{0}" class="ltx_Math" display="inline" id="S4.SS3.p2.1.m1.1">
+      <semantics id="S4.SS3.p2.1.m1.1a">
+       <msub id="S4.SS3.p2.1.m1.1.1" xref="S4.SS3.p2.1.m1.1.1.cmml">
+        <mi id="S4.SS3.p2.1.m1.1.1.2" xref="S4.SS3.p2.1.m1.1.1.2.cmml">
+         f
+        </mi>
+        <mn id="S4.SS3.p2.1.m1.1.1.3" xref="S4.SS3.p2.1.m1.1.1.3.cmml">
+         0
+        </mn>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p2.1.m1.1b">
+        <apply id="S4.SS3.p2.1.m1.1.1.cmml" xref="S4.SS3.p2.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S4.SS3.p2.1.m1.1.1.1.cmml" xref="S4.SS3.p2.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.SS3.p2.1.m1.1.1.2.cmml" xref="S4.SS3.p2.1.m1.1.1.2">
+          𝑓
+         </ci>
+         <cn id="S4.SS3.p2.1.m1.1.1.3.cmml" type="integer" xref="S4.SS3.p2.1.m1.1.1.3">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p2.1.m1.1c">
+        f_{0}
+       </annotation>
+      </semantics>
+     </math>
+     , representing the performance of LLMs used to construct virtual agents directly, without fine-tuning, following the approach in
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023c
+      </a>
+      )
+     </cite>
+     . According to Tab
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.2 Informativeness Evaluation ‣ 4 Experiment ‣ AntEval: Quantitatively Evaluating Informativeness and Expressiveness of Agent Social Interactions">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     ,
+     <math alttext="f_{0}" class="ltx_Math" display="inline" id="S4.SS3.p2.2.m2.1">
+      <semantics id="S4.SS3.p2.2.m2.1a">
+       <msub id="S4.SS3.p2.2.m2.1.1" xref="S4.SS3.p2.2.m2.1.1.cmml">
+        <mi id="S4.SS3.p2.2.m2.1.1.2" xref="S4.SS3.p2.2.m2.1.1.2.cmml">
+         f
+        </mi>
+        <mn id="S4.SS3.p2.2.m2.1.1.3" xref="S4.SS3.p2.2.m2.1.1.3.cmml">
+         0
+        </mn>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p2.2.m2.1b">
+        <apply id="S4.SS3.p2.2.m2.1.1.cmml" xref="S4.SS3.p2.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S4.SS3.p2.2.m2.1.1.1.cmml" xref="S4.SS3.p2.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.SS3.p2.2.m2.1.1.2.cmml" xref="S4.SS3.p2.2.m2.1.1.2">
+          𝑓
+         </ci>
+         <cn id="S4.SS3.p2.2.m2.1.1.3.cmml" type="integer" xref="S4.SS3.p2.2.m2.1.1.3">
+          0
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p2.2.m2.1c">
+        f_{0}
+       </annotation>
+      </semantics>
+     </math>
+     shows lower values compared to both
+     <math alttext="f_{v}" class="ltx_Math" display="inline" id="S4.SS3.p2.3.m3.1">
+      <semantics id="S4.SS3.p2.3.m3.1a">
+       <msub id="S4.SS3.p2.3.m3.1.1" xref="S4.SS3.p2.3.m3.1.1.cmml">
+        <mi id="S4.SS3.p2.3.m3.1.1.2" xref="S4.SS3.p2.3.m3.1.1.2.cmml">
+         f
+        </mi>
+        <mi id="S4.SS3.p2.3.m3.1.1.3" xref="S4.SS3.p2.3.m3.1.1.3.cmml">
+         v
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p2.3.m3.1b">
+        <apply id="S4.SS3.p2.3.m3.1.1.cmml" xref="S4.SS3.p2.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S4.SS3.p2.3.m3.1.1.1.cmml" xref="S4.SS3.p2.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.SS3.p2.3.m3.1.1.2.cmml" xref="S4.SS3.p2.3.m3.1.1.2">
+          𝑓
+         </ci>
+         <ci id="S4.SS3.p2.3.m3.1.1.3.cmml" xref="S4.SS3.p2.3.m3.1.1.3">
+          𝑣
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p2.3.m3.1c">
+        f_{v}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="f_{r}" class="ltx_Math" display="inline" id="S4.SS3.p2.4.m4.1">
+      <semantics id="S4.SS3.p2.4.m4.1a">
+       <msub id="S4.SS3.p2.4.m4.1.1" xref="S4.SS3.p2.4.m4.1.1.cmml">
+        <mi id="S4.SS3.p2.4.m4.1.1.2" xref="S4.SS3.p2.4.m4.1.1.2.cmml">
+         f
+        </mi>
+        <mi id="S4.SS3.p2.4.m4.1.1.3" xref="S4.SS3.p2.4.m4.1.1.3.cmml">
+         r
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p2.4.m4.1b">
+        <apply id="S4.SS3.p2.4.m4.1.1.cmml" xref="S4.SS3.p2.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S4.SS3.p2.4.m4.1.1.1.cmml" xref="S4.SS3.p2.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S4.SS3.p2.4.m4.1.1.2.cmml" xref="S4.SS3.p2.4.m4.1.1.2">
+          𝑓
+         </ci>
+         <ci id="S4.SS3.p2.4.m4.1.1.3.cmml" xref="S4.SS3.p2.4.m4.1.1.3">
+          𝑟
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p2.4.m4.1c">
+        f_{r}
+       </annotation>
+      </semantics>
+     </math>
+     , indicating the usefulness of fine-tuning with additional data. However, given the higher quality of real interactions, learning from real human interactions proves to be more effective than using agent-generated interactions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     Moreover, our evaluation provides insights into the capabilities of different models. Recent GPT models, adept at processing longer contexts, demonstrate superior performance in our framework. This finding highlights the ongoing challenge for LLMs in comprehending extended contexts and suggests that our framework could offer valuable insights for evaluating these understanding abilities.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we present AntEval, a new benchmark for evaluating agent interactions using Tabletop Role-Playing Game mechanics. This approach provides a structured yet flexible environment for Large Language Models to engage in and mimic complex human interactions. We introduce two key metrics – informativeness and expressiveness – to quantitatively assess interaction quality. AntEval effectively addresses the challenges of capturing the complexity and privacy concerns of human communication. Our results demonstrate AntEval’s effectiveness in pushing AI agents towards more realistic, human-like social interactions. By introducing precise metrics, AntEval not only enhances our understanding of AI in social contexts but also sets a new standard in AI evaluation, guiding the development of more socially adept AI systems.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Limitations
+  </h2>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    While the use of Tabletop Role-Playing Games offers a novel approach to simulate complex human interactions, it may not encompass the full spectrum of social dynamics present in real-world settings. The controlled environment of TRPGs, despite its complexity, may still fail to capture the unpredictable and often unstructured nature of natural human conversations. Additionally, the reliance on predefined evaluating factors like informativeness and expressiveness, while valuable, might oversimplify the multifaceted nature of human communication. These factors may not fully represent the subtleties and nuances found in spontaneous human interactions. Moreover, there is a potential risk of overfitting AI models to the specific scenarios and characters within the TRPG setting, which might limit their generalizability to broader, more diverse social contexts. Thus, while AnteBench provide novel and effective approaches in evaluating AI social interactions, future research should aim to address these limitations by exploring more diverse and unstructured interaction environments and developing more nuanced evaluation metrics.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ahn et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Chebotar, Omar Cortes, Byron David, Chelsea Finn, Chuyuan Fu, Keerthana Gopalakrishnan, Karol Hausman, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Do as i can, not as i say: Grounding language in robotic affordances.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2204.01691
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Austin et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Program synthesis with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2108.07732
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Babe et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hannah McLean Babe, Sydney Nguyen, Yangtian Zi, Arjun Guha, Molly Q Feldman, and Carolyn Jane Anderson. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Studenteval: A benchmark of student-written prompts for large language models of code.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2306.04556
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Callison-Burch et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Chris Callison-Burch, Gaurav Singh Tomar, Lara Martin, Daphne Ippolito, Suma Bailis, and David Reitter. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2022.emnlp-main.637" target="_blank" title="">
+      Dungeons and dragons as a dialog challenge for artificial intelligence
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 9379–9393, Abu Dhabi, United Arab Emirates. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating large language models trained on code.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:2107.03374
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Clark et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind Tafjord. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Think you have solved question answering? try arc, the ai2 reasoning challenge.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:1803.05457
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cobbe et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Training verifiers to solve math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2110.14168
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hendrycks et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Measuring massive multitask language understanding.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2009.03300
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yuzhen Huang, Yuzhuo Bai, Zhihao Zhu, Junlei Zhang, Jinghan Zhang, Tangjun Su, Junteng Liu, Chuancheng Lv, Yikai Zhang, Jiayi Lei, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     C-eval: A multi-level multi-discipline chinese evaluation suite for foundation models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2305.08322
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Imani et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shima Imani, Liang Du, and Harsh Shrivastava. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Mathprompter: Mathematical reasoning using large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2303.05398
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Minghao Li, Feifan Song, Bowen Yu, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Api-bank: A benchmark for tool-augmented llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2304.08244
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2022a)
+    </span>
+    <span class="ltx_bibblock">
+     Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michihiro Yasunaga, Yian Zhang, Deepak Narayanan, Yuhuai Wu, Ananya Kumar, et al. 2022a.
+    </span>
+    <span class="ltx_bibblock">
+     Holistic evaluation of language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2211.09110
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2022b)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Qianyu Feng, Linchao Zhu, Li Hu, Pan Pan, and Yi Yang. 2022b.
+    </span>
+    <span class="ltx_bibblock">
+     Seeg: Semantic energized co-speech gesture generation.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </em>
+     , pages 10473–10482.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Xueming Qian, and Li Zhu. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Towards better railway service: Passengers counting in railway compartment.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      IEEE Transactions on Circuits and Systems for Video Technology
+     </em>
+     , 31(2):439–451.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Xiaohan Wang, Linchao Zhu, and Yi Yang. 2023a.
+    </span>
+    <span class="ltx_bibblock">
+     Maal: Multimodality-aware autoencoder-based affordance learning for 3d articulated objects.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </em>
+     , pages 217–227.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2022c)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Linchao Zhu, Xiaohan Wang, and Yi Yang. 2022c.
+    </span>
+    <span class="ltx_bibblock">
+     Penalizing the hard example but not too much: A strong baseline for fine-grained visual classification.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      IEEE Transactions on Neural Networks and Learning Systems
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2022d)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Linchao Zhu, Xiaohan Wang, and Yi Yang. 2022d.
+    </span>
+    <span class="ltx_bibblock">
+     A simple episodic linear probe improves visual recognition in the wild.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+     </em>
+     , pages 9559–9569.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Linchao Zhu, Xiaohan Wang, and Yi Yang. 2023b.
+    </span>
+    <span class="ltx_bibblock">
+     Icocap: Improving video captioning by compounding images.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      IEEE Transactions on Multimedia
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023c)
+    </span>
+    <span class="ltx_bibblock">
+     Yuanzhi Liang, Linchao Zhu, and Yi Yang. 2023c.
+    </span>
+    <span class="ltx_bibblock">
+     Tachikuma: Understading complex interactions with multi-character and novel objects by large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2307.12573
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Louis and Sutton (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Annie Louis and Charles Sutton. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Deep dungeons and dragons: Learning character-action interactions from role-playing game transcripts.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 2 (Short Papers)
+     </em>
+     , pages 708–713.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Newman and Liu (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Pax Newman and Yudong Liu. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2022.games-1.7" target="_blank" title="">
+      Generating descriptive and rules-adhering spells for dungeons &amp; dragons fifth edition
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      Proceedings of the 9th Workshop on Games and Natural Language Processing within the 13th Language Resources and Evaluation Conference
+     </em>
+     , pages 54–60, Marseille, France. European Language Resources Association.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sakaguchi et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Winogrande: An adversarial winograd schema challenge at scale.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      Communications of the ACM
+     </em>
+     , 64(9):99–106.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Si et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Wai Man Si, Prithviraj Ammanabrolu, and Mark Riedl. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2021.sigdial-1.30" target="_blank" title="">
+      Telling stories through multi-user dialogue by modeling character relations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      Proceedings of the 22nd Annual Meeting of the Special Interest Group on Discourse and Dialogue
+     </em>
+     , pages 269–275, Singapore and Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Srivastava et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aarohi Srivastava, Abhinav Rastogi, Abhishek Rao, Abu Awal Md Shoeb, Abubakar Abid, Adam Fisch, Adam R Brown, Adam Santoro, Aditya Gupta, Adrià Garriga-Alonso, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Beyond the imitation game: Quantifying and extrapolating the capabilities of language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2206.04615
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Valmeekam et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Karthik Valmeekam, Alberto Olmo, Sarath Sreedharan, and Subbarao Kambhampati. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models still can’t plan (a benchmark for llms on planning and reasoning about change).
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2206.10498
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Weir et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Nathaniel Weir, Ryan Thomas, Randolph D’Amore, Kellie Hill, Benjamin Van Durme, and Harsh Jhamtani. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Ontologically faithful generation of non-player character dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2212.10618
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Liang Xu, Anqi Li, Lei Zhu, Hang Xue, Changtai Zhu, Kangkang Zhao, Haonan He, Xuanwei Zhang, Qiyue Kang, and Zhenzhong Lan. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Superclue: A comprehensive chinese large language model benchmark.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2307.15020
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zellers et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Hellaswag: Can a machine really finish your sentence?
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:1905.07830
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Wanjun Zhong, Ruixiang Cui, Yiduo Guo, Yaobo Liang, Shuai Lu, Yanlin Wang, Amin Saied, Weizhu Chen, and Nan Duan. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Agieval: A human-centric benchmark for evaluating foundation models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2304.06364
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Pei Zhou, Andrew Zhu, Jennifer Hu, Jay Pujara, Xiang Ren, Chris Callison-Burch, Yejin Choi, and Prithviraj Ammanabrolu. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     An ai dungeon master’s guide: Learning to converse and guide with intents and theory-of-mind in dungeons and dragons.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      arXiv preprint arXiv:2212.10060
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Andrew Zhu, Karmanya Aggarwal, Alexander Feng, Lara J Martin, and Chris Callison-Burch. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Fireball: A dataset of dungeons and dragons actual-play with structured game state information.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2305.01528
+     </em>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

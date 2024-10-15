@@ -1,0 +1,3802 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Boyd Branch
+    <sup class="ltx_sup" id="id1.1.id1">
+     *
+    </sup>
+    Piotr Mirowski
+    <sup class="ltx_sup" id="id2.2.id2">
+     *
+    </sup>
+    Kory Mathewson
+    <br class="ltx_break"/>
+    Improbotics
+    <span class="ltx_ERROR undefined" id="id3.3.id3">
+     \And
+    </span>
+    Sophia Ppali  Alexandra Covaci
+    <br class="ltx_break"/>
+    University of Kent
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id4.id1">
+   Social robotics researchers are increasingly interested in multi-party trained conversational agents. With a growing demand for real-world evaluations, our study presents Large Language Models (LLMs) deployed in a month-long live show at the Edinburgh Festival Fringe. This case study investigates human improvisers co-creating with conversational agents in a professional theatre setting. We explore the technical capabilities and constraints of on-the-spot multi-party dialogue, providing comprehensive insights from both audience and performer experiences with AI on stage. Our human-in-the-loop methodology underlines the challenges of these LLMs in generating context-relevant responses, stressing the user interface’s crucial role. Audience feedback indicates an evolving interest for AI-driven live entertainment, direct human-AI interaction, and a diverse range of expectations about AI’s conversational competence and utility as a creativity support tool. Human performers express immense enthusiasm, varied satisfaction, and the evolving public opinion highlights mixed emotions about AI’s role in arts.
+  </p>
+ </div>
+ <section class="ltx_section" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Introduction
+  </h2>
+  <figure class="ltx_figure" id="Sx1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="337" id="Sx1.F1.g1" src="/html/2405.07111/assets/media/Figure1.png" width="598"/>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Cast of Improbotics performing AI-based improv theatre. The
+    <em class="ltx_emph ltx_font_italic" id="Sx1.F1.3.1">
+     “Cyborg”
+    </em>
+    is wearing an earphone connected to a radio system that receives text-to-speech from LLM-generated lines (and curated by an
+    <em class="ltx_emph ltx_font_italic" id="Sx1.F1.4.2">
+     operator
+    </em>
+    ). The LLM is prompted by speech recognition. Photo: Lidia Crisafulli.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    This case study examines the process of designing and staging chatbots to perform improvisational theatre alongside a cast of human actors (Improbotics
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+        improbotics.org
+       </span>
+      </span>
+     </span>
+    </span>
+    ), conversing naturally in
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p1.1.1">
+     Multi-Party Chat
+    </em>
+    in front of live audiences.
+We choose improvised theatre
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Johnstone,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2014
+     </a>
+     )
+    </cite>
+    as a challenging testbed for human-machine co-creation enabled by the ability of language models to respond “intelligently” to performing arts scenarios involving both dialogue with other performers and interaction with audiences.
+The show builds upon prior work in improvised theatre and comedy with physical robots
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Bruce et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2000
+     </a>
+     )
+    </cite>
+    , chatbots
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mathewson and
+Mirowski,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2017a
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      b
+     </a>
+     ; Cho and May,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2020
+     </a>
+     )
+    </cite>
+    , story generators
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Branch, Mirowski, and
+Mathewson,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2021
+     </a>
+     )
+    </cite>
+    , comedy roast generators by company
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p1.1.2">
+     ComedyBytes
+    </em>
+    <span class="ltx_note ltx_role_footnote" id="footnote2">
+     <sup class="ltx_note_mark">
+      2
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        2
+       </span>
+       <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+        comedybytes.io
+       </span>
+      </span>
+     </span>
+    </span>
+    , live machine translation
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mirowski et al.,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2020
+     </a>
+     )
+    </cite>
+    , joke generation
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Toplyn,
+     <a class="ltx_ref" href="#bib.bib34" title="">
+      2022
+     </a>
+     ; Goes et al.,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and employs the conceit of a human actor (the
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p1.1.3">
+     “Cyborg”
+    </em>
+    ) taking their lines from a chatbot, similarly to
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mathewson and
+Mirowski,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2018
+     </a>
+     ; Loesel, Mirowski, and
+Mathewson,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2020
+     </a>
+     )
+    </cite>
+    and to the show
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p1.1.4">
+     Yes, Android
+    </em>
+    <span class="ltx_note ltx_role_footnote" id="footnote3">
+     <sup class="ltx_note_mark">
+      3
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        3
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        3
+       </span>
+       <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+        blogto.com/events/yes-android-comedy-robots-toronto
+       </span>
+      </span>
+     </span>
+    </span>
+    . Note that none of these works explored the specific solution to multiparty dialogue interaction where the AI simultaneously interacts with multiple improvisational actors on stage.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p2">
+   <p class="ltx_p" id="Sx1.p2.1">
+    We deployed a conversational agent powered by three different Large Language Models (LLMs)
+    <span class="ltx_note ltx_role_footnote" id="footnote4">
+     <sup class="ltx_note_mark">
+      4
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        4
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        4
+       </span>
+       Chat GPT 3.5
+       <cite class="ltx_cite ltx_citemacro_citep">
+        (OpenAI,
+        <a class="ltx_ref" href="#bib.bib29" title="">
+         2023
+        </a>
+        )
+       </cite>
+       (OpenAI), PaLM 2
+       <cite class="ltx_cite ltx_citemacro_citep">
+        (Anil et al.,
+        <a class="ltx_ref" href="#bib.bib1" title="">
+         2023
+        </a>
+        )
+       </cite>
+       (Google), Llama 2
+       <cite class="ltx_cite ltx_citemacro_citep">
+        (Touvron et al.,
+        <a class="ltx_ref" href="#bib.bib35" title="">
+         2023
+        </a>
+        )
+       </cite>
+       (Meta)
+      </span>
+     </span>
+    </span>
+    to improvise with a company of professional actors for 26 different audiences during the 2023 Edinburgh Festival Fringe
+    <span class="ltx_note ltx_role_footnote" id="footnote5">
+     <sup class="ltx_note_mark">
+      5
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        5
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        5
+       </span>
+       <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+        https://www.edfringe.com/
+       </span>
+      </span>
+     </span>
+    </span>
+    . During the run of the show, we conducted surveys with both cast and audience members to examine general perceptions of conversational AI, and to understand the in-situ impact of AI on creativity, performance expectations when staging AI, and anxieties around robots. With our work we further demonstrate a participatory design model for developing AI tools for the performing arts
+and examine how design choices impact its abilities to meaningfully contribute to group conversations.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p3">
+   <p class="ltx_p" id="Sx1.p3.1">
+    Our study was formed in response to the recent advancements in natural language computing and conversational AI which have highlighted the potential of ubiquitous AI participating in human social and creative lives
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Youssef et al.,
+     <a class="ltx_ref" href="#bib.bib42" title="">
+      2022
+     </a>
+     ; Lim, Rooksby, and Cross,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2021
+     </a>
+     )
+    </cite>
+    . While current conversational AI applications mostly focus on single-user text-based dialogue, researchers are interested in the next frontier of Multi-Party Chat (MPC) AI
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Traum,
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      2003
+     </a>
+     ; Kirchhoff and
+Ostendorf,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2003
+     </a>
+     ; Poria et al.,
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2018
+     </a>
+     ; Zhu et al.,
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      2022
+     </a>
+     ; Wei et al.,
+     <a class="ltx_ref" href="#bib.bib39" title="">
+      2023
+     </a>
+     )
+    </cite>
+    that can intelligently respond not only to dialogue, but also to the physical and social context of the conversation. Issues in multi-party dialogue include speaker and addressee identification, turn and conversation thread management or establishing a common ground among multiple participants
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Traum,
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      2003
+     </a>
+     )
+    </cite>
+    . MPC is already prominent in online social gaming research and development where non-player characters (NPCs) react to multiple online players
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Urbanek et al.,
+     <a class="ltx_ref" href="#bib.bib37" title="">
+      2019
+     </a>
+     )
+    </cite>
+    but it is also relevant for speculative AI
+applications to human social, cultural, and political life.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p4">
+   <p class="ltx_p" id="Sx1.p4.1">
+    Various technical, psychological and social factors affect not only the feasibility of deploying robots in social contexts, but also their “acceptability by humans as partners in the interaction
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Youssef et al.,
+     <a class="ltx_ref" href="#bib.bib42" title="">
+      2022
+     </a>
+     )
+    </cite>
+    .”
+With some exceptions, including staging robots in theatre performances
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chikaraishi et al.,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2017
+     </a>
+     ; Nishiguchi et al.,
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2017
+     </a>
+     )
+    </cite>
+    , Human Robot Interaction (HRI) studies also generally take place in laboratory settings.
+Our case study was designed to introduce an application of MPC AI in a theatre space, highlighting real-world challenges of both social robotics and of conversational AI, and capturing human reactions to the system in action. Using
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p4.1.1">
+     the theatre as a laboratory to study how actors and audiences respond to the presence of a real-time performing AI
+    </em>
+    , our work answers “a call for a more integrative approach when investigating HRIs” that specifically takes into account “the cultural context of the experiment”
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Lim, Rooksby, and Cross,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2021
+     </a>
+     )
+    </cite>
+    , and puts participants in direct contact with the physically present robots.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p5">
+   <p class="ltx_p" id="Sx1.p5.1">
+    Until recently, public perception of robots has been shaped by media more than by direct experiences with AI
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Haring et al.,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2014
+     </a>
+     )
+    </cite>
+    , fostering both over- and under-estimation of AI’s ability and utility by the public. Our findings demonstrate how
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p5.1.1">
+     both interacting with, and observing an AI being deployed in a social context, influences the perception of AI capability
+    </em>
+    as well as the motivation for interacting with it, and the ability to relate to it.
+Our case study is also an examination of participatory and user-centered design demonstrating how
+    <em class="ltx_emph ltx_font_italic" id="Sx1.p5.1.2">
+     user-in-the-loop design compliments human-in-the-loop AI research
+    </em>
+    . We find that such participatory models of inquiry can tackle the intertwined technical and psychological challenges around the subjects of creativity, human computing, and robotics interaction.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx1.p6">
+   <p class="ltx_p" id="Sx1.p6.1">
+    The following sections outline our method for deploying and staging MPC LLMs around the unique limitations and opportunities of live theatre, our development of improvisational games designed to challenge and explore the limits of state of the art conversational agents, and the results of our audience and performer surveys that highlight how our design choices impacted perceptions of AI.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx2">
+  <h2 class="ltx_title ltx_title_section">
+   Staging AI in Theatre Festival Performances
+  </h2>
+  <div class="ltx_para" id="Sx2.p1">
+   <p class="ltx_p" id="Sx2.p1.1">
+    Multi-party dialogue live on stage with a chatbot presented numerous challenges for the developers, researchers, and artists involved.
+While in principle modern LLMs can track multiple conversational agents, they need a speech recognition system with multiple microphones to identify speakers, making it impractical for “Fringe” theatre productions with short theatre get-in and get-out times. Second, capturing speech does not account for the physical aspects of communication on stage, from gestures to tone of voice; missing the full context of the conversation. Third, design decisions must be made about the timing of that chatbot’s responses.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx2.p2">
+   <p class="ltx_p" id="Sx2.p2.1">
+    To address these challenges, we developed a system that combines continuous speech recognition (see Appendix for implementation details) and a
+    <em class="ltx_emph ltx_font_italic" id="Sx2.p2.1.1">
+     human-in-the-loop curation system
+    </em>
+    to allows an
+    <em class="ltx_emph ltx_font_italic" id="Sx2.p2.1.2">
+     Operator
+    </em>
+    to type contextual metadata for the LLMs, supplementing context from the live speech
+    <span class="ltx_note ltx_role_footnote" id="footnote6">
+     <sup class="ltx_note_mark">
+      6
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        6
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        6
+       </span>
+       Scene dialogue was recorded using a microphone and speech recognition system, resulting in numerous transcription errors.
+      </span>
+     </span>
+    </span>
+    captured on stage. We also engineered
+prompts to influence the LLMs’ style of response (see Fig.
+    <a class="ltx_ref" href="#Sx2.F2" title="Figure 2 ‣ Staging AI in Theatre Festival Performances ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    ). A second performer (
+    <em class="ltx_emph ltx_font_italic" id="Sx2.p2.1.3">
+     Curator
+    </em>
+    ) selected in real time the best response from a “stream of consciousness”-like set of responses continuously generated by the LLMs (see Fig.
+    <a class="ltx_ref" href="#Sx2.F3" title="Figure 3 ‣ Staging AI in Theatre Festival Performances ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    ). Figure
+    <a class="ltx_ref" href="#Sx2.F5" title="Figure 5 ‣ Staging AI in Theatre Festival Performances ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    displays the AI’s contributions in a short improv scene dialogue, with only a small subset selected by the curator and sent via text-to-speech and earpiece to the
+    <em class="ltx_emph ltx_font_italic" id="Sx2.p2.1.4">
+     Cyborg
+    </em>
+    performer.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx2.p3">
+   <p class="ltx_p" id="Sx2.p3.1">
+    Co-creative storytelling abilities of AI have been initially explored using a custom LLM based on recurrent neural networks
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mathewson and
+Mirowski,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2017b
+     </a>
+     ; Mirowski and
+Mathewson,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2019
+     </a>
+     )
+    </cite>
+    trained on movie and television dialogue
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Lison and
+Tiedemann,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2016
+     </a>
+     )
+    </cite>
+    . Their early model struggled with longer narrative threads and handling multiple speakers. OpenAI’s release of GPT-2
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Radford et al.,
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      2019
+     </a>
+     )
+    </cite>
+    with a Transformer architecture in 2019, introduced a much more powerful LLM that allowed for performance of longer narrative scenes
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mirowski et al.,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2020
+     </a>
+     ; Branch, Mirowski, and
+Mathewson,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2021
+     </a>
+     )
+    </cite>
+    . Nevertheless, multi-party dialogue performance remained underwhelming. In an improvement over their work, and experimenting with GPT-3
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Brown et al.,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2020
+     </a>
+     )
+    </cite>
+    and subsequent models
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (OpenAI,
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     ; Anil et al.,
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ; Touvron et al.,
+     <a class="ltx_ref" href="#bib.bib35" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , we found that given sufficient prompting and context, GPT-3 and later models appeared capable of producing nuanced, varied responses that addressed more than one participant in the scene. This led us to explore new games and formats for improvisational theatre that involved more than one scene partner.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="Sx2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="306" id="Sx2.F2.g1" src="/html/2405.07111/assets/media/Screenshot_Alex_Input_02.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Screen capture of the AI
+    <em class="ltx_emph ltx_font_italic" id="Sx2.F2.2.1">
+     Operator
+    </em>
+    interface. At the top (in red) is the input box for human character’s name and for lines of dialogue (this input box serves as a backup in case speech recognition does not work properly). Below (in blue) is the input box for the AI character’s name and for scene context metadata, typed by the operatore. Below are several buttons to rapidly input scene-specific prompts such as “getting therapy” or “behaving in a sarcastic way”. The interface then shows multiple lines: AI-generated lines are in black, speech recognition lines are in pink, and the curator-selected lines are in cyan.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="Sx2.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="313" id="Sx2.F3.g1" src="/html/2405.07111/assets/media/Screenshot_Alex_Curator.png" width="479"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 3:
+    </span>
+    Screen capture of the AI
+    <em class="ltx_emph ltx_font_italic" id="Sx2.F3.2.1">
+     Curator
+    </em>
+    interface, on a tablet. The latest speech recognition result is visible on top. Immediately below are buttons to scroll down to the latest AI-generated line, or to quickly input metadata (“more punny” or “more snarky”) for the language agent. Generated lines are in white and curator-selected lines in violet.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="Sx2.F4">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="233" id="Sx2.F4.g1" src="/html/2405.07111/assets/media/Screenshot_Results.png" width="479"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 4:
+    </span>
+    Example of instruction prompt and results generated for three different LLMs.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="Sx2.p4">
+   <p class="ltx_p" id="Sx2.p4.1">
+    For the 2023 Edinburgh Festival Fringe, we developed a system that prompted multiple LLMs simultaneously while incorporating live stage dialogue. We adopted a participatory iterative design approach, with actors trying the system and providing regular feedback about improvements to support role-playing with AI. Subsequently, through several cycles of experimentation and feedback, we developed a series of improv games that appeared to allow improvisers to perform comfortably while also allowing us to continue testing the capacity of LLMs to handle a variety of complex multi-party scenes. The success and consistency of our system, and the positive performer feedback gave us confidence to present the show as part of the Fringe Festival for 26 consecutive performances to new audiences each night.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx2.p5">
+   <p class="ltx_p" id="Sx2.p5.1">
+    Over the course of the festival, we performed the show for over 1750 people across 26 unique performances with various groups of 20 different improvisers. Using audience and performer surveys, logs of LLM interactions, as well as close observations of the performances, we examine various practices of prompt engineering, UI/UX design around human-in-the-loop AI curation, audience experience and identification with the presence of AI on stage as part of an ensemble, as well as real time multi-party co-creation of narratives with AI and human improvisers.
+   </p>
+  </div>
+  <div class="ltx_para" id="Sx2.p6">
+   <p class="ltx_p" id="Sx2.p6.1">
+    The framing of our show was detailed in the festival program, and on-stage at the beginning of the performance, making clear to the audience that AI assisted the creativity of the improvisers
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Colton, Charnley, and
+Pease,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2011
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="Sx2.F5">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="189" id="Sx2.F5.g1" src="/html/2405.07111/assets/x1.png" width="403"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 5:
+    </span>
+    Dialogue from an improvised scene between Paul, Julie (his mother) and the Cyborg (Paul’s date) where the Cyborg meet’s Paul’s parents, with suggestion:
+    <em class="ltx_emph ltx_font_italic" id="Sx2.F5.3.1">
+     ketchup soup
+    </em>
+    . In this dialogue extract (recorded using speech recognition), the Cyborg says 3 lines, marked with solid blue, violet and pink arrows: “It’s warming, comforting, and perfect for a cozy night in”, “Unique flavors and dishes always make for a memorable meal” and “I can already tell where Paul gets his hospitality from”. All LLM-generated lines are shown on the right side of the figure as a sequence of lines we call the
+    <em class="ltx_emph ltx_font_italic" id="Sx2.F5.4.2">
+     AI Stream
+    </em>
+    . Red dashed arrows show which dialogue sentence triggered which LLM-generated line.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="Sx3">
+  <h2 class="ltx_title ltx_title_section">
+   Participatory
+   <span class="ltx_text ltx_font_italic" id="Sx3.1.1">
+    Human-in-the-Loop
+   </span>
+   Design
+  </h2>
+  <div class="ltx_para" id="Sx3.p1">
+   <p class="ltx_p" id="Sx3.p1.1">
+    Performing at the Edinburgh Festival Fringe presented a unique opportunity to test new features of state-of-the-art LLMs for audiences who, for the first time, were generally knowledgeable about how LLMs functioned
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Kuzior and
+Kwilinski,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and to collect data on general perception of AI. Moreover, most of our performances had been for short runs of 2-3 consecutive shows: performing numerous shows back-to-back allowed us to engage in concentrated participatory design model of technology, putting audiences and actors directly
+    <span class="ltx_text ltx_font_italic" id="Sx3.p1.1.1">
+     in the loop
+    </span>
+    , together with our development team, working to make new technology entertaining.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="Sx3.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Iterative Design with the Theatre Cast
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx1.p1">
+    <p class="ltx_p" id="Sx3.SSx1.p1.1">
+     Staging AI in a real-time theatrical setting presents technical challenges. Of primary importance for the stage is the question of its embodiment.
+Early Improbotics’s acts involved both a small
+physical robot
+     <span class="ltx_note ltx_role_footnote" id="footnote7">
+      <sup class="ltx_note_mark">
+       7
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         7
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         7
+        </span>
+        EZ-Robot
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         ez-robot.com
+        </span>
+        , Aldebaran
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         aldebaran.com/en/nao
+        </span>
+       </span>
+      </span>
+     </span>
+     that moves as it “speaks”, as well as a human performer receiving lines from the chatbot via an earpiece and delivering them with physical and emotional interpretation.
+We refer to the latter as “
+     <em class="ltx_emph ltx_font_italic" id="Sx3.SSx1.p1.1.1">
+      Cyborg
+     </em>
+     ”.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx1.p2">
+    <p class="ltx_p" id="Sx3.SSx1.p2.1">
+     Previous work had largely focused on dialogue-based games that operated as a kind of
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx1.p2.1.1">
+      “Turing Test”
+     </span>
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Mathewson and
+Mirowski,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2017b
+      </a>
+      )
+     </cite>
+     to see how well a chatbot could perform a human activity, and on challenging situations for a robot competing with humans.
+That concept kept the AI as an object of the scene, specifically the object at the end of the implied joke that success would only be accidental or as a result of skilled improvisers who could weave order back into the chaos it presented.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx1.p3">
+    <p class="ltx_p" id="Sx3.SSx1.p3.1">
+     Prior to adopting ChatGPT-3.5
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (OpenAI,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , PaLM 2
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Anil et al.,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2023
+      </a>
+      )
+     </cite>
+     or Llama 2
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Touvron et al.,
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , chatbots on stage usually presented non sequiturs and absurd sounding responses to the human dialogue, and much of the humour came from watching the improvisers try to make sense of what was being said
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Loesel, Mirowski, and
+Mathewson,
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       2020
+      </a>
+      )
+     </cite>
+     .
+With the latter models, we observed that the
+     <em class="ltx_emph ltx_font_italic" id="Sx3.SSx1.p3.1.1">
+      Cyborg
+     </em>
+     performer could provide reasonable and appropriate sounding responses which seemed to also deprive the scenes of humour. Subsequently our company members began debating about a possible inverse relationship between language capabilities of LLMs and what makes them funny on stage. Some argued that delight and humour derive from the absurdity of responses by the AI, and that better language models would lessen the humour on stage. Others argued that a different kind of interest and delight will emerge with increasingly intelligent robots that no longer are the object of the joke. The lively discussion of the topic inspired us to develop new formats and games that would allow the AI to function within scenes, rather than as the object of the scenes for actors. The following sections details the iterative development of the game format, and how games were developed to support co-creativity with AI scene partners more than presenting just another “Turing”-style test for the audience.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Designing for the Theatre Audience
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx2.p1">
+    <p class="ltx_p" id="Sx3.SSx2.p1.1">
+     Besides testing the ability of our modern LLM models to handle MPC, we also needed to take into account the entertaining aim for the show: audiences were not buying tickets to provide feedback about the ability of LLMs to handle MPC dialogue. This meant we needed to find a show format where a successful performance would not be tied solely to the AI performance, but to the ensemble cast performance that included the AI as an equal cast member.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx2.p2">
+    <p class="ltx_p" id="Sx3.SSx2.p2.1">
+     We therefore designed new games we hoped would allow us to assess the collaborative skill of AI and its added value to a live theatre experience.
+In the following, we slightly anthropomorphize the AI
+and we distinguish between the
+     <em class="ltx_emph ltx_font_italic" id="Sx3.SSx2.p2.1.1">
+      Robot
+     </em>
+     when the AI controls a robot, and
+     <em class="ltx_emph ltx_font_italic" id="Sx3.SSx2.p2.1.2">
+      Cyborg
+     </em>
+     when the AI provides lines for a human actor. In the following games, the main feedback mechanism and success criterion corresponded to the perceived amount of laughter, as used in similar studies with robot comedians
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Vilk and Fitter,
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       2020
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="Sx3.SSx2.SSSx1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Speed Dating
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx2.SSSx1.p1">
+     <p class="ltx_p" id="Sx3.SSx2.SSSx1.p1.1">
+      To start the show and introduce the audience to the skills of the AI, we developed an opening game of “Speed Dating”, where the Robot was tasked with going on multiple dates with different characters in an attempt to find a mate. A human improviser in the same situation is capable of quickly adapting their behavior to the offers made by the various dates, in turn revealing various aspects of their own character over time, which eventually broadcast the unique likes and dislikes that one of the ensemble of dating characters will match with. Putting the Robot in the main role would allow us test how well variations of likes and dislikes might emerge from interacting with multiple contrasting personalities. We observed that the AI could not convincingly provide consistent dating criteria. Instead, the success of the game for the audience simply depended on how the Robot responded to the outlandish offers being made by the human improvisers.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx3.SSx2.SSSx2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Wedding Speech
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx2.SSSx2.p1">
+     <p class="ltx_p" id="Sx3.SSx2.SSSx2.p1.1">
+      While “Speed Dating” looked at how well the AI could rapidly respond to multiple speakers, one line at a time, “Wedding Speech” was designed to explore the LLMs’ ability to incorporate multiple inputs from both audience members and cast members into a longer narrative. For this game the Cyborg is required to give an impromptu speech at the wedding of a former lover, speech prompted both from the dialogue of a preceding scene, as well as suggestions from the audience about secrets that may get revealed. The game therefore tested how well the AI would be able to take disparate threads of a potential story and weave them together into a coherent as well as entertaining speech that would “surprise” the audience.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx3.SSx2.SSSx3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Couples’ Therapy and Meet the Parents
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx2.SSSx3.p1">
+     <p class="ltx_p" id="Sx3.SSx2.SSSx3.p1.1">
+      Two other games involving the Cyborg going to “couples’ therapy” and “meet the parents” of a partner for the first time, provided scenes where the Cyborg would need to converse with two different people who had different needs, expectations, and desires related to the Cyborg. With these games we hoped to provide both audiences and actors with a wide range of types of social encounters with the Cyborg, which allowed for its successes and failures in a given scene to be evenly considered across a gamut of scenes where it would sometimes be the focus of attention, or sometimes just a supporting role.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx3.SSx2.SSSx4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Hero’s Journey
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx2.SSSx4.p1">
+     <p class="ltx_p" id="Sx3.SSx2.SSSx4.p1.1">
+      We developed “Hero’s Journey”
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Campbell,
+       <a class="ltx_ref" href="#bib.bib7" title="">
+        2008
+       </a>
+       )
+      </cite>
+      as the penultimate challenge to explore the range of long-term memory and ability to distinguish itself amongst a group of improvisers constantly changing roles. With this game, the Cyborg is given an undesirable job (point of departure), and an aspirational job (destination); working with an ensemble of 4-5 human performers, the Cyborg must overcome obstacles on their journey to the career of their dreams. This is the most technically challenging role for the Cyborg since it encounters repeating scene partners, each presenting as obstacles or allies in achieving a change in job and status. Like our other games, the format does not depend exclusively on the Cyborg driving the scenes, but allows it to be a relatively passive protagonist encountering a slew of characters guiding it to the destination.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx3.SSx2.SSSx5">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Improvised TED Talk and Movie Pitch
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx2.SSSx5.p1">
+     <p class="ltx_p" id="Sx3.SSx2.SSSx5.p1.1">
+      Our show used two additional game formats, namely “Improvised TED Talk” (relying on AI-generated PowerPoint slides, unbeknownst to the actor)
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Winters and
+Mathewson,
+       <a class="ltx_ref" href="#bib.bib41" title="">
+        2019
+       </a>
+       )
+      </cite>
+      and “Movie Pitch” (where image generators were used to output, in real time, images illustrating or disrupting an improvised film pitch). These games leveraged AI for idea generation.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Designing AI Curation Interfaces
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx3.p1">
+    <p class="ltx_p" id="Sx3.SSx3.p1.1">
+     With this show format we hoped to be able to simultaneously test the abilities of new LLMs, and to hedge our bets on being able to present an entertaining show. While we felt confident in the development of improv games, appropriately prompting LLMs on stage raised another challenge. Speech-to-text does not provide the LLMs with sufficient relevant context, and without specific prompt engineering, the LLMs tend toward “honest, helpful and harmless” information giving
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Askell et al.,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2021
+      </a>
+      ; Bai et al.,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2022
+      </a>
+      )
+     </cite>
+     rather than chit-chat helpful for role-playing
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Hendry et al.,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2023
+      </a>
+      )
+     </cite>
+     . Previous studies of MPC NLPs focused their studies on specific scenarios with predetermined roles
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Zhang et al.,
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p2">
+    <p class="ltx_p" id="Sx3.SSx3.p2.1">
+     In improvised theatre
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Johnstone,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2014
+      </a>
+      )
+     </cite>
+     , every scene is made up on the spot, meaning that predefined roles cannot be assigned. We thus developed a system that allows an operator to type in metadata to a given scene to “steer” the AI agent towards a personality or agenda within the scene. The speed at which scenes take place however, makes such live-inputting a daunting tasks. Moreover, we could not give these instructions via voice input, since voice was already used for scene dialogue.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p3">
+    <p class="ltx_p" id="Sx3.SSx3.p3.1">
+     Eventually, we built buttons into the user interface to allow the operator to direct the AI agent to provide more provocative and emotionally charged responses. After some trial and error in rehearsal we found that prompting the LLM to respond in the role of a “sarcastic” and “pithy” friend in a addition to the scene specific prompts injected a bit of playful conflict that could humanise the responses if used on occasion. The LLMs were also remarkably adept at making puns, which was useful for the scenes
+     <span class="ltx_text ltx_font_italic" id="Sx3.SSx3.p3.1.1">
+      when used in moderation
+     </span>
+     . Furthermore, we tested giving more scene-specific prompts to help the LLM perform with stylistically different responses. For example, instructions such as “try to repair your relationship by pointing out your partner’s flaws to the therapist”, resulted in better scene-specific “playful conflict” that could be resolved over time. Subsequently, we created buttons in our UI for the LLMs to be “more snarky” or “more punny”, and inject relationship contexts with buttons for “reminiscing with loved ones”, or “getting therapy.” Such prompts would be interjected along with the live real-time audio captured from an onstage microphone and processed with a speech-to-text model (see Appendix)
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Radford et al.,
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , which became a stream of prompts to LLMs.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx3.SSx3.p4">
+    <p class="ltx_p" id="Sx3.SSx3.p4.1">
+     Finally a curator was given a tablet to select from the stream of lines constantly generated by the LLMs (see Fig.
+     <a class="ltx_ref" href="#Sx1.F1" title="Figure 1 ‣ Introduction ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     for the illustration of the setup). The person selecting the lines would not know which LLM had served that response, allowing us to later analyse if there were any preferences for specific models.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx3.SSx4">
+   <h3 class="ltx_title ltx_title_subsection">
+    Audience and Actor Surveys After Performances
+   </h3>
+   <div class="ltx_para" id="Sx3.SSx4.p1">
+    <p class="ltx_p" id="Sx3.SSx4.p1.1">
+     To capture the impact of our iterative design choices (such as updates to the line curation UI) as well as to understand how actors and audiences experienced the show, we surveyed both groups after each performance,
+with approval from the ethics governing board at the University of Kent
+     <span class="ltx_note ltx_role_footnote" id="footnote8">
+      <sup class="ltx_note_mark">
+       8
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         8
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         8
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         kent.ac.uk/research-innovation-services/research-ethics-and-governance
+        </span>
+       </span>
+      </span>
+     </span>
+     .
+Survey answers from both audiences and actors were collected anonymously via an online Qualtrics questionnaire; the links were shared via email (actors) or QR code shown before and after the show
+     <span class="ltx_note ltx_role_footnote" id="footnote9">
+      <sup class="ltx_note_mark">
+       9
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         9
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         9
+        </span>
+        The survey invitation was: “Help us do real science! After the show, answer a 5-minute research survey on human-computer interaction.
+Research project run by Dr. Boyd Branch and Dr. Piotr Mirowski. Ethics approval: University of Kent.”
+Consent and privacy notice are detailed in the Appendix.
+       </span>
+      </span>
+     </span>
+     (audiences). To proceed with the online survey, participants needed to read a short statement about the study and to consent to the use of their data.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="Sx3.SSx4.SSSx1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Survey Design
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx4.SSSx1.p1">
+     <p class="ltx_p" id="Sx3.SSx4.SSSx1.p1.1">
+      Our performances took place in the context of a large theatre festival with dozens of different shows taking place each hour, and a 30-minute turn-around period between shows. Accordingly, we anticipated difficulty collecting a high volume of responses per show for both audiences as well as actors who needed to exit quickly. We chose to exclude collecting demographics data to shorten the surveys, and due to the likely high margin for error for collecting the actual demographics of the audience. Survey questions were exclusively focused around the primary questions of the experience of watching an AI perform on stage.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx3.SSx4.SSSx2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Data
+    </h4>
+    <div class="ltx_para" id="Sx3.SSx4.SSSx2.p1">
+     <p class="ltx_p" id="Sx3.SSx4.SSSx2.p1.1">
+      Audience surveys accumulated 150 unique individual responses, and actors surveys 21 individual responses over the course of 26 shows. On average, 67 audience members attended each show (5.8 survey responses per show). The quick turn-around of the show (5 minutes fo audience get-in and get-out) impacted survey responses as only the first 5 questions were answered by all (150), and the subsequent 15 questions were answered on average by 109 unique individuals. As stated above, we did not collect demographic data in either actor or audience surveys. We noticed audiences of mixed genders, ages (including young teenagers), ethnicity and nationality, and overall representative of typical Edinburgh Festival Fringe attendees.
+     </p>
+    </div>
+    <div class="ltx_para" id="Sx3.SSx4.SSSx2.p2">
+     <p class="ltx_p" id="Sx3.SSx4.SSSx2.p2.1">
+      Audience questions were designed to capture experiences by participants related to how much they anthropomorphised the AI, their general attitudes about AI before the show, and any change in sentiment after the show. Multiple choice and open-ended questions were adapted from earlier studies of anthropomorphism, attachment, and scales for AI authenticity and AI social interaction conducted around the use of companion AI
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Pentina, Hancock, and
+Xie,
+       <a class="ltx_ref" href="#bib.bib30" title="">
+        2023
+       </a>
+       )
+      </cite>
+      . Actor surveys were focused on examining the experience of both performing with and as a Cyborg (adapted from previous work
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Mathewson and
+Mirowski,
+       <a class="ltx_ref" href="#bib.bib25" title="">
+        2018
+       </a>
+       )
+      </cite>
+      ) and open-ended questions designed to capture a holistic understanding of the performer experience with AI. The complete list of survey questions can be found in the Appendix.
+     </p>
+    </div>
+    <div class="ltx_para" id="Sx3.SSx4.SSSx2.p3">
+     <p class="ltx_p" id="Sx3.SSx4.SSSx2.p3.1">
+      The following results are presented for discussion rather than to make statistically significant claims about audience perceptions of robots on stage. Collecting data “in the wild” of a theatre festival presented too many variables for us to make objective claims, besides our anticipation of the low volume of responses per show. The survey data therefore is used to inform qualitative evaluation of both the technical and performative aspects of the show, and provide insights for future research on robots in live performance.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx4">
+  <h2 class="ltx_title ltx_title_section">
+   Post-Performance Analysis
+  </h2>
+  <div class="ltx_para" id="Sx4.p1">
+   <p class="ltx_p" id="Sx4.p1.1">
+    Results of audience surveys from all 26 performances are shown on Figure
+    <a class="ltx_ref" href="#Sx4.F6" title="Figure 6 ‣ AI Partner vs AI Entertainer ‣ Post-Performance Analysis ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+     <span class="ltx_text ltx_ref_tag">
+      6
+     </span>
+    </a>
+    , and of actor surveys on Figure
+    <a class="ltx_ref" href="#Sx4.F7" title="Figure 7 ‣ Multi-Party Dialogue With Human-Curated AI ‣ Post-Performance Analysis ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+     <span class="ltx_text ltx_ref_tag">
+      7
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="Sx4.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Performance of LLMs
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx1.p1">
+    <p class="ltx_p" id="Sx4.SSx1.p1.1">
+     During the shows, the curator was presented with a stream of lines generated simultaneously in response to speech-to-text prompts by our three LLMs: Chat GPT-3.5, PaLM 2,and Llama 2 (see Fig.
+     <a class="ltx_ref" href="#Sx2.F3" title="Figure 3 ‣ Staging AI in Theatre Festival Performances ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     ). The reasons for using three LLMs were two-fold: first, this provided robustness in case one of the remote LLM services (Chat GPT-3.5 or PaLM 2) was down, and second, it provided diversity in responses due to the differences between the models (training data and model size). After analysing the dialogue system logs from all 26 performances, we noticed that LLMs were generating different numbers of lines, due to temporary model unavailability (for remotely served LLMs
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx1.p1.1.1">
+      gpt-3.5-turbo
+     </em>
+     and
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx1.p1.1.2">
+      text-bison
+     </em>
+     ) or processing speed (for
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx1.p1.1.3">
+      llama-2-13b-chat
+     </em>
+     , served locally). After normalising by the number of generated lines, we noticed that each LLM had, overally, a comparable chance of being selected by the curator. LLMs were not retrained on improv-specific datasets because of the late release of Llama 2 prior to the Edinburgh Festival and because fine-tuning was not availabile for Chat GPT-3.5 and PaLM 2 at that time.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Audience Perceptions of an AI Actor
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx2.p1">
+    <p class="ltx_p" id="Sx4.SSx2.p1.1">
+     The audience members who filled out our survey reported mixed perceptions of the AI’s “acting” ability. According to results for Q10, the respondents were “rooting for the AI to succeed” more than any other option. However, results around specific acting metrics suggests that most felt that the AI’s performance did not meet expectations. Q12 (109 responses) asked the audience to rate the AI’s performance as a performer in several areas, including
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx2.p1.1.1">
+      naturalness of communication
+     </span>
+     (avg: 33), “unique mind” (avg: 45), “machine-like appearance” (avg: 64). Q14 (100 responses) asked if the AI’s responses appeared to be “similar to a human” (avg: 53) and “motivated toward mutual benefit with other actors” (avg: 64). Of note is that despite the appearance of some originality, positive intent, and degree of human-like response, in the context of performance, the AI generally still presented machine-like responses perceived as “ignorant of the scenes” (avg: 76). We discuss later how challenges for LLMs and speech recognition to clearly differentiate between multiple speakers may contribute to this.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    AI Partner vs AI Entertainer
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx3.p1">
+    <p class="ltx_p" id="Sx4.SSx3.p1.1">
+     While the AI did not appear to rate high as an improviser, more respondents reported in Q9 feeling “excited about using AI tools for creativity” after watching the show (37%) than before the show (with only 16% feeling more “optimistic about AI as storytellers”). We discuss later how this result might inform the impact of showing AI as collaborating with humans in distinctly
+     <span class="ltx_text ltx_font_italic" id="Sx4.SSx3.p1.1.1">
+      artificial
+     </span>
+     ways as opposed to presenting the AI in the role of a human.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx4.F6">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_portrait" height="313" id="Sx4.F6.g1" src="/html/2405.07111/assets/x2.png" width="226"/>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_portrait" height="314" id="Sx4.F6.g2" src="/html/2405.07111/assets/x3.png" width="226"/>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Audience survey results.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx4">
+   <h3 class="ltx_title ltx_title_subsection">
+    Public Perception of Conversational AI Capability
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx4.p1">
+    <p class="ltx_p" id="Sx4.SSx4.p1.1">
+     Audiences did not perceive AI as capable of producing multi-party contextually meaningful dialogue. As summed-up by a participant:
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx4.p1.1.1">
+      “I could see the potential of [the AI] but it was clear he still needs to improve to understand complex multi-human dialogues in rapidly changing scenarios. The voice recognition was also occasionally inputting incorrect words to [the AI] on important sentences which was limiting what he could do.”
+     </em>
+     Interestingly, while the AI’s responses were far from what we expect from a human improviser, they were not perceived as completely unrelated to the context of the scenes:
+more than half reported that the AI appeared
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx4.p1.1.2">
+      “responsive to what was happening on stage”
+     </em>
+     , with nearly half reporting responses appeared
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx4.p1.1.3">
+      “unique”
+     </em>
+     and to have their own
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx4.p1.1.4">
+      “style”
+     </em>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx4.p2">
+    <p class="ltx_p" id="Sx4.SSx4.p2.1">
+     By its nature, improvised theatre presents a difficult problem for conversational AI
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Martin and
+others,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2016
+      </a>
+      )
+     </cite>
+     : the roles for characters are emergent and based on shared mutual understanding of complex social structures and norms.
+Theatre scenes have both tacit and explicit rules of engagement. Subsequently, attempting to build a system that can shift between any given emergent situation is still beyond the capacity of publicly available text-only chatbots.
+One of the objectives of the our show
+was to contribute to the public understanding of the aforementioned problem. Looking at the actual text generated by the LLMs, despite speech recognition errors, responses demonstrated reasonable understanding of the context (see Fig:
+     <a class="ltx_ref" href="#Sx2.F5" title="Figure 5 ‣ Staging AI in Theatre Festival Performances ‣ Designing and Evaluating Dialogue LLMs for Co-Creative Improvised Theatre">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     ). While having a human-in-the-loop to provide contextual data for the prompting results in better possible responses, the human curators of the responses did not consistently select the most appropriate ones: this is understandable as the human curator was tasked with both listening to what is being performed on stage as well as reading from a constant stream of available lines, appearing with a delay. Furthermore, the Cyborg hearing the line would often need to delay to speak the line as they waited for an appropriate opportunity in the scene. Subsequently, turn-taking remains a difficult challenge for performing with AI.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx5">
+   <h3 class="ltx_title ltx_title_subsection">
+    Curiosity for Robots and AI
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx5.p1">
+    <p class="ltx_p" id="Sx4.SSx5.p1.1">
+     The results of Q3 shows that “curiosity for robots/AI” was the leading driver of audiences, significantly overtaking “love for improv comedy” in general, or “love for robots” in general, or simply “being a fan of the show or a cast member”. This result supports the idea that we are in a transitional phase of accepting AI into mainstream cultural experience.
+This reason for going to the show correlates with answers to Q4, namely the vast majority of audiences being more “curious about robots” than any other feeling including “skepticism”, “excitement”, “fear”, “indifference”, or “love” for them. The show had positive audience reviews
+     <span class="ltx_note ltx_role_footnote" id="footnote10">
+      <sup class="ltx_note_mark">
+       10
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         10
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         10
+        </span>
+        e.g,
+        <em class="ltx_emph ltx_font_italic" id="footnote10.1">
+         “thoroughly enjoyable, funny but at the same time there were some thought provoking moments”, “I think the actors did a great job at working with the AI. I especially liked the cyborg concept of an AI driving the word choices of a character”, “Original improv show which educates and involves the audience. Entertaining and great for families with older kids”, “Great concept for a show to provide the improv actors with good source material… and these actors were very good at developing chosen themes to conclusion”, “Anything can happen. Very unusual but it really works”
+        </em>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         tickets.edfringe.com/whats-on/artificial-intelligence-improvisation
+        </span>
+       </span>
+      </span>
+     </span>
+     and mixed press reviews, with several prominent publications outright criticising it for not being entertaining like a typical comedy show
+     <span class="ltx_note ltx_role_footnote" id="footnote11">
+      <sup class="ltx_note_mark">
+       11
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         11
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         11
+        </span>
+        <em class="ltx_emph ltx_font_italic" id="footnote11.1">
+         “[…] the most interesting parts of the show come when the AI (represented on stage by either a tiny robot or a cast member wearing an earpiece) is allowed to strut its stuff. Though most of what it comes out with is an odd combination of intensely logical and amusingly incoherent, it’s still fascinating to watch a computer, on a basic level, make jokes and quips in response to a number of quirky scenarios. Unfortunately, those moments make up nowhere near enough of the show, which can’t seem to decide whether its purpose is to inform or to entertain. […] By the end, it’s troubling to admit that almost all of the laughs in the show came not from the human cast but from the AI robot facing them. And though a final live recreation of the Turing test provides an intriguing end to the show, ironically, a more in-depth explanation of the science behind AI would have been both more entertaining and more interesting.”
+        </em>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         whynow.co.uk/read/
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         artificial-intelligence-improvisation-review-comedy
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         -has-nothing-to-fear-from-ai
+        </span>
+       </span>
+      </span>
+     </span>
+     , while others outright praising it for its high level of entertainment and originality
+     <span class="ltx_note ltx_role_footnote" id="footnote12">
+      <sup class="ltx_note_mark">
+       12
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         12
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         12
+        </span>
+        <em class="ltx_emph ltx_font_italic" id="footnote12.1">
+         “A fantastic look at how AI can be used in an artistic space while also showing us that it isn’t quite as advanced as we all feared, as it struggles with even the most mundane task, like generating dialogue for an investment banker who wishes to become an astronaut, you know, everyday things like that. It may be able to fool university examiners, but sadly it’s not quite ready to fully embody a midlife crisis.
+Thoroughly enjoyed the show, it was interesting to see just how well the AI prompts were able to keep up with each of the ongoing scenes, or not as was sometimes the case, and how the rest of the cast had to react to this. Certainly different, definitely entertaining.”
+        </em>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://theatreandtonic.co.uk/blog/artificial-intelligence-improvisation-review
+        </span>
+       </span>
+      </span>
+     </span>
+     . The self-perception by the creative team of the show was that we needed to juggle advocacy for the use of AI as a tool for creativity, public communication about risks and potentials of AI, high audience expectations about the capabilities of AI, and the need to make a comedic and entertaining show. Of note is that the show was a commercial success in an environment where commercial success was not guaranteed: the audience attendance stayed consistent throughout the run, averaging 63% seat capacity in a 106-seat venue. This curiosity is likely a result of the saturation of news about advances in AI, and their increased use by the general public.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx6">
+   <h3 class="ltx_title ltx_title_subsection">
+    Multi-Party Dialogue With Human-Curated AI
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx6.p1">
+    <p class="ltx_p" id="Sx4.SSx6.p1.1">
+     As discussed in the previous section,
+the majority of audiences reported feeling “more excited about using AI as a creative partner”, while reporting being “less optimistic about AI as a creative storyteller”. We interpret this as a promising avenue for (human-centered) human-machine collaboration.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx4.SSx6.p2">
+    <p class="ltx_p" id="Sx4.SSx6.p2.1">
+     Our use of human-in-the-loop curation and prompt engineering likely contributed to this result. By using a human curator, we work outside of the traditional thinking around programming AI for social interaction: we take a system designed for two-party dialogue and try to make it work for multi-party dialogue through use of a curator. We believe our work is more related to human augmentation with AI than the development of autonomous AI.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="Sx4.F7">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_portrait" height="310" id="Sx4.F7.g1" src="/html/2405.07111/assets/x4.png" width="226"/>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_square" height="192" id="Sx4.F7.g2" src="/html/2405.07111/assets/x5.png" width="226"/>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     Actors survey results.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="Sx4.SSx7">
+   <h3 class="ltx_title ltx_title_subsection">
+    Making Limited Robots Subjects of Performance
+   </h3>
+   <div class="ltx_para" id="Sx4.SSx7.p1">
+    <p class="ltx_p" id="Sx4.SSx7.p1.1">
+     While audiences reported high levels of entertainment and satisfaction about the overall experience, they did not experience an immediate enhancement of improvisers: in the survey, they reported that the robot sometimes “gets in the way” of good improvisation: “During the show, I found myself mostly
+watching improvisers work around the limitations of robots” (Q5), as opposed to “laughing at”, “with”, or “about” robots.
+On one hand, this seems to indicate that the staged robot was seen as an obstacle more than an equal partner on stage, and that our staging of LLMs in multi-party dialogue did not consistently produce convincing human-like multi-party chat. On the other hand, this suggests that the majority responded in a way that kept the robot as subject rather than object.
+This is further supported with statements from the audience about what they liked best about the show:
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx7.p1.1.1">
+      “how interaction between robot and human works”
+     </em>
+     ,
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx7.p1.1.2">
+      “I wasn’t entirely sure which bits were the robots and which bits were the humans. It wasn’t always clear!”
+     </em>
+     ,
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx7.p1.1.3">
+      “Abstract thinking and creations of robots and creative interpretation of robot thoughts (cyborg) and interactions between humans and so”
+     </em>
+     and
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx7.p1.1.4">
+      “Watching the improvisers try to make sense of the strange and funny ideas generated by the AI.”
+     </em>
+     40 participants (out of 150) reported they enjoyed
+     <em class="ltx_emph ltx_font_italic" id="Sx4.SSx7.p1.1.5">
+      “watching the robot and humans create funny and entertaining stories together.”
+     </em>
+     We extrapolate from the responses a keen interest from the audience for seeing how to engage a robot, as much if not more than seeing to what degree an artificial intelligence can pass for human intelligence. As discussions around the role of AI in the entertainment industry are often concentrated around human replacement, our audience observations highlight how AI can also be appreciated in entertainment as ontologicially independent objects in dialogue with humans. We explore this subject further in a discussion of applications of our findings for future research.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="Sx5">
+  <h2 class="ltx_title ltx_title_section">
+   Discussion and Future Work
+  </h2>
+  <section class="ltx_subsection" id="Sx5.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Ethical Implications
+   </h3>
+   <div class="ltx_para" id="Sx5.SSx1.p1">
+    <p class="ltx_p" id="Sx5.SSx1.p1.1">
+     As generative AI technology developed, it became widely available to the general public.
+The fact that text can be generated in the style of a specific writer gave rise to controversies and ethical concerns about plagiarism and misappropriation of artistic work that cannibalise creative economies
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Weidinger et al.,
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       2021
+      </a>
+      ; Frosio,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2023
+      </a>
+      ; Jiang et al.,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx5.SSx1.p2">
+    <p class="ltx_p" id="Sx5.SSx1.p2.1">
+     By employing generative AI in the context of a show for diverse theatre festival audiences, we provoked and then engaged members of the general public attending our show about their perception of generative AI. We did this by illustrating possible uses of AI, inviting their scrutiny during and after the performance, and addressing concerns of the cast members and artists with whom we discussed about the show. Specifically, we discussed the format and aim of the AI-based improvisation with our cast members, with members of the public to whom we flyered the show, with audiences in informal discussions before and after the show, with audiences during the performance through a qualitative survey, with journalists from over 10 different press venues who interviewed us (see Appendix), and with participants of a panel on art and AI during Edinburgh Festival Fringe 2023. Common concerns focused on copyright and the misappropriation of artists’ work when using image generation, and its destructive impact on the creative economies. Additional concerns included the appropriateness of generated images, their multiple representational biases, and the devaluation (via automation) of human creative work.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx5.SSx1.p3">
+    <p class="ltx_p" id="Sx5.SSx1.p3.1">
+     In our show format, we presented collaborative and co-creative applications of generative AI that gave human performers agency by inviting them directly into the generation loop, curating and responding to outputs from AI as part of live interaction. As the audience could witness, results of the generative AI were not the final artistic output: they served impermanent and improvised theatre, acting as source material to inspire live performance by human actors.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx5.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Applications for Future Research
+   </h3>
+   <div class="ltx_para" id="Sx5.SSx2.p1">
+    <p class="ltx_p" id="Sx5.SSx2.p1.1">
+     Staging LLMs in a noisy multi-party conversational context yielded several insights for future research around the role of AI in live entertainment.
+The LLMs we deployed appeared technically capable of generating meaningful responses in the context of multi-party dialogue
+     <span class="ltx_text ltx_font_italic" id="Sx5.SSx2.p1.1.1">
+      when provided sufficient data
+     </span>
+     .
+How best to provide sufficient data for multi-party dialogue LLMs remains an open question.
+Our approach captured live audio from performers and relied on a “human-in-the loop” to manually inject context and curate best responses, which introduced delays into the system.
+Multi-microphone systems supplemented by sentiment analysis on the speech tone, could reduce delays and ambiguity.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx5.SSx2.p2">
+    <p class="ltx_p" id="Sx5.SSx2.p2.1">
+     Live improvisational theatre settings provide opportunities for audiences to engage with the co-creative potential of AI beyond the logic of human replacement. Using AI to produce static content like images, videos, music or text, which are presented as de-contextualized artefacts, may raise challenges in determining authorship;
+whereas in the live arts settings, the AI is allowed to appear as a (potentially anthropomorphic) subject alongside human performers, thereby showcasing collaboration. We therefore encourage more research around the perception of artificial intelligence specifically through the medium of live entertainment.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Anil et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Anil, R.; Dai, A. M.; Firat, O.; Johnson, M.; Lepikhin, D.; Passos, A.;
+Shakeri, S.; Taropa, E.; Bailey, P.; Chen, Z.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Palm 2 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2305.10403
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Askell et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Askell, A.; Bai, Y.; Chen, A.; Drain, D.; Ganguli, D.; Henighan, T.; Jones, A.;
+Joseph, N.; Mann, B.; DasSarma, N.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2021.
+    </span>
+    <span class="ltx_bibblock">
+     A general language assistant as a laboratory for alignment.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2112.00861
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bai et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Bai, Y.; Jones, A.; Ndousse, K.; Askell, A.; Chen, A.; DasSarma, N.; Drain, D.;
+Fort, S.; Ganguli, D.; Henighan, T.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2022.
+    </span>
+    <span class="ltx_bibblock">
+     Training a helpful and harmless assistant with reinforcement learning
+from human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2204.05862
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Branch, Mirowski, and
+Mathewson (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Branch, B.; Mirowski, P.; and Mathewson, K. W.
+    </span>
+    <span class="ltx_bibblock">
+     2021.
+    </span>
+    <span class="ltx_bibblock">
+     Collaborative storytelling with human actors and ai narrators.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Intl Conf Computational Creativity
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Brown, T.; Mann, B.; Ryder, N.; Subbiah, M.; Kaplan, J. D.; Dhariwal, P.;
+Neelakantan, A.; Shyam, P.; Sastry, G.; Askell, A.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2020.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are few-shot learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      Advances in neural information processing systems
+     </span>
+     33:1877–1901.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bruce et al. (2000)
+    </span>
+    <span class="ltx_bibblock">
+     Bruce, A.; Knight, J.; Listopad, S.; Magerko, B.; and Nourbakhsh, I. R.
+    </span>
+    <span class="ltx_bibblock">
+     2000.
+    </span>
+    <span class="ltx_bibblock">
+     Robot improv: Using drama to create believable agents.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.1.1">
+      IEEE International Conference on Robotics and Automation
+     </span>
+     ,
+volume 4, 4002–4008.
+    </span>
+    <span class="ltx_bibblock">
+     IEEE.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Campbell (2008)
+    </span>
+    <span class="ltx_bibblock">
+     Campbell, J.
+    </span>
+    <span class="ltx_bibblock">
+     2008.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      The hero with a thousand faces
+     </span>
+     , volume 17.
+    </span>
+    <span class="ltx_bibblock">
+     New World Library.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chikaraishi et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Chikaraishi, T.; Yoshikawa, Y.; Ogawa, K.; Hirata, O.; and Ishiguro, H.
+    </span>
+    <span class="ltx_bibblock">
+     2017.
+    </span>
+    <span class="ltx_bibblock">
+     Creation and staging of android theatre “sayonara” towards
+developing highly human-like robots.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      Future Internet
+     </span>
+     9(4):75.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cho and May (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Cho, H., and May, J.
+    </span>
+    <span class="ltx_bibblock">
+     2020.
+    </span>
+    <span class="ltx_bibblock">
+     Grounding conversations with improvised dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the 58th Annual Meeting of the Association for
+Computational Linguistics
+     </span>
+     , 2398–2413.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Colton, Charnley, and
+Pease (2011)
+    </span>
+    <span class="ltx_bibblock">
+     Colton, S.; Charnley, J. W.; and Pease, A.
+    </span>
+    <span class="ltx_bibblock">
+     2011.
+    </span>
+    <span class="ltx_bibblock">
+     Computational creativity theory: The face and idea descriptive
+models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      ICCC
+     </span>
+     , 90–95.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Frosio (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Frosio, G.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Generative ai in court.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      Court (September 1, 2023). in Nikos Koutras and Niloufer
+Selvadurai (eds), Recreating Creativity, Reinventing
+Inventiveness-International Perspectives on AI and IP Governance (Routledge,
+2023, Forthcoming)
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Goes et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Goes, F.; Sawicki, P.; Grześ, M.; Brown, D.; and Volpe, M.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Is gpt-4 good enough to evaluate jokes?
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      Intl Conf Computational Creativity
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Haring et al. (2014)
+    </span>
+    <span class="ltx_bibblock">
+     Haring, K. S.; Silvera-Tawil, D.; Matsumoto, Y.; Velonaki, M.; and Watanabe, K.
+    </span>
+    <span class="ltx_bibblock">
+     2014.
+    </span>
+    <span class="ltx_bibblock">
+     Perception of an android robot in japan and australia: A
+cross-cultural comparison.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      Social Robotics: 6th Intl Conf, ICSR
+     </span>
+     , 166–175.
+    </span>
+    <span class="ltx_bibblock">
+     Springer.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hendry et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hendry, M. F.; Kottmann, N.; Fröhlich, M.; Bruggisser, F.; Quandt, M.;
+Speziali, S.; Huber, V.; and Salter, C.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Are you talking to me? a case study in emotional human-machine
+interaction.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence
+and Interactive Digital Entertainment
+     </span>
+     , volume 19, 417–424.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Jiang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jiang, H. H.; Brown, L.; Cheng, J.; Khan, M.; Gupta, A.; Workman, D.; Hanna,
+A.; Flowers, J.; and Gebru, T.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Ai art and its impact on artists.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      Proceedings of the 2023 AAAI/ACM Conference on AI, Ethics,
+and Society
+     </span>
+     , 363–374.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Johnstone (2014)
+    </span>
+    <span class="ltx_bibblock">
+     Johnstone, K.
+    </span>
+    <span class="ltx_bibblock">
+     2014.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      Impro for storytellers
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Routledge.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kirchhoff and
+Ostendorf (2003)
+    </span>
+    <span class="ltx_bibblock">
+     Kirchhoff, K., and Ostendorf, M.
+    </span>
+    <span class="ltx_bibblock">
+     2003.
+    </span>
+    <span class="ltx_bibblock">
+     Directions for multi-party human-computer interaction research.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      HLT-NAACL Workshop on Research Directions in Dialogue
+Processing
+     </span>
+     , 7–9.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kuzior and
+Kwilinski (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Kuzior, A., and Kwilinski, A.
+    </span>
+    <span class="ltx_bibblock">
+     2022.
+    </span>
+    <span class="ltx_bibblock">
+     Cognitive technologies and artificial intelligence in social
+perception.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Management Systems in Production Engineering
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lim, Rooksby, and Cross (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Lim, V.; Rooksby, M.; and Cross, E. S.
+    </span>
+    <span class="ltx_bibblock">
+     2021.
+    </span>
+    <span class="ltx_bibblock">
+     Social robots on a global stage: establishing a role for culture
+during human–robot interaction.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      International Journal of Social Robotics
+     </span>
+     13(6):1307–1333.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lison and
+Tiedemann (2016)
+    </span>
+    <span class="ltx_bibblock">
+     Lison, P., and Tiedemann, J.
+    </span>
+    <span class="ltx_bibblock">
+     2016.
+    </span>
+    <span class="ltx_bibblock">
+     Opensubtitles2016: Extracting large parallel corpora from movie and
+tv subtitles.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Loesel, Mirowski, and
+Mathewson (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Loesel, G.; Mirowski, P.; and Mathewson, K. W.
+    </span>
+    <span class="ltx_bibblock">
+     2020.
+    </span>
+    <span class="ltx_bibblock">
+     Do digital agents do dada?
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      Intl Conf Computational Creativity
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Martin and
+others (2016)
+    </span>
+    <span class="ltx_bibblock">
+     Martin, L. J., et al.
+    </span>
+    <span class="ltx_bibblock">
+     2016.
+    </span>
+    <span class="ltx_bibblock">
+     Improvisational computational storytelling in open worlds.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      Interactive Storytelling: 9th Intl Conf on Interactive
+Digital Storytelling
+     </span>
+     , 73–84.
+    </span>
+    <span class="ltx_bibblock">
+     Springer.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mathewson and
+Mirowski (2017a)
+    </span>
+    <span class="ltx_bibblock">
+     Mathewson, K. W., and Mirowski, P.
+    </span>
+    <span class="ltx_bibblock">
+     2017a.
+    </span>
+    <span class="ltx_bibblock">
+     Improvised theatre alongside artificial intelligences.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Intl Conf Artificial Intelligence and Interactive Digital
+Entertainment
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mathewson and
+Mirowski (2017b)
+    </span>
+    <span class="ltx_bibblock">
+     Mathewson, K. W., and Mirowski, P.
+    </span>
+    <span class="ltx_bibblock">
+     2017b.
+    </span>
+    <span class="ltx_bibblock">
+     Improvised comedy as a turing test.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:1711.08819
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mathewson and
+Mirowski (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Mathewson, K., and Mirowski, P.
+    </span>
+    <span class="ltx_bibblock">
+     2018.
+    </span>
+    <span class="ltx_bibblock">
+     Improbotics: Exploring the imitation game using machine intelligence
+in improvised theatre.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      AAAI Conf Artificial Intelligence and Interactive Digital
+Entertainment
+     </span>
+     , volume 14, 59–66.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mirowski and
+Mathewson (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Mirowski, P., and Mathewson, K. W.
+    </span>
+    <span class="ltx_bibblock">
+     2019.
+    </span>
+    <span class="ltx_bibblock">
+     Human improvised theatre augmented with artificial intelligence.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      Proceedings of the 2019 on Creativity and Cognition
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     527–530.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mirowski et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Mirowski, P.; Mathewson, K.; Branch, B.; Winters, T.; Verhoeven, B.; and
+Elfving, J.
+    </span>
+    <span class="ltx_bibblock">
+     2020.
+    </span>
+    <span class="ltx_bibblock">
+     Rosetta code: Improv in any language.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      Intl Conf Computational Creativity
+     </span>
+     , 115–122.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nishiguchi et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Nishiguchi, S.; Ogawa, K.; Yoshikawa, Y.; Chikaraishi, T.; Hirata, O.; and
+Ishiguro, H.
+    </span>
+    <span class="ltx_bibblock">
+     2017.
+    </span>
+    <span class="ltx_bibblock">
+     Theatrical approach: Designing human-like behaviour in humanoid
+robots.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      Robotics and Autonomous Systems
+     </span>
+     89:158–166.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI, R.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      arXiv
+     </span>
+     2303–08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pentina, Hancock, and
+Xie (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Pentina, I.; Hancock, T.; and Xie, T.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Exploring relationship development with social chatbots: A
+mixed-method study of replika.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.1.1">
+      Computers in Human Behavior
+     </span>
+     140:107600.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Poria et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Poria, S.; Hazarika, D.; Majumder, N.; Naik, G.; Cambria, E.; and Mihalcea, R.
+    </span>
+    <span class="ltx_bibblock">
+     2018.
+    </span>
+    <span class="ltx_bibblock">
+     Meld: A multimodal multi-party dataset for emotion recognition in
+conversations.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:1810.02508
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Radford et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Radford, A.; Wu, J.; Child, R.; Luan, D.; Amodei, D.; Sutskever, I.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2019.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are unsupervised multitask learners.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.1.1">
+      OpenAI blog
+     </span>
+     1(8):9.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Radford et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Radford, A.; Kim, J. W.; Xu, T.; Brockman, G.; McLeavey, C.; and Sutskever, I.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Robust speech recognition via large-scale weak supervision.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.1.1">
+      International Conference on Machine Learning
+     </span>
+     , 28492–28518.
+    </span>
+    <span class="ltx_bibblock">
+     PMLR.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Toplyn (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Toplyn, J.
+    </span>
+    <span class="ltx_bibblock">
+     2022.
+    </span>
+    <span class="ltx_bibblock">
+     Witscript 2: A system for generating improvised jokes without
+wordplay.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.1.1">
+      Intl Conf Computational Creativity
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Touvron et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Touvron, H.; Martin, L.; Stone, K.; Albert, P.; Almahairi, A.; Babaei, Y.;
+Bashlykov, N.; Batra, S.; Bhargava, P.; Bhosale, S.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Llama 2: Open foundation and fine-tuned chat models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.1.1">
+      arXiv preprint arXiv:2307.09288
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Traum (2003)
+    </span>
+    <span class="ltx_bibblock">
+     Traum, D.
+    </span>
+    <span class="ltx_bibblock">
+     2003.
+    </span>
+    <span class="ltx_bibblock">
+     Issues in multiparty dialogues.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.1.1">
+      Workshop on Agent Communication Languages
+     </span>
+     , 201–211.
+    </span>
+    <span class="ltx_bibblock">
+     Springer.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Urbanek et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Urbanek, J.; Fan, A.; Karamcheti, S.; Jain, S.; Humeau, S.; Dinan, E.;
+Rocktäschel, T.; Kiela, D.; Szlam, A.; and Weston, J.
+    </span>
+    <span class="ltx_bibblock">
+     2019.
+    </span>
+    <span class="ltx_bibblock">
+     Learning to speak and act in a fantasy text adventure game.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.1.1">
+      Empirical Methods in Natural Language Processing
+     </span>
+     , 673–683.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Vilk and Fitter (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Vilk, J., and Fitter, N. T.
+    </span>
+    <span class="ltx_bibblock">
+     2020.
+    </span>
+    <span class="ltx_bibblock">
+     Comedians in cafes getting data: evaluating timing and adaptivity in
+real-world robot comedy performance.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.1.1">
+      Intl Conf Human-Robot Interaction
+     </span>
+     , 223–231.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Wei, J.; Shuster, K.; Szlam, A.; Weston, J.; Urbanek, J.; and Komeili, M.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Multi-party chat: Conversational agents in group settings with humans
+and models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.1.1">
+      arXiv preprint arXiv:2304.13835
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Weidinger et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Weidinger, L.; Mellor, J.; Rauh, M.; Griffin, C.; Uesato, J.; Huang, P.-S.;
+Cheng, M.; Glaese, M.; Balle, B.; Kasirzadeh, A.; et al.
+    </span>
+    <span class="ltx_bibblock">
+     2021.
+    </span>
+    <span class="ltx_bibblock">
+     Ethical and social risks of harm from language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.1.1">
+      arXiv preprint arXiv:2112.04359
+     </span>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Winters and
+Mathewson (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Winters, T., and Mathewson, K. W.
+    </span>
+    <span class="ltx_bibblock">
+     2019.
+    </span>
+    <span class="ltx_bibblock">
+     Automatically generating engaging presentation slide decks.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.1.1">
+      Intl Conf Computational Intelligence in Music, Sound, Art and
+Design
+     </span>
+     , 127–141.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Youssef et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Youssef, K.; Said, S.; Alkork, S.; and Beyrouthy, T.
+    </span>
+    <span class="ltx_bibblock">
+     2022.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on recent advances in social robotics.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib42.1.1">
+      Robotics
+     </span>
+     11(4):75.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhang, R.; Duan, W.; Flathmann, C.; Mcneese, N.; Freeman, G.; and Williams, A.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+    <span class="ltx_bibblock">
+     Investigating ai teammate communication strategies and their impact
+in human-ai teams for effective teamwork.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.1.1">
+      dl.acm.org
+     </span>
+     7:1–31.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhu et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Zhu, L. Y.; Zhang, Z.; Wang, J.; Wang, H.; Wu, H.; and Yang, Z.
+    </span>
+    <span class="ltx_bibblock">
+     2022.
+    </span>
+    <span class="ltx_bibblock">
+     Multi-party empathetic dialogue generation: A new task for dialog
+systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.1.1">
+      Association for Computational Linguistics
+     </span>
+     , 298–307.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_section" id="Sx6">
+  <h2 class="ltx_title ltx_title_section">
+   Acknowledgments
+  </h2>
+  <div class="ltx_para" id="Sx6.p1">
+   <p class="ltx_p" id="Sx6.p1.1">
+    We thank the cast members of Improbotics who contributed their talents and ideas in the run-up to and during the 2023 Edinburgh Festival Fringe performances, namely Alex Newson, Ben Lovell, Em Stroud, Fiona Howat, Holly Mallett, Jenny Elfving, Jillian Ellis, Jodie Irvine, Julie Flower, Marouen Mraihi, Mike Prior, Paul Little, Roel Fox, Sarah Davies, Thomas Jones, Tommy Rydling, as well as guest improvisers Calum Jarvie, Caroline Matison, Charles Dundas, Gregor Davidson, Ken Gordon, Ryan Murphy and Steven Millar. We are grateful to audiences for critical vocal feedback, and to Dr. Lidia Alvarez for her assistance with the survey analysis.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx7">
+  <h2 class="ltx_title ltx_title_section">
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="Sx7.SSx1">
+   <h3 class="ltx_title ltx_title_subsection">
+    Technical Implementation Details
+   </h3>
+   <div class="ltx_para" id="Sx7.SSx1.p1">
+    <p class="ltx_p" id="Sx7.SSx1.p1.1">
+     We implemented the speech recognition system for the shows using a USB microphone (Blue Yeti
+     <span class="ltx_note ltx_role_footnote" id="footnote13">
+      <sup class="ltx_note_mark">
+       13
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         13
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         13
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.logitechg.com
+        </span>
+       </span>
+      </span>
+     </span>
+     ) placed on a microphone stand at the front of the stage, and OpenAI’s Whisper speech recognition software running continuously during the show (we used the 4-bit quantized
+     <span class="ltx_text ltx_font_typewriter" id="Sx7.SSx1.p1.1.1">
+      whisper-small.en
+     </span>
+     model and a modified C++ implementation of Whisper
+     <span class="ltx_note ltx_role_footnote" id="footnote14">
+      <sup class="ltx_note_mark">
+       14
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         14
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         14
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://github.com/ggerganov/whisper.cpp
+        </span>
+       </span>
+      </span>
+     </span>
+     running with a typical 0.3s latency on the stage laptop, a MacBook Pro M2 with 96GB memory) that would send each line of recognised speech to the language model server.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx7.SSx1.p2">
+    <p class="ltx_p" id="Sx7.SSx1.p2.1">
+     The language model server processed each incoming line of speech-recognised text, as well as each line of context manually typed by an operator, to assemble the context prompt for the LLMs. A typical example of assembled prompt would consist of (1) a system prompt, followed by (2) lines of dialogue from speech recognition, and (3) an instruction.
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx7.SSx1.p3">
+    <p class="ltx_p" id="Sx7.SSx1.p3.1">
+     For example, for “Couples’ Therapy”, the system prompt (1) was:
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx1.p3.1.1">
+      You are an improv actor doing role-play with me. You stay in character and only say the lines that your character would say. You are performing for an adult audience and your goal is to entertain them with your irreverent wit. Below is the setup for an improvised scene. You work as a couple therapist and counselor. A distraught couple enters your office. You desperately try to save their relationship, but constantly give comically bad advice for humorous effect.
+     </em>
+     The prompt was then concatenated with (2) lines of dialogue coming from speech recognition, prefixed with the name of the human speaker (entered manually by the operator), and lines of dialogue generated by the LLM, e.g.:
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx1.p3.1.2">
+      Paul: Doctor, we need help, my partner Alex wears Birkenstocks and picks his toenails.
+     </em>
+     Finally, the prompt was concatenated with an instruction (3) such as:
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx1.p3.1.3">
+      You play the role of Alex. Write several possible responses for Alex.
+     </em>
+     . Additional metadata of context were directly added to the dialogue section (2) of the prompt, e.g..:
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx1.p3.1.4">
+      Alex starts speaking in a literary style and makes many funny puns.
+     </em>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx7.SSx1.p4">
+    <p class="ltx_p" id="Sx7.SSx1.p4.1">
+     The LLM server used the Google Palm 2 API and the OpenAI ChatGPT-3.5 and ChatGPT-4 API to access the remote LLMs as well as 4-bit quantized Llama 2 13B running locally on the laptop. We developed a centralised server architecture that allowed multiple computers and tablets to access the history of speech recognition results, operator-input context metadata, LLM-generated lines and lines selected by the curator. During the show, a version of the UI was projected on screen.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx7.SSx2">
+   <h3 class="ltx_title ltx_title_subsection">
+    Consent and Privacy Notice in Surveys
+   </h3>
+   <div class="ltx_para" id="Sx7.SSx2.p1">
+    <p class="ltx_p" id="Sx7.SSx2.p1.1">
+     Audience surveys started with:
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx2.p1.1.1">
+      “Thank you so much for attending the Improbotics show,
+and for taking the time to leave feedback about your experience. This survey is completely anonymous and should take about 5 minutes. Please click to ’consent’ if you are happy to proceed.”
+     </em>
+     and concluded with
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx2.p1.1.2">
+      “The data you provided will be used for the purposes of research by Improbotics and University of Kent.
+This survey is anonymous, please be assured that your responses will be kept completely confidential.
+If you would like to contact the principal investigators in the study to discuss this research, please e-mail Dr. Boyd Branch at bmb22 [AT] kent.ac.uk, or Dr. Piotr Mirowski at piotr.mirowski [AT] computer.org.
+”
+     </em>
+    </p>
+   </div>
+   <div class="ltx_para" id="Sx7.SSx2.p2">
+    <p class="ltx_p" id="Sx7.SSx2.p2.1">
+     <em class="ltx_emph ltx_font_italic" id="Sx7.SSx2.p2.1.1">
+      “For information about how we protect your and use your data please follow this link:
+      <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+       research.kent.ac.uk/ris-research-policy-support/wp-content/uploads/sites/2326/2021/06/GDPR-Privacy-Notice-Research.pdf
+      </span>
+      ”
+     </em>
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx7.SSx3">
+   <h3 class="ltx_title ltx_title_subsection">
+    Audience Questionnaire
+   </h3>
+   <div class="ltx_para" id="Sx7.SSx3.p1">
+    <ul class="ltx_itemize" id="Sx7.I1">
+     <li class="ltx_item" id="Sx7.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i1.p1">
+       <p class="ltx_p" id="Sx7.I1.i1.p1.1">
+        Q1. (Consent and privacy notice).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i2.p1">
+       <p class="ltx_p" id="Sx7.I1.i2.p1.1">
+        Q2. Which show did you attend?
+        <br class="ltx_break"/>
+        (List of dates)
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i3.p1">
+       <p class="ltx_p" id="Sx7.I1.i3.p1.1">
+        Q3. What drew you to the show? (single choice)
+        <br class="ltx_break"/>
+        I love improv comedy. / I love robots. / I’m curious about robots/AI. / I’m a fan of one or more of the human improvisers. / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i3.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i4.p1">
+       <p class="ltx_p" id="Sx7.I1.i4.p1.1">
+        Q4. Before watching the show what were your feelings about robots/AI? (single choice)
+        <br class="ltx_break"/>
+        Love them. / Afraid of them. / Curious about them. / Skeptical about them. / Indifferent about them. / Ambivalent about them. / Angry about them. / Excited about them. / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i4.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i5" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i5.p1">
+       <p class="ltx_p" id="Sx7.I1.i5.p1.1">
+        Q5. During the show I found myself mostly: (single choice)
+        <br class="ltx_break"/>
+        Laughing at robots. / Laughing at the human improvisers. / Laughing with robots. / Laughing with the human improvisers. / Laughing about robots. / Laughing in spite of robots. / Watching for what could go wrong with robots. / Watching improvisers work around the limitations of robots. / Watching robots work around the limitations of humans. / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i5.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i6" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i6.p1">
+       <p class="ltx_p" id="Sx7.I1.i6.p1.1">
+        Q6. What I liked most about the show was: (single choice)
+        <br class="ltx_break"/>
+        Watching the robot come up with entertaining and funny ideas. / Watching the improvisers try to make sense of the strange and funny ideas generated by the robot. / Watching the robot and humans create funny and entertaining stories together. / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i6.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i7" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i7.p1">
+       <p class="ltx_p" id="Sx7.I1.i7.p1.1">
+        Q7. I felt like A.L.Ex, the robot/AI, : (single choice)
+        <br class="ltx_break"/>
+        Performed better than I expected. / Performed as well as I expected. / Performed worse than I expected.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i8" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i8.p1">
+       <p class="ltx_p" id="Sx7.I1.i8.p1.1">
+        Q8. I mostly found the show:
+        <br class="ltx_break"/>
+        Entertaining / Educational / Original / Provocative / Confusing / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i8.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i9" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i9.p1">
+       <p class="ltx_p" id="Sx7.I1.i9.p1.1">
+        Q9. After watching the show: (single choice)
+        <br class="ltx_break"/>
+        I am more optimistic about robots as creative storytellers. / I am less optimistic about robots as creative storytellers. / I am more excited about using AI tools for creativity. / I am less interested in using AI tools for creativity. / Something else.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i10" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i10.p1">
+       <p class="ltx_p" id="Sx7.I1.i10.p1.1">
+        Q10. Watching the show I found myself: (single choice)
+        <br class="ltx_break"/>
+        Empathising and caring about A.L.Ex. / Neutral or indifferent to A.L.Ex. / Rooting for A.L.Ex to succeed. / Rooting for A.L.Ex to fail. / Rooting for the humans to outperform A.L.Ex. / Rooting for A.L.Ex to outperform the humans. / Forgetting A.L.Ex was a robot. / Something else
+        <sup class="ltx_sup" id="Sx7.I1.i10.p1.1.1">
+         *
+        </sup>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i11" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i11.p1">
+       <p class="ltx_p" id="Sx7.I1.i11.p1.1">
+        Q12. As a performer, A.L.Ex (The robot/AI) appeared: (scores between 0 and 100)
+        <br class="ltx_break"/>
+        machine like / human like / artificial / lifelike / to communicate naturally / to communicate unnaturally / to have a mind of its own / not to have a mind of its own.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i12" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i12.p1">
+       <p class="ltx_p" id="Sx7.I1.i12.p1.1">
+        Q13. A.L.Ex’s responses as an independent intelligence appeared: (scores between 0 and 100)
+        <br class="ltx_break"/>
+        fake/not really generated in response to what was happening on stage. / real/ actually responsive to what was happening on stage. / common/generic / unique / a sham/ not really AI / run of the mill/ ordinary / original/ distinct / to have their own style.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i13" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i13.p1">
+       <p class="ltx_p" id="Sx7.I1.i13.p1.1">
+        Q14. A.L.Ex’s responses as an actor/improviser appeared: (socres between 0 and 10)
+        <br class="ltx_break"/>
+        similar to a human actor’s responses.  reciprocal/ motivated toward mutual benefit with other actors.  supportive of the scenes  ignorant of the scenes.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i14" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i14.p1">
+       <p class="ltx_p" id="Sx7.I1.i14.p1.1">
+        Q15-Q19. Please elaborate (in case “Something else” was chosen on questions Q3, Q4, Q5, Q8 and Q10).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I1.i15" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I1.i15.p1">
+       <p class="ltx_p" id="Sx7.I1.i15.p1.1">
+        Q20. Is there anything you would like to share with us about your experience watching the show?
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx7.SSx4">
+   <h3 class="ltx_title ltx_title_subsection">
+    Actor Questionnaire
+   </h3>
+   <div class="ltx_para" id="Sx7.SSx4.p1">
+    <ul class="ltx_itemize" id="Sx7.I2">
+     <li class="ltx_item" id="Sx7.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i1.p1">
+       <p class="ltx_p" id="Sx7.I2.i1.p1.1">
+        Q1. (Consent and privacy notice).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i2.p1">
+       <p class="ltx_p" id="Sx7.I2.i2.p1.1">
+        Q2. While improvising with A.L.Ex
+        <br class="ltx_break"/>
+        A.L.Ex provided meaningful contribtions to the scenes. / A.L.Ex collaborated with me to tell interesting stories. / A.L.Ex allowed me to focus more on sponteously reacting to the moment then trying to keep track of a plot. / A.L.Ex mainly introduced absurd or random information that I needed to creatively integrate back into the story. / A.L.EX as an actor advanced the story we were telling. / A.L.Ex as an actor created obstacles for advancing the story forward. / A.L.Ex’s statements during the heroes journey made sense to me. / A.L.Ex’s statements generally surprised me in a way that let me be more creative. / A.L.Ex’s statements surprised me in a way that made it more difficult for me to understand the story I was a part of. / I enjoyed performing with A.L.Ex
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i3.p1">
+       <p class="ltx_p" id="Sx7.I2.i3.p1.1">
+        Q3. Please describe what it was like to perform a long form scene with A.L.Ex.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i4.p1">
+       <p class="ltx_p" id="Sx7.I2.i4.p1.1">
+        Q7. Please describe what it was like to perform short form games with A.L.Ex.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i5" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i5.p1">
+       <p class="ltx_p" id="Sx7.I2.i5.p1.1">
+        Q4. Please describe how the choices A.L.Ex made as an improviser impacted your performance as an improviser.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i6" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i6.p1">
+       <p class="ltx_p" id="Sx7.I2.i6.p1.1">
+        Q5. Please describe the biggest challenges for you with A.L.Ex as a scene partner.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="Sx7.I2.i7" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="Sx7.I2.i7.p1">
+       <p class="ltx_p" id="Sx7.I2.i7.p1.1">
+        Q6. Please describe what you enjoyed most about having A.L.Ex as a scene partner.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx7.SSx5">
+   <h3 class="ltx_title ltx_title_subsection">
+    Press Interviews
+   </h3>
+   <div class="ltx_para" id="Sx7.SSx5.p1">
+    <p class="ltx_p" id="Sx7.SSx5.p1.1">
+     Improbotics was interviewed by Tina Daheley for the
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.1">
+      BBC World Service - Cultural Frontline
+     </span>
+     in “What the AI revolution means for arts”, published 4 March 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote15">
+      <sup class="ltx_note_mark">
+       15
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         15
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         15
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.bbc.co.uk/programmes/w3ct37sv
+        </span>
+       </span>
+      </span>
+     </span>
+     ,
+by Mike O’Sullivan for
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.2">
+      Voice of America
+     </span>
+     in “Artificial Intelligence Can Create, But Lacks Creativity, Say Critics”, publishhed on 26 April 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote16">
+      <sup class="ltx_note_mark">
+       16
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         16
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         16
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.voanews.com/a/artificial-intelligence-can-create-but-lacks-creativity-
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         say-critics/7068177.html
+        </span>
+       </span>
+      </span>
+     </span>
+     ,
+by Gary Baum for the
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.3">
+      Hollywood Reporter
+     </span>
+     in “Why AI Isn’t Funny: At Least Not Yet”, published on 1 June 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote17">
+      <sup class="ltx_note_mark">
+       17
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         17
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         17
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.hollywoodreporter.com/business/digital/why-ai-isnt-funny-at-least-not-yet-1235503678/
+        </span>
+       </span>
+      </span>
+     </span>
+     , by Jay Richardson for
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.4">
+      The Scotsman
+     </span>
+     in “AI is taking over Fringe comedy; can robots be funnier than humans?”, published on 31 July 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote18">
+      <sup class="ltx_note_mark">
+       18
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         18
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         18
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.scotsman.com/arts-and-culture/edinburgh-festivals/ai-is-taking-over-fringe-comedy-can
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         -robots-be-funnier-than-humans-4238383
+        </span>
+       </span>
+      </span>
+     </span>
+     ,
+by Elizabeth Greenberg for
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.5">
+      DIGIT News
+     </span>
+     in “Yes-anding AI: Artificial Intelligence Stars at the Edinburgh Fringe”, published on 16 August 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote19">
+      <sup class="ltx_note_mark">
+       19
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         19
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         19
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.digit.fyi/yes-anding-ai-artificial
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         -intelligence-stars-at-the-edinburgh-fringe/
+        </span>
+       </span>
+      </span>
+     </span>
+     ,
+by Gillian Tett for the
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.6">
+      Financial Times
+     </span>
+     in “Can AI crack comedy?”, pubkished on 26 August 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote20">
+      <sup class="ltx_note_mark">
+       20
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         20
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         20
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.ft.com/content/818f2cab-57ff-42c3-917b-4a83f1d87802
+        </span>
+       </span>
+      </span>
+     </span>
+     , by Katie Collins for
+     <span class="ltx_text ltx_font_italic" id="Sx7.SSx5.p1.1.7">
+      CNET
+     </span>
+     in “AI Took the Stage at the World’s Largest Arts Festival. Here’s What Happened”, published on 2 September 2023
+     <span class="ltx_note ltx_role_footnote" id="footnote21">
+      <sup class="ltx_note_mark">
+       21
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         21
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         21
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         https://www.cnet.com/tech/ai-took-the-stage-at-the-worlds-largest-arts-festival
+        </span>
+        <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">
+         -heres-what-happened/
+        </span>
+       </span>
+      </span>
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="Sx7.SSx6">
+   <h3 class="ltx_title ltx_title_subsection">
+    Actor Full Responses
+   </h3>
+   <section class="ltx_subsubsection" id="Sx7.SSx6.SSSx1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Please describe what it was like to perform a long form scene with A.L.Ex.
+    </h4>
+    <div class="ltx_para" id="Sx7.SSx6.SSSx1.p1">
+     <p class="ltx_p" id="Sx7.SSx6.SSSx1.p1.1">
+      <em class="ltx_emph ltx_font_italic" id="Sx7.SSx6.SSSx1.p1.1.1">
+      </em>
+     </p>
+     <ul class="ltx_itemize" id="Sx7.I3">
+      <li class="ltx_item" id="Sx7.I3.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i1.p1">
+        <p class="ltx_p" id="Sx7.I3.i1.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i1.p1.1.1">
+          ALEx was able to respond in context, with puns. At one point it was even able to rap far better than I could under pressure
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i2.p1">
+        <p class="ltx_p" id="Sx7.I3.i2.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i2.p1.1.1">
+          The Heroes Journey I performed with Alex was notable for one scene where the lines were completely on point and kept the scene moving along. But these lines were embodied brilliantly by the performer who was playing the cyborg. The lines were good by A.L.Ex but made excellent by the performance.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i3.p1">
+        <p class="ltx_p" id="Sx7.I3.i3.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i3.p1.1.1">
+          Creative and exciting
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i4.p1">
+        <p class="ltx_p" id="Sx7.I3.i4.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i4.p1.1.1">
+          Complex
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i5.p1">
+        <p class="ltx_p" id="Sx7.I3.i5.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i5.p1.1.1">
+          I was the cyborg being fed lines by A.L.Ex in the long form. I felt the lines were very relevant to what was being said. However, I felt a vital piece of info was just out of reach of A.L.ex and the human improvisers that would have given the long form its ending / resolve that it felt I needed. Not being able to give it as an improviser I felt frustrated and helpless to assist those I was performing with.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i6" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i6.p1">
+        <p class="ltx_p" id="Sx7.I3.i6.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i6.p1.1.1">
+          Mad and silly
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i7" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i7.p1">
+        <p class="ltx_p" id="Sx7.I3.i7.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i7.p1.1.1">
+          Hero’s journey was real fun today
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i8" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i8.p1">
+        <p class="ltx_p" id="Sx7.I3.i8.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i8.p1.1.1">
+          This show was a lot more interesting today as we had the improviser using a lot more physicality.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i9" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i9.p1">
+        <p class="ltx_p" id="Sx7.I3.i9.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i9.p1.1.1">
+          It was interesting to perform knowing that there is a human choosing the line for A.L.Ex to say. And that allowed them choose lines that keep the plot on slightly together whilst allowing for moments of absurdity
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i10" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i10.p1">
+        <p class="ltx_p" id="Sx7.I3.i10.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i10.p1.1.1">
+          In the long form scene Hero’s Journey A.L.Ex did produce more lines that were of a absurd or non-sequitur variety that as performers we had to integrate into the story. This wasn’t a bad thing - the audience very much enjoyed seeing us performer’s struggle and adapt to that - but it did mean we had to steer the plot more than in previous shows.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i11" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i11.p1">
+        <p class="ltx_p" id="Sx7.I3.i11.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i11.p1.1.1">
+          Surprising, varied, harder work than with a human to progress the story or add richness to the relationship
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i12" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i12.p1">
+        <p class="ltx_p" id="Sx7.I3.i12.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i12.p1.1.1">
+          It adds a different and surprising element to the scenes.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i13" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i13.p1">
+        <p class="ltx_p" id="Sx7.I3.i13.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i13.p1.1.1">
+          Can be tough to move the scene on
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I3.i14" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I3.i14.p1">
+        <p class="ltx_p" id="Sx7.I3.i14.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I3.i14.p1.1.1">
+          It was a bit of a slog. A.L.Ex did produce some nice moments with the performers but felt majority of the time was not giving performers much to work with in regards to funny lines or lines to progress the story.
+         </em>
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx7.SSx6.SSSx2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Please describe how the choices A.L.Ex made as an improviser impacted your performance as an improviser.
+    </h4>
+    <div class="ltx_para" id="Sx7.SSx6.SSSx2.p1">
+     <p class="ltx_p" id="Sx7.SSx6.SSSx2.p1.1">
+      <em class="ltx_emph ltx_font_italic" id="Sx7.SSx6.SSSx2.p1.1.1">
+      </em>
+     </p>
+     <ul class="ltx_itemize" id="Sx7.I4">
+      <li class="ltx_item" id="Sx7.I4.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i1.p1">
+        <p class="ltx_p" id="Sx7.I4.i1.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i1.p1.1.1">
+          ALEx was like another performer, often responses elevated the scene. Less for when lines generated were fairly generic or it the language model did not return a response
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i2.p1">
+        <p class="ltx_p" id="Sx7.I4.i2.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i2.p1.1.1">
+          As A.L.Ex is unchangeable in its performance (could that be seen as a choice?) I have to be aware of my choices in my performance. Not sure that makes sense.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i3.p1">
+        <p class="ltx_p" id="Sx7.I4.i3.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i3.p1.1.1">
+          Pushed me to take more risks
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i4.p1">
+        <p class="ltx_p" id="Sx7.I4.i4.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i4.p1.1.1">
+          He makes it difficult to yes and
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i5.p1">
+        <p class="ltx_p" id="Sx7.I4.i5.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i5.p1.1.1">
+          I had to adapt the character I was playing in the dating scene. I came on as a high status character but then had my status lowered by a comment by A.L.ex. It reminded me in the importance to be able to adapt status as an imoroviser. Be aware of it.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i6" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i6.p1">
+        <p class="ltx_p" id="Sx7.I4.i6.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i6.p1.1.1">
+          Like doing long form with a 5 year old
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i7" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i7.p1">
+        <p class="ltx_p" id="Sx7.I4.i7.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i7.p1.1.1">
+          It helped shape the story or take it into directions I wasn’t expecting! But that is also due to the human selecting the lines
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i8" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i8.p1">
+        <p class="ltx_p" id="Sx7.I4.i8.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i8.p1.1.1">
+          I think sometimes people would have to justify what A.L.Ex had said in the scene depending on how the human delivered the lines. Which can sometimes create great moments or slight awkwardness
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i9" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i9.p1">
+        <p class="ltx_p" id="Sx7.I4.i9.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i9.p1.1.1">
+          I had to have more of a mind on plat and keeping the scenes grounded in the realiaty we had created.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i10" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i10.p1">
+        <p class="ltx_p" id="Sx7.I4.i10.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i10.p1.1.1">
+          I had to do more on plot, relationship and justifying
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i11" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i11.p1">
+        <p class="ltx_p" id="Sx7.I4.i11.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i11.p1.1.1">
+          Having puns for too long meant i had to change modes, for the ted talk it enabled true fun and in the moment thinking.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i12" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i12.p1">
+        <p class="ltx_p" id="Sx7.I4.i12.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i12.p1.1.1">
+          Helps me to listen more
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I4.i13" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I4.i13.p1">
+        <p class="ltx_p" id="Sx7.I4.i13.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I4.i13.p1.1.1">
+          It made it harder to be in the moment this show. This maybe because we were a small cast so when we weren’t improvising we had to select the lines from the ipad. This meant we were never able to watch from the sidelines to think about the scene.
+         </em>
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx7.SSx6.SSSx3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Please describe the biggest challenges for you with A.L.Ex as a scene partner.
+    </h4>
+    <div class="ltx_para" id="Sx7.SSx6.SSSx3.p1">
+     <p class="ltx_p" id="Sx7.SSx6.SSSx3.p1.1">
+      <em class="ltx_emph ltx_font_italic" id="Sx7.SSx6.SSSx3.p1.1.1">
+      </em>
+     </p>
+     <ul class="ltx_itemize" id="Sx7.I5">
+      <li class="ltx_item" id="Sx7.I5.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i1.p1">
+        <p class="ltx_p" id="Sx7.I5.i1.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i1.p1.1.1">
+          Too many lines generated, not allowing scene to build. Careful selection needed by the person holding the tablet.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i2.p1">
+        <p class="ltx_p" id="Sx7.I5.i2.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i2.p1.1.1">
+          Adapting my performance when A.L.Ex is just the robot.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i3.p1">
+        <p class="ltx_p" id="Sx7.I5.i3.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i3.p1.1.1">
+          Just incorporating his responses
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i4.p1">
+        <p class="ltx_p" id="Sx7.I5.i4.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i4.p1.1.1">
+          Not regretting Alex’s lines
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i5.p1">
+        <p class="ltx_p" id="Sx7.I5.i5.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i5.p1.1.1">
+          Adapting to the sometimes snarky ”character or tone” taken by A.L.ex.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i6" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i6.p1">
+        <p class="ltx_p" id="Sx7.I5.i6.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i6.p1.1.1">
+          When the tech fails and Alex takes longer to respond
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i7" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i7.p1">
+        <p class="ltx_p" id="Sx7.I5.i7.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i7.p1.1.1">
+          The waiting for lines as it generates new lines for the scene
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i8" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i8.p1">
+        <p class="ltx_p" id="Sx7.I5.i8.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i8.p1.1.1">
+          If it’s early on in a scene it is that initial moment of feeling like having to fill air time to get A.L.Ex on track and into the scene
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i9" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i9.p1">
+        <p class="ltx_p" id="Sx7.I5.i9.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i9.p1.1.1">
+          There was much more justifying of A.L.Ex’s lines in this show due to the increased non-sequiters or odd replies, statements
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i10" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i10.p1">
+        <p class="ltx_p" id="Sx7.I5.i10.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i10.p1.1.1">
+          Lack of complete collaboration and ‘yes, and’
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i11" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i11.p1">
+        <p class="ltx_p" id="Sx7.I5.i11.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i11.p1.1.1">
+          The time delay is still a challenge as i dont think i have slowed myself down enough to make it seemless.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I5.i12" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I5.i12.p1">
+        <p class="ltx_p" id="Sx7.I5.i12.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I5.i12.p1.1.1">
+          Keeping up with Alex
+         </em>
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx7.SSx6.SSSx4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Please describe what you enjoyed most about having A.L.Ex as a scene partner.
+    </h4>
+    <div class="ltx_para" id="Sx7.SSx6.SSSx4.p1">
+     <p class="ltx_p" id="Sx7.SSx6.SSSx4.p1.1">
+      <em class="ltx_emph ltx_font_italic" id="Sx7.SSx6.SSSx4.p1.1.1">
+      </em>
+     </p>
+     <ul class="ltx_itemize" id="Sx7.I6">
+      <li class="ltx_item" id="Sx7.I6.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i1.p1">
+        <p class="ltx_p" id="Sx7.I6.i1.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i1.p1.1.1">
+          The word play and puns. The fact it could out rap me. Plus even the unrelated, most out of context lines, could be used in a humorous way
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i2.p1">
+        <p class="ltx_p" id="Sx7.I6.i2.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i2.p1.1.1">
+          The flow of the scene is increasingly easier maintain.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i3.p1">
+        <p class="ltx_p" id="Sx7.I6.i3.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i3.p1.1.1">
+          The surprises!
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i4.p1">
+        <p class="ltx_p" id="Sx7.I6.i4.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i4.p1.1.1">
+          Mixing it up baby!
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i5.p1">
+        <p class="ltx_p" id="Sx7.I6.i5.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i5.p1.1.1">
+          The creation of a moment unsuspected.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i6" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i6.p1">
+        <p class="ltx_p" id="Sx7.I6.i6.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i6.p1.1.1">
+          The change in energy in the scene
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i7" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i7.p1">
+        <p class="ltx_p" id="Sx7.I6.i7.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i7.p1.1.1">
+          The assured humour it can bring that get the audience
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i8" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i8.p1">
+        <p class="ltx_p" id="Sx7.I6.i8.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i8.p1.1.1">
+          The moments of the absurd lines that worked within context but provided great humour
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i9" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i9.p1">
+        <p class="ltx_p" id="Sx7.I6.i9.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i9.p1.1.1">
+          The justifying of the lines meant as performers we had to be increasingly on the same page with each other to justify what A.L.Ex said in context of the scene / show.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i10" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i10.p1">
+        <p class="ltx_p" id="Sx7.I6.i10.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i10.p1.1.1">
+          Watching the actor playing ALEx try to incorporate the lines into a meaningful and congruent charactee
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i11" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i11.p1">
+        <p class="ltx_p" id="Sx7.I6.i11.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i11.p1.1.1">
+          Adds whole other dimension to plsy
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i12" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i12.p1">
+        <p class="ltx_p" id="Sx7.I6.i12.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i12.p1.1.1">
+          The change in energy and suggestions
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I6.i13" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I6.i13.p1">
+        <p class="ltx_p" id="Sx7.I6.i13.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I6.i13.p1.1.1">
+          There were some moments that A.L.Ex produced that were nice.
+         </em>
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="Sx7.SSx6.SSSx5">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     Please describe what it was like to perform short form games with A.L.Ex
+    </h4>
+    <div class="ltx_para" id="Sx7.SSx6.SSSx5.p1">
+     <p class="ltx_p" id="Sx7.SSx6.SSSx5.p1.1">
+      <em class="ltx_emph ltx_font_italic" id="Sx7.SSx6.SSSx5.p1.1.1">
+      </em>
+     </p>
+     <ul class="ltx_itemize" id="Sx7.I7">
+      <li class="ltx_item" id="Sx7.I7.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i1.p1">
+        <p class="ltx_p" id="Sx7.I7.i1.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i1.p1.1.1">
+          Sharp punchy lines were available most of the time. Not always.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i2.p1">
+        <p class="ltx_p" id="Sx7.I7.i2.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i2.p1.1.1">
+          I’m beginning to feel a marked difference in performing with A.L.Ex as a robot and performing with A.L.Ex embodied as a cyborg in these scenes. The ”dating” A.L.Ex requires different performance elements. Can’t quite specify what these are at the moment.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i3.p1">
+        <p class="ltx_p" id="Sx7.I7.i3.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i3.p1.1.1">
+          Hilarious and challenging
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i4.p1">
+        <p class="ltx_p" id="Sx7.I7.i4.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i4.p1.1.1">
+          Enjoyable and silly
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i5" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i5.p1">
+        <p class="ltx_p" id="Sx7.I7.i5.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i5.p1.1.1">
+          In one scene (couples therapy) it really felt as an improviser I, A.L.ex via the human cyborg, and the audience were all invested and on the same page. And there was an anticipation about what was to come next.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i6" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i6.p1">
+        <p class="ltx_p" id="Sx7.I7.i6.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i6.p1.1.1">
+          Like talking to a 5 year old
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i7" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i7.p1">
+        <p class="ltx_p" id="Sx7.I7.i7.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i7.p1.1.1">
+          Fun! The speed dating game works quite well with Alex
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i8" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i8.p1">
+        <p class="ltx_p" id="Sx7.I7.i8.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i8.p1.1.1">
+          It was fun as it allowed for a fresh new way to do the games, like in speed dating it makes for great contrast against strong characters.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i9" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i9.p1">
+        <p class="ltx_p" id="Sx7.I7.i9.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i9.p1.1.1">
+          I’m taking that perfomring with A.L.Ex includes controlling / curating the lines. I was curating the lines in the short form dating scenes. I found I was stepping on the other performers lines by pressing the line too quickly so A.L.Ex cut them off. This was a result I believe from being partly used to feeding lines to the human cyborg where this teqnique is fiine because only the person as the cyborg hears it. But also partly anxiety about leaving a too big a gap between peformer speaking and A.L.Ex replying.
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i10" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i10.p1">
+        <p class="ltx_p" id="Sx7.I7.i10.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i10.p1.1.1">
+          Fun and lots of laughs
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i11" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i11.p1">
+        <p class="ltx_p" id="Sx7.I7.i11.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i11.p1.1.1">
+          Fun, challenging and random at points
+         </em>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="Sx7.I7.i12" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="Sx7.I7.i12.p1">
+        <p class="ltx_p" id="Sx7.I7.i12.p1.1">
+         <em class="ltx_emph ltx_font_italic" id="Sx7.I7.i12.p1.1.1">
+          Exciting
+         </em>
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+  </section>
+ </section>
+</article>

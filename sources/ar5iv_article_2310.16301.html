@@ -1,0 +1,4174 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Is ChatGPT a Good Multi-Party Conversation Solver?
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Chao-Hong Tan, Jia-Chen Gu, Zhen-Hua Ling
+    <br class="ltx_break"/>
+    National Engineering Research Center of Speech and Language Information Processing,
+    <br class="ltx_break"/>
+    University of Science and Technology of China, Hefei, China
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     chtan@mail.ustc.edu.cn
+    </span>
+    ,
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id2">
+     {gujc,zhling}@ustc.edu.cn
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    Corresponding author.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id3.id1">
+   Large Language Models (LLMs) have emerged as influential instruments within the realm of natural language processing; nevertheless, their capacity to handle multi-party conversations (MPCs) – a scenario marked by the presence of multiple interlocutors involved in intricate information exchanges – remains uncharted. In this paper, we delve into the potential of generative LLMs such as ChatGPT and GPT-4 within the context of MPCs. An empirical analysis is conducted to assess the zero-shot learning capabilities of ChatGPT and GPT-4 by subjecting them to evaluation across three MPC datasets that encompass five representative tasks. The findings reveal that ChatGPT’s performance on a number of evaluated MPC tasks leaves much to be desired, whilst GPT-4’s results portend a promising future.
+Additionally, we endeavor to bolster performance through the incorporation of MPC structures, encompassing both speaker and addressee architecture.
+This study provides an exhaustive evaluation and analysis of applying generative LLMs to MPCs, casting a light upon the conception and creation of increasingly effective and robust MPC agents.
+Concurrently, this work underscores the challenges implicit in the utilization of LLMs for MPCs, such as deciphering graphical information flows and generating stylistically consistent responses.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large Language Models (LLMs), including notable instances such as ChatGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     OpenAI (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     OpenAI (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , are ushering in a new era in the field of natural language processing (NLP), showcasing remarkable zero-shot and few-shot generalization capabilities. The methods of pretraining language models on extensive text corpora
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Brown et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2020
+     </a>
+     ); Touvron et al. (
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , followed by alignment fine-tuning to ensure adherence to human instructions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023b
+     </a>
+     ); Peng et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , has significantly amplified their proficiency in language comprehension, generation, interaction, and reasoning. The impressively high performance exhibited by these models has been extensively documented in related works
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Qin et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2023
+     </a>
+     ); Wang et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023a
+     </a>
+     ); Bubeck et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Multi-Party Conversations (MPCs) represent a prevalent and natural facet of human communication. In these exchanges, more than two participants engage in interactive discourse on a variety of topics. Such a dynamic introduces new challenges and opportunities for dialogue systems. Here, the key requirement isn’t merely generating coherent and relevant utterances, but also making strategic determinations about when to intervene and whom to address in the conversation. We queried ChatGPT about its potential strategies for addressing the inherent challenges of MPCs with “
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.1">
+     Can you solve multi-party conversation tasks?
+    </span>
+    ”. ChatGPT’s response was as follows: “
+    <span class="ltx_text ltx_font_italic" id="S1.p2.1.2">
+     I do not have built-in mechanisms to keep track of individual participants in a conversation. Therefore, it’s important to explicitly mention the name or identifier of the participant you are addressing when providing instructions or asking questions.
+    </span>
+    ”, which was intriguing and touched upon some of the critical aspects we are investigating in this paper.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Considerable efforts have been made to explore the capabilities of LLMs across a variety of NLP tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Qin et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2023
+     </a>
+     ); Sun et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Despite these advancements, the effectiveness of LLMs in handling MPCs remains largely underexplored. In this study, we scrutinize the potential of LLMs such as ChatGPT and GPT-4 in managing MPCs by implementing five distinct tasks including
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.1">
+     Emotion Detection
+    </span>
+    ,
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.2">
+     Addressee Recognition
+    </span>
+    ,
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.3">
+     Speaker Identification
+    </span>
+    ,
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.4">
+     Response Selection
+    </span>
+    , and
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.5">
+     Response Generation
+    </span>
+    , across three different MPC datasets. Our experiments reveal that both ChatGPT and GPT-4 can achieve performance on par with supervised methods when evaluated on the EmoryNLP and MELD datasets. However, the performance of these models on the more complex Ubuntu IRC dataset remains less than satisfactory.
+To address this, we introduce a strategy known as MPC Structure Incorporation, which weaves the speaker and addressee structure information of MPCs into the LLMs. This addition leads to a significant performance boost of ChatGPT and GPT-4 across all three datasets, underpinning the value of this approach for improving LLM effectiveness in MPC scenarios.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    In summary, our contributions in this paper are three-fold:
+1) An exploratory study to examine the performance of ChatGPT and GPT-4 in handling MPCs within a zero-shot context is carried out. This is the first study of its kind to investigate how these LLMs perform in MPC scenarios.
+2) An MPC structure incorporation approach is proposed, which enhances the performance of ChatGPT and GPT-4 in managing MPCs. This strategy integrates the speaker and addressee structure information of MPCs into LLMs, leading to substantial performance improvements.
+3) We delve into the potential of LLMs in handling MPCs and shed light on the challenges that need to be tackled in future research. This discussion forms the basis for continued investigations into improving LLM effectiveness in MPC contexts.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related Work
+  </h2>
+  <section class="ltx_paragraph" id="S2.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Large Language Models
+   </h4>
+   <div class="ltx_para" id="S2.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S2.SS0.SSS0.Px1.p1.1">
+     Recently, the development of large language models (LLMs) has made tremendous progress, as evidenced by models such as GPT-3
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Brown et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2020
+      </a>
+      )
+     </cite>
+     , PaLM
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chowdhery et al. (
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , LLaMA
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Touvron et al. (
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , ChatGPT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      OpenAI (
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , and GPT-4
+     <cite class="ltx_cite ltx_citemacro_cite">
+      OpenAI (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+These LLMs exhibit emergent abilities, including in-context learning, mathematical reasoning, and commonsense reasoning
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wei et al. (
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       2022
+      </a>
+      )
+     </cite>
+     .
+A recent line of work focuses on instruction learning, either via generating high-quality instructions data
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023b
+      </a>
+      ); Peng et al. (
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2023
+      </a>
+      )
+     </cite>
+     or by boosting LLMs with instructions
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chung et al. (
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2022
+      </a>
+      ); Taori et al. (
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S2.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Multi-Party Conversations
+   </h4>
+   <div class="ltx_para" id="S2.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="S2.SS0.SSS0.Px2.p1.1">
+     Existing methods on building MPC systems can be generally categorized into retrieval-based approaches
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Ouchi and Tsuboi (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2016
+      </a>
+      ); Zhang et al. (
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       2018
+      </a>
+      ); Wang et al. (
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2020
+      </a>
+      ); Gu et al. (
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2021
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     or generation-based
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Hu et al. (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2019
+      </a>
+      ); Gu et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2022
+      </a>
+      ); Li and Zhao (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+On the one hand,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Ouchi and Tsuboi (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2016
+      </a>
+      )
+     </cite>
+     and
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Zhang et al. (
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       2018
+      </a>
+      )
+     </cite>
+     proposed to update speaker embeddings with conversation streams dynamically and role-sensitively.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2020
+      </a>
+      )
+     </cite>
+     proposed to track the dynamic topic in a conversation.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2021
+      </a>
+      )
+     </cite>
+     proposed jointly learning “who says what to whom" in a unified framework by designing self-supervised tasks.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     present graph-induced fine-tuning which adapts Transformer-based LMs by integrating four types of edges into attention mechanisms.
+On the other hand,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Hu et al. (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2019
+      </a>
+      )
+     </cite>
+     explored generation-based approaches by proposing a graph-structured network (GSN) that encoded the conversation context using homogeneous GNNs.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2022
+      </a>
+      )
+     </cite>
+     proposed HeterMPC to model the complicated interactions between utterances and interlocutors with a heterogeneous graph.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Li and Zhao (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     proposed to iteratively generate missing addressees and optimize the generative model via the EM algorithm.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S2.SS0.SSS0.Px3">
+   <h4 class="ltx_title ltx_title_paragraph">
+    LLMs for NLP Tasks
+   </h4>
+   <div class="ltx_para" id="S2.SS0.SSS0.Px3.p1">
+    <p class="ltx_p" id="S2.SS0.SSS0.Px3.p1.1">
+     Several contemporaneous papers present empirical studies of leveraging LLMs for various NLP tasks to explore whether LLMs can achieve competitive performance.
+For example,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Qin et al. (
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       2023
+      </a>
+      )
+     </cite>
+     study the zero-shot learning capability of ChatGPT by evaluating it on 7 representative task categories, such as reasoning, natural language inference, and summarization.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Liu et al. (
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2023
+      </a>
+      )
+     </cite>
+     and
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023a
+      </a>
+      )
+     </cite>
+     explore whether ChatGPT is a good evaluator of natural language generation.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Sun et al. (
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       2023
+      </a>
+      )
+     </cite>
+     investigate LLMs for relevance ranking in information retrieval.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Zheng et al. (
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       2023
+      </a>
+      )
+     </cite>
+     seek to understand why ChatGPT falls short in providing truthful answers and provide a guideline towards truthfulness in question answering via LLMs.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS0.SSS0.Px3.p2">
+    <p class="ltx_p" id="S2.SS0.SSS0.Px3.p2.1">
+     To the best of our knowledge, this paper makes the first attempt to empirically analyze the zero-shot learning ability of LLMs on the MPC tasks, providing comprehensive evaluation and analysis to inspire the development of more effective and robust MPC agents.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Approach
+  </h2>
+  <figure class="ltx_figure" id="S3.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="267" id="S3.F1.g1" src="/html/2310.16301/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    The prompt template to complete the tasks.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    To explore an out-of-box MPC solver, our emphasis lies in the zero-shot setting.
+Instruction for each task is shown in Figure
+    <a class="ltx_ref" href="#S3.F1" title="Figure 1 ‣ 3 Approach ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+For each task, LLMs are first instructed with the prompt “
+    <span class="ltx_text ltx_font_italic" id="S3.p1.1.1">
+     You have been presented with a sequence of multi-party conversational turns, organized in chronological order.
+    </span>
+    ”.
+Then, LLMs are instructed to complete the task with task-specific prompts.
+To stabilize the output of LLMs, the effect of temperature is amplified with the prompt “
+    <span class="ltx_text ltx_font_italic" id="S3.p1.1.2">
+     Use temperature=0, minimize unnecessary words to not get confused.
+    </span>
+    ”.
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       We found that this prompt can improve the performance, even if the temperature is already set to 0 in API.
+      </span>
+     </span>
+    </span>
+    For more comprehensive explication, certain tasks require an
+    <span class="ltx_text ltx_font_italic" id="S3.p1.1.3">
+     Extended Instruction
+    </span>
+    as shown in Table
+    <a class="ltx_ref" href="#S4.T5" title="Table 5 ‣ Speaker Information Enhancement ‣ 4.5 Evaluation Results of MPC Understanding ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Task-Specific Prompts
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Different instructions for each task are designed to guide LLMs to complete the task, namely task-specific prompts.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Emotion Detection (ED)
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p1.2">
+      LLMs are tasked to predict the emotion of each utterance with the task instruction
+“
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.1.1">
+       Please evaluate the emotions of each utterance in the dialogue using the following
+       <math alttext="n" class="ltx_Math" display="inline" id="S3.SS1.SSS0.Px1.p1.1.1.m1.1">
+        <semantics id="S3.SS1.SSS0.Px1.p1.1.1.m1.1a">
+         <mi id="S3.SS1.SSS0.Px1.p1.1.1.m1.1.1" xref="S3.SS1.SSS0.Px1.p1.1.1.m1.1.1.cmml">
+          n
+         </mi>
+         <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS0.Px1.p1.1.1.m1.1b">
+          <ci id="S3.SS1.SSS0.Px1.p1.1.1.m1.1.1.cmml" xref="S3.SS1.SSS0.Px1.p1.1.1.m1.1.1">
+           𝑛
+          </ci>
+         </annotation-xml>
+         <annotation encoding="application/x-tex" id="S3.SS1.SSS0.Px1.p1.1.1.m1.1c">
+          n
+         </annotation>
+        </semantics>
+       </math>
+       labels:
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.2">
+       …
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.3">
+       .” and the output template “The output format must be: #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.4">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.5">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.6">
+       utterance
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.7">
+       //
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.8">
+       emotion
+      </span>
+      }”
+Here,
+      <math alttext="n" class="ltx_Math" display="inline" id="S3.SS1.SSS0.Px1.p1.2.m1.1">
+       <semantics id="S3.SS1.SSS0.Px1.p1.2.m1.1a">
+        <mi id="S3.SS1.SSS0.Px1.p1.2.m1.1.1" xref="S3.SS1.SSS0.Px1.p1.2.m1.1.1.cmml">
+         n
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS0.Px1.p1.2.m1.1b">
+         <ci id="S3.SS1.SSS0.Px1.p1.2.m1.1.1.cmml" xref="S3.SS1.SSS0.Px1.p1.2.m1.1.1">
+          𝑛
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS0.Px1.p1.2.m1.1c">
+         n
+        </annotation>
+       </semantics>
+      </math>
+      is the number of emotion labels, and {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.9">
+       …
+      </span>
+      } is the list of emotion labels.
+Dialogue history is formalized as “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.10">
+       #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.11">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.12">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px1.p1.2.13">
+       utterance
+      </span>
+      }”.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Addressee Recognition (AR)
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px2.p1.1">
+      LLMs are tasked to predict the addressee of each utterance with the task instruction “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.1">
+       Your task is to find the addressee of each utterance.
+      </span>
+      ” and the output template “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.2">
+       The output format must be: #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.3">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.4">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.5">
+       utterance
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.6">
+       // Reply to #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.7">
+       reply_i
+      </span>
+      }”.
+And we can get the addressee information if we know the reply-to utterance of each utterance.
+Since the addressee of the first utterance is unknown, we add the extra description “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px2.p1.1.8">
+       Please start from #1 since #0 is the first utterance that has no reply-to utterance. You should not leave any utterance unattended.
+      </span>
+      ” to inform LLMs of the addressee of the first utterance.
+Dialogue history is formalized as the same as emotion detection.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Speaker Identification (SI)
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px3.p1.1">
+      LLMs are tasked to predict the speaker of the last utterance with the task instruction “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.1">
+       Please identify the speaker of the last sentence.
+      </span>
+      ” and output template “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.2">
+       The output format should be only one speaker.
+      </span>
+      ”. Dialogue history with speaker is formalized as “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.3">
+       #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.4">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.5">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.6">
+       speaker
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.7">
+       :
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px3.p1.1.8">
+       utterance
+      </span>
+      }”.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Response Selection (RS)
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px4.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px4.p1.1">
+      LLMs are tasked to select the most appropriate response from the candidates with the task instruction “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.1">
+       Your task is to select the most appropriate response from the candidate set.
+      </span>
+      ” and output template “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.2">
+       The output format must be: #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.3">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.4">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.5">
+       utterance
+      </span>
+      }”.
+The candidate set is formalized as “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.6">
+       #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.7">
+       num
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.8">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.9">
+       utterance
+      </span>
+      }”.
+Thus the history with input template is formalized as “
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.10">
+       Dialogue History:
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.11">
+       conversation turns
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.12">
+       Candidates:
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px4.p1.1.13">
+       candidates
+      </span>
+      }”.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px5">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Response Generation (RG)
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px5.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px5.p1.1">
+      LLMs are tasked to generate a response with the task instruction
+“
+      <span class="ltx_text ltx_font_italic" id="S3.SS1.SSS0.Px5.p1.1.1">
+       Your task is to generate the most appropriate response.
+      </span>
+      ”.
+There is no need to provide the output template since the generation task is free-form.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    MPC Structure Incorporation
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Considering that the complicated interactions between interlocutors, between utterances and between an interlocutor and an utterance naturally increase the difficulty of fully understanding MPCs, it might be helpful to incorporate the MPC structure information.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Speaker Structure
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px1.p1.1">
+      The speaker structure is incorporated into LLMs to help understand utterances. Specifically, the prompts with “{
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px1.p1.1.1">
+       utterance
+      </span>
+      }” is replaced with “{
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px1.p1.1.2">
+       speaker
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px1.p1.1.3">
+       :
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px1.p1.1.4">
+       utterance
+      </span>
+      }” to inform LLMs of the speaker of each utterance.
+An example is shown in Figure
+      <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ Speaker Structure ‣ 3.2 MPC Structure Incorporation ‣ 3 Approach ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F2">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="517" id="S3.F2.g1" src="/html/2310.16301/assets/x2.png" width="461"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 2:
+      </span>
+      The prompt and output of emotion detection with speaker structure.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Addressee Structure
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p1.1">
+      The addressee structure of MPCs is constructed with adding sentence “
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px2.p1.1.1">
+       Reply to #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px2.p1.1.2">
+       reply_uid
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px2.p1.1.3">
+       –
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px2.p1.1.4">
+       reply_utterance
+      </span>
+      }” into prompt.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Speaker-Addressee Structure
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px3.p1.1">
+      The speaker-addressee structure of MPCs denotes the information flow from a speaker to an addressee, which is constructed with the prompt “
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.1">
+       Reply to #
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.2">
+       reply_uid
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.3">
+       – Speaker
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.4">
+       reply_spk
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.5">
+       :
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.6">
+       reply_utterance
+      </span>
+      }” and “{
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.7">
+       utterance
+      </span>
+      }” is replaced with “{
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.8">
+       speaker
+      </span>
+      }
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.9">
+       :
+      </span>
+      {
+      <span class="ltx_text ltx_font_italic" id="S3.SS2.SSS0.Px3.p1.1.10">
+       utterance
+      </span>
+      }”.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Datasets
+   </h3>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     EmoryNLP
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px1.p1.1">
+      EmoryNLP
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Zahiri and Choi (
+       <a class="ltx_ref" href="#bib.bib34" title="">
+        2018
+       </a>
+       )
+      </cite>
+      is a collection of the TV show
+      <em class="ltx_emph ltx_font_italic" id="S4.SS1.SSS0.Px1.p1.1.1">
+       Friends
+      </em>
+      , where each utterance is annotated with one of the seven emotions borrowed from the six primary emotions in the
+      <cite class="ltx_cite ltx_citemacro_citet">
+       Willcox (
+       <a class="ltx_ref" href="#bib.bib33" title="">
+        1982
+       </a>
+       )
+      </cite>
+      ’s feeling wheel, including
+      <em class="ltx_emph ltx_font_italic" id="S4.SS1.SSS0.Px1.p1.1.2">
+       sad, mad, scared, powerful, peaceful, joyful
+      </em>
+      , and a default emotion of
+      <em class="ltx_emph ltx_font_italic" id="S4.SS1.SSS0.Px1.p1.1.3">
+       neutral
+      </em>
+      .
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     MELD
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px2.p1.1">
+      The Multimodal EmotionLines Dataset (MELD)
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Poria et al. (
+       <a class="ltx_ref" href="#bib.bib21" title="">
+        2019
+       </a>
+       )
+      </cite>
+      was developed by improving and expanding the original EmotionLines dataset
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Hsu et al. (
+       <a class="ltx_ref" href="#bib.bib10" title="">
+        2018
+       </a>
+       )
+      </cite>
+      . MELD includes the same multi-party dialogue instances as EmotionLines but incorporates additional audio and visual modalities alongside text.
+Each utterance within a dialogue is tagged with one of the seven emotions, including:
+      <em class="ltx_emph ltx_font_italic" id="S4.SS1.SSS0.Px2.p1.1.1">
+       Anger, Disgust, Sadness, Joy, Neutral, Surprise, Fear
+      </em>
+      . This comprehensive tagging facilitates deep emotion-focused analysis.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Ubuntu IRC benchmark
+    </h4>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p1.1">
+      Ubuntu IRC
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Hu et al. (
+       <a class="ltx_ref" href="#bib.bib11" title="">
+        2019
+       </a>
+       )
+      </cite>
+      represents a substantial, Ubuntu Internet Relay Chat (IRC) channel corpus, replete with annotations for multiple interlocutors. Furthermore, it is distinguished by the provision of addressee labels accompanying each individual utterance.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS1.SSS0.Px3.p2">
+     <p class="ltx_p" id="S4.SS1.SSS0.Px3.p2.1">
+      The EmoryNLP and MELD datasets proffer emotion labels, hence enabling the execution of ED tasks. Conversely, the Ubuntu IRC dataset offers Addressee tags, thereby serving as a resource for AR tasks. Table
+      <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ Ubuntu IRC benchmark ‣ 4.1 Datasets ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      presents the statistics of the three datasets evaluated in our experiments.
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T1">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T1.1" style="width:424.9pt;height:69.7pt;vertical-align:-1.0pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-10.0pt,1.6pt) scale(0.954860839912223,0.954860839912223) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S4.T1.1.1">
+        <tr class="ltx_tr" id="S4.T1.1.1.1">
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Datasets
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.1.1.1.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Train
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.1.1.1.3" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Valid
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_tt" id="S4.T1.1.1.1.4" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Test
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T1.1.1.2">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          EmoryNLP
+          <cite class="ltx_cite ltx_citemacro_cite">
+           Zahiri and Choi (
+           <a class="ltx_ref" href="#bib.bib34" title="">
+            2018
+           </a>
+           )
+          </cite>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.1.2.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          659
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.1.2.3" style="padding-left:2.4pt;padding-right:2.4pt;">
+          89
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.1.2.4" style="padding-left:2.4pt;padding-right:2.4pt;">
+          79
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T1.1.1.3">
+         <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          MELD
+          <cite class="ltx_cite ltx_citemacro_citet">
+           Poria et al. (
+           <a class="ltx_ref" href="#bib.bib21" title="">
+            2019
+           </a>
+           )
+          </cite>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          1,039
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.3" style="padding-left:2.4pt;padding-right:2.4pt;">
+          114
+         </td>
+         <td class="ltx_td ltx_align_center" id="S4.T1.1.1.3.4" style="padding-left:2.4pt;padding-right:2.4pt;">
+          280
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T1.1.1.4">
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T1.1.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Ubuntu IRC
+          <cite class="ltx_cite ltx_citemacro_cite">
+           Hu et al. (
+           <a class="ltx_ref" href="#bib.bib11" title="">
+            2019
+           </a>
+           )
+          </cite>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T1.1.1.4.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          311,725
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T1.1.1.4.3" style="padding-left:2.4pt;padding-right:2.4pt;">
+          5,000
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T1.1.1.4.4" style="padding-left:2.4pt;padding-right:2.4pt;">
+          5,000
+         </td>
+        </tr>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      Statistics of the datasets evaluated in this paper.
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Baselines
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.1">
+      (1) BERT
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Devlin et al. (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2019
+      </a>
+      )
+     </cite>
+     is a bidirectional language representation model and can be fine-tuned for various NLP tasks.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.2">
+      (2) GPT-2
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Radford et al. (
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2019
+      </a>
+      )
+     </cite>
+     is a uni-directional pre-trained language model.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.3">
+      (3) BART
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Lewis et al. (
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2020
+      </a>
+      )
+     </cite>
+     is a denoising autoencoder using a standard Tranformer-based architecture, trained by corrupting text with an arbitrary noising function and learning to reconstruct the original text.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.4">
+      (4) SPCL-CL-ERC
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Song et al. (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2022
+      </a>
+      )
+     </cite>
+     introduced a novel Supervised Prototypical Contrastive Learning loss function for the Emotion Recognition in Conversation task, addressing the issues stemming from imbalanced classification through the medium of contrastive learning, obviating the necessity for large batch sizes.
+It is the SOTA of the EmoryNLP and MELD dataset on ED task.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.5">
+      (5) BART w/. EM
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Li and Zhao (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     introduce an Expectation-Maximization (EM) method that alternately performs the expectation steps to infer addressee labels, and the maximization steps to fine-tune a response generation model.
+It is the SOTA of the Ubuntu IRC datasets on RG task.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.6">
+      (6) MPC-BERT w/. GIFT
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2021
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     is a pre-trained model for MPCs that learns ‘who says what to whom’ with self-supervised tasks (MPC-BERT) and a graph-based fine-tuning method (GIFT).
+It is the SOTA of the Ubuntu IRC datasets on AR, SI and RS tasks.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.7">
+      (7) ChatGPT
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      OpenAI (
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , ingeniously enriched by the infusion of Supervised Fine-Tuning (SFT) and Reinforcement Learning from Human Feedback (RLHF) methodologies, ensuring seamless synchronization between the model and human directives.
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.8">
+      (8) GPT-4
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      OpenAI (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2023
+      </a>
+      )
+     </cite>
+     is a large-scale, multimodal model which can accept image and text inputs and produce text outputs, exhibiting human-level performance on various professional and academic benchmarks.
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        <span class="ltx_text ltx_font_italic" id="footnote2.1">
+         ChatGPT
+        </span>
+        and
+        <span class="ltx_text ltx_font_italic" id="footnote2.2">
+         GPT-4
+        </span>
+        are recognized representatives of LLMs, so we only consider them to evaluate MPCs.
+       </span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Implementation Details
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.3">
+     All supervised models were trained with the AdamW method
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Loshchilov and Hutter (
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2019
+      </a>
+      )
+     </cite>
+     .
+The learning rate was initialized as
+     <math alttext="6.25e\text{-}5" class="ltx_Math" display="inline" id="S4.SS3.p1.1.m1.1">
+      <semantics id="S4.SS3.p1.1.m1.1a">
+       <mrow id="S4.SS3.p1.1.m1.1.1" xref="S4.SS3.p1.1.m1.1.1.cmml">
+        <mn id="S4.SS3.p1.1.m1.1.1.2" xref="S4.SS3.p1.1.m1.1.1.2.cmml">
+         6.25
+        </mn>
+        <mo id="S4.SS3.p1.1.m1.1.1.1" lspace="0em" rspace="0em" xref="S4.SS3.p1.1.m1.1.1.1.cmml">
+         ​
+        </mo>
+        <mi id="S4.SS3.p1.1.m1.1.1.3" xref="S4.SS3.p1.1.m1.1.1.3.cmml">
+         e
+        </mi>
+        <mo id="S4.SS3.p1.1.m1.1.1.1a" lspace="0em" rspace="0em" xref="S4.SS3.p1.1.m1.1.1.1.cmml">
+         ​
+        </mo>
+        <mtext id="S4.SS3.p1.1.m1.1.1.4" xref="S4.SS3.p1.1.m1.1.1.4a.cmml">
+         -
+        </mtext>
+        <mo id="S4.SS3.p1.1.m1.1.1.1b" lspace="0em" rspace="0em" xref="S4.SS3.p1.1.m1.1.1.1.cmml">
+         ​
+        </mo>
+        <mn id="S4.SS3.p1.1.m1.1.1.5" xref="S4.SS3.p1.1.m1.1.1.5.cmml">
+         5
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.1.m1.1b">
+        <apply id="S4.SS3.p1.1.m1.1.1.cmml" xref="S4.SS3.p1.1.m1.1.1">
+         <times id="S4.SS3.p1.1.m1.1.1.1.cmml" xref="S4.SS3.p1.1.m1.1.1.1">
+         </times>
+         <cn id="S4.SS3.p1.1.m1.1.1.2.cmml" type="float" xref="S4.SS3.p1.1.m1.1.1.2">
+          6.25
+         </cn>
+         <ci id="S4.SS3.p1.1.m1.1.1.3.cmml" xref="S4.SS3.p1.1.m1.1.1.3">
+          𝑒
+         </ci>
+         <ci id="S4.SS3.p1.1.m1.1.1.4a.cmml" xref="S4.SS3.p1.1.m1.1.1.4">
+          <mtext id="S4.SS3.p1.1.m1.1.1.4.cmml" xref="S4.SS3.p1.1.m1.1.1.4">
+           -
+          </mtext>
+         </ci>
+         <cn id="S4.SS3.p1.1.m1.1.1.5.cmml" type="integer" xref="S4.SS3.p1.1.m1.1.1.5">
+          5
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.1.m1.1c">
+        6.25e\text{-}5
+       </annotation>
+      </semantics>
+     </math>
+     and was decayed linearly down to
+     <math alttext="0" class="ltx_Math" display="inline" id="S4.SS3.p1.2.m2.1">
+      <semantics id="S4.SS3.p1.2.m2.1a">
+       <mn id="S4.SS3.p1.2.m2.1.1" xref="S4.SS3.p1.2.m2.1.1.cmml">
+        0
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.2.m2.1b">
+        <cn id="S4.SS3.p1.2.m2.1.1.cmml" type="integer" xref="S4.SS3.p1.2.m2.1.1">
+         0
+        </cn>
+       </annotation-xml>
+      </semantics>
+     </math>
+     .
+The batch size was set to
+     <math alttext="128" class="ltx_Math" display="inline" id="S4.SS3.p1.3.m3.1">
+      <semantics id="S4.SS3.p1.3.m3.1a">
+       <mn id="S4.SS3.p1.3.m3.1.1" xref="S4.SS3.p1.3.m3.1.1.cmml">
+        128
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p1.3.m3.1b">
+        <cn id="S4.SS3.p1.3.m3.1.1.cmml" type="integer" xref="S4.SS3.p1.3.m3.1.1">
+         128
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p1.3.m3.1c">
+        128
+       </annotation>
+      </semantics>
+     </math>
+     gradient accumulation steps.
+Models were trained in 10 epochs.
+For ChatGPT and GPT-4, we used the API endpoints
+     <span class="ltx_text ltx_font_italic" id="S4.SS3.p1.3.1">
+      gpt-3.5-turbo-0301
+     </span>
+     and
+     <span class="ltx_text ltx_font_italic" id="S4.SS3.p1.3.2">
+      gpt-4-0314
+     </span>
+     provided by OpenAI respectively.
+     <span class="ltx_note ltx_role_footnote" id="footnote3">
+      <sup class="ltx_note_mark">
+       3
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         3
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         3
+        </span>
+        Code is available at
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/lxchtan/ChatMPC" target="_blank" title="">
+         https://github.com/lxchtan/ChatMPC
+        </a>
+        .
+       </span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.4
+    </span>
+    Metrics
+   </h3>
+   <div class="ltx_para" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     To evaluate ED task, we employed the weight-F1 score, which is the harmonic mean of precision and recall. To evaluate SI and AR tasks, we employed accuracy.
+To evaluate RS task, we employed R10@1, which is the percentage of the first correct response selected from 10 candidates.
+To evaluate the quality of the generated text, we employed the standard string-similarity-based metrics SacreBLEU
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Post,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2018
+      </a>
+      )
+     </cite>
+     , ROUGE
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Lin,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2004
+      </a>
+      )
+     </cite>
+     and METEOR
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Banerjee and Lavie,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2005
+      </a>
+      )
+     </cite>
+     .
+Higher is better for all metrics.
+All metrics were calculated by the
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS4.p1.1.1">
+      evaluate
+     </span>
+     toolkit
+     <span class="ltx_note ltx_role_footnote" id="footnote4">
+      <sup class="ltx_note_mark">
+       4
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         4
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         4
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/huggingface/evaluate" target="_blank" title="">
+         https://github.com/huggingface/evaluate
+        </a>
+       </span>
+      </span>
+     </span>
+     .
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T2.1" style="width:411.9pt;height:126pt;vertical-align:-0.5pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-207.6pt,63.3pt) scale(0.497986572922495,0.497986572922495) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S4.T2.1.1">
+       <tr class="ltx_tr" id="S4.T2.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S4.T2.1.1.1.1" rowspan="2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_nopad" id="S4.T2.1.1.1.1.1">
+          <svg height="19.22" overflow="visible" version="1.1" width="86.26">
+           <g transform="translate(0,19.22) scale(1,-1)">
+            <path d="M 0,19.22 86.26,0" stroke="#000000" stroke-width="0.4">
+            </path>
+            <g class="ltx_svg_fog" transform="translate(0,0)">
+             <g transform="translate(0,9.61) scale(1, -1)">
+              <foreignobject height="9.61" overflow="visible" width="43.13">
+               <span class="ltx_inline-block" id="S4.T2.1.1.1.1.1.pic1.1.1">
+                <span class="ltx_inline-block ltx_align_left" id="S4.T2.1.1.1.1.1.pic1.1.1.1">
+                 <span class="ltx_p" id="S4.T2.1.1.1.1.1.pic1.1.1.1.1">
+                  Models
+                 </span>
+                </span>
+               </span>
+              </foreignobject>
+             </g>
+            </g>
+            <g class="ltx_svg_fog" transform="translate(52.28,9.61)">
+             <g transform="translate(0,9.61) scale(1, -1)">
+              <foreignobject height="9.61" overflow="visible" width="33.98">
+               <span class="ltx_inline-block" id="S4.T2.1.1.1.1.1.pic1.2.1">
+                <span class="ltx_inline-block ltx_align_right" id="S4.T2.1.1.1.1.1.pic1.2.1.1">
+                 <span class="ltx_p" id="S4.T2.1.1.1.1.1.pic1.2.1.1.1">
+                  Tasks
+                 </span>
+                </span>
+               </span>
+              </foreignobject>
+             </g>
+            </g>
+           </g>
+          </svg>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3" id="S4.T2.1.1.1.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         EmoryNLP
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3" id="S4.T2.1.1.1.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         MELD
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="3" id="S4.T2.1.1.1.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         Ubuntu IRC
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.2">
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ED (F1)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         SI (ACC)
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.2.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         RS (R10@1)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ED (F1)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         SI (ACC)
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.2.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         RS (R10@1)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         AR (ACC)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         SI (ACC)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.2.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         RS (R10@1)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.3">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="10" id="S4.T2.1.1.3.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         Supervised
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.4">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T2.1.1.4.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         BERT
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Devlin et al. (
+          <a class="ltx_ref" href="#bib.bib6" title="">
+           2019
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         34.76
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         47.82
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.4.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         48.68
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         61.31
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         44.18
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.4.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         48.13
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         82.88
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         71.81
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.4.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         73.42
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.5">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.5.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         SOTA
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         40.94
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.5.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.5.1">
+          67.25
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.5.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.8.1">
+          90.18
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.9.1">
+          90.50
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.5.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.10.1">
+          80.74
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.6">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="10" id="S4.T2.1.1.6.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         LLMs
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.7">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T2.1.1.7.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ChatGPT
+         <cite class="ltx_cite ltx_citemacro_cite">
+          OpenAI (
+          <a class="ltx_ref" href="#bib.bib17" title="">
+           2022
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         37.16
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.7.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         29.11
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         58.32
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.7.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         36.42
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         54.11
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.7.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         54.68
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.8">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.8.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         38.50
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         51.42
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.8.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         34.21
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         60.90
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         57.67
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.8.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         39.17
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         67.19
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         46.23
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.8.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         49.52
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.9">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.9.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.9.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.9.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.9.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         37.50
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.10">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.10.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker &amp; Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.10.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.10.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         38.50
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.10.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         29.50
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.11">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.11.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         GPT-4
+         <cite class="ltx_cite ltx_citemacro_cite">
+          OpenAI (
+          <a class="ltx_ref" href="#bib.bib18" title="">
+           2023
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         39.38
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.11.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         44.30
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         62.32
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.11.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         53.73
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         66.02
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.11.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         61.50
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.12">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.12.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.12.2.1">
+          41.63
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.12.3.1">
+          64.28
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.12.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.12.4.1">
+          50.00
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         64.18
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.12.6.1">
+          78.60
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.12.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.12.7.1">
+          57.46
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         82.50
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         58.00
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.12.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         71.00
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.13">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T2.1.1.13.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.13.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.1.13.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T2.1.1.13.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         68.50
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T2.1.1.14">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S4.T2.1.1.14.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker &amp; Addressee
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.1.14.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.1.14.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         59.50
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T2.1.1.14.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         72.00
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Evaluation results of MPC Understanding. Numbers in
+     <span class="ltx_text ltx_font_bold" id="S4.T2.5.1">
+      bold
+     </span>
+     denoted that the results achieved the best performance. The vacant cells signify their incalculability.
+     <span class="ltx_note ltx_role_footnote" id="footnotex2">
+      <sup class="ltx_note_mark">
+       6
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         6
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         6
+        </span>
+        For SI task, the speakers in dialogue history are needed. It means that we cannot lack SI information, so these cells are empty.
+For EmoryNLP and MELD datasets lacking the addressee information, therefore corresponding rows are empty.
+For the Ubuntu IRC AR task, it asked not to add the addressee information, so these cells are empty.
+       </span>
+      </span>
+     </span>
+     The SOTA of ED task is
+     <span class="ltx_text ltx_font_italic" id="S4.T2.6.2">
+      SPCL-CL-ERC
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Song et al. (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , and the SOTA of Ubuntu IRC tasks is
+     <span class="ltx_text ltx_font_italic" id="S4.T2.7.3">
+      MPC-BERT w/. GIFT
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S4.T3">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.4" style="width:411.9pt;height:142.1pt;vertical-align:-0.5pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-186.7pt,64.2pt) scale(0.524510237351801,0.524510237351801) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S4.T3.4.4">
+       <tr class="ltx_tr" id="S4.T3.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.1" rowspan="2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_nopad" id="S4.T3.1.1.1.1.1">
+          <svg height="23.45" overflow="visible" version="1.1" width="162.24">
+           <g transform="translate(0,23.45) scale(1,-1)">
+            <path d="M 0,23.45 162.24,0" stroke="#000000" stroke-width="0.4">
+            </path>
+            <g class="ltx_svg_fog" transform="translate(0,0)">
+             <g transform="translate(0,9.61) scale(1, -1)">
+              <foreignobject height="9.61" overflow="visible" width="43.13">
+               <span class="ltx_inline-block" id="S4.T3.1.1.1.1.1.pic1.1.1">
+                <span class="ltx_inline-block ltx_align_left" id="S4.T3.1.1.1.1.1.pic1.1.1.1">
+                 <span class="ltx_p" id="S4.T3.1.1.1.1.1.pic1.1.1.1.1">
+                  Models
+                 </span>
+                </span>
+               </span>
+              </foreignobject>
+             </g>
+            </g>
+            <g class="ltx_svg_fog" transform="translate(81.12,9.61)">
+             <g transform="translate(0,13.84) scale(1, -1)">
+              <foreignobject height="13.84" overflow="visible" width="81.12">
+               <span class="ltx_inline-block" id="S4.T3.1.1.1.1.1.pic1.2.1">
+                <span class="ltx_inline-block ltx_align_right" id="S4.T3.1.1.1.1.1.pic1.2.1.1">
+                 <span class="ltx_p" id="S4.T3.1.1.1.1.1.pic1.2.1.1.1">
+                  Metrics (RG)
+                 </span>
+                </span>
+               </span>
+              </foreignobject>
+             </g>
+            </g>
+           </g>
+          </svg>
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3" id="S4.T3.1.1.1.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         EmoryNLP
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3" id="S4.T3.1.1.1.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         MELD
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="3" id="S4.T3.1.1.1.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         Ubuntu IRC
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.4">
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.4.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         S-BLEU
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.2.2.2.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ROUGE
+         <sub class="ltx_sub" id="S4.T3.2.2.2.1.1">
+          <span class="ltx_text ltx_font_italic" id="S4.T3.2.2.2.1.1.1">
+           L
+          </span>
+         </sub>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.4.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         METEOR
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.4.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         S-BLEU
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.3.3.3.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ROUGE
+         <sub class="ltx_sub" id="S4.T3.3.3.3.2.1">
+          <span class="ltx_text ltx_font_italic" id="S4.T3.3.3.3.2.1.1">
+           L
+          </span>
+         </sub>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.4.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         METEOR
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.4.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         S-BLEU
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.4.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ROUGE
+         <sub class="ltx_sub" id="S4.T3.4.4.4.3.1">
+          <span class="ltx_text ltx_font_italic" id="S4.T3.4.4.4.3.1.1">
+           L
+          </span>
+         </sub>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.4.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         METEOR
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.5">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="10" id="S4.T3.4.4.5.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         Supervised
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.6">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T3.4.4.6.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         GPT-2
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Radford et al. (
+          <a class="ltx_ref" href="#bib.bib24" title="">
+           2019
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.6175
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         7.90
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.4.4.6.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         10.26
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.5160
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         6.01
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.4.4.6.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         7.74
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.93
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.53
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.6.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         4.01
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.7">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.7.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         BART
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Lewis et al. (
+          <a class="ltx_ref" href="#bib.bib12" title="">
+           2020
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.7009
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.63
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.7.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         11.86
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.7.5.1">
+          1.0757
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.64
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.7.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         10.37
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.95
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.90
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.7.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         4.46
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.8">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.8.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         SOTA
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.8.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.8.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.8.8.1">
+          2.45
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.8.9.1">
+          11.71
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.8.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         5.52
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.9">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="10" id="S4.T3.4.4.9.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         LLMs
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.10">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T3.4.4.10.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         ChatGPT
+         <cite class="ltx_cite ltx_citemacro_cite">
+          OpenAI (
+          <a class="ltx_ref" href="#bib.bib17" title="">
+           2022
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.5358
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.03
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.4.4.10.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         11.30
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.9059
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         7.13
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T3.4.4.10.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.63
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.5145
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.64
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T3.4.4.10.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.85
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.11">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.11.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.3082
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.95
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.11.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         11.45
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.9159
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.17
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.11.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.86
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.8512
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.68
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.11.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.45
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.12">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.12.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.12.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.12.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.3332
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         10.73
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.12.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         11.49
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.13">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.13.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker &amp; Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.13.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.13.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.6101
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         10.60
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.13.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.07
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.14">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.14.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         GPT-4
+         <cite class="ltx_cite ltx_citemacro_cite">
+          OpenAI (
+          <a class="ltx_ref" href="#bib.bib18" title="">
+           2023
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.4608
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.60
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.14.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.22
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.9301
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         8.93
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.14.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.43
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.2206
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         7.86
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.14.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.03
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.15">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.15.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.15.2.1">
+          0.9049
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.15.3.1">
+          9.99
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.15.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.15.4.1">
+          14.61
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.9666
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.15.6.1">
+          8.89
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.15.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.15.7.1">
+          13.06
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.2324
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.18
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.15.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.65
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.16">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T3.4.4.16.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Addressee
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.16.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T3.4.4.16.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.2458
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.52
+        </td>
+        <td class="ltx_td ltx_align_center" id="S4.T3.4.4.16.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         12.78
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.4.4.17">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S4.T3.4.4.17.1" style="padding-left:3.0pt;padding-right:3.0pt;">
+         w/. Speaker &amp; Addressee
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.2" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.3" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T3.4.4.17.4" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.5" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.6" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T3.4.4.17.7" style="padding-left:3.0pt;padding-right:3.0pt;">
+         –
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.8" style="padding-left:3.0pt;padding-right:3.0pt;">
+         0.2856
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.9" style="padding-left:3.0pt;padding-right:3.0pt;">
+         9.24
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S4.T3.4.4.17.10" style="padding-left:3.0pt;padding-right:3.0pt;">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.4.4.17.10.1">
+          13.30
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Evaluation results of MPC Generation. Numbers in
+     <span class="ltx_text ltx_font_bold" id="S4.T3.7.1">
+      bold
+     </span>
+     denoted that the results achieved the best performance. S-BLEU is the short of SacreBLEU. The vacant cells signify their incalculability.
+     <span class="ltx_note ltx_role_footnote" id="footnotex4">
+      <sup class="ltx_note_mark">
+       6
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         6
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         6
+        </span>
+        For SI task, the speakers in dialogue history are needed. It means that we cannot lack SI information, so these cells are empty.
+For EmoryNLP and MELD datasets lacking the addressee information, therefore corresponding rows are empty.
+For the Ubuntu IRC AR task, it asked not to add the addressee information, so these cells are empty.
+       </span>
+      </span>
+     </span>
+     The SOTA of Ubuntu IRC is
+     <span class="ltx_text ltx_font_italic" id="S4.T3.8.2">
+      BART w/. EM
+     </span>
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Li and Zhao (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.5
+    </span>
+    Evaluation Results of MPC Understanding
+   </h3>
+   <div class="ltx_para" id="S4.SS5.p1">
+    <p class="ltx_p" id="S4.SS5.p1.1">
+     As shown in Table
+     <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.4 Metrics ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , we evaluated the dialogue understanding performance of supervised language models and LLMs on three test sets. Here, the SOTA results of EmoryNLP and MELD on ED are copied from
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Song et al. (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2022
+      </a>
+      )
+     </cite>
+     . The SOTA results of Ubuntu IRC of all three tasks are copied from
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS5.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Supervised Language Models Versus LLMs
+    </h4>
+    <div class="ltx_para" id="S4.SS5.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS5.SSS0.Px1.p1.1">
+      When one juxtaposes the outcomes associated with supervised language models and LLMs, it becomes apparent that the LLMs demonstrate parity in performance with their supervised counterparts on the EmoryNLP and MELD datasets. However, their performance on Ubuntu IRC falls short of the mark.
+It is unsurprising to discern that the capability of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.1">
+       GPT-4
+      </span>
+      surpasses its predecessor,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.2">
+       ChatGPT
+      </span>
+      across all four understanding tasks.
+In the ED task, both
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.3">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.4">
+       GPT-4
+      </span>
+      outperform BERT but fall short of the state-of-the-art (SOTA) on EmoryNLP. Additionally,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.5">
+       ChatGPT
+      </span>
+      lags behind BERT on the MELD dataset.
+For the AR task, both
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.6">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.7">
+       GPT-4
+      </span>
+      trail behind BERT and SOTA on the Ubuntu IRC dataset, respectively.
+Regarding the SI task, it is essential to note that speaker information detection is unattainable without the provision of explicit speaker information. Consequently, our evaluation of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.8">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.9">
+       GPT-4
+      </span>
+      in the SI task is limited to instances where speaker information is provided. Results demonstrate that both models outperform BERT on both EmoryNLP and MELD datasets. Specifically,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.10">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.11">
+       GPT-4
+      </span>
+      exhibit superior performance to BERT by 3.60% and 16.46% on EmoryNLP, and by 13.49% and 34.42% on MELD, respectively. However, it is worth noting that
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.12">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.13">
+       GPT-4
+      </span>
+      significantly trail behind supervised models on the Ubuntu IRC dataset.
+Regarding the RS task, only in the context of the MELD dataset does
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.14">
+       GPT-4
+      </span>
+      outshine BERT.
+Specifically, on the SI task of the Ubuntu IRC dataset,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.15">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px1.p1.1.16">
+       GPT-4
+      </span>
+      lag behind BERT by 25.58% and 12.31%, respectively.
+This can be attributed to the fact that Ubuntu IRC leans towards a more technical and specialized domain, which is also difficult for humans to understand.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS5.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Speaker Information Enhancement
+    </h4>
+    <div class="ltx_para" id="S4.SS5.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS5.SSS0.Px2.p1.1">
+      To delve into the significance of the interlocutor within the MPC understanding, we incorporate speaker information into three distinctive tasks across three datasets, disregarding the ED task.
+Comparing the line of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.1">
+       ChatGPT (GPT-4)
+       <span class="ltx_note ltx_role_footnote" id="footnote5">
+        <sup class="ltx_note_mark">
+         5
+        </sup>
+        <span class="ltx_note_outer">
+         <span class="ltx_note_content">
+          <sup class="ltx_note_mark">
+           5
+          </sup>
+          <span class="ltx_tag ltx_tag_note">
+           <span class="ltx_text ltx_font_upright" id="footnote5.1.1.1">
+            5
+           </span>
+          </span>
+          <span class="ltx_text ltx_font_upright" id="footnote5.5">
+           This syntax denotes that the conclusion is applicable to both
+          </span>
+          <span class="ltx_text" id="footnote5.6">
+           ChatGPT
+          </span>
+          <span class="ltx_text ltx_font_upright" id="footnote5.7">
+           and
+          </span>
+          <span class="ltx_text" id="footnote5.8">
+           GPT-4
+          </span>
+          <span class="ltx_text ltx_font_upright" id="footnote5.9">
+           .
+          </span>
+         </span>
+        </span>
+       </span>
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.2">
+       ChatGPT (GPT-4) w/. Speaker
+      </span>
+      , we can find that the incorporation of speaker information can improve the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.3">
+       ChatGPT (GPT-4)
+      </span>
+      on all five tasks except for the RS task of Ubuntu IRC.
+This improvement is not surprising. In the context of MPCs, the speaker doesn’t adhere to the rigid alternation characteristic of two-party dialogues, hence the incorporation of speaker information can enhance the lucidity of the conversation, rendering it more readily comprehensible.
+Note that the substantial advancement observed in the AR task partly stems from our modification of the task from identifying the response sentences to directly recognizing the addressee.
+Nonetheless, compared with
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.4">
+       ChatGPT
+      </span>
+      , the subpar performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.5">
+       ChatGPT w/. Speaker
+      </span>
+      on the RS task of Ubuntu IRC suggests that the imparted speaker information could not be optimally assimilated and deployed by
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.6">
+       ChatGPT
+      </span>
+      . On the contrary, it appeared to disrupt the process of response selection. However,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.7">
+       GPT-4
+      </span>
+      ’s performance on this task was substantially superior, enhancing the effectiveness of the RS task by a margin of 9.50%.
+This result suggests that
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.8">
+       GPT-4
+      </span>
+      is better at fusing speaker information than
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px2.p1.1.9">
+       ChatGPT
+      </span>
+      .
+     </p>
+    </div>
+    <figure class="ltx_table" id="S4.T4">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T4.1" style="width:424.9pt;height:322.6pt;vertical-align:-0.9pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-13.0pt,9.8pt) scale(0.942391068394239,0.942391068394239) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S4.T4.1.1">
+        <tr class="ltx_tr" id="S4.T4.1.1.1">
+         <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T4.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T4.1.1.1.1.1">
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Instruction:
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             You have been presented with a sequence of multi-party conversational turns, organized in chronological order.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.3">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Please identify the speaker of the last sentence. The output format should be only one speaker.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.4">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Use temperature=0, minimize unnecessary words to not get confused.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.5">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.5.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Note that the speaker is one of [‘Speaker 1’, ‘Speaker 2’, ‘Speaker 3’, ‘Speaker 4’].
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.6">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.6.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Input:
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.7">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.7.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             #0 – Speaker 1: let me look at this post-meeting
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.8">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.8.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             [Reply to #0 … ] #1 – Speaker 2: are you doing promotions to main ? if so when is a good time to ping you about the xfce lot ?
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.9">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.9.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             [Reply to #1 … ] #2 – Speaker 1: after we have anastacia again so that i do n’t break stuff
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.10">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.10.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             …
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.11">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.11.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             [Reply to #5 … ] #6 – have FILEPATH checked for reverse-dependencies ? the archive tools to do that check do n’t work yet
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.1.1.1.12">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.1.1.1.12.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Response:
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T4.1.1.2">
+         <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T4.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T4.1.1.2.1.1">
+           <tr class="ltx_tr" id="S4.T4.1.1.2.1.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.2.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Answer: Speaker 1
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.2.1.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.2.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             <span class="ltx_text ltx_font_italic" id="S4.T4.1.1.2.1.1.2.1.1">
+              GPT-4 w/. Speaker &amp; Addressee
+             </span>
+             : Speaker 1
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.2.1.1.3">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.2.1.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             <span class="ltx_text ltx_font_italic" id="S4.T4.1.1.2.1.1.3.1.1">
+              ChatGPT w/. Speaker &amp; Addressee
+             </span>
+             : Speaker 6
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.2.1.1.4">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.2.1.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             <span class="ltx_text ltx_font_italic" id="S4.T4.1.1.2.1.1.4.1.1">
+              GPT-4 w/. Speaker
+             </span>
+             : Speaker 4
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T4.1.1.2.1.1.5">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T4.1.1.2.1.1.5.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             <span class="ltx_text ltx_font_italic" id="S4.T4.1.1.2.1.1.5.1.1">
+              ChatGPT w/. Speaker
+             </span>
+             : Speaker 4
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 4:
+      </span>
+      One selected example of the SI task on Ubuntu IRC with speaker and addressee structure. Here we also list the results of
+      <span class="ltx_text ltx_font_italic" id="S4.T4.3.1">
+       ChatGPT (GPT-4) w/. Speaker
+      </span>
+      for comparison.
+     </figcaption>
+    </figure>
+    <figure class="ltx_table" id="S4.T5">
+     <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T5.1" style="width:424.9pt;height:518pt;vertical-align:-0.8pt;">
+      <span class="ltx_transformed_inner" style="transform:translate(-69.6pt,84.7pt) scale(0.753226079141949,0.753226079141949) ;">
+       <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1">
+        <tr class="ltx_tr" id="S4.T5.1.1.1">
+         <td class="ltx_td ltx_align_left ltx_border_tt" colspan="2" id="S4.T5.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1.1.1.1">
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Instruction:
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             You have been presented with a sequence of multi-party conversational turns, organized in chronological order.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.3">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Your task is to generate the most appropriate response.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.4">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             The output format is "[Reply to #{reply_uid} – Speaker {reply_spk}: {reply_utterance}] Speaker {rsp_spk}: {rsp}".
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.5">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.5.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Use temperature=0, minimize unnecessary words to not get confused.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.6">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.6.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Input:
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.7">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.7.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             –
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.8">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.8.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Dialogue History:
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.9">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.9.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             #0 – Speaker 1: yep - only 4 primaries.. but ive never needed more then 4
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.10">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.10.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             [Reply to #0 … ] #1 – Speaker 2: but you ca n’t see your other partitions right ?
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.11">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.11.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             [Reply to #3 … ] #4 – Speaker 2: i see there ’s some confusion , that ’s my mistake i guess.. with active i meant that
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.12">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.12.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             windows ca n’t ’see ’ the other partitions.. but i can see that ’s only a historical issue..
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.13">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.13.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             –
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.14">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.14.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Please give a response on behalf of Speaker 1 for Uttenrance #4.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.15">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.15.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             The part of response is [Reply to #4 – Speaker 2: i see there ’s some confusion , that ’s my mistake i guess.. with active i
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.16">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.16.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             meant that windows ca n’t ’see ’ the other partitions.. but i can see that ’s only a historical issue..] Speaker 1.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.17">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.17.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Please finish the response generation.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.1.1.1.18">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.1.1.1.18.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             ### Response:
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.2">
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T5.1.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          BART
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.1.2.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          i’m not sure, but i’m sure there is a way to do that
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.3">
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T5.1.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          ChatGPT
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.1.3.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1.3.2.1">
+           <tr class="ltx_tr" id="S4.T5.1.1.3.2.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.3.2.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             You can automate the postfix setup routine and use one machine as the relay for all the others.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.3.2.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.3.2.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             This will save you time and effort.
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.4">
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T5.1.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          w/. Speaker &amp; Addressee
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.1.4.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1.4.2.1">
+           <tr class="ltx_tr" id="S4.T5.1.1.4.2.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.4.2.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Yes, you can automate the setup process by creating a script that answers the questions for you.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.4.2.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.4.2.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             This will save you time and ensure that the setup is consistent across all machines.
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.5">
+         <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S4.T5.1.1.5.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          GPT4
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.1.5.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1.5.2.1">
+           <tr class="ltx_tr" id="S4.T5.1.1.5.2.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.5.2.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             If you’re trying to automate the process and distribute it to multiple machines, you might consider
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.5.2.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.5.2.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             creating a shell script or Ansible playbook that sets up everything necessary for node.js development,
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.5.2.1.3">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.5.2.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             including postfix. This way, you can handle the postfix setup with pre-defined configurations, and
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.5.2.1.4">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.5.2.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             then package all the necessary files and tools into an AMI for EC2 or an Ubuntu image.
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.5.2.1.5">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.5.2.1.5.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             This would be more maintainable and scalable.
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.6">
+         <td class="ltx_td ltx_align_left ltx_border_r" id="S4.T5.1.1.6.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          w/. Speaker &amp; Addressee
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T5.1.1.6.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T5.1.1.6.2.1">
+           <tr class="ltx_tr" id="S4.T5.1.1.6.2.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.6.2.1.1.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             Yes, you can automate the process. You can use tools like ’expect’ or ’autoexpect’ in Linux to handle
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.6.2.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.6.2.1.2.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             interactive command line sessions. These tools can learn from your inputs and can generate a script
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.6.2.1.3">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.6.2.1.3.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             that automates the process. Alternatively, you might also consider using a configuration management
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T5.1.1.6.2.1.4">
+            <td class="ltx_td ltx_nopad_r ltx_align_left" id="S4.T5.1.1.6.2.1.4.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+             tool like Ansible or Puppet.
+            </td>
+           </tr>
+          </table>
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T5.1.1.7">
+         <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r ltx_border_t" id="S4.T5.1.1.7.1" style="padding-left:2.4pt;padding-right:2.4pt;">
+          Ground Truth
+         </td>
+         <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S4.T5.1.1.7.2" style="padding-left:2.4pt;padding-right:2.4pt;">
+          and untar your default config on all your client machines .
+         </td>
+        </tr>
+       </table>
+      </span>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 5:
+      </span>
+      One selected example of the RG task on Ubuntu IRC with speaker and addressee structure. Here we also list the results of ChatGPT, GPT-4 and BART for comparison.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS5.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Addressee Information Enhancement
+    </h4>
+    <div class="ltx_para" id="S4.SS5.SSS0.Px3.p1">
+     <p class="ltx_p" id="S4.SS5.SSS0.Px3.p1.1">
+      To probe the import of the addressee within the context of MPC comprehension, we integrate addressee information into the SI and RS tasks of Ubuntu IRC. This is primarily due to the absence of addressee information within the other two datasets. The AR task is excluded from this process, given that addressee information is unavailable within the corresponding Ubuntu IRC task.
+When drawing comparisons between the results of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.1">
+       ChatGPT w/. Speaker
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.2">
+       ChatGPT w/. Speaker &amp; Addressee
+      </span>
+      on the SI and RS tasks, as well as between the results of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.3">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.4">
+       ChatGPT w/. Addressee
+      </span>
+      on the RS task, we find, to our surprise, that the integration of addressee information has led to a diminution in performance.
+When comparing the results of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.5">
+       GPT-4 w/. Speaker
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.6">
+       GPT-4 w/. Speaker &amp; Addressee
+      </span>
+      on SI and RS tasks, we find that the incorporation of addressee information can slightly improve the performance.
+The only marginal improvement of approximately 1.00% observed on the SI and RS tasks of Ubuntu IRC can be predominantly attributed to the proficiency of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px3.p1.1.7">
+       GPT-4 w/. Speaker
+      </span>
+      in correctly inferring addressee information, given its noteworthy accuracy of 82.50% on AR tasks.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS5.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Speaker and Addressee Information Enhancement
+    </h4>
+    <div class="ltx_para" id="S4.SS5.SSS0.Px4.p1">
+     <p class="ltx_p" id="S4.SS5.SSS0.Px4.p1.1">
+      When contrasting the results of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.1">
+       ChatGPT (GPT-4) w/. Speaker &amp; Addressee
+      </span>
+      with the
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.2">
+       ChatGPT (GPT-4)
+      </span>
+      on RS tasks, we discern that the integration of speaker and addressee information precipitates a performance decrement of 25.18% for
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.3">
+       ChatGPT
+      </span>
+      , whilst conversely, it elicits an augmentation of 11.50% in the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.4">
+       GPT-4
+      </span>
+      .
+Indeed, both categories of information serve to enhance the comprehension of the conversation, yet the infusion of additional data concurrently amplifies the complexity of understanding. Empirical outcomes indicate that
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.5">
+       ChatGPT
+      </span>
+      grapples with the processing of this surplus information, whereas its more potent successor,
+      <span class="ltx_text ltx_font_italic" id="S4.SS5.SSS0.Px4.p1.1.6">
+       GPT-4
+      </span>
+      , exhibits the capacity to assimilate it effectively.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS6">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.6
+    </span>
+    Evaluation Results of MPC Generation
+   </h3>
+   <div class="ltx_para" id="S4.SS6.p1">
+    <p class="ltx_p" id="S4.SS6.p1.1">
+     As shown in Table
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.4 Metrics ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , we evaluated the dialogue response generation performance of supervised language models and LLMs on three test sets.
+The SOTA results of Ubuntu IRC of all three tasks are copied from
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Li and Zhao (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS6.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Supervised Language Models Versus LLMs
+    </h4>
+    <div class="ltx_para" id="S4.SS6.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS6.SSS0.Px1.p1.1">
+      It becomes apparent that the SacreBLEU scores of supervised models consistently eclipse those of LLMs in a significant number of cases across all three evaluative subsets. This phenomenon is largely a byproduct of ChatGPT and GPT-4’s inclination to generate more prolix responses, an approach inherently detrimental to the calculation of SacreBLEU.
+Regarding the ROUGE
+      <sub class="ltx_sub" id="S4.SS6.SSS0.Px1.p1.1.1">
+       <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px1.p1.1.1.1">
+        L
+       </span>
+      </sub>
+      metrics, LLMs yield superior results compared to supervised models on the EmoryNLP and MELD test sets. In contrast, within the ambit of the Ubuntu IRC dataset, supervised models command a greater presence—an outcome likely driven by the amplified comprehension complexity associated with this particular set.
+In terms of the METEOR metric, LLMs outdistance supervised models across all test sets, thereby affirming the formidable aptitude of LLMs in generating responses.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS6.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     MPC Structure Incorporation
+    </h4>
+    <div class="ltx_para" id="S4.SS6.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS6.SSS0.Px2.p1.1">
+      Similar to the results in MPC Understanding, the inclusion of interlocutors’ information emerges as beneficial to the generation of dialogue responses. This is substantiated by the marked superiority of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.1">
+       ChatGPT (GPT-4) w/. Speaker
+      </span>
+      over
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.2">
+       ChatGPT (GPT-4)
+      </span>
+      across all three test sets, with the exception of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.3">
+       ChatGPT
+      </span>
+      ’s performance on the EmoryNLP dataset.
+Nonetheless, addressee information doesn’t seem to confer a discernible advantage in the generation of dialogue responses when comparing the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.4">
+       ChatGPT w/. Addressee
+      </span>
+      to the
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.5">
+       ChatGPT
+      </span>
+      , as well as the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.6">
+       ChatGPT w/. Speaker &amp; Addressee
+      </span>
+      to
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.7">
+       ChatGPT w/. Speaker
+      </span>
+      .
+When our focus shifts to
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.8">
+       GPT-4
+      </span>
+      , we observe that the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.9">
+       GPT-4 w/. Addressee
+      </span>
+      does not exhibit the anticipated enhancement. However, with the addition of interlocutor information, there is a noticeable improvement in the performance of
+      <span class="ltx_text ltx_font_italic" id="S4.SS6.SSS0.Px2.p1.1.10">
+       GPT-4 w/. Speaker &amp; Addressee
+      </span>
+      .
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS7">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.7
+    </span>
+    Case Study
+   </h3>
+   <div class="ltx_para" id="S4.SS7.p1">
+    <p class="ltx_p" id="S4.SS7.p1.1">
+     To analyze the performance of LLMs on the tasks of MPC understanding and generation specifically, case studies were conducted by presenting randomly selected examples for further illustration.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S4.SS7.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     MPC Understanding
+    </h4>
+    <div class="ltx_para" id="S4.SS7.SSS0.Px1.p1">
+     <p class="ltx_p" id="S4.SS7.SSS0.Px1.p1.1">
+      As shown in Table
+      <a class="ltx_ref" href="#S4.T4" title="Table 4 ‣ Speaker Information Enhancement ‣ 4.5 Evaluation Results of MPC Understanding ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      , in the absence of addressee information, the model exhibits inadequacies in comprehending MPC, resulting in inaccurate responses from both
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px1.p1.1.1">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px1.p1.1.2">
+       GPT-4
+      </span>
+      .
+However, when furnished with addressee information,
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px1.p1.1.3">
+       GPT-4
+      </span>
+      shows an improved aptitude to comprehend the dialogue, leading to a correct response. Conversely,
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px1.p1.1.4">
+       ChatGPT
+      </span>
+      appears to be confounded by the addressee information, yielding an incorrect answer that lies beyond the purview of the candidates.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S4.SS7.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     MPC Generation
+    </h4>
+    <div class="ltx_para" id="S4.SS7.SSS0.Px2.p1">
+     <p class="ltx_p" id="S4.SS7.SSS0.Px2.p1.1">
+      As shown in Table
+      <a class="ltx_ref" href="#S4.T5" title="Table 5 ‣ Speaker Information Enhancement ‣ 4.5 Evaluation Results of MPC Understanding ‣ 4 Experiments ‣ Is ChatGPT a Good Multi-Party Conversation Solver?">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      , the response generated by BART is conspicuously devoid of substantive content. All the LLMs, especially
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px2.p1.1.1">
+       GPT-4
+      </span>
+      , exhibit the ability to produce lengthy and meaningful responses. Although
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px2.p1.1.2">
+       ChatGPT
+      </span>
+      and
+      <span class="ltx_text ltx_font_italic" id="S4.SS7.SSS0.Px2.p1.1.3">
+       GPT-4
+      </span>
+      are capable of crafting responses with greater pertinence, their propensity to yield verbose responses hampers the SacreBLEU score.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we have explored the abilities of generative LLMs for MPCs, which have been largely underexplored. We empirically analyze the zero-shot learning ability of ChatGPT and GPT-4 by evaluating them on three popular MPC datasets covering five representative tasks.
+On EmoryNLP and MELD datasets, ChatGPT and GPT4 achieve comparable performance to the supervised training models.
+However, ChatGPT performs poorly on the evaluated Ubuntu IRC tasks, while GPT-4 shows promising results.
+However, there is still a large gap relative to the supervised training on SI task of Ubuntu IRC.
+Taking into account the structure of the MPC, it is evident that both ChatGPT and GPT-4 exhibit enhanced performance across nearly all tasks when equipped with speaker information. However, in the context of addressee information, ChatGPT’s performance may decline if it is encumbered with extraneous data. Conversely, GPT-4 aptly leverages this information to accomplish the task with heightened proficiency.
+Devoting efforts towards efficaciously intertwining the graphical structure inherent in MPCs with LLMs through prompts or even supervised fine-tuning constitutes one of future work.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Limitations
+  </h2>
+  <div class="ltx_para" id="Sx1.p1">
+   <p class="ltx_p" id="Sx1.p1.1">
+    The design of prompts plays a crucial role in determining the final results, as it holds significant sway over the outcome. The way in which prompts are constructed and structured can greatly impact the performance and effectiveness of ChatGPT and GPT-4 when it comes to handling MPC tasks. However, our current prompt architecture might not fully encompass the ideal potential and capabilities of these advanced language models in tackling MPC tasks. There is a possibility that further improvements and refinements in the prompt design can unlock even greater performance and unleash the full potential of ChatGPT and GPT-4 in handling MPC tasks. It is essential to explore and enhance the prompt architecture to ensure optimal results and leverage the capabilities of these powerful language models to their fullest extent in the realm of MPC tasks.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx2">
+  <h2 class="ltx_title ltx_title_section">
+   Acknowledgements
+  </h2>
+  <div class="ltx_para" id="Sx2.p1">
+   <p class="ltx_p" id="Sx2.p1.1">
+    This work was supported by the Opening Foundation of State Key Laboratory of Cognitive Intelligence, iFLYTEK COGOS-2022005.
+We thank anonymous reviewers for their valuable comments.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Banerjee and Lavie (2005)
+    </span>
+    <span class="ltx_bibblock">
+     Satanjeev Banerjee and Alon Lavie. 2005.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/W05-0909/" target="_blank" title="">
+      METEOR: an automatic
+metric for MT evaluation with improved correlation with human judgments
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Proceedings of the Workshop on Intrinsic and Extrinsic
+Evaluation Measures for Machine Translation and/or Summarization@ACL 2005,
+Ann Arbor, Michigan, USA, June 29, 2005
+     </em>
+     , pages 65–72. Association for
+Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan,
+Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda
+Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, et al.
+2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html" target="_blank" title="">
+      Language models are few-shot learners
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Advances in Neural Information Processing Systems 33: Annual
+Conference on Neural Information Processing Systems 2020, NeurIPS 2020,
+December 6-12, 2020, virtual
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bubeck et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Sébastien Bubeck, Varun Chandrasekaran, Ronen Eldan, Johannes Gehrke,
+Eric Horvitz, Ece Kamar, Peter Lee, Yin Tat Lee, Yuanzhi Li, Scott M.
+Lundberg, Harsha Nori, Hamid Palangi, Marco Túlio Ribeiro, and
+Yi Zhang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2303.12712" target="_blank" title="">
+      Sparks of
+artificial general intelligence: Early experiments with GPT-4
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      CoRR
+     </em>
+     , abs/2303.12712.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chowdhery et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra,
+Adam Roberts, Paul Barham, Hyung Won Chung, Charles Sutton, Sebastian
+Gehrmann, Parker Schuh, Kensen Shi, Sasha Tsvyashchenko, Joshua Maynez,
+Abhishek Rao, Parker Barnes, Yi Tay, Noam Shazeer, Vinodkumar Prabhakaran,
+Emily Reif, Nan Du, Ben Hutchinson, Reiner Pope, James Bradbury, Jacob
+Austin, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2204.02311" target="_blank" title="">
+      PaLM: Scaling
+language modeling with pathways
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      CoRR
+     </em>
+     , abs/2204.02311.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chung et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus,
+Eric Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, Albert Webson,
+Shixiang Shane Gu, Zhuyun Dai, Mirac Suzgun, Xinyun Chen, Aakanksha
+Chowdhery, Sharan Narang, Gaurav Mishra, Adams Yu, Vincent Y. Zhao, Yanping
+Huang, Andrew M. Dai, Hongkun Yu, Slav Petrov, Ed H. Chi, Jeff Dean, Jacob
+Devlin, Adam Roberts, Denny Zhou, Quoc V. Le, and Jason Wei. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2210.11416" target="_blank" title="">
+      Scaling
+instruction-finetuned language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      CoRR
+     </em>
+     , abs/2210.11416.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Devlin et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/n19-1423" target="_blank" title="">
+      BERT: pre-training of
+deep bidirectional transformers for language understanding
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Proceedings of the 2019 Conference of the North American
+Chapter of the Association for Computational Linguistics: Human Language
+Technologies, NAACL-HLT 2019, Minneapolis, MN, USA, June 2-7, 2019, Volume
+1 (Long and Short Papers)
+     </em>
+     , pages 4171–4186.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jia-Chen Gu, Zhen-Hua Ling, Quan Liu, Cong Liu, and Guoping Hu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/pdf/2305.09360.pdf" target="_blank" title="">
+      GIFT: graph-induced
+fine-tuning for multi-party conversation understanding
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Proceedings of the 61st Annual Meeting of the Association
+for Computational Linguistics, ACL 2023, (Volume 1: Long Papers), Toronto,
+Canada, July 9-14, 2023
+     </em>
+     . Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gu et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jia-Chen Gu, Chao-Hong Tan, Chongyang Tao, Zhen-Hua Ling, Huang Hu, Xiubo
+Geng, and Daxin Jiang. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.acl-long.349" target="_blank" title="">
+      HeterMPC:
+A heterogeneous graph neural network for response generation in multi-party
+conversations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 60th Annual Meeting of the Association
+for Computational Linguistics (Volume 1: Long Papers), ACL 2022, Dublin,
+Ireland, May 22-27, 2022
+     </em>
+     , pages 5086–5097. Association for Computational
+Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gu et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Jia-Chen Gu, Chongyang Tao, Zhen-Hua Ling, Can Xu, Xiubo Geng, and Daxin
+Jiang. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2021.acl-long.285" target="_blank" title="">
+      MPC-BERT:
+A pre-trained language model for multi-party conversation understanding
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the 59th Annual Meeting of the Association
+for Computational Linguistics and the 11th International Joint Conference on
+Natural Language Processing, ACL/IJCNLP 2021, (Volume 1: Long Papers),
+Virtual Event, August 1-6, 2021
+     </em>
+     , pages 3682–3692. Association for
+Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hsu et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Chao-Chun Hsu, Sheng-Yeh Chen, Chuan-Chun Kuo, Ting-Hao K. Huang, and
+Lun-Wei Ku. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://www.lrec-conf.org/proceedings/lrec2018/summaries/581.html" target="_blank" title="">
+      Emotionlines: An emotion corpus of multi-party conversations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Proceedings of the Eleventh International Conference on
+Language Resources and Evaluation, LREC 2018, Miyazaki, Japan, May 7-12,
+2018
+     </em>
+     . European Language Resources Association (ELRA).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hu et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Wenpeng Hu, Zhangming Chan, Bing Liu, Dongyan Zhao, Jinwen Ma, and Rui Yan.
+2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.24963/ijcai.2019/696" target="_blank" title="">
+      GSN: A
+graph-structured network for multi-party dialogues
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      Proceedings of the Twenty-Eighth International Joint
+Conference on Artificial Intelligence, IJCAI 2019, Macao, China, August
+10-16, 2019
+     </em>
+     , pages 5010–5016.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lewis et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Mike Lewis, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mohamed,
+Omer Levy, Veselin Stoyanov, and Luke Zettlemoyer. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2020.acl-main.703" target="_blank" title="">
+      BART:
+denoising sequence-to-sequence pre-training for natural language generation,
+translation, and comprehension
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Proceedings of the 58th Annual Meeting of the Association
+for Computational Linguistics, ACL 2020, Online, July 5-10, 2020
+     </em>
+     , pages
+7871–7880. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li and Zhao (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yiyang Li and Hai Zhao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/pdf/2305.12412.pdf" target="_blank" title="">
+      EM pre-training for
+multi-party dialogue response generation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Proceedings of the 61st Annual Meeting of the Association
+for Computational Linguistics, ACL 2023, (Volume 1: Long Papers), Toronto,
+Canada, July 9-14, 2023
+     </em>
+     . Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin (2004)
+    </span>
+    <span class="ltx_bibblock">
+     Chin-Yew Lin. 2004.
+    </span>
+    <span class="ltx_bibblock">
+     Rouge: A package for automatic evaluation of summaries.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Text summarization branches out
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu.
+2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2303.16634" target="_blank" title="">
+      G-eval: NLG
+evaluation using GPT-4 with better human alignment
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      CoRR
+     </em>
+     , abs/2303.16634.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Loshchilov and Hutter (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Ilya Loshchilov and Frank Hutter. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=Bkg6RiCqY7" target="_blank" title="">
+      Decoupled weight
+decay regularization
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      7th International Conference on Learning Representations,
+ICLR 2019, New Orleans, LA, USA, May 6-9, 2019
+     </em>
+     . OpenReview.net.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2022)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openai.com/blog/chatgpt" target="_blank" title="">
+      Introducing chatgpt
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2303.08774" target="_blank" title="">
+      GPT-4 technical
+report
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      CoRR
+     </em>
+     , abs/2303.08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ouchi and Tsuboi (2016)
+    </span>
+    <span class="ltx_bibblock">
+     Hiroki Ouchi and Yuta Tsuboi. 2016.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/d16-1231" target="_blank" title="">
+      Addressee and response
+selection for multi-party conversation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      Proceedings of the 2016 Conference on Empirical Methods in
+Natural Language Processing, EMNLP 2016, Austin, Texas, USA, November 1-4,
+2016
+     </em>
+     , pages 2133–2143.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Peng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Baolin Peng, Chunyuan Li, Pengcheng He, Michel Galley, and Jianfeng Gao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2304.03277" target="_blank" title="">
+      Instruction tuning
+with GPT-4
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      CoRR
+     </em>
+     , abs/2304.03277.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Poria et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Soujanya Poria, Devamanyu Hazarika, Navonil Majumder, Gautam Naik, Erik
+Cambria, and Rada Mihalcea. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/p19-1050" target="_blank" title="">
+      MELD: A multimodal
+multi-party dataset for emotion recognition in conversations
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      Proceedings of the 57th Conference of the Association for
+Computational Linguistics, ACL 2019, Florence, Italy, July 28- August 2,
+2019, Volume 1: Long Papers
+     </em>
+     , pages 527–536. Association for Computational
+Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Post (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Matt Post. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/w18-6319" target="_blank" title="">
+      A call for clarity in
+reporting BLEU scores
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      Proceedings of the Third Conference on Machine Translation:
+Research Papers, WMT 2018, Belgium, Brussels, October 31 - November 1,
+2018
+     </em>
+     , pages 186–191. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qin et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Chengwei Qin, Aston Zhang, Zhuosheng Zhang, Jiaao Chen, Michihiro Yasunaga, and
+Diyi Yang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2302.06476" target="_blank" title="">
+      Is ChatGPT a
+general-purpose natural language processing task solver?
+     </a>
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      CoRR
+     </em>
+     , abs/2302.06476.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Radford et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya
+Sutskever. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are unsupervised multitask learners.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      OpenAI blog
+     </em>
+     , 1(8):9.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Song et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Xiaohui Song, Longtao Huang, Hui Xue, and Songlin Hu. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2022.emnlp-main.347" target="_blank" title="">
+      Supervised
+prototypical contrastive learning for emotion recognition in conversation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      Proceedings of the 2022 Conference on Empirical Methods in
+Natural Language Processing, EMNLP 2022, Abu Dhabi, United Arab Emirates,
+December 7-11, 2022
+     </em>
+     , pages 5197–5206. Association for Computational
+Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sun et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Weiwei Sun, Lingyong Yan, Xinyu Ma, Pengjie Ren, Dawei Yin, and Zhaochun Ren.
+2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2304.09542" target="_blank" title="">
+      Is chatgpt good at
+search? investigating large language models as re-ranking agent
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      CoRR
+     </em>
+     , abs/2304.09542.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Taori et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos
+Guestrin, Percy Liang, and Tatsunori B. Hashimoto. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Stanford alpaca: An instruction-following llama model.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/tatsu-lab/stanford_alpaca" target="_blank" title="">
+      https://github.com/tatsu-lab/stanford_alpaca
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Touvron et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne
+Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric
+Hambro, Faisal Azhar, Aurélien Rodriguez, Armand Joulin, Edouard Grave,
+and Guillaume Lample. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2302.13971" target="_blank" title="">
+      Llama: Open and
+efficient foundation language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      CoRR
+     </em>
+     , abs/2302.13971.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Jiaan Wang, Yunlong Liang, Fandong Meng, Haoxiang Shi, Zhixu Li, Jinan Xu,
+Jianfeng Qu, and Jie Zhou. 2023a.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2303.04048" target="_blank" title="">
+      Is chatgpt a good
+NLG evaluator? A preliminary study
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      CoRR
+     </em>
+     , abs/2303.04048.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Weishi Wang, Steven C. H. Hoi, and Shafiq R. Joty. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://www.aclweb.org/anthology/2020.emnlp-main.533/" target="_blank" title="">
+      Response selection for multi-party conversations with dynamic topic
+tracking
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      Proceedings of the 2020 Conference on Empirical Methods in
+Natural Language Processing, EMNLP 2020, Online, November 16-20, 2020
+     </em>
+     ,
+pages 6581–6591.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Yizhong Wang, Yeganeh Kordi, Swaroop Mishra, Alisa Liu, Noah A. Smith, Daniel
+Khashabi, and Hannaneh Hajishirzi. 2023b.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/pdf/2212.10560.pdf" target="_blank" title="">
+      Self-instruct: Aligning
+language model with self generated instructions
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      Proceedings of the 61st Annual Meeting of the Association
+for Computational Linguistics, ACL 2023, (Volume 1: Long Papers), Toronto,
+Canada, July 9-14, 2023
+     </em>
+     . Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Yi Tay, Rishi Bommasani, Colin Raffel, Barret Zoph, Sebastian
+Borgeaud, Dani Yogatama, Maarten Bosma, Denny Zhou, Donald Metzler, Ed H.
+Chi, Tatsunori Hashimoto, Oriol Vinyals, Percy Liang, Jeff Dean, and William
+Fedus. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=yzkSU5zdwD" target="_blank" title="">
+      Emergent
+abilities of large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      Trans. Mach. Learn. Res.
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Willcox (1982)
+    </span>
+    <span class="ltx_bibblock">
+     Gloria Willcox. 1982.
+    </span>
+    <span class="ltx_bibblock">
+     The feeling wheel: A tool for expanding awareness of emotions and
+increasing spontaneity and intimacy.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      Transactional Analysis Journal
+     </em>
+     , 12(4):274–276.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zahiri and Choi (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Sayyed M. Zahiri and Jinho D. Choi. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aaai.org/ocs/index.php/WS/AAAIW18/paper/view/16434" target="_blank" title="">
+      Emotion detection on TV show transcripts with sequence-based convolutional
+neural networks
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      The Workshops of the The Thirty-Second AAAI Conference on
+Artificial Intelligence, New Orleans, Louisiana, USA, February 2-7, 2018
+     </em>
+     ,
+volume WS-18 of
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.2.2">
+      AAAI Technical Report
+     </em>
+     , pages 44–52. AAAI Press.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Rui Zhang, Honglak Lee, Lazaros Polymenakos, and Dragomir R. Radev. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/16051" target="_blank" title="">
+      Addressee
+and response selection in multi-party conversations with speaker interaction
+rnns
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib35.1.1">
+      Proceedings of the Thirty-Second AAAI Conference on
+Artificial Intelligence, (AAAI-18), the 30th innovative Applications of
+Artificial Intelligence (IAAI-18), and the 8th AAAI Symposium on
+Educational Advances in Artificial Intelligence (EAAI-18), New Orleans,
+Louisiana, USA, February 2-7, 2018
+     </em>
+     , pages 5690–5697.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zheng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shen Zheng, Jie Huang, and Kevin Chen-Chuan Chang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2304.10513" target="_blank" title="">
+      Why does chatgpt
+fall short in answering questions faithfully?
+     </a>
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib36.1.1">
+      CoRR
+     </em>
+     , abs/2304.10513.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+</article>

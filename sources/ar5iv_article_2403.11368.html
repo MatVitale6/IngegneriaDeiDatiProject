@@ -1,0 +1,2981 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_font_bold ltx_title_document" style="font-size:173%;">
+  Driving Style Alignment for LLM-powered Driver Agent
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Ruoxuan Yang, Xinyue Zhang, Anais Fernandez-Laaksonen, Xin Ding and Jiangtao Gong
+    <sup class="ltx_sup" id="id1.1.id1">
+     🖂
+    </sup>
+   </span>
+   <span class="ltx_author_notes">
+    The authors are with the Institute for AI Industry Research, Tsinghua University, Beijing, China. Corresponding Email:
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id1" style="font-size:90%;">
+     gongjiangtao@air.tsinghua.edu.cn
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id3.id1">
+   Recently, LLM-powered driver agents have demonstrated considerable potential in the field of autonomous driving, showcasing human-like reasoning and decision-making abilities.
+However, current research on aligning driver agent behaviors with human driving styles remains limited, partly due to the scarcity of high-quality natural language data from human driving behaviors.
+To address this research gap, we propose a multi-alignment framework designed to align driver agents with human driving styles through demonstrations and feedback.
+Notably, we construct a natural language dataset of human driver behaviors through naturalistic driving experiments and post-driving interviews, offering high-quality human demonstrations for LLM alignment.
+The framework’s effectiveness is validated through simulation experiments in the CARLA urban traffic simulator and further corroborated by human evaluations.
+Our research offers valuable insights into designing driving agents with diverse driving styles.
+The implementation of
+   <a class="ltx_ref ltx_href" href="https://github.com/AIR-DISCOVER/Multi-alignment-Drivng-Agent" target="_blank" title="">
+    the framework
+   </a>
+   <span class="ltx_note ltx_role_footnote" id="footnote1">
+    <sup class="ltx_note_mark">
+     1
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       1
+      </span>
+      <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/AIR-DISCOVER/Multi-alignment-Drivng-Agent" target="_blank" title="">
+       https://github.com/AIR-DISCOVER/Multi-alignment-Drivng-Agent
+      </a>
+     </span>
+    </span>
+   </span>
+   and details of
+   <a class="ltx_ref ltx_href" href="https://github.com/AIR-DISCOVER/Driving-Thinking-Dataset" target="_blank" title="">
+    the dataset
+   </a>
+   <span class="ltx_note ltx_role_footnote" id="footnote2">
+    <sup class="ltx_note_mark">
+     2
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       2
+      </span>
+      <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/AIR-DISCOVER/Driving-Thinking-Dataset" target="_blank" title="">
+       https://github.com/AIR-DISCOVER/Driving-Thinking-Dataset
+      </a>
+     </span>
+    </span>
+   </span>
+   can be found at the link.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    I
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S1.1.1">
+    INTRODUCTION
+   </span>
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In the burgeoning field of autonomous driving (AV), driver agents powered by Large Language Models (LLMs) are demonstrating remarkable promise due to their exceptional planning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    and reasoning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    capabilities.
+Researchers have delved into the development of intricately designed driver agents that could perceive environmental stimuli
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , comprehend the situation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , fetch their memories
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    and deduce subsequent driving actions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    that mirrors human decision-making.
+Such human-like AVs show promise in navigating a diverse range of driving scenarios
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    , enabling better anticipation of AV behavior by other road users
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    , while also enhancing human trust in these systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    However, aligning these driver agents with human driving styles to imbue them with more human-like and personalized characteristics remains unexplored.
+Prevailing strategies for aligning LLM-based agents with humans, such as fine-tuning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    and the integration of expert feedback
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ]
+    </cite>
+    , are often hindered by their high costs.
+Recently, some studies have leveraged AI to generate feedback or reflections
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    , yet they fall short in aligning such reflections with human perspectives.
+On the other hand, despite researches focusing on employing AI to generate few-shot demonstrations
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    for LLMs, another challenge in enhancing agent-human alignment lies in the lack of high-quality human behavior data in a form accessible to LLMs, making it difficult for agents to learn from human demonstrations.
+Existing datasets for autonomous driving learning either provide only environment data for perception tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    rather than driving behaviors, or present driving behaviors in non-linguistic modalities (e.g. trajectories in maps
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    , Controller Area Network Bus (CAN-Bus) data
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      29
+     </a>
+     ]
+    </cite>
+    , in-car videos
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    ) that are indirect for LLMs to learn from.
+Thus, successful alignment requires an approach that efficiently synchronizes LLM-based driver agents with human driving styles, as well as a collection of driving demonstrations across different driving styles in natural language for LLMs’ comprehension and learning.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    In this paper, we introduce a novel multi-alignment framework that utilizes demonstrations and feedback to align driver agents with human driving styles.
+Diverging from reliance on human expert feedback or reflections from LLMs themselves, our approach harnesses the few-shot learning capabilities
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    of LLMs to create a Coach Agent that learns from human demonstrations, evaluates past driving behaviors, and formulates driving guidelines.
+All human demonstrations are pre-collected, eliminating the need for additional human effort during alignment and substantially reducing costs.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Moreover, to collect high-quality demonstrations for alignment, we compiled a dataset that encompasses driving behaviors from drivers with varied driving styles.
+A real-world driving experiment was conducted, followed by a post-driving interview, wherein we gathered and structured human drivers’ decision-making data.
+This dataset likely represents the first effort to meticulously dissect human driving behaviors and articulate the driving decision-making process in a natural language format.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    We validate our work through both simulation experiments and human evaluation surveys, demonstrating that our multi-aligned framework effectively creates driver agents with distinct driving styles that are not only statistically sound but also distinctly perceptible to humans.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    The contributions of this paper are summarized as follows:
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       A multi-alignment framework that can align LLM-based driver agents with human driving styles.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       A dataset of human driving behaviors in natural language format.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       Comprehensive validation through both simulation experiments and human evaluations.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    II
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S2.1.1">
+    Multi-alignment Framework
+   </span>
+  </h2>
+  <figure class="ltx_figure" id="S2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="266" id="S2.F1.g1" src="/html/2403.11368/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S2.F1.2.1.1" style="font-size:90%;">
+      Figure 1
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S2.F1.3.2" style="font-size:90%;">
+     The multi-alignment framework
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Fig.
+    <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ II Multi-alignment Framework ‣ Driving Style Alignment for LLM-powered Driver Agent">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    demonstrates the comprehensive structure of the multi-alignment framework, consisting of a Driver Agent, a Coach Agent, and demonstrations from human drivers.
+In this section, we first introduce the architecture and basic workflow of the Driver Agent.
+Then we show how to achieve multi-alignment through direct demonstration data from human drivers and feedback from the Coach Agent with human demonstrations.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS1.5.1.1">
+      II-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS1.6.2">
+     Driver Agent
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The Driver Agent acts as entities interacting with the surrounding driving environment and making driving decisions.
+It maintains an iterable, fixed-capacity short-term memory, which stores the most recent memory units, promoting the continuity and consistency of decision-making.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     The workflow begins by capturing the current state and environment information for perception, including the speed and direction of the agent vehicle, the speed limits and other restrictions of the current road, as well as the status of other vehicles and pedestrians nearby.
+Next, it analyzes the collected information alongside its short-term memory to grasp the current situation.
+Following this analysis, along with provided Demonstrations and Guidelines for multi-alignment, the Driver Agent deduces the most appropriate driving action at the moment.
+Here, the Driver Agent is prompted to ’Think Step by Step,’ employing a chain-of-thought (CoT) reasoning strategy towards the final decision:
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     “
+     <span class="ltx_text ltx_font_italic" id="S2.SS1.p3.1.1">
+      Given the rather faster speed of the vehicle ahead and inability to change lanes, the agent car should match the speed by gentle acceleration.
+     </span>
+     ”
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     Next, the Driver Agent selects the most matching ones from a set of atomic driving operations as the step’s action and performs.
+The ”Situation,” ”Reasoning,” and ”Action” generated are then compiled into a memory unit and incorporated into the short-term memory, while the earliest memory unit is popped out.
+Through the consistent repetition of this process, the Driver Agent successfully crafts a sequence of fluid and coherent driving maneuvers.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S2.SS2.5.1.1">
+      II-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S2.SS2.6.2">
+     Multi-alignment through Demonstrations and Feedback
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     We construct a framework that could multi-align the Driver Agent with human driving styles by adopting demonstrations and feedback.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     Demonstrations encompass representative decision-making processes of human drivers, featuring both cautious and risky driving demonstrations.
+They are collected and then organized into the form of the Driver Agent’s memory units (with more details in Section
+     <a class="ltx_ref" href="#S3" title="III Driving Style Data Collection ‣ Driving Style Alignment for LLM-powered Driver Agent">
+      <span class="ltx_text ltx_ref_tag">
+       III
+      </span>
+     </a>
+     ).
+Demonstrations serve a dual purpose in alignment, being utilized by both the Driver Agent and the Coach Agent.
+For the Driver Agent, they serve as few-shot prompts, aiming to guide it towards making driving decisions similar in style.
+And for the Coach Agent, they are provided as ’Good’ examples, prompting it to make evaluations with driving style preferences, further generating guidelines that embody driving styles.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     To implement feedback, a Coach Agent was established, outfitted with a Guidelines module that compiles driving suggestions gleaned from continuous evaluations.
+It scrutinizes the current short-term memory of the Driver Agent and issues a judgment of ’Good’ or ’Bad’, along with the reason for this judgement.
+The criteria for evaluation include whether the decisions in the short-memory align with common driving sense, conform to the requirements proposed in the Guidelines, and match the style of the provided ’Good’ examples.
+Should an evaluation yield a ’Bad’ rating, the Coach Agent formulates a new guideline addressing the suboptimal driving decision.
+This new guideline is then assimilated into the existing Guidelines repository.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    III
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S3.1.1">
+    Driving Style Data Collection
+   </span>
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS1.5.1.1">
+      III-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS1.6.2">
+     Natural Driving Experiment and Post-driving Interview
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     To gather authentic human driving behavior data for alignment, we conducted a natural driving experiment with human drivers followed by a post-experiment interview.
+A total of 24 drivers were invited to participate in our data collection experiment, covering different genders and age groups. Notably, in order to gather data on different driving styles, the participants also included both seasoned professional drivers and novice drivers with less driving experience.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     To delve deeply into specific driving behaviors, we initially had each driver perform an urban road driving task covering 13 driving conditions, with a total length of 5.7 kilometers.
+To faithfully recreate the entire driving process during the following post-experiment interview, we set up a roof-mounted 360-degree panoramic camera to record the environment around the vehicle during task execution, an in-car motion camera to capture the driver’s actions, as well as an eye tracker to record changes in the driver’s gaze.
+Additionally, real-time CAN-Bus data on the vehicle’s status were recorded, including speed, the throttle and brake percentage, and the turning of the steering wheel.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     For safety reasons, drivers were not requested to verbalize their thought processes while performing driving tasks.
+Right after the natural driving experiment, drivers would participate in a detailed post-experiment interview, which typically lasted for 1.5-2 hours.
+During the interview, we used the collected videos to recreate the task situation just experienced by the driver.
+For each driving action (e.g. accelerating, lane changing or turning), drivers were asked to recall and describe the entire decision-making process, from evaluating the surrounding environment to executing the corresponding driving action.
+These interview data will assist in determining the driver’s driving style, and also serve as the source of Demonstrations in the Multi-alignment Framework.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS2.5.1.1">
+      III-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS2.6.2">
+     Driving Style Selection and Data Organization
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Having completed driving experiments and post-experiment interviews, our next task is to differentiate the drivers’ driving styles and organize the think-aloud data into demonstrations of different styles.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     The differentiation of driving styles is based on subjective questionnaire results and objective driving records in driving tasks.
+We distributed a MDSI questionnaire
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     to each driver invited to participate in the experiment.
+The results indicated the presence of four driving styles among the 24 drivers: risky, high-velocity, patient, and careful.
+Notably, the risky style often coincided with the high-velocity style, while the patient style typically appeared alongside the careful style.
+Further analysis of the CAN-Bus data during driving tasks revealed that 3 drivers exhibited speeds and throttle percentages significantly above the average — specifically, the average speed of all drivers was 6.40 m/s and average throttle percentage was 23.09%, while average speed of these 3 drivers respectively reached speeds of 7.73 m/s (20.78% higher than average), 7.50 m/s (17.19% higher than average) and 7.41 m/s (15.78% higher than average), and average throttle percentages reached 29.09% (25.99% higher than average), 24.42% (5.76% higher than average) and 24.37% (5.54% higher than average) — aligning with their self-reported ’risky and high-velocity’ driving styles in the questionnaire.
+Conversely, 2 other drivers had lower metrics — with speeds of 5.15 m/s (19.53% lower than average) and 5.28 m/s (17.50% lower than average) respectively, and throttle percentage of 21.00% (9.05% lower than average) and 21.34% (7.58% lower than average) — aligning with their self-reported ’patient and careful’ driving styles in the questionnaire.
+Additionally, a few drivers who reported to have driving styles in the questionnaire did not show clear trends in either driving data or interview records.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     Therefore, we identified two basic driving styles: ’risky’ and ’high-velocity’ were merged into ’risky,’ while ’patient’ and ’careful’ were combined into ’cautious.’
+We reviewed the interview data of drivers with risky driving styles and those with cautious driving styles, selecting representative decision-making processes that exemplify each driving style.
+Then, we organized each process according to the decision sequence into the format of ’Situation’, ’Reasoning’ and ’Action’, forming the final Demonstrations for alignment with humans.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    IV
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S4.1.1">
+    Experiment
+   </span>
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this section, we validated the proposed Multi-alignment Framework by exploring the following questions:
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <ul class="ltx_itemize" id="S4.I1">
+    <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i1.p1">
+      <p class="ltx_p" id="S4.I1.i1.p1.1">
+       Can Driver Agents with different driving styles be constructed using human think-aloud data?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S4.I1.i2.p1">
+      <p class="ltx_p" id="S4.I1.i2.p1.1">
+       Which alignment method can efficiently achieve human alignment of driving styles?
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    To this end, we implemented the Multi-alignment Framework on CARLA—a high-fidelity traffic simulator. A simulation experiment was carried out under urban driving conditions, upon which we further conducted a user experiment to collect human evaluations of its performance.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS1.5.1.1">
+      IV-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS1.6.2">
+     Conditions
+    </span>
+   </h3>
+   <figure class="ltx_figure" id="S4.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="356" id="S4.F2.g1" src="/html/2403.11368/assets/x2.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S4.F2.2.1.1" style="font-size:90%;">
+       Figure 2
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S4.F2.3.2" style="font-size:90%;">
+      Experiment conditions
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     The experiment adopts an approximate 3 × 3 with-in subject design with two main variables:
+Driving Style [
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.1">
+      cautious
+     </span>
+     (C),
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.2">
+      risky
+     </span>
+     (R)and
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.3">
+      not-aligned
+     </span>
+     (N)] and Alignment Method [
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.4">
+      demonstrations
+     </span>
+     (D),
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.5">
+      feedback
+     </span>
+     (F)and
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p1.1.6">
+      multi-alignment
+     </span>
+     (M)]. Fig.
+     <a class="ltx_ref" href="#S4.F2" title="Figure 2 ‣ IV-A Conditions ‣ IV Experiment ‣ Driving Style Alignment for LLM-powered Driver Agent">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     shows the general design of different conditions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     In terms of Driving Style, we compared the effects of using
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p2.1.1">
+      cautious
+     </span>
+     driving demonstrations,
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p2.1.2">
+      risky
+     </span>
+     driving demonstrations, and no demonstrations (i.e.,
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p2.1.3">
+      not-aligned
+     </span>
+     ).
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     Alignment Method was organized in an ablation format, with conditions including
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.1">
+      demonstrations
+     </span>
+     ,
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.2">
+      feedback
+     </span>
+     , and
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.3">
+      multi-alignment
+     </span>
+     (i.e., the full alignment framework).
+The
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.4">
+      demonstrations
+     </span>
+     condition involves Driver Agents provided with demonstrations, and the
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.5">
+      feedback
+     </span>
+     condition involves Driver Agents without demonstrations and Coach Agents that were provided with demonstrations, while in the
+     <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.p3.1.6">
+      multi-alignment
+     </span>
+     condition, both Driver Agent and Coach Agent were provided with demonstrations.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS2.5.1.1">
+      IV-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS2.6.2">
+     CARLA Simulation
+    </span>
+   </h3>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS2.SSS1.5.1.1">
+       IV-B
+      </span>
+      1
+     </span>
+     Set-up
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS1.p1">
+     <p class="ltx_p" id="S4.SS2.SSS1.p1.1">
+      The simulation experiment setup involved a ThundeRobot Zero desktop computer as the hardware foundation. The simulation environment was built upon the CARLA simulator, specifically, version 0.9.14
+      <span class="ltx_note ltx_role_footnote" id="footnote3">
+       <sup class="ltx_note_mark">
+        3
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          3
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          3
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="http://carla.org/2022/12/23/release-0.9.14/" target="_blank" title="">
+          http://carla.org/2022/12/23/release-0.9.14/
+         </a>
+        </span>
+       </span>
+      </span>
+      and operated on Python 3.7 with Unreal Engine 4
+      <span class="ltx_note ltx_role_footnote" id="footnote4">
+       <sup class="ltx_note_mark">
+        4
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          4
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          4
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://docs.unrealengine.com/4.27/en-US/" target="_blank" title="">
+          https://docs.unrealengine.com/4.27/en-US/
+         </a>
+        </span>
+       </span>
+      </span>
+      .
+We use the map Town10, a typical urban driving scene, with both the number of other vehicles and pedestrians in the scenario set to 60. And Audi TT was the designated vehicle for all experiments, with fixed starting and continuously, randomly generated ending points for its path (After a vehicle is generated at a predefined fixed point, a random endpoint is generated. Upon reaching the endpoint, another endpoint is randomly generated, and so on.).
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS1.p2">
+     <p class="ltx_p" id="S4.SS2.SSS1.p2.1">
+      We leverage OpenAI’s GPT-4
+      <span class="ltx_note ltx_role_footnote" id="footnote5">
+       <sup class="ltx_note_mark">
+        5
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          5
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          5
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openai.com/gpt-4" target="_blank" title="">
+          https://openai.com/gpt-4
+         </a>
+        </span>
+       </span>
+      </span>
+      APIs for constructing both the Driver Agent and the Coach Agent. However, it takes several seconds for GPT to generate a response, which is too long in a driving context for making immediate decisions. Therefore, we slowed down CARLA’s simulation time based on the required token count by setting a fixed time-step of 0.0008-0.0015 seconds.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS1.p3">
+     <p class="ltx_p" id="S4.SS2.SSS1.p3.1">
+      Each simulation process is recorded on video.
+Additionally, to collect vehicle status information during the simulation, we initiated a log-collector thread to accumulate log on collisions, speed, throttle percentage, and brake percentage from the agent vehicle on a second-by-second basis.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS2.SSS2.5.1.1">
+       IV-B
+      </span>
+      2
+     </span>
+     Metrics
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS2.p1">
+     <p class="ltx_p" id="S4.SS2.SSS2.p1.1">
+      Here, we introduce three metrics to evaluate the driving performance of the Driver Agent: collision rate, speed, throttle percentage, and brake percentage.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS2.p2">
+     <ul class="ltx_itemize" id="S4.I2">
+      <li class="ltx_item" id="S4.I2.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I2.i1.p1">
+        <p class="ltx_p" id="S4.I2.i1.p1.1">
+         <span class="ltx_text ltx_font_italic" id="S4.I2.i1.p1.1.1">
+          Collision rate:
+         </span>
+         The number of collisions can be obtained from the log, with distance traveled being cumulative up to the last collision.
+The calculating formula is
+         <math alttext="Collisions\ per\ Meter=\frac{Number\ of\ Collisions}{Distance\ Traveled\ (m)}" class="ltx_Math" display="inline" id="S4.I2.i1.p1.1.m1.1">
+          <semantics id="S4.I2.i1.p1.1.m1.1a">
+           <mrow id="S4.I2.i1.p1.1.m1.1.2" xref="S4.I2.i1.p1.1.m1.1.2.cmml">
+            <mrow id="S4.I2.i1.p1.1.m1.1.2.2" xref="S4.I2.i1.p1.1.m1.1.2.2.cmml">
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.2" xref="S4.I2.i1.p1.1.m1.1.2.2.2.cmml">
+              C
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.3" xref="S4.I2.i1.p1.1.m1.1.2.2.3.cmml">
+              o
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1a" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.4" xref="S4.I2.i1.p1.1.m1.1.2.2.4.cmml">
+              l
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1b" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.5" xref="S4.I2.i1.p1.1.m1.1.2.2.5.cmml">
+              l
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1c" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.6" xref="S4.I2.i1.p1.1.m1.1.2.2.6.cmml">
+              i
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1d" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.7" xref="S4.I2.i1.p1.1.m1.1.2.2.7.cmml">
+              s
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1e" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.8" xref="S4.I2.i1.p1.1.m1.1.2.2.8.cmml">
+              i
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1f" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.9" xref="S4.I2.i1.p1.1.m1.1.2.2.9.cmml">
+              o
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1g" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.10" xref="S4.I2.i1.p1.1.m1.1.2.2.10.cmml">
+              n
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1h" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.11" xref="S4.I2.i1.p1.1.m1.1.2.2.11.cmml">
+              s
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1i" lspace="0.500em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.12" xref="S4.I2.i1.p1.1.m1.1.2.2.12.cmml">
+              p
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1j" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.13" xref="S4.I2.i1.p1.1.m1.1.2.2.13.cmml">
+              e
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1k" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.14" xref="S4.I2.i1.p1.1.m1.1.2.2.14.cmml">
+              r
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1l" lspace="0.500em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.15" xref="S4.I2.i1.p1.1.m1.1.2.2.15.cmml">
+              M
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1m" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.16" xref="S4.I2.i1.p1.1.m1.1.2.2.16.cmml">
+              e
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1n" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.17" xref="S4.I2.i1.p1.1.m1.1.2.2.17.cmml">
+              t
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1o" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.18" xref="S4.I2.i1.p1.1.m1.1.2.2.18.cmml">
+              e
+             </mi>
+             <mo id="S4.I2.i1.p1.1.m1.1.2.2.1p" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.2.2.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.I2.i1.p1.1.m1.1.2.2.19" xref="S4.I2.i1.p1.1.m1.1.2.2.19.cmml">
+              r
+             </mi>
+            </mrow>
+            <mo id="S4.I2.i1.p1.1.m1.1.2.1" xref="S4.I2.i1.p1.1.m1.1.2.1.cmml">
+             =
+            </mo>
+            <mfrac id="S4.I2.i1.p1.1.m1.1.1" xref="S4.I2.i1.p1.1.m1.1.1.cmml">
+             <mrow id="S4.I2.i1.p1.1.m1.1.1.3" xref="S4.I2.i1.p1.1.m1.1.1.3.cmml">
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.2" xref="S4.I2.i1.p1.1.m1.1.1.3.2.cmml">
+               N
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.3" xref="S4.I2.i1.p1.1.m1.1.1.3.3.cmml">
+               u
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1a" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.4" xref="S4.I2.i1.p1.1.m1.1.1.3.4.cmml">
+               m
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1b" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.5" xref="S4.I2.i1.p1.1.m1.1.1.3.5.cmml">
+               b
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1c" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.6" xref="S4.I2.i1.p1.1.m1.1.1.3.6.cmml">
+               e
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1d" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.7" xref="S4.I2.i1.p1.1.m1.1.1.3.7.cmml">
+               r
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1e" lspace="0.350em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.8" xref="S4.I2.i1.p1.1.m1.1.1.3.8.cmml">
+               o
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1f" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.9" xref="S4.I2.i1.p1.1.m1.1.1.3.9.cmml">
+               f
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1g" lspace="0.350em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.10" xref="S4.I2.i1.p1.1.m1.1.1.3.10.cmml">
+               C
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1h" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.11" xref="S4.I2.i1.p1.1.m1.1.1.3.11.cmml">
+               o
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1i" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.12" xref="S4.I2.i1.p1.1.m1.1.1.3.12.cmml">
+               l
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1j" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.13" xref="S4.I2.i1.p1.1.m1.1.1.3.13.cmml">
+               l
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1k" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.14" xref="S4.I2.i1.p1.1.m1.1.1.3.14.cmml">
+               i
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1l" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.15" xref="S4.I2.i1.p1.1.m1.1.1.3.15.cmml">
+               s
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1m" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.16" xref="S4.I2.i1.p1.1.m1.1.1.3.16.cmml">
+               i
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1n" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.17" xref="S4.I2.i1.p1.1.m1.1.1.3.17.cmml">
+               o
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1o" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.18" xref="S4.I2.i1.p1.1.m1.1.1.3.18.cmml">
+               n
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.3.1p" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.3.1.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.3.19" xref="S4.I2.i1.p1.1.m1.1.1.3.19.cmml">
+               s
+              </mi>
+             </mrow>
+             <mrow id="S4.I2.i1.p1.1.m1.1.1.1" xref="S4.I2.i1.p1.1.m1.1.1.1.cmml">
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.3" xref="S4.I2.i1.p1.1.m1.1.1.1.3.cmml">
+               D
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.4" xref="S4.I2.i1.p1.1.m1.1.1.1.4.cmml">
+               i
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2a" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.5" xref="S4.I2.i1.p1.1.m1.1.1.1.5.cmml">
+               s
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2b" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.6" xref="S4.I2.i1.p1.1.m1.1.1.1.6.cmml">
+               t
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2c" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.7" xref="S4.I2.i1.p1.1.m1.1.1.1.7.cmml">
+               a
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2d" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.8" xref="S4.I2.i1.p1.1.m1.1.1.1.8.cmml">
+               n
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2e" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.9" xref="S4.I2.i1.p1.1.m1.1.1.1.9.cmml">
+               c
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2f" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.10" xref="S4.I2.i1.p1.1.m1.1.1.1.10.cmml">
+               e
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2g" lspace="0.350em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.11" xref="S4.I2.i1.p1.1.m1.1.1.1.11.cmml">
+               T
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2h" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.12" xref="S4.I2.i1.p1.1.m1.1.1.1.12.cmml">
+               r
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2i" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.13" xref="S4.I2.i1.p1.1.m1.1.1.1.13.cmml">
+               a
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2j" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.14" xref="S4.I2.i1.p1.1.m1.1.1.1.14.cmml">
+               v
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2k" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.15" xref="S4.I2.i1.p1.1.m1.1.1.1.15.cmml">
+               e
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2l" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.16" xref="S4.I2.i1.p1.1.m1.1.1.1.16.cmml">
+               l
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2m" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.17" xref="S4.I2.i1.p1.1.m1.1.1.1.17.cmml">
+               e
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2n" lspace="0em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mi id="S4.I2.i1.p1.1.m1.1.1.1.18" xref="S4.I2.i1.p1.1.m1.1.1.1.18.cmml">
+               d
+              </mi>
+              <mo id="S4.I2.i1.p1.1.m1.1.1.1.2o" lspace="0.350em" rspace="0em" xref="S4.I2.i1.p1.1.m1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mrow id="S4.I2.i1.p1.1.m1.1.1.1.19.2" xref="S4.I2.i1.p1.1.m1.1.1.1.cmml">
+               <mo id="S4.I2.i1.p1.1.m1.1.1.1.19.2.1" stretchy="false" xref="S4.I2.i1.p1.1.m1.1.1.1.cmml">
+                (
+               </mo>
+               <mi id="S4.I2.i1.p1.1.m1.1.1.1.1" xref="S4.I2.i1.p1.1.m1.1.1.1.1.cmml">
+                m
+               </mi>
+               <mo id="S4.I2.i1.p1.1.m1.1.1.1.19.2.2" stretchy="false" xref="S4.I2.i1.p1.1.m1.1.1.1.cmml">
+                )
+               </mo>
+              </mrow>
+             </mrow>
+            </mfrac>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S4.I2.i1.p1.1.m1.1b">
+            <apply id="S4.I2.i1.p1.1.m1.1.2.cmml" xref="S4.I2.i1.p1.1.m1.1.2">
+             <eq id="S4.I2.i1.p1.1.m1.1.2.1.cmml" xref="S4.I2.i1.p1.1.m1.1.2.1">
+             </eq>
+             <apply id="S4.I2.i1.p1.1.m1.1.2.2.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2">
+              <times id="S4.I2.i1.p1.1.m1.1.2.2.1.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.1">
+              </times>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.2.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.2">
+               𝐶
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.3.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.3">
+               𝑜
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.4.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.4">
+               𝑙
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.5.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.5">
+               𝑙
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.6.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.6">
+               𝑖
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.7.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.7">
+               𝑠
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.8.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.8">
+               𝑖
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.9.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.9">
+               𝑜
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.10.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.10">
+               𝑛
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.11.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.11">
+               𝑠
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.12.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.12">
+               𝑝
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.13.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.13">
+               𝑒
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.14.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.14">
+               𝑟
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.15.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.15">
+               𝑀
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.16.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.16">
+               𝑒
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.17.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.17">
+               𝑡
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.18.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.18">
+               𝑒
+              </ci>
+              <ci id="S4.I2.i1.p1.1.m1.1.2.2.19.cmml" xref="S4.I2.i1.p1.1.m1.1.2.2.19">
+               𝑟
+              </ci>
+             </apply>
+             <apply id="S4.I2.i1.p1.1.m1.1.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1">
+              <divide id="S4.I2.i1.p1.1.m1.1.1.2.cmml" xref="S4.I2.i1.p1.1.m1.1.1">
+              </divide>
+              <apply id="S4.I2.i1.p1.1.m1.1.1.3.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3">
+               <times id="S4.I2.i1.p1.1.m1.1.1.3.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.1">
+               </times>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.2.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.2">
+                𝑁
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.3.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.3">
+                𝑢
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.4.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.4">
+                𝑚
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.5.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.5">
+                𝑏
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.6.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.6">
+                𝑒
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.7.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.7">
+                𝑟
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.8.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.8">
+                𝑜
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.9.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.9">
+                𝑓
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.10.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.10">
+                𝐶
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.11.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.11">
+                𝑜
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.12.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.12">
+                𝑙
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.13.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.13">
+                𝑙
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.14.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.14">
+                𝑖
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.15.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.15">
+                𝑠
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.16.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.16">
+                𝑖
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.17.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.17">
+                𝑜
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.18.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.18">
+                𝑛
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.3.19.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3.19">
+                𝑠
+               </ci>
+              </apply>
+              <apply id="S4.I2.i1.p1.1.m1.1.1.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1">
+               <times id="S4.I2.i1.p1.1.m1.1.1.1.2.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.2">
+               </times>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.3.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.3">
+                𝐷
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.4.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.4">
+                𝑖
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.5.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.5">
+                𝑠
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.6.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.6">
+                𝑡
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.7.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.7">
+                𝑎
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.8.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.8">
+                𝑛
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.9.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.9">
+                𝑐
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.10.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.10">
+                𝑒
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.11.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.11">
+                𝑇
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.12.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.12">
+                𝑟
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.13.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.13">
+                𝑎
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.14.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.14">
+                𝑣
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.15.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.15">
+                𝑒
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.16.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.16">
+                𝑙
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.17.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.17">
+                𝑒
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.18.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.18">
+                𝑑
+               </ci>
+               <ci id="S4.I2.i1.p1.1.m1.1.1.1.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1.1.1">
+                𝑚
+               </ci>
+              </apply>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S4.I2.i1.p1.1.m1.1c">
+            Collisions\ per\ Meter=\frac{Number\ of\ Collisions}{Distance\ Traveled\ (m)}
+           </annotation>
+          </semantics>
+         </math>
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I2.i2.p1">
+        <p class="ltx_p" id="S4.I2.i2.p1.1">
+         <span class="ltx_text ltx_font_italic" id="S4.I2.i2.p1.1.1">
+          Speed:
+         </span>
+         The statistical measures for speed include the average speed of the agent vehicle during each simulation and the segmented average speed per minute (simulator time).
+All calculations of average speed exclude zero values to minimize the impact of the agent vehicle waiting at traffic signals and in traffic jams.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I2.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I2.i3.p1">
+        <p class="ltx_p" id="S4.I2.i3.p1.1">
+         <span class="ltx_text ltx_font_italic" id="S4.I2.i3.p1.1.1">
+          Throttle percentage &amp; brake percentage:
+         </span>
+         The statistics for throttle and brake percentages are also divided into overall average values and segmented average values per minute. Similarly, all calculations exclude data from when the agent vehicle is stationary.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS2.SSS3.5.1.1">
+       IV-B
+      </span>
+      3
+     </span>
+     Results
+    </h4>
+    <figure class="ltx_figure" id="S4.F3">
+     <div class="ltx_flex_figure">
+      <div class="ltx_flex_cell ltx_flex_size_2">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F3.sf1">
+        <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="346" id="S4.F3.sf1.g1" src="/html/2403.11368/assets/x3.png" width="461"/>
+        <figcaption class="ltx_caption ltx_centering">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S4.F3.sf1.2.1.1" style="font-size:90%;">
+           (a)
+          </span>
+         </span>
+         <span class="ltx_text" id="S4.F3.sf1.3.2" style="font-size:90%;">
+          Collision rates per meter (with increased incidences of abrupt maneuvers by surrounding vehicles and pedestrians).
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="ltx_flex_cell ltx_flex_size_2">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F3.sf2">
+        <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="173" id="S4.F3.sf2.g1" src="/html/2403.11368/assets/x4.png" width="461"/>
+        <figcaption class="ltx_caption ltx_centering">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S4.F3.sf2.2.1.1" style="font-size:90%;">
+           (b)
+          </span>
+         </span>
+         <span class="ltx_text" id="S4.F3.sf2.3.2" style="font-size:90%;">
+          Average throttle percentage (left), brake percentage (middle), and speed (right) of the agent vehicle, with all calculations excluding data from when the agent vehicle was stationary (the speed limit is km/h).
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       <span class="ltx_text" id="S4.F3.2.1.1" style="font-size:90%;">
+        Figure 3
+       </span>
+       :
+      </span>
+      <span class="ltx_text" id="S4.F3.3.2" style="font-size:90%;">
+       Simulation experiment results for predefined metrics.
+      </span>
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S4.SS2.SSS3.p1">
+     <p class="ltx_p" id="S4.SS2.SSS3.p1.1">
+      We conducted approximately 50.3 hours of simulation experiments under various conditions, which corresponds to an average of about 6.7 minutes of driving per condition for the agent vehicle on the simulation platform.
+The average distance the agent vehicle traveled per condition was approximately 1.5 kilometers.
+Notably, we adjusted the algorithms controlling other vehicles and pedestrians to make them more prone to sudden maneuvers (e.g. abrupt lane changes, running red lights).
+These edge cases aim to increase the risk level of the driving environment for the agent vehicle, making its driving style more observable.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS3.p2">
+     <p class="ltx_p" id="S4.SS2.SSS3.p2.1">
+      Fig.
+      <a class="ltx_ref" href="#S4.F3.sf1" title="In Figure 3 ‣ IV-B3 Results ‣ IV-B CARLA Simulation ‣ IV Experiment ‣ Driving Style Alignment for LLM-powered Driver Agent">
+       <span class="ltx_text ltx_ref_tag">
+        3(a)
+       </span>
+      </a>
+      displays the collision rates per meter for the agent vehicle calculated under different conditions.
+Agents aligned with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.1">
+       risky
+      </span>
+      driving style overall exhibit higher collision rates, while those aligned with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.2">
+       cautious
+      </span>
+      driving style show lower collision rates overall.
+Additionally, when aligned with
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.3">
+       cautious
+      </span>
+      driving style, the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.4">
+       multi-alignment
+      </span>
+      method displayed the lowest collision rate while the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.5">
+       demonstrations
+      </span>
+      method displayed the highest, and when aligned with
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.6">
+       risky
+      </span>
+      driving style, the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.7">
+       multi-alignment
+      </span>
+      method showed the highest collision rate while the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.8">
+       demonstrations
+      </span>
+      method displayed the highest.
+When
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.9">
+       not-aligned
+      </span>
+      , the collision rate for the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.10">
+       demonstrations
+      </span>
+      method is higher than that for the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p2.1.11">
+       feedback
+      </span>
+      method.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS3.p3">
+     <p class="ltx_p" id="S4.SS2.SSS3.p3.1">
+      Fig.
+      <a class="ltx_ref" href="#S4.F3.sf2" title="In Figure 3 ‣ IV-B3 Results ‣ IV-B CARLA Simulation ‣ IV Experiment ‣ Driving Style Alignment for LLM-powered Driver Agent">
+       <span class="ltx_text ltx_ref_tag">
+        3(b)
+       </span>
+      </a>
+      presents the average throttle percentage, brake percentage, and speed of the agent vehicle during the driving process under different conditions, with all calculations excluding data from when the agent vehicle was stationary.
+When using the same alignment method, agents aligned with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.1">
+       risky
+      </span>
+      driving style had the highest average speed, highest throttle percentage, and lowest brake percentage, while agents aligned with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.2">
+       cautious
+      </span>
+      driving style had the lowest speed, lowest throttle percentage, and highest brake percentage.
+When aligned with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.3">
+       cautious
+      </span>
+      driving style, the average speed and throttle percentage decrease while the average brake percentage increases across the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.4">
+       demonstrations
+      </span>
+      ,
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.5">
+       feedback
+      </span>
+      , and
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.6">
+       multi-alignment
+      </span>
+      , in that order. The opposite trend is observed when aligning with the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.7">
+       risky
+      </span>
+      driving style.
+When
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.8">
+       not-aligned
+      </span>
+      , the average speed and throttle percentage for the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.9">
+       demonstrations
+      </span>
+      method are higher than those for the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS3.p3.1.10">
+       feedback
+      </span>
+      method, while the average brake percentage is lower.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS2.SSS4.5.1.1">
+       IV-B
+      </span>
+      4
+     </span>
+     Findings
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS4.p1">
+     <p class="ltx_p" id="S4.SS2.SSS4.p1.1">
+      Based on the hypothesis that agents with more cautious driving styles are safer, agents can exhibit corresponding driving styles by aligning with different driving styles.
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS4.p1.1.1">
+       multi-alignment
+      </span>
+      was the most effective method, displaying the most significant differences in collision rates, average throttle, brake, and speed between cautious and risky driving styles, while
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.SSS4.p1.1.2">
+       demonstrations
+      </span>
+      were less effective.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS3.5.1.1">
+      IV-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS3.6.2">
+     Human Evaluation
+    </span>
+   </h3>
+   <section class="ltx_subsubsection" id="S4.SS3.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS3.SSS1.5.1.1">
+       IV-C
+      </span>
+      1
+     </span>
+     Procedure
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS1.p1">
+     <p class="ltx_p" id="S4.SS3.SSS1.p1.1">
+      We designed two survey questionnaires to collect human drivers’ evaluations of the Driver Agent’s performance, which was presented to participants in the questionnaire through video clips of the simulation, with about 30 seconds of driving footage captured for each experimental condition.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS1.p2">
+     <p class="ltx_p" id="S4.SS3.SSS1.p2.1">
+      In Part I of the first questionnaire, we initially collected basic information (e.g. age, gender, whether holding a driving license) from participants. A partial MDSI self-assessment was also included, with items covering indicators of risky and careful driving styles from the MDSI.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS1.p3">
+     <p class="ltx_p" id="S4.SS3.SSS1.p3.1">
+      In Part II, the video clips are divided into four groups:
+     </p>
+     <ul class="ltx_itemize" id="S4.I3">
+      <li class="ltx_item" id="S4.I3.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I3.i1.p1">
+        <p class="ltx_p" id="S4.I3.i1.p1.1">
+         Demonstrations Group: {
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.1">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.2">
+          cautious
+         </span>
+         (DC),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.3">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.4">
+          not-aligned
+         </span>
+         (DN),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.5">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i1.p1.1.6">
+          risky
+         </span>
+         (DR)}
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I3.i2.p1">
+        <p class="ltx_p" id="S4.I3.i2.p1.1">
+         Feedback Group: {
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.1">
+          feedback
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.2">
+          cautious
+         </span>
+         (FC),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.3">
+          feedback
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.4">
+          not-aligned
+         </span>
+         (FN),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.5">
+          feedback
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.6">
+          risky
+         </span>
+         (FR),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.7">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i2.p1.1.8">
+          not-aligned
+         </span>
+         (DN, serving as baseline in this group)}
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I3.i3.p1">
+        <p class="ltx_p" id="S4.I3.i3.p1.1">
+         Cautious Group: {
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.1">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.2">
+          cautious
+         </span>
+         (DC),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.3">
+          feedback
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.4">
+          cautious
+         </span>
+         (FC),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.5">
+          multi-alignment
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i3.p1.1.6">
+          cautious
+         </span>
+         (MC)}
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S4.I3.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S4.I3.i4.p1">
+        <p class="ltx_p" id="S4.I3.i4.p1.1">
+         Risky Group: {
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.1">
+          demonstrations
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.2">
+          risky
+         </span>
+         (DR),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.3">
+          feedback
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.4">
+          risky
+         </span>
+         (FR),
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.5">
+          multi-alignment
+         </span>
+         <span class="ltx_text ltx_font_smallcaps" id="S4.I3.i4.p1.1.6">
+          risky
+         </span>
+         (MR)}
+        </p>
+       </div>
+      </li>
+     </ul>
+     <p class="ltx_p" id="S4.SS3.SSS1.p3.2">
+      Each group of video clips will appear in a random order, accompanied by a ranking question requiring participants to rank the driving styles in the videos according to their level of riskiness (a smaller number indicates more risky) and a reason question for explaining their rankings.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS1.p4">
+     <p class="ltx_p" id="S4.SS3.SSS1.p4.1">
+      Parts I of the second questionnaire are identical to the first questionnaire.
+In Part II, participants were instructed to watch all of the eight videos clips, which were also organized in a random order, with three scoring questions respectively investigated the intelligence level, riskiness level and human-likeness level of the agent vehicle (all from 0 to 10) and a reason question attached below each clip.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS1.p5">
+     <p class="ltx_p" id="S4.SS3.SSS1.p5.1">
+      Additionally, to filter out carelessly completed questionnaires, we set a minimum answering time and included trap questions in the questionnaire, which required participants to select a certain option.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS3.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS3.SSS2.5.1.1">
+       IV-C
+      </span>
+      2
+     </span>
+     Participants
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS2.p1">
+     <p class="ltx_p" id="S4.SS3.SSS2.p1.1">
+      We recruited over 200 participants through a third-party recruitment channel provided by the survey platform, offering a compensation of approximately $2.08 per valid questionnaire completed.
+Additionally, our team of five researchers also shared our questionnaires on social media platforms, recruiting over 60 participants.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS2.p2">
+     <p class="ltx_p" id="S4.SS3.SSS2.p2.1">
+      All 270 participants verified in the questionnaire that they possess a driving license.
+Among them, there were 141 male participants, accounting for 52.22%, and 129 female participants, accounting for 47.78%, with ages ranging from 19 to 54 years old.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS3.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS3.SSS3.5.1.1">
+       IV-C
+      </span>
+      3
+     </span>
+     Data Analysis
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS3.p1">
+     <p class="ltx_p" id="S4.SS3.SSS3.p1.3">
+      For both questionnaires, we first categorized participants’ driving styles based on the results from Section I.
+The formula for calculating the driving style score is
+      <math alttext="S_{driving\ style}=\Sigma o_{risky}-\Sigma o_{cautious}" class="ltx_Math" display="inline" id="S4.SS3.SSS3.p1.1.m1.1">
+       <semantics id="S4.SS3.SSS3.p1.1.m1.1a">
+        <mrow id="S4.SS3.SSS3.p1.1.m1.1.1" xref="S4.SS3.SSS3.p1.1.m1.1.1.cmml">
+         <msub id="S4.SS3.SSS3.p1.1.m1.1.1.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.cmml">
+          <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.2.cmml">
+           S
+          </mi>
+          <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.2.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.cmml">
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.2.cmml">
+            d
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.3.cmml">
+            r
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1a" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.4" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.4.cmml">
+            i
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1b" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.5" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.5.cmml">
+            v
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1c" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.6" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.6.cmml">
+            i
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1d" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.7" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.7.cmml">
+            n
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1e" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.8" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.8.cmml">
+            g
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1f" lspace="0.350em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.9" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.9.cmml">
+            s
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1g" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.10" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.10.cmml">
+            t
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1h" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.11" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.11.cmml">
+            y
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1i" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.12" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.12.cmml">
+            l
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1j" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml">
+            ​
+           </mo>
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.13" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.13.cmml">
+            e
+           </mi>
+          </mrow>
+         </msub>
+         <mo id="S4.SS3.SSS3.p1.1.m1.1.1.1" xref="S4.SS3.SSS3.p1.1.m1.1.1.1.cmml">
+          =
+         </mo>
+         <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.cmml">
+          <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.cmml">
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.2" mathvariant="normal" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.2.cmml">
+            Σ
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.1.cmml">
+            ​
+           </mo>
+           <msub id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.cmml">
+            <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.2.cmml">
+             o
+            </mi>
+            <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.cmml">
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.2.cmml">
+              r
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.3.cmml">
+              i
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1a" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.4" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.4.cmml">
+              s
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1b" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.5" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.5.cmml">
+              k
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1c" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.6" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.6.cmml">
+              y
+             </mi>
+            </mrow>
+           </msub>
+          </mrow>
+          <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.1" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.1.cmml">
+           −
+          </mo>
+          <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.cmml">
+           <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.2" mathvariant="normal" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.2.cmml">
+            Σ
+           </mi>
+           <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.1.cmml">
+            ​
+           </mo>
+           <msub id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.cmml">
+            <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.2.cmml">
+             o
+            </mi>
+            <mrow id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.cmml">
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.2" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.2.cmml">
+              c
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.3" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.3.cmml">
+              a
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1a" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.4" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.4.cmml">
+              u
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1b" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.5" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.5.cmml">
+              t
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1c" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.6" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.6.cmml">
+              i
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1d" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.7" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.7.cmml">
+              o
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1e" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.8" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.8.cmml">
+              u
+             </mi>
+             <mo id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1f" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml">
+              ​
+             </mo>
+             <mi id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.9" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.9.cmml">
+              s
+             </mi>
+            </mrow>
+           </msub>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS3.p1.1.m1.1b">
+         <apply id="S4.SS3.SSS3.p1.1.m1.1.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1">
+          <eq id="S4.SS3.SSS3.p1.1.m1.1.1.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.1">
+          </eq>
+          <apply id="S4.SS3.SSS3.p1.1.m1.1.1.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2">
+           <csymbol cd="ambiguous" id="S4.SS3.SSS3.p1.1.m1.1.1.2.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2">
+            subscript
+           </csymbol>
+           <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.2">
+            𝑆
+           </ci>
+           <apply id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3">
+            <times id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.1">
+            </times>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.2">
+             𝑑
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.3">
+             𝑟
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.4.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.4">
+             𝑖
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.5.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.5">
+             𝑣
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.6.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.6">
+             𝑖
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.7.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.7">
+             𝑛
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.8.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.8">
+             𝑔
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.9.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.9">
+             𝑠
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.10.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.10">
+             𝑡
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.11.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.11">
+             𝑦
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.12.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.12">
+             𝑙
+            </ci>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.2.3.13.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.2.3.13">
+             𝑒
+            </ci>
+           </apply>
+          </apply>
+          <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3">
+           <minus id="S4.SS3.SSS3.p1.1.m1.1.1.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.1">
+           </minus>
+           <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2">
+            <times id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.1">
+            </times>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.2">
+             Σ
+            </ci>
+            <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3">
+             <csymbol cd="ambiguous" id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3">
+              subscript
+             </csymbol>
+             <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.2">
+              𝑜
+             </ci>
+             <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3">
+              <times id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.1">
+              </times>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.2">
+               𝑟
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.3">
+               𝑖
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.4.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.4">
+               𝑠
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.5.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.5">
+               𝑘
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.6.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.2.3.3.6">
+               𝑦
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+           <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3">
+            <times id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.1">
+            </times>
+            <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.2">
+             Σ
+            </ci>
+            <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3">
+             <csymbol cd="ambiguous" id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3">
+              subscript
+             </csymbol>
+             <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.2">
+              𝑜
+             </ci>
+             <apply id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3">
+              <times id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.1">
+              </times>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.2.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.2">
+               𝑐
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.3.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.3">
+               𝑎
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.4.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.4">
+               𝑢
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.5.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.5">
+               𝑡
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.6.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.6">
+               𝑖
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.7.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.7">
+               𝑜
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.8.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.8">
+               𝑢
+              </ci>
+              <ci id="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.9.cmml" xref="S4.SS3.SSS3.p1.1.m1.1.1.3.3.3.3.9">
+               𝑠
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS3.p1.1.m1.1c">
+         S_{driving\ style}=\Sigma o_{risky}-\Sigma o_{cautious}
+        </annotation>
+       </semantics>
+      </math>
+      ,
+where
+      <math alttext="o_{risky}" class="ltx_Math" display="inline" id="S4.SS3.SSS3.p1.2.m2.1">
+       <semantics id="S4.SS3.SSS3.p1.2.m2.1a">
+        <msub id="S4.SS3.SSS3.p1.2.m2.1.1" xref="S4.SS3.SSS3.p1.2.m2.1.1.cmml">
+         <mi id="S4.SS3.SSS3.p1.2.m2.1.1.2" xref="S4.SS3.SSS3.p1.2.m2.1.1.2.cmml">
+          o
+         </mi>
+         <mrow id="S4.SS3.SSS3.p1.2.m2.1.1.3" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.cmml">
+          <mi id="S4.SS3.SSS3.p1.2.m2.1.1.3.2" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.2.cmml">
+           r
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.2.m2.1.1.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.2.m2.1.1.3.3" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.3.cmml">
+           i
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.2.m2.1.1.3.1a" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.2.m2.1.1.3.4" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.4.cmml">
+           s
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.2.m2.1.1.3.1b" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.2.m2.1.1.3.5" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.5.cmml">
+           k
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.2.m2.1.1.3.1c" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.2.m2.1.1.3.6" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.6.cmml">
+           y
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS3.p1.2.m2.1b">
+         <apply id="S4.SS3.SSS3.p1.2.m2.1.1.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1">
+          <csymbol cd="ambiguous" id="S4.SS3.SSS3.p1.2.m2.1.1.1.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="S4.SS3.SSS3.p1.2.m2.1.1.2.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.2">
+           𝑜
+          </ci>
+          <apply id="S4.SS3.SSS3.p1.2.m2.1.1.3.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3">
+           <times id="S4.SS3.SSS3.p1.2.m2.1.1.3.1.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.1">
+           </times>
+           <ci id="S4.SS3.SSS3.p1.2.m2.1.1.3.2.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.2">
+            𝑟
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.2.m2.1.1.3.3.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.3">
+            𝑖
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.2.m2.1.1.3.4.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.4">
+            𝑠
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.2.m2.1.1.3.5.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.5">
+            𝑘
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.2.m2.1.1.3.6.cmml" xref="S4.SS3.SSS3.p1.2.m2.1.1.3.6">
+            𝑦
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS3.p1.2.m2.1c">
+         o_{risky}
+        </annotation>
+       </semantics>
+      </math>
+      represents the option made by participants for each risky indicator, while
+      <math alttext="o_{cautious}" class="ltx_Math" display="inline" id="S4.SS3.SSS3.p1.3.m3.1">
+       <semantics id="S4.SS3.SSS3.p1.3.m3.1a">
+        <msub id="S4.SS3.SSS3.p1.3.m3.1.1" xref="S4.SS3.SSS3.p1.3.m3.1.1.cmml">
+         <mi id="S4.SS3.SSS3.p1.3.m3.1.1.2" xref="S4.SS3.SSS3.p1.3.m3.1.1.2.cmml">
+          o
+         </mi>
+         <mrow id="S4.SS3.SSS3.p1.3.m3.1.1.3" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.cmml">
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.2" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.2.cmml">
+           c
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.3" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.3.cmml">
+           a
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1a" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.4" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.4.cmml">
+           u
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1b" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.5" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.5.cmml">
+           t
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1c" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.6" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.6.cmml">
+           i
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1d" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.7" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.7.cmml">
+           o
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1e" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.8" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.8.cmml">
+           u
+          </mi>
+          <mo id="S4.SS3.SSS3.p1.3.m3.1.1.3.1f" lspace="0em" rspace="0em" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml">
+           ​
+          </mo>
+          <mi id="S4.SS3.SSS3.p1.3.m3.1.1.3.9" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.9.cmml">
+           s
+          </mi>
+         </mrow>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS3.p1.3.m3.1b">
+         <apply id="S4.SS3.SSS3.p1.3.m3.1.1.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1">
+          <csymbol cd="ambiguous" id="S4.SS3.SSS3.p1.3.m3.1.1.1.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1">
+           subscript
+          </csymbol>
+          <ci id="S4.SS3.SSS3.p1.3.m3.1.1.2.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.2">
+           𝑜
+          </ci>
+          <apply id="S4.SS3.SSS3.p1.3.m3.1.1.3.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3">
+           <times id="S4.SS3.SSS3.p1.3.m3.1.1.3.1.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.1">
+           </times>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.2.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.2">
+            𝑐
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.3.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.3">
+            𝑎
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.4.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.4">
+            𝑢
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.5.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.5">
+            𝑡
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.6.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.6">
+            𝑖
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.7.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.7">
+            𝑜
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.8.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.8">
+            𝑢
+           </ci>
+           <ci id="S4.SS3.SSS3.p1.3.m3.1.1.3.9.cmml" xref="S4.SS3.SSS3.p1.3.m3.1.1.3.9">
+            𝑠
+           </ci>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS3.p1.3.m3.1c">
+         o_{cautious}
+        </annotation>
+       </semantics>
+      </math>
+      represents the option for each cautious indicator (with two negative indicators within, where options are included as negative values).
+The higher the driving style score, the more a participant’s driving style tends towards being risky.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS3.p2">
+     <p class="ltx_p" id="S4.SS3.SSS3.p2.1">
+      For Part II of the first questionnaire, we calculated the rankings obtained by different video clips in the ranking question following each group of video clips, as well as the statistical significance between their rankings.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS3.p3">
+     <p class="ltx_p" id="S4.SS3.SSS3.p3.1">
+      For Part II of the second questionnaire, we separately tallied the results of the three scoring questions after each video clip, representing the agent vehicle’s intelligence, riskiness, and human-likeness.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS3.p4">
+     <p class="ltx_p" id="S4.SS3.SSS3.p4.1">
+      Additionally, we scrutinized all the answers to the reasoning questions in both questionnaires, summarizing supports for judging the driving behaviors of the agent vehicles.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS3.SSS4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS3.SSS4.5.1.1">
+       IV-C
+      </span>
+      4
+     </span>
+     Results
+    </h4>
+    <figure class="ltx_figure" id="S4.F4">
+     <div class="ltx_flex_figure">
+      <div class="ltx_flex_cell ltx_flex_size_2">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F4.sf1">
+        <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="153" id="S4.F4.sf1.g1" src="/html/2403.11368/assets/x5.png" width="461"/>
+        <figcaption class="ltx_caption ltx_centering">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S4.F4.sf1.2.1.1" style="font-size:90%;">
+           (a)
+          </span>
+         </span>
+         <span class="ltx_text" id="S4.F4.sf1.3.2" style="font-size:90%;">
+          Frequency of riskiness rankings in different groups: demonstrations with different driving styles (left), feedback with different driving styles (middle-left), cautious driving style under different alignment methods (middle-right), and risky driving style under different alignment methods (right). Higher rankings indicate higher riskiness.
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="ltx_flex_cell ltx_flex_size_2">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S4.F4.sf2">
+        <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="383" id="S4.F4.sf2.g1" src="/html/2403.11368/assets/x6.png" width="461"/>
+        <figcaption class="ltx_caption ltx_centering">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S4.F4.sf2.2.1.1" style="font-size:90%;">
+           (b)
+          </span>
+         </span>
+         <span class="ltx_text" id="S4.F4.sf2.3.2" style="font-size:90%;">
+          Pearson correlation and significance of scores for agent vehicle’s riskiness (R), human-likeness (H), and intelligence (I).
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       <span class="ltx_text" id="S4.F4.2.1.1" style="font-size:90%;">
+        Figure 4
+       </span>
+       :
+      </span>
+      <span class="ltx_text" id="S4.F4.3.2" style="font-size:90%;">
+       Human evaluation results.
+      </span>
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S4.SS3.SSS4.p1">
+     <p class="ltx_p" id="S4.SS3.SSS4.p1.1">
+      We distributed two questionnaires for 3 days and received a total of 259 valid responses after screening, with 198 for the first questionnaire and 59 for the second.
+The driving style statistics in part I are highly diverse.
+With an average score of 0.61, 34 participants scores below -4 (suggesting a cautious driving style), while 37 participants scores over 5 (suggesting a risky driving style), indicating good representativeness of our results.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p2">
+     <p class="ltx_p" id="S4.SS3.SSS4.p2.1">
+      Fig.
+      <a class="ltx_ref" href="#S4.F4.sf1" title="In Figure 4 ‣ IV-C4 Results ‣ IV-C Human Evaluation ‣ IV Experiment ‣ Driving Style Alignment for LLM-powered Driver Agent">
+       <span class="ltx_text ltx_ref_tag">
+        4(a)
+       </span>
+      </a>
+      shows the rankings of riskiness for different video clips in each group from the first questionnaire, with higher rankings indicating higher riskiness.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p3">
+     <p class="ltx_p" id="S4.SS3.SSS4.p3.1">
+      In both the demonstrations and feedback groups, the rankings for DC and FC were significantly lower than those for other videos in the same group, indicating that they were perceived as the least risky.
+One participant explained choosing DC as the least risky in the Demonstration Group, noting, ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p3.1.1">
+       The car ran stably without veering left or right.
+      </span>
+      ”
+Another participant cited their reasoning for deeming FC the least risky in the Feedback Group, stating, ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p3.1.2">
+       It waits for the pedestrian ahead to pass by.
+      </span>
+      ”
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p4">
+     <p class="ltx_p" id="S4.SS3.SSS4.p4.1">
+      When
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS3.SSS4.p4.1.1">
+       not-aligned
+      </span>
+      , the riskiness of FN decreases compared to DN, with multiple participants noting DN’s ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p4.1.2">
+       Decelerate too slowly when approaching a pedestrian crossing.
+      </span>
+      ”
+However, DN shows no significant difference when compared to either DR or FR, because they ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p4.1.3">
+       all look very risky
+      </span>
+      ”
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p5">
+     <p class="ltx_p" id="S4.SS3.SSS4.p5.2">
+      In the cautious group, the ranking of riskiness goes significantly as DC
+      <math alttext="&gt;" class="ltx_Math" display="inline" id="S4.SS3.SSS4.p5.1.m1.1">
+       <semantics id="S4.SS3.SSS4.p5.1.m1.1a">
+        <mo id="S4.SS3.SSS4.p5.1.m1.1.1" xref="S4.SS3.SSS4.p5.1.m1.1.1.cmml">
+         &gt;
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS4.p5.1.m1.1b">
+         <gt id="S4.SS3.SSS4.p5.1.m1.1.1.cmml" xref="S4.SS3.SSS4.p5.1.m1.1.1">
+         </gt>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS4.p5.1.m1.1c">
+         &gt;
+        </annotation>
+       </semantics>
+      </math>
+      FC
+      <math alttext="&gt;" class="ltx_Math" display="inline" id="S4.SS3.SSS4.p5.2.m2.1">
+       <semantics id="S4.SS3.SSS4.p5.2.m2.1a">
+        <mo id="S4.SS3.SSS4.p5.2.m2.1.1" xref="S4.SS3.SSS4.p5.2.m2.1.1.cmml">
+         &gt;
+        </mo>
+        <annotation-xml encoding="MathML-Content" id="S4.SS3.SSS4.p5.2.m2.1b">
+         <gt id="S4.SS3.SSS4.p5.2.m2.1.1.cmml" xref="S4.SS3.SSS4.p5.2.m2.1.1">
+         </gt>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S4.SS3.SSS4.p5.2.m2.1c">
+         &gt;
+        </annotation>
+       </semantics>
+      </math>
+      MC, indicating that
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS3.SSS4.p5.2.1">
+       multi-alignment
+      </span>
+      has the best alignment effect, with
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS3.SSS4.p5.2.2">
+       demonstrations
+      </span>
+      being the least effective.
+The majority of participants attributed the rankings to ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p5.2.3">
+       Driver x (DC) performs lane changes a bit too quickly, whereas driver y (MC) not only waits for pedestrians but also yields to other vehicles.
+      </span>
+      ”
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p6">
+     <p class="ltx_p" id="S4.SS3.SSS4.p6.1">
+      Similarly, the
+      <span class="ltx_text ltx_font_smallcaps" id="S4.SS3.SSS4.p6.1.1">
+       demonstrations
+      </span>
+      method also showed the poorest alignment effect in the risky group, with MR slightly better than FR but not significant.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS3.SSS4.p7">
+     <p class="ltx_p" id="S4.SS3.SSS4.p7.1">
+      Fig.
+      <a class="ltx_ref" href="#S4.F4.sf2" title="In Figure 4 ‣ IV-C4 Results ‣ IV-C Human Evaluation ‣ IV Experiment ‣ Driving Style Alignment for LLM-powered Driver Agent">
+       <span class="ltx_text ltx_ref_tag">
+        4(b)
+       </span>
+      </a>
+      presents the results of the correlation analysis among participants’ scores for riskiness, human-likeness, and intelligence for the same video clip in the second questionnaire.
+It can be observed that humans tend to associate higher riskiness with lower intelligence, and higher intelligence with greater human-likeness.
+Interestingly, despite cautious driving being safer, humans still tend to associate higher riskiness with greater human-likeness.
+One participant remarked, ”
+      <span class="ltx_text ltx_font_italic" id="S4.SS3.SSS4.p7.1.1">
+       It (MR) is really like an experienced driver who is showing off his driving skills.
+      </span>
+      ”
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS3.SSS5">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      <span class="ltx_text" id="S4.SS3.SSS5.5.1.1">
+       IV-C
+      </span>
+      5
+     </span>
+     Findings
+    </h4>
+    <div class="ltx_para" id="S4.SS3.SSS5.p1">
+     <p class="ltx_p" id="S4.SS3.SSS5.p1.1">
+      The human evaluation results indicated a clear distinction in perceived riskiness between different driving styles.
+Agents aligned with cautious driving were consistently rated as less risky, particularly under the multi-alignment condition, which was proven to be the most effective for aligning driving styles.
+Demonstrations alone showed the least effectiveness in both cautious and risky conditions. Additionally, there is an interesting psychological insight that despite associating cautious driving with safety, participants tended to equate higher cautiousness with less human-likeness, reflecting a complex perception of human driving behavior.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    V
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S5.1.1">
+    CONCLUSIONS
+   </span>
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    This paper presents a novel multi-alignment framework for aligning LLM-powered Driver Agents with human driving styles.
+Through a comprehensive set of experiments and evaluations, we successfully demonstrate that Driver Agents can be tailored to exhibit distinct driving styles—risky and cautious—by leveraging human driving data as chain-of-thought prompts.
+The framework’s effectiveness is validated through simulation experiments in the CARLA urban traffic simulator and further corroborated by human evaluations.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    By illustrating the potential of LLMs in achieving nuanced human-agent alignment, this work opens new avenues for research into autonomous driving technologies that cater to individual preferences.
+By encoding the intricacies of human driving behaviors in a format accessible to language models, this work paves the way for more intuitive and effective human-agent alignment across a broad spectrum of applications beyond autonomous driving.
+Additionally, the insights into human perceptions of riskiness and human-likeness in driving styles underscore the complexity of aligning autonomous agents with human expectations and behaviors, highlighting the importance of further interdisciplinary research in this area.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     C. H. Song, J. Wu, C. Washington, B. M. Sadler, W.-L. Chao, and Y. Su, “Llm-planner: Few-shot grounded planning for embodied agents with large language models,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </em>
+     , 2023, pp. 2998–3009.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     J. Wei, X. Wang, D. Schuurmans, M. Bosma, F. Xia, E. Chi, Q. V. Le, D. Zhou,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      et al.
+     </em>
+     , “Chain-of-thought prompting elicits reasoning in large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.2.2">
+      Advances in Neural Information Processing Systems
+     </em>
+     , vol. 35, pp. 24 824–24 837, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     X. Wang, J. Wei, D. Schuurmans, Q. Le, E. Chi, S. Narang, A. Chowdhery, and D. Zhou, “Self-consistency improves chain of thought reasoning in language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2203.11171
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     S. Yao, D. Yu, J. Zhao, I. Shafran, T. L. Griffiths, Y. Cao, and K. Narasimhan, “Tree of thoughts: Deliberate problem solving with large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2305.10601
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     L. Chen, O. Sinavski, J. Hünermann, A. Karnsund, A. J. Willmott, D. Birch, D. Maund, and J. Shotton, “Driving with llms: Fusing object-level vector modality for explainable autonomous driving,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:2310.01957
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Xu, Y. Zhang, E. Xie, Z. Zhao, Y. Guo, K. K. Wong, Z. Li, and H. Zhao, “Drivegpt4: Interpretable end-to-end autonomous driving via large language model,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2310.01412
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     A. Hu, L. Russell, H. Yeo, Z. Murez, G. Fedoseev, A. Kendall, J. Shotton, and G. Corrado, “Gaia-1: A generative world model for autonomous driving,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2309.17080
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     H. Shao, Y. Hu, L. Wang, S. L. Waslander, Y. Liu, and H. Li, “Lmdrive: Closed-loop end-to-end driving with large language models,” 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     C. Cui, Y. Ma, X. Cao, W. Ye, and Z. Wang, “Drive as you speak: Enabling human-like interaction with large language models in autonomous vehicles,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision
+     </em>
+     , 2024, pp. 902–909.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     L. Wen, D. Fu, X. Li, X. Cai, T. Ma, P. Cai, M. Dou, B. Shi, L. He, and Y. Qiao, “Dilu: A knowledge-driven approach to autonomous driving with large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2309.16292
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     W. Wang, J. Xie, C. Hu, H. Zou, J. Fan, W. Tong, Y. Wen, S. Wu, H. Deng, Z. Li, H. Tian, L. Lu, X. Zhu, X. Wang, Y. Qiao, and J. Dai, “Drivemlm: Aligning multi-modal large language models with behavioral planning states for autonomous driving,” 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     S. Kolekar, J. de Winter, and D. Abbink, “Human-like driving behaviour emerges from a risk-based driver model,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Nature communications
+     </em>
+     , vol. 11, no. 1, p. 4850, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Jin, X. Shen, H. Peng, X. Liu, J. Qin, J. Li, J. Xie, P. Gao, G. Zhou, and J. Gong, “Surrealdriver: Designing generative driver agent simulation framework in urban contexts based on large language model,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2309.13193
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     S. Hecker, D. Dai, and L. Van Gool, “Learning accurate, comfortable and human-like driving,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:1903.10995
+     </em>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     A. Waytz, J. Heafner, and N. Epley, “The mind in the machine: Anthropomorphism increases trust in an autonomous vehicle,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      Journal of experimental social psychology
+     </em>
+     , vol. 52, pp. 113–117, 2014.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     J. Mao, Y. Qian, H. Zhao, and Y. Wang, “Gpt-driver: Learning to drive with gpt,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2310.01415
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. L. Wainwright, P. Mishkin, C. Zhang, S. Agarwal, K. Slama, A. Ray,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      et al.
+     </em>
+     , “Training language models to follow instructions with human feedback, 2022,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.2.2">
+      URL https://arxiv. org/abs/2203.02155
+     </em>
+     , vol. 13, p. 1, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     D. Fu, X. Li, L. Wen, M. Dou, P. Cai, B. Shi, and Y. Qiao, “Drive like a human: Rethinking autonomous driving with large language models,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision
+     </em>
+     , 2024, pp. 910–919.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     A. Zhao, D. Huang, Q. Xu, M. Lin, Y.-J. Liu, and G. Huang, “Expel: Llm agents are experiential learners,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2308.10144
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     N. Shinn, F. Cassano, A. Gopinath, K. Narasimhan, and S. Yao, “Reflexion: Language agents with verbal reinforcement learning,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , vol. 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     W. Yao, S. Heinecke, J. C. Niebles, Z. Liu, Y. Feng, L. Xue, R. Murthy, Z. Chen, J. Zhang, D. Arpit,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      et al.
+     </em>
+     , “Retroformer: Retrospective large language agents with policy gradient optimization,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.2.2">
+      arXiv preprint arXiv:2308.02151
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Yang, P. Li, and Y. Liu, “Failures pave the way: Enhancing large language models through tuning-free rule accumulation,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2310.15746
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     X. Wang, W. Zhu, M. Saxon, M. Steyvers, and W. Y. Wang, “Large language models are implicitly topic models: Explaining and finding good demonstrations for in-context learning,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      Workshop on Efficient Systems for Foundation Models@ ICML2023
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     H. Caesar, V. Bankiti, A. H. Lang, S. Vora, V. E. Liong, Q. Xu, A. Krishnan, Y. Pan, G. Baldan, and O. Beijbom, “nuscenes: A multimodal dataset for autonomous driving,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      Proceedings of the IEEE/CVF conference on computer vision and pattern recognition
+     </em>
+     , 2020, pp. 11 621–11 631.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     J. Geyer, Y. Kassahun, M. Mahmudi, X. Ricou, R. Durgesh, A. S. Chung, L. Hauswald, V. H. Pham, M. Mühlegg, S. Dorn,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      et al.
+     </em>
+     , “A2d2: Audi autonomous driving dataset,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.2.2">
+      arXiv preprint arXiv:2004.06320
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     X. Huang, X. Cheng, Q. Geng, B. Cao, D. Zhou, P. Wang, Y. Lin, and R. Yang, “The apolloscape dataset for autonomous driving,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      Proceedings of the IEEE conference on computer vision and pattern recognition workshops
+     </em>
+     , 2018, pp. 954–960.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     W. Zhan, L. Sun, D. Wang, H. Shi, A. Clausse, M. Naumann, J. Kummerle, H. Konigshof, C. Stiller, A. de La Fortelle,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      et al.
+     </em>
+     , “Interaction dataset: An international, adversarial and cooperative motion dataset in interactive driving scenarios with semantic maps,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.2.2">
+      arXiv preprint arXiv:1910.03088
+     </em>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     T. Li, A. Alhilal, A. Zhang, M. A. Hoque, D. Chatzopoulos, Z. Xiao, Y. Li, and P. Hui, “Driving big data: A first look at driving behavior via a large-scale private car dataset,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      2019 IEEE 35th International Conference on Data Engineering Workshops (ICDEW)
+     </em>
+     .   IEEE, 2019, pp. 61–68.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     X. Hu, Z. Zheng, D. Chen, X. Zhang, and J. Sun, “Processing, assessing, and enhancing the waymo autonomous vehicle open dataset for driving behavior research,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      Transportation Research Part C: Emerging Technologies
+     </em>
+     , vol. 134, p. 103490, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     M. Martin, A. Roitberg, M. Haurilet, M. Horne, S. Reiß, M. Voit, and R. Stiefelhagen, “Drive&amp;act: A multi-modal dataset for fine-grained driver behavior recognition in autonomous vehicles,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      Proceedings of the IEEE/CVF International Conference on Computer Vision
+     </em>
+     , 2019, pp. 2801–2810.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      et al.
+     </em>
+     , “Language models are few-shot learners,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.2.2">
+      Advances in neural information processing systems
+     </em>
+     , vol. 33, pp. 1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     O. Taubman-Ben-Ari, M. Mikulincer, and O. Gillath, “The multidimensional driving style inventory—scale construct and validation,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      Accident Analysis &amp; Prevention
+     </em>
+     , vol. 36, no. 3, pp. 323–332, 2004.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

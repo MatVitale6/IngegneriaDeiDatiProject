@@ -1,0 +1,4424 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  BMW Agents - A Framework For Task Automation Through
+Multi-Agent Collaboration
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Noel Crawford  Edward B. Duffy  Iman Evazzade  Torsten Foehr
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="id3.3.id1">
+     Gregory Robbins
+    </span>
+    <span class="ltx_text ltx_font_bold" id="id4.4.id2">
+     Debbrata Kumar Saha
+    </span>
+    <span class="ltx_text ltx_font_bold" id="id5.5.id3">
+     Jiya Varma
+    </span>
+    <span class="ltx_text ltx_font_bold" id="id1.1.1">
+     Marcin Ziolkowski
+     <sup class="ltx_sup" id="id1.1.1.1">
+      <span class="ltx_text ltx_font_medium ltx_font_italic" id="id1.1.1.1.1">
+       †
+      </span>
+     </sup>
+    </span>
+    <br class="ltx_break"/>
+    <br class="ltx_break"/>
+    BMW Group
+    <br class="ltx_break"/>
+    Information Technology Research Center
+    <br class="ltx_break"/>
+    2 Research Drive, Greenville, SC 29607
+    <br class="ltx_break"/>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id6.6.id4">
+     <span class="ltx_text ltx_font_italic" id="id6.6.id4.1">
+      †
+     </span>
+    </sup>
+    marcin.ziolkowski@bmwgroup.com
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    Authors in alphabetical order.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id7.id1">
+   Autonomous agents driven by Large Language
+Models (LLMs) offer enormous potential for automation. Early proof
+of this technology can be found in various demonstrations of agents solving
+complex tasks, interacting with external systems to augment their knowledge,
+and triggering actions. In particular, workflows involving multiple agents
+solving complex tasks in a collaborative fashion exemplify their capacity
+to operate in less strict and less well-defined environments.
+Thus, a multi-agent approach has great potential for serving as a backbone
+in many industrial applications, ranging from complex knowledge retrieval
+systems to next generation robotic process automation. Given the reasoning
+abilities within the current generation of LLMs, complex processes require
+a multi-step approach that includes a plan of well-defined and modular tasks.
+Depending on the level of complexity, these tasks can be executed either by
+a single agent or a group of agents. In this work, we focus on designing a
+flexible agent engineering framework with careful attention to planning and execution,
+capable of handling complex use case applications across various domains.
+The proposed framework provides reliability in industrial applications and
+presents techniques to ensure a scalable, flexible, and collaborative
+workflow for multiple autonomous agents working together towards solving tasks.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In the rapidly evolving landscape of artificial intelligence (AI), the
+deployment of generative AI models marks a significant technological
+advancement, transforming how businesses and organizations recognize the value
+of AI and its potential for automation of complex tasks. While the emerging
+capabilities of Large Language Models (LLMs) are impressive, their applications
+in industrial settings are limited within this current generation of models.
+By themselves, LLMs do not have access to confidential and proprietary business
+information which is necessary for developing robust and high quality AI-powered
+applications. While it is possible to fine-tune these models with
+company-specific data, one must carefully consider the challenges associated
+with this approach, such as data preparation and maintainability. Additionally,
+there is a large IT ecosystem where existing tools and applications can be
+leveraged without the need to duplicate data. These limitations highlight
+the need of a more dynamic approach to AI application design using AI agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    . This work explores an approach that leverages the
+capabilities of AI agents to significantly enhance productivity and innovation
+through collaborative multi-agent workflows.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    The integration of multiple AI agents in a cohesive workflow presents a
+paradigm shift from traditional, singular AI applications to a more
+dynamic, interconnected framework. This method not only amplifies the
+individual capabilities of each agent, which can now have narrow
+expertise and operate robustly, it also orchestrates a workflow of
+interactions that drive complex task completion
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    . This document will
+detail the foundational principles of designing and implementing a
+robust multi-agent engineering framework
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    . It will discuss the architectural
+considerations, chosen algorithms, and methods for realizing complex
+generative AI applications.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    The trajectory of AI agents research, particularly with a focus on LLMs,
+took a notable turn with the advent of specialized frameworks aimed at the
+completion of very generic tasks. With the introduction of projects like
+AutoGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    and BabyAGI
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    , the interest in AI agents expanded from academic research
+settings into a broader community. Both projects were able to demonstrate that
+complex tasks can be decomposed into simpler steps. By programmatically
+orchestrating the solution of each individual step, a solution to the more
+complex task can be achieved. In the scope of AI agents powered by LLMs,
+the ideas surrounding task decomposition, planning, and task execution using
+tools have emerged to overcome the limitations observed in the existing
+generation of LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    In this work we turn our attention to multi-agent systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ]
+    </cite>
+    and the
+potential of solving complex tasks through the collaborative work of AI
+agents. Our perspective is rooted in the observations that 1) AI agents
+perform well if their scope of responsibility is narrowed to a well
+defined role
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ]
+    </cite>
+    , 2) complex problems require the expertise of several
+narrowly defined AI agents to successfully mimic human solutions with step-by-step
+reasoning and deliberation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    ,
+3) simple tasks can be completed with more
+complex prompting strategies like ReAct
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    , and 4) impactful
+adoption of AI applications cannot be achieved in isolation from existing
+development ecosystems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    . Based on these observations, we have developed an agent engineering framework to enable task
+automation through multi-agent collaboration in enterprise settings. The framework is meant to interact within an IT landscape
+that is a mixture of modern and legacy applications. It serves as a
+template for stable AI applications that enable the automation of
+complex processes, either as human or programmatically triggered
+workflows. This framework is designed to be modular, extendable, and
+stay agnostic to the dynamic LLM landscape.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    This report serves as a technical introduction of methodology and an example blueprint
+for industrial applications of multi-agent workflows. It aims to offer valuable insights
+and guidelines for organizations looking to leverage these advanced AI
+systems to achieve scalability, resilience, and a competitive edge. It may also serve as
+a didactic resource for applied researchers new to the field of AI
+driven automation and AI agents. This document is organized in the following way:
+After the introduction,
+we highlight the current AI agent landscape in Section
+    <a class="ltx_ref" href="#S2" title="2 Existing Frameworks ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    .
+In Section
+    <a class="ltx_ref" href="#S3" title="3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    we present our agent workflow
+design and the definition of components. Section
+    <a class="ltx_ref" href="#S4" title="4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    covers approaches for utilizing groups
+of AI agents, architecture of solution, and communication strategies.
+We focus on examples in Section
+    <a class="ltx_ref" href="#S5" title="5 Example Applications ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    and
+conclude with the lessons learned in Section
+    <a class="ltx_ref" href="#S6" title="6 Summary ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      6
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Existing Frameworks
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Table
+    <a class="ltx_ref" href="#S2.T1" title="Table 1 ‣ 2 Existing Frameworks ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    includes a list of
+existing agent frameworks or projects closely related to
+agent workflows. The list is not all-inclusive as the landscape is rapidly growing.
+Detailed discussions of existing approaches are covered in recently
+published surveys
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <figure class="ltx_table" id="S2.T1">
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Sample of existing approaches to agent and multi-agent frameworks.
+Our view of their unique contributions is mentioned in the
+    <span class="ltx_text ltx_font_bold" id="S2.T1.3.1">
+     Features
+    </span>
+    column. Reference to project website and GitHub repository are included in the
+    <span class="ltx_text ltx_font_bold" id="S2.T1.4.2">
+     Project spaces
+    </span>
+    column if available.
+   </figcaption>
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S2.T1.5">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S2.T1.5.1.1">
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_tt" id="S2.T1.5.1.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.1.1.1.1">
+        <span class="ltx_p" id="S2.T1.5.1.1.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.5.1.1.1.1.1.1">
+          Name
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_tt" id="S2.T1.5.1.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.1.1.2.1">
+        <span class="ltx_p" id="S2.T1.5.1.1.2.1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.5.1.1.2.1.1.1">
+          Features
+         </span>
+        </span>
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_tt" id="S2.T1.5.1.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.1.1.3.1">
+        <span class="ltx_p" id="S2.T1.5.1.1.3.1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.T1.5.1.1.3.1.1.1">
+          Project spaces
+         </span>
+        </span>
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S2.T1.5.2.1">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.2.1.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.2.1.1.1">
+        <span class="ltx_p" id="S2.T1.5.2.1.1.1.1">
+         AutoGen
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib7" title="">
+           7
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.2.1.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.2.1.2.1">
+        <span class="ltx_p" id="S2.T1.5.2.1.2.1.1">
+         Multi-agent, flexible
+communication strategies
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.2.1.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.2.1.3.1">
+        <span class="ltx_p" id="S2.T1.5.2.1.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://microsoft.github.io/autogen/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/microsoft/autogen" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.3.2">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.3.2.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.3.2.1.1">
+        <span class="ltx_p" id="S2.T1.5.3.2.1.1.1">
+         AutoGPT
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.3.2.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.3.2.2.1">
+        <span class="ltx_p" id="S2.T1.5.3.2.2.1.1">
+         Autonomous agents, dynamic agent creation, multiple LLMs
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.3.2.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.3.2.3.1">
+        <span class="ltx_p" id="S2.T1.5.3.2.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://autogpt.net/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.4.3">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.4.3.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.4.3.1.1">
+        <span class="ltx_p" id="S2.T1.5.4.3.1.1.1">
+         LangChain
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.4.3.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.4.3.2.1">
+        <span class="ltx_p" id="S2.T1.5.4.3.2.1.1">
+         Tool usage, interaction with existing applications
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.4.3.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.4.3.3.1">
+        <span class="ltx_p" id="S2.T1.5.4.3.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://www.langchain.com" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/langchain-ai/langchain" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.5.4">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.5.4.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.5.4.1.1">
+        <span class="ltx_p" id="S2.T1.5.5.4.1.1.1">
+         LangGraph
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.5.4.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.5.4.2.1">
+        <span class="ltx_p" id="S2.T1.5.5.4.2.1.1">
+         Multi-agent generalization of LangChain
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.5.4.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.5.4.3.1">
+        <span class="ltx_p" id="S2.T1.5.5.4.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://python.langchain.com/docs/langgraph/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/langchain-ai/langgraph" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.6.5">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.6.5.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.6.5.1.1">
+        <span class="ltx_p" id="S2.T1.5.6.5.1.1.1">
+         LlamaIndex
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.6.5.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.6.5.2.1">
+        <span class="ltx_p" id="S2.T1.5.6.5.2.1.1">
+         Knowledge retrieval and RAG methods
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.6.5.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.6.5.3.1">
+        <span class="ltx_p" id="S2.T1.5.6.5.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://www.llamaindex.ai/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/run-llama/llama_index" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.7.6">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.7.6.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.7.6.1.1">
+        <span class="ltx_p" id="S2.T1.5.7.6.1.1.1">
+         ChatDev
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib28" title="">
+           28
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.7.6.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.7.6.2.1">
+        <span class="ltx_p" id="S2.T1.5.7.6.2.1.1">
+         Multi-agent, software development, agent dialog
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.7.6.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.7.6.3.1">
+        <span class="ltx_p" id="S2.T1.5.7.6.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://chatdev.ai/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/OpenBMB/ChatDev" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.8.7">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.8.7.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.8.7.1.1">
+        <span class="ltx_p" id="S2.T1.5.8.7.1.1.1">
+         RAISE
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib29" title="">
+           29
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.8.7.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.8.7.2.1">
+        <span class="ltx_p" id="S2.T1.5.8.7.2.1.1">
+         ReAct-like prompt strategy for multi-agent workflow
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_t" id="S2.T1.5.8.7.3">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.9.8">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.9.8.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.9.8.1.1">
+        <span class="ltx_p" id="S2.T1.5.9.8.1.1.1">
+         GPT-Engineer
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.9.8.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.9.8.2.1">
+        <span class="ltx_p" id="S2.T1.5.9.8.2.1.1">
+         Software development
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.9.8.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.9.8.3.1">
+        <span class="ltx_p" id="S2.T1.5.9.8.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/gpt-engineer-org/gpt-engineer" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.10.9">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.10.9.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.10.9.1.1">
+        <span class="ltx_p" id="S2.T1.5.10.9.1.1.1">
+         MetaGPT
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib30" title="">
+           30
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.10.9.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.10.9.2.1">
+        <span class="ltx_p" id="S2.T1.5.10.9.2.1.1">
+         Multi-agent, software
+development
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.10.9.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.10.9.3.1">
+        <span class="ltx_p" id="S2.T1.5.10.9.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://www.deepwisdom.ai/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/geekan/MetaGPT" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.11.10">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.11.10.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.11.10.1.1">
+        <span class="ltx_p" id="S2.T1.5.11.10.1.1.1">
+         DyLAN
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib8" title="">
+           8
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.11.10.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.11.10.2.1">
+        <span class="ltx_p" id="S2.T1.5.11.10.2.1.1">
+         Agent team optimization,
+inference time agent selection
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.11.10.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.11.10.3.1">
+        <span class="ltx_p" id="S2.T1.5.11.10.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/SALT-NLP/DyLAN" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.12.11">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.12.11.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.12.11.1.1">
+        <span class="ltx_p" id="S2.T1.5.12.11.1.1.1">
+         AgentVerse
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib9" title="">
+           9
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.12.11.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.12.11.2.1">
+        <span class="ltx_p" id="S2.T1.5.12.11.2.1.1">
+         Dynamic agent group selection
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.12.11.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.12.11.3.1">
+        <span class="ltx_p" id="S2.T1.5.12.11.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://agentverse.ai" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/OpenBMB/AgentVerse" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.13.12">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.13.12.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.13.12.1.1">
+        <span class="ltx_p" id="S2.T1.5.13.12.1.1.1">
+         Embodied Agents
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib10" title="">
+           10
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.13.12.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.13.12.2.1">
+        <span class="ltx_p" id="S2.T1.5.13.12.2.1.1">
+         Agent team organization and
+communication patterns
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_t" id="S2.T1.5.13.12.3">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.14.13">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.14.13.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.14.13.1.1">
+        <span class="ltx_p" id="S2.T1.5.14.13.1.1.1">
+         AgentLite
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib31" title="">
+           31
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.14.13.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.14.13.2.1">
+        <span class="ltx_p" id="S2.T1.5.14.13.2.1.1">
+         Multi-agent, hierarchical
+agent orchestration, task decomposition
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.14.13.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.14.13.3.1">
+        <span class="ltx_p" id="S2.T1.5.14.13.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/SalesforceAIResearch/AgentLite" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.15.14">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.15.14.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.15.14.1.1">
+        <span class="ltx_p" id="S2.T1.5.15.14.1.1.1">
+         LLMArena
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib11" title="">
+           11
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.15.14.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.15.14.2.1">
+        <span class="ltx_p" id="S2.T1.5.15.14.2.1.1">
+         Multi-agent logic game playing
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_border_t" id="S2.T1.5.15.14.3">
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.16.15">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.16.15.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.16.15.1.1">
+        <span class="ltx_p" id="S2.T1.5.16.15.1.1.1">
+         LLMHarmony
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib12" title="">
+           12
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.16.15.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.16.15.2.1">
+        <span class="ltx_p" id="S2.T1.5.16.15.2.1.1">
+         CAMEL
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib13" title="">
+           13
+          </a>
+          ]
+         </cite>
+         prompt extension to many agents
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.16.15.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.16.15.3.1">
+        <span class="ltx_p" id="S2.T1.5.16.15.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/sumedhrasal/simulation" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.17.16">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.17.16.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.17.16.1.1">
+        <span class="ltx_p" id="S2.T1.5.17.16.1.1.1">
+         AgentGPT
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.17.16.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.17.16.2.1">
+        <span class="ltx_p" id="S2.T1.5.17.16.2.1.1">
+         No-code agent setup
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.17.16.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.17.16.3.1">
+        <span class="ltx_p" id="S2.T1.5.17.16.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/reworkd/AgentGPT" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.18.17">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.18.17.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.18.17.1.1">
+        <span class="ltx_p" id="S2.T1.5.18.17.1.1.1">
+         crewAI
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.18.17.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.18.17.2.1">
+        <span class="ltx_p" id="S2.T1.5.18.17.2.1.1">
+         Multi-agent with sequential and hierarchical strategy
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.18.17.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.18.17.3.1">
+        <span class="ltx_p" id="S2.T1.5.18.17.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://www.crewai.com/" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/joaomdmoura/crewAI" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.19.18">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.19.18.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.19.18.1.1">
+        <span class="ltx_p" id="S2.T1.5.19.18.1.1.1">
+         SuperAGI
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.19.18.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.19.18.2.1">
+        <span class="ltx_p" id="S2.T1.5.19.18.2.1.1">
+         Pausing and resuming agents
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.19.18.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.19.18.3.1">
+        <span class="ltx_p" id="S2.T1.5.19.18.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/TransformerOptimus/SuperAGI" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.20.19">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.20.19.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.20.19.1.1">
+        <span class="ltx_p" id="S2.T1.5.20.19.1.1.1">
+         BabyAGI
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.20.19.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.20.19.2.1">
+        <span class="ltx_p" id="S2.T1.5.20.19.2.1.1">
+         Reference concepts of AI agent workflow
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.20.19.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.20.19.3.1">
+        <span class="ltx_p" id="S2.T1.5.20.19.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://github.com/yoheinakajima/babyagi" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.21.20">
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.21.20.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.21.20.1.1">
+        <span class="ltx_p" id="S2.T1.5.21.20.1.1.1">
+         OpenAgents
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib32" title="">
+           32
+          </a>
+          ]
+         </cite>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.21.20.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.21.20.2.1">
+        <span class="ltx_p" id="S2.T1.5.21.20.2.1.1">
+         Discussion of robustness of
+implementation, dynamic plugin selection
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_t" id="S2.T1.5.21.20.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.21.20.3.1">
+        <span class="ltx_p" id="S2.T1.5.21.20.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://docs.xlang.ai/user-manual/overview" target="_blank" title="">
+          Project
+         </a>
+         and
+         <a class="ltx_ref ltx_href" href="https://github.com/xlang-ai/OpenAgents" target="_blank" title="">
+          GitHub
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S2.T1.5.22.21">
+      <td class="ltx_td ltx_align_justify ltx_border_bb ltx_border_t" id="S2.T1.5.22.21.1">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.22.21.1.1">
+        <span class="ltx_p" id="S2.T1.5.22.21.1.1.1">
+         HuggingFace
+         <br class="ltx_break"/>
+         Transformers Agents
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_bb ltx_border_t" id="S2.T1.5.22.21.2">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.22.21.2.1">
+        <span class="ltx_p" id="S2.T1.5.22.21.2.1.1">
+         Long-memory,
+multi-agent collaboration, rich ecosystem and active community
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_border_bb ltx_border_t" id="S2.T1.5.22.21.3">
+       <span class="ltx_inline-block ltx_align_top" id="S2.T1.5.22.21.3.1">
+        <span class="ltx_p" id="S2.T1.5.22.21.3.1.1">
+         <a class="ltx_ref ltx_href" href="https://huggingface.co/blog/agents" target="_blank" title="">
+          Project
+         </a>
+        </span>
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Agent Workflow
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Special attention is given to creating a flexible structure for agent workflows
+which can support both single and multi-agent execution. The agent workflow in our implementation will follow the three main stages:
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <ol class="ltx_enumerate" id="S3.I1">
+    <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="S3.I1.i1.p1">
+      <p class="ltx_p" id="S3.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+        Planning
+       </span>
+       - Decomposition of the input into simple logical steps
+with a clearly defined order of operations.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="S3.I1.i2.p1">
+      <p class="ltx_p" id="S3.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+        Execution
+       </span>
+       - Completion of the work planned in Step (1) by agents
+solving simple tasks and creating results.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para" id="S3.I1.i3.p1">
+      <p class="ltx_p" id="S3.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+        Verification
+       </span>
+       - Independent check if the original objective has been
+achieved in step (2).
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <div class="ltx_para" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    The flow, which starts with user-provided (or in general, externally-provided) input is illustrated in Figure
+    <a class="ltx_ref" href="#S3.F1" title="Figure 1 ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S3.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="254" id="S3.F1.g1" src="/html/2406.20041/assets/x1.png" width="322"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Generic agent workflow starting with user input and ending with
+providing workflow output.
+    <span class="ltx_text ltx_font_bold" id="S3.F1.2.1">
+     Agent Workflow
+    </span>
+    highlights major components
+and levels of the workflow with (1) Planning, (2) Execution, and (3)
+Verification done by dedicated agents.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p4">
+   <p class="ltx_p" id="S3.p4.1">
+    For readability, Figure
+    <a class="ltx_ref" href="#S3.F1" title="Figure 1 ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    includes a unit of
+executing agents, without a detailed composition of this unit,
+directly connected to
+    <span class="ltx_text ltx_font_bold" id="S3.p4.1.1">
+     Coordinator
+    </span>
+    . The above-mentioned note about
+“external input” generalizes to agent workflows that may be triggered programmatically as opposed to human provided input.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p5">
+   <p class="ltx_p" id="S3.p5.1">
+    The individual components involved in our generic agent workflow may be
+defined as:
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p6">
+   <blockquote class="ltx_quote" id="S3.p6.1">
+    <p class="ltx_p" id="S3.p6.1.1">
+     An
+     <span class="ltx_text ltx_font_bold" id="S3.p6.1.1.1">
+      Agent
+     </span>
+     is an object that makes LLM calls with a
+specified prompt strategy in order to achieve a specific result. Agent
+includes a
+     <em class="ltx_emph ltx_font_italic" id="S3.p6.1.1.2">
+      persona
+     </em>
+     which defines its scope of knowledge and
+actions. Potentially, an Agent can have access to a set of tools, each capable of taking specific actions. Any available tool will
+have a brief description along with instructions for the input schema included in the Agent’s prompt.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p7">
+   <blockquote class="ltx_quote" id="S3.p7.1">
+    <p class="ltx_p" id="S3.p7.1.1">
+     An
+     <span class="ltx_text ltx_font_bold" id="S3.p7.1.1.1">
+      Agent Unit
+     </span>
+     is a container that holds one or more Agents that are meant to work together to solve a task. The Agent Unit is responsible for selecting an individual Agent in each iteration of solving a task. Selection strategies can range from simple patterns to more dynamic approaches using AI. Within a workflow, multiple Agent Units may be employed to facilitate intricate and specialized patterns of collaboration.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p8">
+   <blockquote class="ltx_quote" id="S3.p8.1">
+    <p class="ltx_p" id="S3.p8.1.1">
+     A
+     <span class="ltx_text ltx_font_bold" id="S3.p8.1.1.1">
+      Matcher
+     </span>
+     is an abstraction layer that is used to enable various methods of selecting an item based on some criteria. One potential use of a Matcher is selecting an appropriate Agent Unit for a given task. Matching can happen through simple methods such as list iteration or through more advanced methods involving AI.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p9">
+   <blockquote class="ltx_quote" id="S3.p9.1">
+    <p class="ltx_p" id="S3.p9.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p9.1.1.1">
+      Executor
+     </span>
+     is the component which orchestrates all Agent relevant
+operations through interactions with an Agent Unit. It is also responsible for bringing information related to the current running task to the Agent in the Unit.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p10">
+   <blockquote class="ltx_quote" id="S3.p10.1">
+    <p class="ltx_p" id="S3.p10.1.1">
+     <span class="ltx_text ltx_font_bold" id="S3.p10.1.1.1">
+      Tools
+     </span>
+     are external functions that are made available to an Agent to complete a task. This can include access to databases, file systems, and APIs. Together, the set of Tools form the Agent’s Toolbox.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p11">
+   <blockquote class="ltx_quote" id="S3.p11.1">
+    <p class="ltx_p" id="S3.p11.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p11.1.1.1">
+      Toolbox Refiner
+     </span>
+     is responsible for filtering a set of Tools into a relevant subset during the execution of an Agent loop. This can improve the accuracy and performance of an Agent by limiting the number of Tool options.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p12">
+   <blockquote class="ltx_quote" id="S3.p12.1">
+    <p class="ltx_p" id="S3.p12.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p12.1.1.1">
+      Coordinator
+     </span>
+     orchestrates the agent workflow and executes
+all components needed for the planning, execution, and verification of the data
+flow.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p13">
+   <blockquote class="ltx_quote" id="S3.p13.1">
+    <p class="ltx_p" id="S3.p13.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p13.1.1.1">
+      Planner
+     </span>
+     is an instance of an Agent specialized to
+decompose a user instruction into several simpler tasks. It
+provides a set of tasks and their dependencies in a structured format.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p14">
+   <blockquote class="ltx_quote" id="S3.p14.1">
+    <p class="ltx_p" id="S3.p14.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p14.1.1.1">
+      Task Queue
+     </span>
+     is a container for holding the tasks that are created by the Planner. As tasks are completed, the Task Queue is responsible for propagating relevant results between tasks. It is also responsible for releasing tasks for execution once all of their dependencies have been resolved.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p15">
+   <blockquote class="ltx_quote" id="S3.p15.1">
+    <p class="ltx_p" id="S3.p15.1.1">
+     The
+     <span class="ltx_text ltx_font_bold" id="S3.p15.1.1.1">
+      Verifier
+     </span>
+     is an instance of an Agent tasked with
+independent verification of the agent workflow result against the
+original user instruction and the overall objective. The output from
+the Verifier Agent is a boolean value indicating if the workflow result satisfies the request. If the result is deemed unsatisfactory, the workflow enters a replanning phase to improve the result.
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S3.p16">
+   <p class="ltx_p" id="S3.p16.1">
+    The core of any Agent is an LLM, a prompt strategy, and a history of its past actions known as
+short memory, which will be described in detail in Section
+    <a class="ltx_ref" href="#S3.SS4.SSS2" title="3.4.2 Short Memory ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      3.4.2
+     </span>
+    </a>
+    .
+Figure
+    <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    illustrates the components that make an Agent object and are
+involved in its execution. Although this diagram displays a single agent, this structure
+extends to multiple agents through the Agent Unit.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S3.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="300" id="S3.F2.g1" src="/html/2406.20041/assets/x2.png" width="322"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Components contributing to initialization of an Agent. Dashed lines indicate optional
+components.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p17">
+   <p class="ltx_p" id="S3.p17.1">
+    Our prompt strategies are abstracted so that we can use both simple and iterative strategies without modification to an Agent. To demonstrate the standardization of prompts, in Subsections
+    <a class="ltx_ref" href="#S3.SS1" title="3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      3.1
+     </span>
+    </a>
+    –
+    <a class="ltx_ref" href="#S3.SS3" title="3.3 Iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+     <span class="ltx_text ltx_ref_tag">
+      3.3
+     </span>
+    </a>
+    we will discuss a sample of non-iterative prompts, introduce tool usage and show the transition to the iterative ReAct prompt strategy
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    , and its derivatives.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Non-iterative Prompt Strategies
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Our most basic prompt strategy is a simple one-off LLM
+call. In all of our strategies we include a template system
+message with variables that can be modified. The default template includes
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p1.1.1">
+      persona
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p1.1.2">
+      objective
+     </span>
+     variables
+and is stored in a plain text
+template file that is rendered when the prompting strategy is invoked.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Figure
+     <a class="ltx_ref" href="#S3.F3.sf1" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       3(a)
+      </span>
+     </a>
+     displays message types used in the simple prompt strategy.
+The “system” and “user” messages are inputs and “assistant” message represents
+the response from the LLM. We include a post-processing step that is responsible for parsing the raw model output based on the strategy and constructing a revised assistant message. This revised assistant message ensures that the iterative prompt strategies have consistent structure within short memory for the following iteration of LLM calls.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     The basic strategy can be sufficient for components of the agent workflow which do not require iterative
+processing with an LLM. Two examples of such Agents that can utilize basic strategies are the
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p3.1.1">
+      Planner
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p3.1.2">
+      Verifier
+     </span>
+     Agents. These Agents can have specialized templates for their unique objectives and post-processing functions. In the following subsections we describe both
+cases in more detail.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.1
+     </span>
+     Planner
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS1.p1.1">
+      An example that uses the non-iterative prompt strategy is simple task planning.
+Task decomposition is a crucial element within a successful agent workflow.
+The purpose of the Planner Agent is to take in the user’s instruction,
+decompose it into simple tasks, and identify dependencies between tasks in the form of a Directed Acyclic Graph (DAG). This simple, non-interactive
+prompt strategy makes a single LLM call and does not further
+refine its task list. The LLM is instructed to generate a response
+in structured JSON format that will be parsed to extract all tasks and
+populate the
+      <span class="ltx_text ltx_font_bold" id="S3.SS1.SSS1.p1.1.1">
+       Task Queue
+      </span>
+      . The data flow of this prompt strategy, from user instruction,
+to the task DAG, to the final result is displayed in
+Figure
+      <a class="ltx_ref" href="#S3.F3.sf2" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3(b)
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F3">
+     <div class="ltx_flex_figure">
+      <div class="ltx_flex_cell ltx_flex_size_3">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf1">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="269" id="S3.F3.sf1.g1" src="/html/2406.20041/assets/x3.png" width="138"/>
+        <figcaption class="ltx_caption">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S3.F3.sf1.2.1.1" style="font-size:80%;">
+           (a)
+          </span>
+         </span>
+         <span class="ltx_text" id="S3.F3.sf1.3.2" style="font-size:80%;">
+          Basic
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="ltx_flex_cell ltx_flex_size_3">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf2">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="269" id="S3.F3.sf2.g1" src="/html/2406.20041/assets/x4.png" width="138"/>
+        <figcaption class="ltx_caption">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S3.F3.sf2.2.1.1" style="font-size:80%;">
+           (b)
+          </span>
+         </span>
+         <span class="ltx_text" id="S3.F3.sf2.3.2" style="font-size:80%;">
+          Planner
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="ltx_flex_cell ltx_flex_size_3">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F3.sf3">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="269" id="S3.F3.sf3.g1" src="/html/2406.20041/assets/x5.png" width="138"/>
+        <figcaption class="ltx_caption">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S3.F3.sf3.2.1.1" style="font-size:80%;">
+           (c)
+          </span>
+         </span>
+         <span class="ltx_text" id="S3.F3.sf3.3.2" style="font-size:80%;">
+          Verifier
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 3:
+      </span>
+      Structure of
+      <a class="ltx_ref" href="#S3.F3.sf1" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3(a)
+       </span>
+      </a>
+      Basic
+non-iterative prompt, and its variations as applied in
+      <a class="ltx_ref" href="#S3.F3.sf2" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3(b)
+       </span>
+      </a>
+      Planner and
+      <a class="ltx_ref" href="#S3.F3.sf3" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3(c)
+       </span>
+      </a>
+      Verifier agents.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.2
+     </span>
+     Verifier
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS2.p1.1">
+      Even with a planning stage, we
+cannot guarantee that the agent workflow will be successful. A plan may not be completed properly or the created plan may not be sufficiently simple to be reliable. To provide a safeguard mechanism for autonomous task execution, we
+include a Verifier Agent which is tasked with ensuring that the final
+result sufficiently addresses the user’s instruction. Figure
+      <a class="ltx_ref" href="#S3.F3.sf3" title="In Figure 3 ‣ 3.1.1 Planner ‣ 3.1 Non-iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3(c)
+       </span>
+      </a>
+      displays the structure
+of the Verifier Agent prompt when employing the simple prompt strategy. The Agent reasons through the result of the workflow and returns a true/false value. To prevent bias in the verification, it is done without knowledge
+of the created plan or partial results completed during the execution.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Tools
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     It has been shown that LLMs can generate actions and automate tasks through the use of tools
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       34
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ]
+     </cite>
+     . These early demonstrations
+have focused on web browsing or robotics but have been quickly
+generalized and are incorporated into the coherent ReAct prompt strategy
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     . Alternative approaches with extensive tool usage have been proposed
+in Gorilla
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       22
+      </a>
+      ]
+     </cite>
+     and others
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     Tool usage is a crucial element of an agent workflow and our focus is on scalable and reliable usage. In this section, we discuss our approaches for ensuring a robust inclusion of tools within an agent’s prompt strategy.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1
+     </span>
+     Tool Abstraction
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS1.p1.1">
+      The presentation and execution of tools are implemented through a standardized interface that enables uniform agent interactions. In our work, we do not utilize the function calling feature of LLMs
+provided by a limited number of APIs, such as OpenAI and Anthropic.
+Rather, we fully rely on the schema description for input and
+output as part of the system prompt.
+We do not impose any simple common input schema for all the tools. Instead we define an exact list of parameters that a given tool requires as part
+of the prompt. Every tool in our implementation is equipped with a function
+that provides its input and output schema. Each tool also includes a description
+that provides the LLM with the ability to identify the
+capabilities and purpose of a tool.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.2
+     </span>
+     Toolbox Refiner
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS2.p1.1">
+      While LLMs are capable of making an appropriate selection based on criteria, the accuracy can decrease as the number of options grows and limit the scalability of a system. Considering the range of tasks we wish to automate, the number of tools may be quite large. To maintain accuracy in the selection process, an agent should be presented a minimal, relevant subset of tools during its execution.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS2.SSS2.p2">
+     <p class="ltx_p" id="S3.SS2.SSS2.p2.1">
+      Our approach takes a philosophy of providing an agent with a wide
+selection of tools, and at the same time minimizing the
+amount of information provided in the system prompt for a given task.
+This reduction of information is achieved by refining the set of tools
+used by the agent in a given task by means of a
+      <span class="ltx_text ltx_font_bold" id="S3.SS2.SSS2.p2.1.1">
+       Toolbox Refiner
+      </span>
+      . The
+task of the refiner is to start with a set of tools and, based on some specific
+criteria, return a subset that will be presented to an agent for usage. Because the exact refining condition may differ based on the workflow, we utilized an interface for the refinement of tools. Our set of implementations
+includes
+      <span class="ltx_text ltx_font_bold" id="S3.SS2.SSS2.p2.1.2">
+       Identity Refiner
+      </span>
+      which always returns the original set,
+      <span class="ltx_text ltx_font_bold" id="S3.SS2.SSS2.p2.1.3">
+       Hierarchical Refiner
+      </span>
+      which takes advantage of a
+hierarchy within tools through a tree search, and
+      <span class="ltx_text ltx_font_bold" id="S3.SS2.SSS2.p2.1.4">
+       Semantic Refiner
+      </span>
+      which utilizes the semantic similarity between
+tools’ descriptions and task.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Iterative Prompt Strategies
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     The non-iterative prompts are useful for tasks that do not require
+any additional information from external sources to be completed. The main
+part of any agent workflow, however, will require interaction with the external
+world through the use of tools. The result of the tool execution will be
+brought back as new information to the Agent before making another LLM call. In this section, we discuss ReAct and its derivatives to introduce iterative prompt strategies, tool usage, and bringing results back to the Agent.
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S3.SS3.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.3.1
+     </span>
+     ReAct and PlanReAct
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS1.p1">
+     <p class="ltx_p" id="S3.SS3.SSS1.p1.1">
+      The ReAct prompt strategy
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib20" title="">
+        20
+       </a>
+       ]
+      </cite>
+      provides an excellent example
+of employing an LLM to reflect on a given task and interact
+with a set of external actions. After the initial instruction, the ReAct strategy loops through Thought, Action and Observation stages, each serving a specific purpose. The
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p1.1.1">
+       Thought
+      </span>
+      stage provides a place for the LLM
+to reflect on the given task and necessary measures.
+In the
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p1.1.2">
+       Action
+      </span>
+      stage, the LLM defines the selected tool and appropriate input to this tool in JSON structure. The
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p1.1.3">
+       Observation
+      </span>
+      stage does not occur inside of an LLM call, rather it is result of the tool execution with specified input and is returned to the LLM in the form of a User message. After this, the model goes
+back to the Thought stage, equipped with more information as a result
+of tool execution, to prepare for the next logical steps.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS1.p2">
+     <p class="ltx_p" id="S3.SS3.SSS1.p2.1">
+      Figure
+      <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.3.1 ReAct and PlanReAct ‣ 3.3 Iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      illustrates the steps employed in the iterative
+structure of the ReAct prompt. Starting with the
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.1">
+       System Message
+      </span>
+      and
+an initial
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.2">
+       Instruction
+      </span>
+      as the first
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.3">
+       User Message
+      </span>
+      , we enter the loop of Thought and Action as the
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.4">
+       Assistant Message
+      </span>
+      and
+Observation as a
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.5">
+       User Message
+      </span>
+      . We mark
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.6">
+       User Message
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p2.1.7">
+       Assistant Message
+      </span>
+      spaces to denote which
+sections of the strategy are generated by an LLM and
+which are placeholders for providing external information.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F4">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="342" id="S3.F4.g1" src="/html/2406.20041/assets/x6.png" width="322"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 4:
+      </span>
+      Generic ReAct prompt strategy with Thought, Action and
+Observation steps. We distinguish steps done as model responses
+(Assistant Message) and as a user (including Observation as
+User Message). PlanReAct includes an additional Planning step marked in orange.
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S3.SS3.SSS1.p3">
+     <p class="ltx_p" id="S3.SS3.SSS1.p3.1">
+      In the
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS1.p3.1.1">
+       System Message
+      </span>
+      , we describe how the model should respond if the
+iterative sequence has ended and the final result is ready. In this case
+the model is instructed to generate a defined termination sequence as part of the
+response instead of new action. At every iteration we will
+programmatically check if this termination sequence is present
+and if found, break the execution loop. The final response is the content after the termination sequence.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS3.SSS1.p4">
+     <p class="ltx_p" id="S3.SS3.SSS1.p4.1">
+      We also implemented a specialized version of the ReAct prompt strategy that
+explicitly includes a planning step as part of the iterative sequence. The
+PlanReAct
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib38" title="">
+        38
+       </a>
+       ]
+      </cite>
+      strategy differs from the original ReAct by an
+additional step responsible for creating an explicit plan and replanning at
+every step. This prompting strategy is not meant to replace
+the Planner Agent, but rather works in tandem by providing
+an additional level of task decomposition in case the original task
+is still too complex.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS3.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.3.2
+     </span>
+     Programmable Prompt
+    </h4>
+    <div class="ltx_para" id="S3.SS3.SSS2.p1">
+     <p class="ltx_p" id="S3.SS3.SSS2.p1.1">
+      We generalized the ReAct and PlanReAct strategies by introducing a configurable prompting strategy known as a Programmable Prompt.
+The configuration will include an iterative sequence consisting of
+predefined steps
+      <span class="ltx_text ltx_font_typewriter" id="S3.SS3.SSS2.p1.1.1">
+       A...X
+      </span>
+      where each letter represents a stage that
+the LLM should take e.g.
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.2">
+       Thought
+      </span>
+      ,
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.3">
+       Action
+      </span>
+      ,
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.4">
+       Observation
+      </span>
+      for ReAct or
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.5">
+       Plan
+      </span>
+      ,
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.6">
+       Thought
+      </span>
+      ,
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.7">
+       Action
+      </span>
+      ,
+      <span class="ltx_text ltx_font_bold" id="S3.SS3.SSS2.p1.1.8">
+       Observation
+      </span>
+      for PlanReAct. This generalized
+prompting strategy is displayed on the diagram in Figure
+      <a class="ltx_ref" href="#S3.F5" title="Figure 5 ‣ 3.3.2 Programmable Prompt ‣ 3.3 Iterative Prompt Strategies ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F5">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="305" id="S3.F5.g1" src="/html/2406.20041/assets/x7.png" width="322"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 5:
+      </span>
+      Generic iterative prompt strategy with user defined steps
+      <span class="ltx_text ltx_font_typewriter" id="S3.F5.2.1">
+       A...X
+      </span>
+      that constitute the iteration sequence. The Assistant Message and
+User Message show the combination of reasoning steps by the LLM and inclusion of external information.
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S3.SS3.SSS2.p2">
+     <p class="ltx_p" id="S3.SS3.SSS2.p2.1">
+      The intention of this Programmable Prompt strategy, through the use of a
+configurable sequence, is to enable the employment of different decision making strategies. These strategies may mimic human decision making strategies such as Observe, Orient,
+Decide, Act (OODA)
+      <span class="ltx_note ltx_role_footnote" id="footnote1">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          1
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          1
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://en.wikipedia.org/wiki/OODA_loop" target="_blank" title="">
+          https://en.wikipedia.org/wiki/OODA_loop
+         </a>
+        </span>
+       </span>
+      </span>
+      ,
+Plan, Do, Check, Act (PDCA)
+      <span class="ltx_note ltx_role_footnote" id="footnote2">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          2
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          2
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://en.wikipedia.org/wiki/PDCA" target="_blank" title="">
+          https://en.wikipedia.org/wiki/PDCA
+         </a>
+        </span>
+       </span>
+      </span>
+      , or similar derivatives and
+analogues.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Data Propagation and Memory Levels
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     In order to have a full picture of how the initial instruction is solved,
+we need to consider how the instruction is decomposed into simpler tasks
+and how information propagates through the workflow. In the following
+subsections we consider an example plan and trace the data needed to
+successfully complete all tasks. We will introduce types of task
+dependencies and the methodology to handle them. We also discuss how we employ memory concepts
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       40
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       42
+      </a>
+      ]
+     </cite>
+     and distinguish the role and scope of short and
+episodic memory.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS4.p2">
+    <p class="ltx_p" id="S3.SS4.p2.1">
+     The sequence diagram in Figure
+     <a class="ltx_ref" href="#S3.F6" title="Figure 6 ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     illustrates
+the order of operations in the Plan-Execute-Verify model introduced
+before in Section
+     <a class="ltx_ref" href="#S3" title="3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     . We display major elements of the
+workflow starting with the
+     <span class="ltx_text ltx_font_bold" id="S3.SS4.p2.1.1">
+      Instruction
+     </span>
+     passed from the user to the
+Coordinator which orchestrates the entire workflow and provides the final
+result back to the user.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="413" id="S3.F6.g1" src="/html/2406.20041/assets/x8.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Sequence diagram of operations in a generic agent workflow. We
+display major components as vertical threads and type of operations
+between them as an horizontal arrow. Three distinct blocks corresponding
+to Planning (top), Execution (middle), and Verification (bottom) are
+displayed on the diagram. For simplicity, we do not depict the replanning and re-execution that would occur if the Verifier returns false.
+    </figcaption>
+   </figure>
+   <section class="ltx_subsubsection" id="S3.SS4.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.4.1
+     </span>
+     Task Dependencies
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS1.p1">
+     <p class="ltx_p" id="S3.SS4.SSS1.p1.1">
+      The Planner Agent’s goal is to decompose the initial instruction into a
+set of simpler tasks that are held in the Task Queue. In
+our implementation, the Task object carries information about its
+dependencies and results of those dependencies as they are completed. This approach is similar to the Graph of Thoughts
+method by Besta et al.
+      <cite class="ltx_cite ltx_citemacro_cite">
+       [
+       <a class="ltx_ref" href="#bib.bib2" title="">
+        2
+       </a>
+       ]
+      </cite>
+      .
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F7">
+     <div class="ltx_flex_figure">
+      <div class="ltx_flex_cell ltx_flex_size_1">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F7.sf1">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="156" id="S3.F7.sf1.g1" src="/html/2406.20041/assets/x9.png" width="322"/>
+        <figcaption class="ltx_caption">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S3.F7.sf1.2.1.1" style="font-size:80%;">
+           (a)
+          </span>
+         </span>
+         <span class="ltx_text" id="S3.F7.sf1.3.2" style="font-size:80%;">
+          Direct dependency
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+      <div class="ltx_flex_break">
+      </div>
+      <div class="ltx_flex_cell ltx_flex_size_1">
+       <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S3.F7.sf2">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="175" id="S3.F7.sf2.g1" src="/html/2406.20041/assets/x10.png" width="322"/>
+        <figcaption class="ltx_caption">
+         <span class="ltx_tag ltx_tag_figure">
+          <span class="ltx_text" id="S3.F7.sf2.2.1.1" style="font-size:80%;">
+           (b)
+          </span>
+         </span>
+         <span class="ltx_text" id="S3.F7.sf2.3.2" style="font-size:80%;">
+          Indirect dependency
+         </span>
+        </figcaption>
+       </figure>
+      </div>
+     </div>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 7:
+      </span>
+      Diagram showing a plan displayed as a DAG.
+      <a class="ltx_ref" href="#S3.F7.sf1" title="In Figure 7 ‣ 3.4.1 Task Dependencies ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        7(a)
+       </span>
+      </a>
+      Rectangle marks an example task
+      <span class="ltx_text ltx_font_bold" id="S3.F7.7.1">
+       8
+      </span>
+      with direct dependencies as
+      <span class="ltx_text ltx_font_bold" id="S3.F7.8.2">
+       6
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S3.F7.9.3">
+       7
+      </span>
+      .
+      <a class="ltx_ref" href="#S3.F7.sf2" title="In Figure 7 ‣ 3.4.1 Task Dependencies ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        7(b)
+       </span>
+      </a>
+      Rectangle marks an example task
+      <span class="ltx_text ltx_font_bold" id="S3.F7.10.4">
+       7
+      </span>
+      and task
+      <span class="ltx_text ltx_font_bold" id="S3.F7.11.5">
+       1
+      </span>
+      which is not a direct dependency but
+is in the path of the execution leading to task
+      <span class="ltx_text ltx_font_bold" id="S3.F7.12.6">
+       7
+      </span>
+      .
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S3.SS4.SSS1.p2">
+     <p class="ltx_p" id="S3.SS4.SSS1.p2.1">
+      In Figure
+      <a class="ltx_ref" href="#S3.F7.sf1" title="In Figure 7 ‣ 3.4.1 Task Dependencies ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        7(a)
+       </span>
+      </a>
+      an
+example plan is displayed, starting with a user’s
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.1">
+       Instruction
+      </span>
+      leading to the
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.2">
+       Result
+      </span>
+      . The initial instruction is decomposed into a set of tasks
+depicted as a DAG. Task dependencies are generated by the Planner during
+task decomposition. Direct dependencies are illustrated for an example task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.3">
+       8
+      </span>
+      , which depends on tasks
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.4">
+       6
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.5">
+       7
+      </span>
+      . Results of tasks
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.6">
+       6
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.7">
+       7
+      </span>
+      are made available to an agent when solving task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p2.1.8">
+       8
+      </span>
+      .
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS1.p3">
+     <p class="ltx_p" id="S3.SS4.SSS1.p3.1">
+      However, we may define an indirect dependency as a result of any
+preceding tasks in the plan that are not directly connected in the graph
+to the current task. This indirect dependency is displayed on the
+diagram in Figure
+      <a class="ltx_ref" href="#S3.F7.sf2" title="In Figure 7 ‣ 3.4.1 Task Dependencies ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        7(b)
+       </span>
+      </a>
+      for the task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p3.1.1">
+       7
+      </span>
+      as a result of the task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p3.1.2">
+       1
+      </span>
+      .
+Task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p3.1.3">
+       1
+      </span>
+      has been chosen as random one from
+the current plan that is not directly connected and precedes
+the task
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p3.1.4">
+       7
+      </span>
+      . We need a special mechanism of
+including the results of indirect dependencies for a current task. This
+may be accomplished by semantic similarity of the previous results
+(and/or task description) to the description of the task at hand. In
+Subsection
+      <a class="ltx_ref" href="#S3.SS4.SSS3" title="3.4.3 Episodic Memory ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        3.4.3
+       </span>
+      </a>
+      , we introduce the concept of an
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS1.p3.1.5">
+       Episodic
+Memory
+      </span>
+      that provides a solution for carrying over indirect
+dependencies through the current plan.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS1.p4">
+     <p class="ltx_p" id="S3.SS4.SSS1.p4.1">
+      The execution of each task is an independent action and no information,
+other than the results of direct dependencies, are provided to an agent. In our implementation all tasks that
+are ready to be executed,
+(all of their dependencies have been completed) are completed
+asynchronously.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS4.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.4.2
+     </span>
+     Short Memory
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS2.p1">
+     <p class="ltx_p" id="S3.SS4.SSS2.p1.1">
+      Depending on the employed prompting strategy, we may invoke a single call to an LLM (non-iterative prompt) or several calls (iterative prompts). To manage iterative prompts, we introduce a history of User (U) and Assistant (A) exchanges as
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS2.p1.1.1">
+       Short Memory
+      </span>
+      (SM) where each generated message is stored in the
+order of creation. The SM operates within the confines of a single task, remains isolated to each agent, and is purged upon task completion. This means that each agent’s SM only contains messages that were generated for that agent. Optionally, we can enforce a maximum memory length by dropping oldest messages after the
+capacity of the memory is exceeded.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS2.p2">
+     <p class="ltx_p" id="S3.SS4.SSS2.p2.1">
+      Figure
+      <a class="ltx_ref" href="#S3.F8" title="Figure 8 ‣ 3.4.2 Short Memory ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        8
+       </span>
+      </a>
+      shows the sequence
+of messages in the order they are created.
+The square with ellipses marks the repeated pattern
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS2.p2.1.1">
+       U-&gt;A
+      </span>
+      denoting
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS2.p2.1.2">
+       User (U)
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS2.p2.1.3">
+       Assistant (A)
+      </span>
+      type messages.
+The SM scope is marked with a grey rectangle.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F8">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="78" id="S3.F8.g1" src="/html/2406.20041/assets/x11.png" width="346"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 8:
+      </span>
+      Sequence of messages from the task description to the task result
+including all intermediate messages. Rectangle marks the elements
+contributing to the
+      <span class="ltx_text ltx_font_bold" id="S3.F8.4.1">
+       Short Memory
+      </span>
+      of an agent. Messages are
+marked in order of user inputs
+      <span class="ltx_text ltx_font_typewriter" id="S3.F8.5.2">
+       U
+      </span>
+      and LLM responses
+      <span class="ltx_text ltx_font_typewriter" id="S3.F8.6.3">
+       A
+      </span>
+      (assistant).
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS4.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.4.3
+     </span>
+     Episodic Memory
+    </h4>
+    <div class="ltx_para" id="S3.SS4.SSS3.p1">
+     <p class="ltx_p" id="S3.SS4.SSS3.p1.1">
+      In our implementation,
+      <span class="ltx_text ltx_font_bold" id="S3.SS4.SSS3.p1.1.1">
+       Episodic Memory
+      </span>
+      (EM) is a container that keeps
+records of completed tasks across applications. This
+container is a vector database to enable semantic retrieval.
+Interactions with EM are done at the level of the Executor,
+which has access to a task object for the entirety of its execution
+cycle. Upon completion of a task, the Executor will package an
+      <span class="ltx_text ltx_font_italic" id="S3.SS4.SSS3.p1.1.2">
+       Episode
+      </span>
+      consisting of the
+task’s description, result, and dependencies, in addition to
+description and result embedding vectors,
+and save it to EM. When handling subsequent tasks, the Executor can
+semantically search for relevant Episodes from EM and provide them to an agent during task execution.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS3.p2">
+     <p class="ltx_p" id="S3.SS4.SSS3.p2.1">
+      Episodic Memory attributes can be configured in several ways to
+support the needs of the current workflow. For example, EM can be scoped to only retrieve Episodes from previously
+completed projects or only from indirect dependencies of the
+current project. Similarly, one can decide to retrieve only the
+successfully completed episodes as well as other user-defined filters.
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS3.p3">
+     <p class="ltx_p" id="S3.SS4.SSS3.p3.1">
+      In a similar fashion to the SM diagram, we visualize the EM content of a single task on the diagram in Figure
+      <a class="ltx_ref" href="#S3.F9" title="Figure 9 ‣ 3.4.3 Episodic Memory ‣ 3.4 Data Propagation and Memory Levels ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        9
+       </span>
+      </a>
+      . The scope of
+EM, however, does not end with completion of the task.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F9">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="80" id="S3.F9.g1" src="/html/2406.20041/assets/x12.png" width="346"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 9:
+      </span>
+      Sequence of messages from the task description to the task result
+including all intermediate messages. Rectangles mark the elements
+contributing to the
+      <span class="ltx_text ltx_font_bold" id="S3.F9.4.1">
+       Episodic Memory
+      </span>
+      of an agent. Messages are
+marked in order of user inputs
+      <span class="ltx_text ltx_font_typewriter" id="S3.F9.5.2">
+       U
+      </span>
+      and LLM responses
+      <span class="ltx_text ltx_font_typewriter" id="S3.F9.6.3">
+       A
+      </span>
+      (assistant).
+     </figcaption>
+    </figure>
+    <div class="ltx_para" id="S3.SS4.SSS3.p4">
+     <p class="ltx_p" id="S3.SS4.SSS3.p4.1">
+      Episodic Memory brings two important points:
+     </p>
+    </div>
+    <div class="ltx_para" id="S3.SS4.SSS3.p5">
+     <ol class="ltx_enumerate" id="S3.I2">
+      <li class="ltx_item" id="S3.I2.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        1.
+       </span>
+       <div class="ltx_para" id="S3.I2.i1.p1">
+        <p class="ltx_p" id="S3.I2.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I2.i1.p1.1.1">
+          Indirect Dependency Results
+         </span>
+         - In previous sections we have
+noted the need for bringing relevant results of previously completed
+tasks from the current plan. EM provides a solution to
+bring semantically relevant results from all previously completed
+tasks.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I2.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        2.
+       </span>
+       <div class="ltx_para" id="S3.I2.i2.p1">
+        <p class="ltx_p" id="S3.I2.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I2.i2.p1.1.1">
+          Experiential Learning
+         </span>
+         - We can expand searches to all previously completed tasks, bringing results that are semantically
+relevant from the lifespan of all applications. This can enable a shortened path
+to the final result, reducing execution time
+         <cite class="ltx_cite ltx_citemacro_cite">
+          [
+          <a class="ltx_ref" href="#bib.bib43" title="">
+           43
+          </a>
+          ]
+         </cite>
+         .
+        </p>
+       </div>
+      </li>
+     </ol>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Multi-Agent Workflow
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    The need for reliability motivates a generalization of workflows from a single agent to
+multiple agents. LLMs perform specialized tasks more reliably if they are
+instructed to imitate certain personalities with specialized expertise.
+The specification of expertise in the system prompt of an LLM removes any ambiguity when interpreting a given task. This
+observation holds for simple human driven interactions and directly
+translates into agent-based applications. Specifying the personality
+of an agent, with focus on a narrow domain, leads to more reliable
+performance that align with human preferences.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    After defining a set of agents tailored for
+solving a particular task, we may consider several strategies for
+how a workflow may be orchestrated. The choices will indirectly mimic
+human work organization for complex problems.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Agent Unit and Agent Matching
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     In the general case of multi-agent workflows we face three issues, first the selection
+of the Agent Unit for a given task, second the selection
+of the agent to start the work on a given task, and third the dynamic selection of
+the agent that will continue with next iteration. The crucial component for solving these issues has been briefly mentioned
+in Section
+     <a class="ltx_ref" href="#S3" title="3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     as a matching mechanism. The
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p1.1.1">
+      Matcher
+     </span>
+     is a generalized component that performs selection using a criteria
+dedicated to the workflow e.g. iterative matching, semantic matching, or mention matching
+(as described in details below using @ notation). After the Planner creates a set of tasks, we use a matching function to determine which Agent Unit should solve a given task. Because each Agent Unit consists of one or more agents, we also need a mechanism for selecting an agent for each iteration of the task execution. Before executing an iteration of the
+agent prompt strategy, we again invoke a matching function to select the agent that
+will be used for this iteration.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     The introduction of an
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.1">
+      Agent Unit
+     </span>
+     and a
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.2">
+      Matcher
+     </span>
+     allows us to have a
+flexible method for considering single and multi-agent workflows using
+the same implementation. Although single agent workflows could be accomplished without these components, they are crucial for multi-agent
+applications. All of the described multi-agent strategies become
+a particular combination of prompt strategy, Agent Unit, and matching
+function. For example, a two agent actor/critic workflow may be realized by
+introducing a unit of two agents i.e.
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.3">
+      actor
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.4">
+      critic
+     </span>
+     , and
+an iterative matching function that cycles through the Agent Unit.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     In Subsection
+     <a class="ltx_ref" href="#S4.SS3" title="4.3 Conversational Prompt Strategy ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       4.3
+      </span>
+     </a>
+     we will introduce dynamic selection of the next
+agent by explicitly mentioning its name in the current agent response
+with
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS1.p3.1.1">
+      @AgentName
+     </span>
+     notation. This notation gives an indication
+which agent should be selected next and a mention matching
+function will provide the correct agent from the available Agent Unit.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Workflows with Multiple Agents
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     In this section, we consider five different strategies for multi-agent
+workflows that are enabled through the components
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.1">
+      Agent Unit
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.2">
+      Matcher
+     </span>
+     and are applicable to the
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.3">
+      Plan-Execute-Verify
+     </span>
+     fashion of
+solving a complex task, 1) Independent, 2) Sequential, 3) Joint,
+4) Hierarchical, and 5) Broadcast. In each, we consider only the
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p1.1.4">
+      Execute
+     </span>
+     part of the workflow and assume that the
+Coordinator is solving a set of tasks organized as a DAG. All strategies are illustrated
+with an example in Figures
+     <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4.2.2 Sequential ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       10
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S4.F11" title="Figure 11 ‣ 4.2.4 Hierarchical ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       11
+      </span>
+     </a>
+     , and
+     <a class="ltx_ref" href="#S4.F12" title="Figure 12 ‣ 4.2.5 Broadcast ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       12
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.2.1
+     </span>
+     Independent
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS1.p1">
+     <p class="ltx_p" id="S4.SS2.SSS1.p1.1">
+      In this strategy, we consider tasks to be executable by a single
+agent. The coordinator orchestrates the solution to a set of tasks organized in a DAG
+using an Agent Unit composed of several agents, each with a
+distinct purpose. If the set of tasks is sufficiently simple and matches the narrow expertise of a single agent from the unit, we may assume that this agent will be able to
+solve the given task.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS1.p2">
+     <p class="ltx_p" id="S4.SS2.SSS1.p2.1">
+      Within an Agent Unit, a task will be assigned to a single agent using some matching logic which was detailed in the previous section. Each task will be executed by a single agent in isolation
+of other agents and no inter-agent communication will take place during
+the task execution. However, the agents may still have access to the results of other completed
+tasks based on the direct and indirect results
+propagation, by either explicit passage of results as direct
+dependency or usage of EM.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS1.p3">
+     <p class="ltx_p" id="S4.SS2.SSS1.p3.1">
+      Figure
+      <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4.2.2 Sequential ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        10
+       </span>
+      </a>
+      illustrates the
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS1.p3.1.1">
+       Independent
+      </span>
+      model on
+panel (1) with an example of a graph with seven tasks and three agents.
+Dependencies of tasks are not displayed as tasks will only be executed when all dependencies are solved.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.2.2
+     </span>
+     Sequential
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS2.p1">
+     <p class="ltx_p" id="S4.SS2.SSS2.p1.1">
+      In many circumstances, we may consider a workflow that requires
+consecutive steps where several distinct agents would perform better than a
+single one. An example of this may be student/teacher
+workflow where one agent performs the task and the second provides constructive feedback and suggestions. We may generalize
+this example to include more than two agents and a workflow consisting of
+more than two consecutive steps.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS2.p2">
+     <p class="ltx_p" id="S4.SS2.SSS2.p2.1">
+      The
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS2.p2.1.1">
+       Sequential
+      </span>
+      strategy considers a single task
+which is executed by an Agent Unit consisting of two or more agents. This
+execution will be performed in a sequence of consecutive steps where
+each may be done by a different agent. The student/teacher example
+would correspond to a unit of two agents with alternating
+order. The Sequential strategy imposes a predefined sequence of agents rather than an autonomous decision on which agent to pass to next.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS2.p3">
+     <p class="ltx_p" id="S4.SS2.SSS2.p3.1">
+      In Figure
+      <a class="ltx_ref" href="#S4.F10" title="Figure 10 ‣ 4.2.2 Sequential ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        10
+       </span>
+      </a>
+      panel (2), we illustrate a Task X being solved
+by the unit of three agents in the predefined order of [Agent 1, Agent 2, Agent 3, Agent 2, Agent 1].
+A single step is completed by a given agent by generating an LLM response. The following iteration is completed by the next
+agent from the Agent Unit based on the sequence imposed by the matching strategy.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F10">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="293" id="S4.F10.g1" src="/html/2406.20041/assets/x13.png" width="461"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 10:
+      </span>
+      Multi-agent strategies. (1)
+      <span class="ltx_text ltx_font_bold" id="S4.F10.3.1">
+       Independent
+      </span>
+      with individual tasks (numbered from #1 to #7)
+among three agents named Agent 1, Agent 2, and Agent 3. Each task is
+considered to be completed by a single agent with no communication during
+the task execution. Results of agent work are only shared through the
+direct and indirect dependencies and results propagation. (2)
+      <span class="ltx_text ltx_font_bold" id="S4.F10.4.2">
+       Sequential
+      </span>
+      with a single task executed by a unit of agents consisting of Agent 1, Agent 2, and Agent 3 with a specific
+sequence of execution. In the displayed example the sequence of execution is
+[Agent 1, Agent 2, Agent 3, Agent 2, Agent 1]. The task execution starts with Agent 1 and after it
+completes work, Agent 2 starts with the partial result of Agent 1.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS3">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.2.3
+     </span>
+     Joint
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS3.p1">
+     <p class="ltx_p" id="S4.SS2.SSS3.p1.1">
+      The
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS3.p1.1.1">
+       Joint
+      </span>
+      pattern resembles the collaboration between a group of peers. In this pattern, all agents have knowledge of all other agents and are allowed to trigger the final result of a workflow. The execution of a task begins with a predefined agent. However, in each iteration of the prompt strategy, an agent solves a component of the task and then decides whether to pass the execution or trigger the final result. If execution is passed, the current agent will select the following agent from all agents available (including itself). In this way every agent can communicate with every other agent without a prescribed order.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS3.p2">
+     <p class="ltx_p" id="S4.SS2.SSS3.p2.1">
+      In Figure
+      <a class="ltx_ref" href="#S4.F11" title="Figure 11 ‣ 4.2.4 Hierarchical ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        11
+       </span>
+      </a>
+      ,
+we illustrate the
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS3.p2.1.1">
+       Joint
+      </span>
+      workflow. The example shows how Task X can be solved by an
+autonomous team. The example task is started by Agent 1 which has been determined to be the most relevant agent to start working on this task. In the next iteration, Agent 1
+will decide which agent should take over. This may include
+self-selection. In our example, Agent 3 terminates and provides the final result.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS4">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.2.4
+     </span>
+     Hierarchical
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS4.p1">
+     <p class="ltx_p" id="S4.SS2.SSS4.p1.1">
+      The
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS4.p1.1.1">
+       Hierarchical
+      </span>
+      strategy mimics a manager/worker pattern where a particular agent is in charge. Only this agent may distribute the work but it is also allowed to complete parts of it by itself. We define a lead agent for a given task that initially receives the task and is aware of all other agents in the unit. The lead agent is responsible for solving the task with the aid of other agents in the Agent Unit by passing the execution to another agent for one or more steps of the original
+task. Non-lead agents are only informed about the existence
+of the lead agent and are not allowed to trigger the completion of a task. Therefore, any non-lead agent in the unit may only report the results of their work back to the lead agent.
+     </p>
+    </div>
+    <div class="ltx_para" id="S4.SS2.SSS4.p2">
+     <p class="ltx_p" id="S4.SS2.SSS4.p2.1">
+      In Figure
+      <a class="ltx_ref" href="#S4.F11" title="Figure 11 ‣ 4.2.4 Hierarchical ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        11
+       </span>
+      </a>
+      we display an example workflow where a unit of three agents is working on Task X. Agent 1 is selected as the lead agent and passes the execution of task components to Agents 2 and 3. In this process, the target agents are autonomously decided by Agent 1. The results of each task step are passed back to Agent 1, which decides when to trigger the completion of the full task.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F11">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="278" id="S4.F11.g1" src="/html/2406.20041/assets/x14.png" width="461"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 11:
+      </span>
+      Multi-agent strategies.
+(3)
+      <span class="ltx_text ltx_font_bold" id="S4.F11.5.1">
+       Joint
+      </span>
+      with Task X being executed by an Agent Unit consisting of three agents
+named Agent 1, Agent 2, and Agent 3. Agent 1 is selected as the starting
+agent. All agents in the unit are allowed to communicate with each other and each agent is allowed to end the workflow when complete. In
+both
+      <span class="ltx_text ltx_font_bold" id="S4.F11.6.2">
+       Hierarchical
+      </span>
+      and
+      <span class="ltx_text ltx_font_bold" id="S4.F11.7.3">
+       Joint
+      </span>
+      cases, the next agent is
+selected dynamically and no fixed sequence of execution is imposed.
+(4)
+      <span class="ltx_text ltx_font_bold" id="S4.F11.8.4">
+       Hierarchical
+      </span>
+      with
+Task X being executed by an Agent Unit consisting of three agents named Agent 1,
+Agent 2, and Agent 3. Agent 1 is the lead agent in this unit and is
+aware of the other two agents. Agent 1 is also the only one that is allowed
+to terminate the workflow and provide the final result. Agent 2 and Agent 3
+can communicate only with Agent 1 and are not allowed to terminate.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S4.SS2.SSS5">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      4.2.5
+     </span>
+     Broadcast
+    </h4>
+    <div class="ltx_para" id="S4.SS2.SSS5.p1">
+     <p class="ltx_p" id="S4.SS2.SSS5.p1.1">
+      The
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS5.p1.1.1">
+       Broadcast
+      </span>
+      method is a derivative of the
+      <span class="ltx_text ltx_font_bold" id="S4.SS2.SSS5.p1.1.2">
+       Hierarchical
+      </span>
+      approach. The main difference is
+that the lead agent carries individual conversations with all other agents by broadcasting the same message to the whole Agent Unit. Non-lead agents are not aware of the existence of others and operate independently, providing individual responses back to the lead agent. The lead agent waits for all responses to proceed with the next
+iteration. At the following iterations, the lead agent may broadcast
+another message or terminate with a final result. As illustrated in Figure
+      <a class="ltx_ref" href="#S4.F12" title="Figure 12 ‣ 4.2.5 Broadcast ‣ 4.2 Workflows with Multiple Agents ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+       <span class="ltx_text ltx_ref_tag">
+        12
+       </span>
+      </a>
+      , only the lead agent has full information about all responses and can see the full group conversation. All non-lead
+agents carry independent conversations.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S4.F12">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="217" id="S4.F12.g1" src="/html/2406.20041/assets/x15.png" width="230"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 12:
+      </span>
+      Multi-agent strategies. (5)
+The
+      <span class="ltx_text ltx_font_bold" id="S4.F12.3.1">
+       Broadcast
+      </span>
+      method is
+similar with the
+      <span class="ltx_text ltx_font_bold" id="S4.F12.4.2">
+       Hierarchical
+      </span>
+      approach with the difference that
+the lead agent broadcasts the same message to all other agents in the
+unit and those respond independently to the lead agent. In this example,
+Agent 1 is aware of all other agents and solicits the response from all
+of them in the same fashion.
+     </figcaption>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Conversational Prompt
+Strategy
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     LLMs, and in particular their chat optimized versions, are
+inherently designed to follow pairwise interactions. This pairwise
+interaction has been generalized to enable automated interaction with the
+external world using prompt strategies like ReAct
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ]
+     </cite>
+     that includes Action/Observation pairs. While ReAct and PlanReAct enable interaction with external functions, they do not enable any dialog at the Action and Planning steps such as the techniques proposed to
+enable multi-agent dialog
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ]
+     </cite>
+     . To address this issue, we employ a strategy that aims to generalize
+PlanReAct prompting and enable a dynamic dialog between many agents, illustrated in Figure
+     <a class="ltx_ref" href="#S4.F13" title="Figure 13 ‣ 4.3 Conversational Prompt Strategy ‣ 4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       13
+      </span>
+     </a>
+     . We
+select an iterative method that builds on ReAct for a few reasons. First,
+the ReAct loop provides a stable execution pattern that is reliably
+followed by LLMs in consecutive iterations. Second, it
+enables the natural form of Action/Observation and the ability to execute external
+functions. Third, the iterative sequence is resilient to small
+deviations such as missing new data in the Observation stage or using “Continue”
+statements instead of providing additional information. Fourth, generalization
+of ReAct to PlanReAct makes it capable to work on more complex tasks with longer
+execution sequences. To further extend capabilities to include dialog, we introduce the following changes:
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <ul class="ltx_itemize" id="S4.I1">
+     <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i1.p1">
+       <p class="ltx_p" id="S4.I1.i1.p1.1">
+        The
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i1.p1.1.1">
+         Thought
+        </span>
+        stage is split into two sub-stages separating the
+reflections related to Task and Dialog. We introduce the
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i1.p1.1.2">
+         Task
+Thought
+        </span>
+        stage that encourages the agent to reflect on the current task and the next
+step to solve it, and the
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i1.p1.1.3">
+         Dialog Thought
+        </span>
+        stage where the agent can
+reflect on how to best utilize other agents for solving the current
+problem. Information about other available agents is provided to
+the agent as part of the system prompt, in similar syntax to the one
+mentioned before for tool usage in Section
+        <a class="ltx_ref" href="#S3.SS2" title="3.2 Tools ‣ 3 Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+         <span class="ltx_text ltx_ref_tag">
+          3.2
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i2.p1">
+       <p class="ltx_p" id="S4.I1.i2.p1.1">
+        A
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i2.p1.1.1">
+         Planning
+        </span>
+        stage is included, and the next steps to solve the
+current task are reviewed and re-planned in every iteration.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i3.p1">
+       <p class="ltx_p" id="S4.I1.i3.p1.1">
+        The
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i3.p1.1.1">
+         Next
+        </span>
+        stage is added to the iterative sequence to indicate which agent from the available Agent Unit should
+continue solving the current task. We instruct the LLM to use
+        <span class="ltx_text ltx_font_typewriter" id="S4.I1.i3.p1.1.2">
+         @Self
+        </span>
+        if the current agent is best choice, or indicate the name
+of another agent using the notation
+        <span class="ltx_text ltx_font_typewriter" id="S4.I1.i3.p1.1.3">
+         @OtherAgent
+        </span>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i4.p1">
+       <p class="ltx_p" id="S4.I1.i4.p1.1">
+        The
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i4.p1.1.1">
+         Action
+        </span>
+        stage is only included if the next agent is
+        <span class="ltx_text ltx_font_typewriter" id="S4.I1.i4.p1.1.2">
+         @Self
+        </span>
+        .
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <figure class="ltx_figure" id="S4.F13">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="325" id="S4.F13.g1" src="/html/2406.20041/assets/x16.png" width="322"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 13:
+     </span>
+     Iterative sequence of ConvPlanReAct prompting strategy. The
+ReAct and PlanReAct strategies are generalized to include additional
+steps related to dialog with another agents. The
+     <span class="ltx_text ltx_font_bold" id="S4.F13.6.1">
+      Thought
+     </span>
+     stage is split into
+     <span class="ltx_text ltx_font_bold" id="S4.F13.7.2">
+      Task Thought
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S4.F13.8.3">
+      Dialog Thought
+     </span>
+     stages. The
+     <span class="ltx_text ltx_font_bold" id="S4.F13.9.4">
+      Next
+     </span>
+     stage is introduced for indicating which agent should
+continue with the execution of the current task using
+     <span class="ltx_text ltx_font_typewriter" id="S4.F13.10.5">
+      @AgentName
+     </span>
+     notation.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.4
+    </span>
+    Human Feedback
+   </h3>
+   <div class="ltx_para" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     In multi-agent strategies we need to
+consider a method for including human feedback
+to agents while task execution is in progress. We consider
+two types of human feedback from the perspective of the autonomous
+agents work:
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS4.p2">
+    <ul class="ltx_itemize" id="S4.I2">
+     <li class="ltx_item" id="S4.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I2.i1.p1">
+       <p class="ltx_p" id="S4.I2.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i1.p1.1.1">
+         Intentional
+        </span>
+        - The Agent Unit may include a Human Proxy
+agent that is responsible for passing a request from the agents to a
+human proxy while working on a task. From the agent’s perspective this
+is no different than passing the execution to another agent in the
+Agent Unit. The current agent may decide to request
+additional information and pass the request to a Human Proxy by mentioning
+        <span class="ltx_text ltx_font_typewriter" id="S4.I2.i1.p1.1.2">
+         @HumanProxy
+        </span>
+        in the generated response. However,
+from the programmatic view, this requires consideration of the human response time and a potential pause of the Agent Unit execution.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I2.i2.p1">
+       <p class="ltx_p" id="S4.I2.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i2.p1.1.1">
+         Incidental
+        </span>
+        - While the explicit request for feedback is handled in the prompt strategy by including a HumanProxy
+agent, there may be occasions when a human monitoring the workflow decides that the workflow execution deviates from the desired outcome. There
+needs to be a different mechanism for providing this
+        <em class="ltx_emph ltx_font_italic" id="S4.I2.i2.p1.1.2">
+         in situ
+        </em>
+        feedback to the executing agent as an unsolicited message from the
+HumanProxy agent. The prompt strategy does not have a natural place
+to bring such an interaction other than the
+        <span class="ltx_text ltx_font_bold" id="S4.I2.i2.p1.1.3">
+         Observation
+        </span>
+        stage. At that stage we may bring additional information about the
+external world to the agent such as the result of
+the requested action. However, the prompt strategy is resilient to
+deviations from the assumed flow. For example, the strategy can include the phrase
+        <em class="ltx_emph ltx_font_italic" id="S4.I2.i2.p1.1.4">
+         Continue
+        </em>
+        as the observation which leads to a continuation of the sequence’s next stage. The incidental human
+feedback may be brought to the agent in the
+        <em class="ltx_emph ltx_font_italic" id="S4.I2.i2.p1.1.5">
+         in situ
+        </em>
+        fashion as
+one of the observations and the additional information will be
+available at the next iteration of the current task execution.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Example Applications
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    To demonstrate the flexibility of our approach, we highlight three different example applications and how each can be achieved using the components described in previous
+sections. We will start with a Question &amp; Answer workflow capable
+of answering complex multipart questions. This workflow is based on
+a single agent utilizing a semantic search tool. Second, we will describe
+a document editing workflow with two agents in an actor/critic iterative
+mode. Third, we will show how a software development workflow may be
+organized utilizing three agents each using different tools to interact
+with external systems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    In the diagrams used in the following sections, we use solid lines to
+show programmatically imposed flows and dashed lines to display optional flows that
+are decided by the agents.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S5.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.1
+    </span>
+    Question &amp; Answer - Retrieval Augmented
+Generation
+   </h3>
+   <div class="ltx_para" id="S5.SS1.p1">
+    <p class="ltx_p" id="S5.SS1.p1.1">
+     Retrieval Augmented Generation (RAG) systems have proved to be a promising
+solution to bring additional information to an LLM. RAG methods are particularly beneficial to industrial
+applications as they provide a solution for internal knowledge without the need to fine-tune or retrain an LLM.
+This ensures that the model may always access relevant
+information with minimal maintenance for productive
+deployment.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p2">
+    <p class="ltx_p" id="S5.SS1.p2.1">
+     There have been many RAG algorithms proposed to improve on the naive RAG approach. In this example, we focus on an agent-based realization of
+the RAG method for question-answering systems. The workflow displayed
+in Figure
+     <a class="ltx_ref" href="#S5.F14" title="Figure 14 ‣ 5.1 Question &amp; Answer - Retrieval Augmented Generation ‣ 5 Example Applications ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       14
+      </span>
+     </a>
+     is
+realized with a single agent, based on either the ReAct or the PlanReAct prompt
+strategy.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S5.F14">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="341" id="S5.F14.g1" src="/html/2406.20041/assets/x17.png" width="322"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 14:
+     </span>
+     Agent workflow for Retrieval Augmented Generation for a
+Question &amp; Answer system. The workflow engages a single agent with access to a semantic search tool. This agent executes
+all tasks from the plan that consists of simple questions originating
+from the task decomposition of the original user question.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S5.SS1.p3">
+    <p class="ltx_p" id="S5.SS1.p3.1">
+     The workflow starts with a user question to the
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p3.1.1">
+      Coordinator
+     </span>
+     who passes it to the
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p3.1.2">
+      Planner
+     </span>
+     for task decomposition, breaking the complex question into a set of
+simpler tasks with dependency mapping. The decomposition of the initial user question ensures that complex
+questions are first reasoned through and simplified into set of questions
+that contribute to the final answer. Tasks are then
+executed by a single agent denoted as
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p3.1.3">
+      BMW
+Assistant
+     </span>
+     who has access to a
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p3.1.4">
+      Semantic Search
+     </span>
+     tool for identifying relevant information. However, this toolbox can be extended with tools for accessing other internal systems such as web sites or enterprise
+knowledge management systems. The final answer of the agent is verified at the end of the workflow by the
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p3.1.5">
+      Verifier
+     </span>
+     agent to ensure the final response addresses the original user question.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.2
+    </span>
+    Document Editing -
+Actor/Critic
+   </h3>
+   <div class="ltx_para" id="S5.SS2.p1">
+    <p class="ltx_p" id="S5.SS2.p1.1">
+     In this example, we consider document editing via two agents,
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p1.1.1">
+      Editor
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p1.1.2">
+      Critic
+     </span>
+     ,
+following the actor/critic execution model. We do not
+utilize a Planner agent, instead we execute a plan that has been predefined as a set of rules for editing the document. The set of rules will
+be converted into tasks with a linear dependency to be executed one
+after another. The detailed workflow is displayed in Figure
+     <a class="ltx_ref" href="#S5.F15" title="Figure 15 ‣ 5.2 Document Editing - Actor/Critic ‣ 5 Example Applications ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       15
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S5.F15">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="330" id="S5.F15.g1" src="/html/2406.20041/assets/x18.png" width="322"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 15:
+     </span>
+     Actor/critic workflow for document editing with two agents and
+user defined editing rules. The Agent Unit alternates between
+     <span class="ltx_text ltx_font_bold" id="S5.F15.3.1">
+      Editor
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S5.F15.4.2">
+      Critic
+     </span>
+     agents via a sequential
+matching function.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S5.SS2.p2">
+    <p class="ltx_p" id="S5.SS2.p2.1">
+     We create an Agent Unit with two agents,
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p2.1.1">
+      Editor
+     </span>
+     tasked with
+editing the document according to the given rule, and
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p2.1.2">
+      Critic
+     </span>
+     which checks if the rule has been fully
+applied. The Agent Unit is iterated with the
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p2.1.3">
+      Sequence Matcher
+     </span>
+     which chooses the next agent based on a provided sequence, which
+in our case is Editor and Critic alternating. This sequence is repeated
+until the Critic’s
+message indicates that there are no further edits required. This process is
+repeated for the all tasks. The workflow ends with the
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p2.1.4">
+      Verifier
+     </span>
+     receiving
+original and final document together with the set of user provided
+rules to ensure all rules have been
+fully applied to the original document.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     5.3
+    </span>
+    Coding Tasks - Joint
+Collaboration
+   </h3>
+   <div class="ltx_para" id="S5.SS3.p1">
+    <p class="ltx_p" id="S5.SS3.p1.1">
+     In the final example, we consider a software
+development example. This workflow starts with the user request passed to the
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.1">
+      Planner
+     </span>
+     Agent to
+create a set of tasks that populates the
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.2">
+      Task Queue
+     </span>
+     . The
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.3">
+      Agent Unit
+     </span>
+     consists of three
+agents with distinct responsibilities: 1)
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.4">
+      Coder
+     </span>
+     is responsible for
+all software engineering tasks using a
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.5">
+      File I/O
+     </span>
+     tool, 2)
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.6">
+      Architect
+     </span>
+     creates the architecture for the development using a
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.7">
+      Web Search
+     </span>
+     tool, and 3)
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.8">
+      Tester
+     </span>
+     is responsible
+for testing the code using a
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.9">
+      Code Execution
+     </span>
+     tool. All agents are aware of the existence and expertise of the other agents. The Agent Unit is iterated through a combination of the semantic
+and mention matching functions which selects the next agent.
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.10">
+      Semantic Matcher
+     </span>
+     picks the most appropriate agent for a given
+task,
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.11">
+      Mention Matcher
+     </span>
+     ensures that the conversational strategy
+is executed correctly via message passing. Figure
+     <a class="ltx_ref" href="#S5.F16" title="Figure 16 ‣ 5.3 Coding Tasks - Joint Collaboration ‣ 5 Example Applications ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       16
+      </span>
+     </a>
+     illustrates the workflow for this example.
+We employ the conversational strategy described in Section
+     <a class="ltx_ref" href="#S4" title="4 Multi-Agent Workflow ‣ BMW Agents - A Framework For Task Automation Through Multi-Agent Collaboration">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , illustrated with dashed lines between all
+agents. The agents work together to produce functioning code that satisfies the code-related task. The workflow ends with the
+     <span class="ltx_text ltx_font_bold" id="S5.SS3.p1.1.12">
+      Verifier
+     </span>
+     Agent that checks the final result against the original user request.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S5.F16">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="320" id="S5.F16.g1" src="/html/2406.20041/assets/x19.png" width="415"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 16:
+     </span>
+     Basic workflow for software development with three agents in a
+conversational workflow. The Agent Unit consists of
+     <span class="ltx_text ltx_font_bold" id="S5.F16.4.1">
+      Coder
+     </span>
+     ,
+     <span class="ltx_text ltx_font_bold" id="S5.F16.5.2">
+      Architect
+     </span>
+     and
+     <span class="ltx_text ltx_font_bold" id="S5.F16.6.3">
+      Tester
+     </span>
+     Agents that can engage in a dialog with each other. The Agent Unit is iterated through a
+combination of the Semantic and Mention matching functions with the goal of
+selecting the best agent to start and the next agent via explicit message passing. Each Agent has a distinct tool to accomplish its responsibilities.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Summary
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    In this report, we detail a blueprint
+for a multi-agent engineering framework that aims to address the gaps in existing agent frameworks that may hinder production scale applications
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      32
+     </a>
+     ]
+    </cite>
+    . We have presented the main
+concepts of our multi-agent engineering framework and
+provided example workflows to illustrate the flexibility of our approach.
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    To close the gap between existing work and our implementation, we have
+considered the following:
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p3">
+   <ul class="ltx_itemize" id="S6.I1">
+    <li class="ltx_item" id="S6.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S6.I1.i1.p1">
+      <p class="ltx_p" id="S6.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S6.I1.i1.p1.1.1">
+        Stable Conversational Prompting Strategy
+       </span>
+       - We have introduced
+the ConvPlanReAct as an approach to bring dialog capability to the ReAct type prompt. We highlight the ability to include all
+stages of the original approach augmented with stages directly relating to
+the multi-agent nature of task execution.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S6.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S6.I1.i2.p1">
+      <p class="ltx_p" id="S6.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S6.I1.i2.p1.1.1">
+        Tools
+       </span>
+       - We highlight scalable and accurate usage of tools by
+incorporating the concept of refining the total list available at a given step.
+The refinement mechanisms is coupled with implicit schema for input and output
+of the tool providing ability for accurate usage of underlying functions.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S6.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S6.I1.i3.p1">
+      <p class="ltx_p" id="S6.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S6.I1.i3.p1.1.1">
+        Experiential Learning
+       </span>
+       - We include the concept of Episodic Memory
+with its direct usage during task execution to retrieve the
+results of previous tasks that are relevant to the current
+one. This retrieval can be scoped to the current plan as well as all previously executed
+plans in the existing application. This enables agents to have access to relevant previous work that has been
+completed.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S6.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S6.I1.i4.p1">
+      <p class="ltx_p" id="S6.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S6.I1.i4.p1.1.1">
+        Human Interaction
+       </span>
+       - We discuss the inclusion of both intentional and incidental
+human feedback provided back to the agents. In that discussion, we give
+details on how the additional feedback may be provided in the
+proposed ConvPlanReact strategy.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S6.I1.i5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S6.I1.i5.p1">
+      <p class="ltx_p" id="S6.I1.i5.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S6.I1.i5.p1.1.1">
+        Restart Limitations
+       </span>
+       - Our approach allows
+for a full restart of any workflow up to the last executed task using
+the information provided in the Episodic Memory.
+We have introduced a functionality that allows for resuming the workflows that have been paused due to an error, an internal trigger, or an external trigger.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <div class="ltx_para" id="S6.p4">
+   <p class="ltx_p" id="S6.p4.1">
+    Our framework aims to provide a scalable and highly
+configurable environment for multi-agent workflows, enabling stable and production ready agent applications. We have given special consideration to improving multi-agent collaboration, robust tool implementations, extended learning capabilities, incorporating human interactions, and resuming of workflows. These functionalities not only enable higher quality results, they allow us to move beyond experimentation into enterprise settings.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Park et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy
+Liang, and Michael S. Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior, 2023,
+2304.03442.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2304.03442" target="_blank" title="">
+      https://arxiv.org/abs/2304.03442
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Besta et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Michal
+Podstawski, Lukas Gianinazzi, Joanna Gajda, Tomasz Lehmann, Hubert
+Niewiadomski, Piotr Nyczyk, and Torsten Hoefler.
+    </span>
+    <span class="ltx_bibblock">
+     Graph of thoughts: Solving elaborate problems with large language
+models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence
+     </span>
+     ,
+38(16):17682–17690, March 2024.
+    </span>
+    <span class="ltx_bibblock">
+     ISSN 2159-5399.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="http://dx.doi.org/10.1609/aaai.v38i16.29720" target="_blank" title="">
+      http://dx.doi.org/10.1609/aaai.v38i16.29720
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xu et al. [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Binfeng Xu, Zhiyuan Peng, Bowen Lei, Subhabrata Mukherjee, Yuchen Liu, and
+Dongkuan Xu.
+    </span>
+    <span class="ltx_bibblock">
+     Rewoo: Decoupling reasoning from observations for efficient augmented
+language models, 2023a, 2305.18323.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2305.18323" target="_blank" title="">
+      https://arxiv.org/abs/2305.18323
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2001]
+    </span>
+    <span class="ltx_bibblock">
+     Jiming Liu, Yuan Y Tang, Ning Zhong, and Patrick S P Wang.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Agent Engineering
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     WORLD SCIENTIFIC, 2001,
+https://www.worldscientific.com/doi/pdf/10.1142/4642.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.worldscientific.com/doi/abs/10.1142/4642" target="_blank" title="">
+      https://www.worldscientific.com/doi/abs/10.1142/4642
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     Significant Gravitas.
+    </span>
+    <span class="ltx_bibblock">
+     Autogpt.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://agpt.co" target="_blank" title="">
+      https://agpt.co
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Yohei Nakajima.
+    </span>
+    <span class="ltx_bibblock">
+     Babyagi.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/yoheinakajima/babyagi" target="_blank" title="">
+      https://github.com/yoheinakajima/babyagi
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu,
+Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, Ahmed Hassan Awadallah,
+Ryen W White, Doug Burger, and Chi Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Autogen: Enabling next-gen llm applications via multi-agent
+conversation, 2023, 2308.08155.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2308.08155" target="_blank" title="">
+      https://arxiv.org/abs/2308.08155
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2023a]
+    </span>
+    <span class="ltx_bibblock">
+     Zijun Liu, Yanzhe Zhang, Peng Li, Yang Liu, and Diyi Yang.
+    </span>
+    <span class="ltx_bibblock">
+     Dynamic llm-agent network: An llm-agent collaboration framework with
+agent team optimization, 2023a, 2310.02170.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2310.02170" target="_blank" title="">
+      https://arxiv.org/abs/2310.02170
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Weize Chen, Yusheng Su, Jingwei Zuo, Cheng Yang, Chenfei Yuan, Chi-Min Chan,
+Heyang Yu, Yaxi Lu, Yi-Hsin Hung, Chen Qian, Yujia Qin, Xin Cong, Ruobing
+Xie, Zhiyuan Liu, Maosong Sun, and Jie Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Agentverse: Facilitating multi-agent collaboration and exploring
+emergent behaviors, 2023, 2308.10848.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2308.10848" target="_blank" title="">
+      https://arxiv.org/abs/2308.10848
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Guo et al. [2024a]
+    </span>
+    <span class="ltx_bibblock">
+     Xudong Guo, Kaixuan Huang, Jiale Liu, Wenhui Fan, Natalia Vélez, Qingyun Wu,
+Huazheng Wang, Thomas L. Griffiths, and Mengdi Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Embodied llm agents learn to cooperate in organized teams,
+2024a, 2403.12482.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2403.12482" target="_blank" title="">
+      https://arxiv.org/abs/2403.12482
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Junzhe Chen, Xuming Hu, Shuodi Liu, Shiyu Huang, Wei-Wei Tu, Zhaofeng He, and
+Lijie Wen.
+    </span>
+    <span class="ltx_bibblock">
+     Llmarena: Assessing capabilities of large language models in dynamic
+multi-agent environments, 2024, 2402.16499.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.16499" target="_blank" title="">
+      https://arxiv.org/abs/2402.16499
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Rasal [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Sumedh Rasal.
+    </span>
+    <span class="ltx_bibblock">
+     Llm harmony: Multi-agent communication for problem solving, 2024,
+2401.01312.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2401.01312" target="_blank" title="">
+      https://arxiv.org/abs/2401.01312
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Guohao Li, Hasan Abed Al Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and
+Bernard Ghanem.
+    </span>
+    <span class="ltx_bibblock">
+     Camel: Communicative agents for "mind" exploration of large language
+model society, 2023, 2303.17760.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2303.17760" target="_blank" title="">
+      https://arxiv.org/abs/2303.17760
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2024a]
+    </span>
+    <span class="ltx_bibblock">
+     Zhenhailong Wang, Shaoguang Mao, Wenshan Wu, Tao Ge, Furu Wei, and Heng Ji.
+    </span>
+    <span class="ltx_bibblock">
+     Unleashing the emergent cognitive synergy in large language models: A
+task-solving agent through multi-persona self-collaboration,
+2024a, 2307.05300.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2307.05300" target="_blank" title="">
+      https://arxiv.org/abs/2307.05300
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Fu et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Yao Fu, Hao Peng, Tushar Khot, and Mirella Lapata.
+    </span>
+    <span class="ltx_bibblock">
+     Improving language model negotiation with self-play and in-context
+learning from ai feedback, 2023, 2305.10142.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2305.10142" target="_blank" title="">
+      https://arxiv.org/abs/2305.10142
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Junyou Li, Qin Zhang, Yangbin Yu, Qiang Fu, and Deheng Ye.
+    </span>
+    <span class="ltx_bibblock">
+     More agents is all you need, 2024, 2402.05120.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.05120" target="_blank" title="">
+      https://arxiv.org/abs/2402.05120
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia,
+Ed Chi, Quoc Le, and Denny Zhou.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language
+models, 2023, 2201.11903.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2201.11903" target="_blank" title="">
+      https://arxiv.org/abs/2201.11903
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xu et al. [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Benfeng Xu, An Yang, Junyang Lin, Quan Wang, Chang Zhou, Yongdong Zhang, and
+Zhendong Mao.
+    </span>
+    <span class="ltx_bibblock">
+     Expertprompting: Instructing large language models to be
+distinguished experts, 2023b, 2305.14688.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2305.14688" target="_blank" title="">
+      https://arxiv.org/abs/2305.14688
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Abdelnabi et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Sahar Abdelnabi, Amr Gomaa, Sarath Sivaprasad, Lea Schönherr, and Mario Fritz.
+    </span>
+    <span class="ltx_bibblock">
+     Llm-deliberation: Evaluating llms with interactive multi-agent
+negotiation games, 2023, 2309.17234.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2309.17234" target="_blank" title="">
+      https://arxiv.org/abs/2309.17234
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan,
+and Yuan Cao.
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models, 2023,
+2210.03629.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2210.03629" target="_blank" title="">
+      https://arxiv.org/abs/2210.03629
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Tang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Qiaoyu Tang, Ziliang Deng, Hongyu Lin, Xianpei Han, Qiao Liang, Boxi Cao, and
+Le Sun.
+    </span>
+    <span class="ltx_bibblock">
+     Toolalpaca: Generalized tool learning for language models with 3000
+simulated cases, 2023, 2306.05301.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2306.05301" target="_blank" title="">
+      https://arxiv.org/abs/2306.05301
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Patil et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shishir G. Patil, Tianjun Zhang, Xin Wang, and Joseph E. Gonzalez.
+    </span>
+    <span class="ltx_bibblock">
+     Gorilla: Large language model connected with massive apis, 2023,
+2305.15334.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2305.15334" target="_blank" title="">
+      https://arxiv.org/abs/2305.15334
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2024b]
+    </span>
+    <span class="ltx_bibblock">
+     Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan
+Chen, Jiakai Tang, Xu Chen, Yankai Lin, Wayne Xin Zhao, Zhewei Wei, and
+Jirong Wen.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on large language model based autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Frontiers of Computer Science
+     </span>
+     , 18, 2024b.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Guo et al. [2024b]
+    </span>
+    <span class="ltx_bibblock">
+     Taicheng Guo, Xiuying Chen, Yaqi Wang, Ruidi Chang, Shichao Pei, Nitesh V.
+Chawla, Olaf Wiest, and Xiangliang Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Large language model based multi-agents: A survey of progress and
+challenges, 2024b, 2402.01680.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.01680" target="_blank" title="">
+      https://arxiv.org/abs/2402.01680
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Masterman et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Tula Masterman, Sandi Besen, Mason Sawtell, and Alex Chao.
+    </span>
+    <span class="ltx_bibblock">
+     The landscape of emerging ai agent architectures for reasoning,
+planning, and tool calling: A survey, 2024, 2404.11584.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2404.11584" target="_blank" title="">
+      https://arxiv.org/abs/2404.11584
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xi et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming
+Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, Rui Zheng, Xiaoran Fan, Xiao Wang,
+Limao Xiong, Yuhao Zhou, Weiran Wang, Changhao Jiang, Yicheng Zou, Xiangyang
+Liu, Zhangyue Yin, Shihan Dou, Rongxiang Weng, Wensen Cheng, Qi Zhang,
+Wenjuan Qin, Yongyan Zheng, Xipeng Qiu, Xuanjing Huang, and Tao Gui.
+    </span>
+    <span class="ltx_bibblock">
+     The rise and potential of large language model based agents: A
+survey, 2023, 2309.07864.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2309.07864" target="_blank" title="">
+      https://arxiv.org/abs/2309.07864
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Du et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Hung Du, Srikanth Thudumu, Rajesh Vasa, and Kon Mouzakis.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on context-aware multi-agent systems: Techniques, challenges
+and future directions, 2024, 2402.01968.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.01968" target="_blank" title="">
+      https://arxiv.org/abs/2402.01968
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qian et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Chen Qian, Xin Cong, Wei Liu, Cheng Yang, Weize Chen, Yusheng Su, Yufan Dang,
+Jiahao Li, Juyuan Xu, Dahai Li, Zhiyuan Liu, and Maosong Sun.
+    </span>
+    <span class="ltx_bibblock">
+     Communicative agents for software development, 2023, 2307.07924.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2307.07924" target="_blank" title="">
+      https://arxiv.org/abs/2307.07924
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2024a]
+    </span>
+    <span class="ltx_bibblock">
+     Na Liu, Liangyu Chen, Xiaoyu Tian, Wei Zou, Kaijiang Chen, and Ming Cui.
+    </span>
+    <span class="ltx_bibblock">
+     From llm to conversational agent: A memory enhanced architecture with
+fine-tuning of large language models, 2024a, 2401.02777.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2401.02777" target="_blank" title="">
+      https://arxiv.org/abs/2401.02777
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hong et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Ceyao
+Zhang, Jinlin Wang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou,
+Chenyu Ran, Lingfeng Xiao, Chenglin Wu, and Jürgen Schmidhuber.
+    </span>
+    <span class="ltx_bibblock">
+     Metagpt: Meta programming for a multi-agent collaborative framework,
+2023, 2308.00352.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2308.00352" target="_blank" title="">
+      https://arxiv.org/abs/2308.00352
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2024b]
+    </span>
+    <span class="ltx_bibblock">
+     Zhiwei Liu, Weiran Yao, Jianguo Zhang, Liangwei Yang, Zuxin Liu, Juntao Tan,
+Prafulla K. Choubey, Tian Lan, Jason Wu, Huan Wang, Shelby Heinecke, Caiming
+Xiong, and Silvio Savarese.
+    </span>
+    <span class="ltx_bibblock">
+     Agentlite: A lightweight library for building and advancing
+task-oriented llm agent system, 2024b, 2402.15538.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.15538" target="_blank" title="">
+      https://arxiv.org/abs/2402.15538
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xie et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Tianbao Xie, Fan Zhou, Zhoujun Cheng, Peng Shi, Luoxuan Weng, Yitao Liu,
+Toh Jing Hua, Junning Zhao, Qian Liu, Che Liu, Leo Z. Liu, Yiheng Xu, Hongjin
+Su, Dongchan Shin, Caiming Xiong, and Tao Yu.
+    </span>
+    <span class="ltx_bibblock">
+     Openagents: An open platform for language agents in the wild, 2023,
+2310.10634.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2310.10634" target="_blank" title="">
+      https://arxiv.org/abs/2310.10634
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nakano et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina
+Kim, Christopher Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders,
+Xu Jiang, Karl Cobbe, Tyna Eloundou, Gretchen Krueger, Kevin Button, Matthew
+Knight, Benjamin Chess, and John Schulman.
+    </span>
+    <span class="ltx_bibblock">
+     Webgpt: Browser-assisted question-answering with human feedback,
+2022, 2112.09332.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2112.09332" target="_blank" title="">
+      https://arxiv.org/abs/2112.09332
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ahn et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Chebotar, Omar Cortes, Byron
+David, Chelsea Finn, Chuyuan Fu, Keerthana Gopalakrishnan, Karol Hausman,
+Alex Herzog, Daniel Ho, Jasmine Hsu, Julian Ibarz, Brian Ichter, Alex Irpan,
+Eric Jang, Rosario Jauregui Ruano, Kyle Jeffrey, Sally Jesmonth, Nikhil J
+Joshi, Ryan Julian, Dmitry Kalashnikov, Yuheng Kuang, Kuang-Huei Lee, Sergey
+Levine, Yao Lu, Linda Luu, Carolina Parada, Peter Pastor, Jornell Quiambao,
+Kanishka Rao, Jarek Rettinghouse, Diego Reyes, Pierre Sermanet, Nicolas
+Sievers, Clayton Tan, Alexander Toshev, Vincent Vanhoucke, Fei Xia, Ted Xiao,
+Peng Xu, Sichun Xu, Mengyuan Yan, and Andy Zeng.
+    </span>
+    <span class="ltx_bibblock">
+     Do as i can, not as i say: Grounding language in robotic affordances,
+2022, 2204.01691.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2204.01691" target="_blank" title="">
+      https://arxiv.org/abs/2204.01691
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Wenlong Huang, Pieter Abbeel, Deepak Pathak, and Igor Mordatch.
+    </span>
+    <span class="ltx_bibblock">
+     Language models as zero-shot planners: Extracting actionable
+knowledge for embodied agents, 2022, 2201.07207.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2201.07207" target="_blank" title="">
+      https://arxiv.org/abs/2201.07207
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yuan et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Siyu Yuan, Kaitao Song, Jiangjie Chen, Xu Tan, Yongliang Shen, Ren Kan,
+Dongsheng Li, and Deqing Yang.
+    </span>
+    <span class="ltx_bibblock">
+     Easytool: Enhancing llm-based agents with concise tool instruction,
+2024, 2401.06201.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2401.06201" target="_blank" title="">
+      https://arxiv.org/abs/2401.06201
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Song et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Yifan Song, Weimin Xiong, Dawei Zhu, Wenhao Wu, Han Qian, Mingbo Song, Hailiang
+Huang, Cheng Li, Ke Wang, Rong Yao, Ye Tian, and Sujian Li.
+    </span>
+    <span class="ltx_bibblock">
+     Restgpt: Connecting large language models with real-world restful
+apis, 2023, 2306.06624.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2306.06624" target="_blank" title="">
+      https://arxiv.org/abs/2306.06624
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. [2023b]
+    </span>
+    <span class="ltx_bibblock">
+     Zhiwei Liu, Weiran Yao, Jianguo Zhang, Le Xue, Shelby Heinecke, Rithesh Murthy,
+Yihao Feng, Zeyuan Chen, Juan Carlos Niebles, Devansh Arpit, Ran Xu, Phil
+Mui, Huan Wang, Caiming Xiong, and Silvio Savarese.
+    </span>
+    <span class="ltx_bibblock">
+     Bolaa: Benchmarking and orchestrating llm-augmented autonomous
+agents, 2023b, 2308.05960.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2308.05960" target="_blank" title="">
+      https://arxiv.org/abs/2308.05960
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Packer et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion
+Stoica, and Joseph E. Gonzalez.
+    </span>
+    <span class="ltx_bibblock">
+     Memgpt: Towards llms as operating systems, 2024, 2310.08560.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2310.08560" target="_blank" title="">
+      https://arxiv.org/abs/2310.08560
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Maharana et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Adyasha Maharana, Dong-Ho Lee, Sergey Tulyakov, Mohit Bansal, Francesco
+Barbieri, and Yuwei Fang.
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating very long-term conversational memory of llm agents, 2024,
+2402.17753.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2402.17753" target="_blank" title="">
+      https://arxiv.org/abs/2402.17753
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gao and Zhang [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Hang Gao and Yongfeng Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Memory sharing for large language model based agents, 2024,
+2404.09982.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2404.09982" target="_blank" title="">
+      https://arxiv.org/abs/2404.09982
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Weizhi Wang, Li Dong, Hao Cheng, Xiaodong Liu, Xifeng Yan, Jianfeng Gao, and
+Furu Wei.
+    </span>
+    <span class="ltx_bibblock">
+     Augmenting language models with long-term memory, 2023, 2306.07174.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2306.07174" target="_blank" title="">
+      https://arxiv.org/abs/2306.07174
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qian et al. [2024]
+    </span>
+    <span class="ltx_bibblock">
+     Chen Qian, Yufan Dang, Jiahao Li, Wei Liu, Zihao Xie, Yifei Wang, Weize Chen,
+Cheng Yang, Xin Cong, Xiaoyin Che, Zhiyuan Liu, and Maosong Sun.
+    </span>
+    <span class="ltx_bibblock">
+     Experiential co-learning of software-developing agents, 2024,
+2312.17025.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2312.17025" target="_blank" title="">
+      https://arxiv.org/abs/2312.17025
+     </a>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

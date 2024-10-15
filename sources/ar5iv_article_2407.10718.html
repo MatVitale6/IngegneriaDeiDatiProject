@@ -1,0 +1,3074 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yulong Wang
+    <sup class="ltx_sup" id="id7.7.id1">
+     1
+    </sup>
+    , Tianhao Shen
+    <sup class="ltx_sup" id="id8.8.id2">
+     2
+    </sup>
+    <span class="ltx_note ltx_role_footnotemark" id="footnotex1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_note_type">
+        footnotemark:
+       </span>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+      </span>
+     </span>
+    </span>
+    , Lifeng Liu
+    <sup class="ltx_sup" id="id9.9.id3">
+     1
+    </sup>
+    , Jian Xie
+    <sup class="ltx_sup" id="id10.10.id4">
+     1
+    </sup>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id11.11.id5">
+     1
+    </sup>
+    Baichuan Inc.
+    <sup class="ltx_sup" id="id12.12.id6">
+     2
+    </sup>
+    College of Intelligence and Computing, Tianjin University, Tianjin, China
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id13.13.id7">
+     {wangyulong, liulifeng, richard}@baichuan-inc.com
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id14.14.id8">
+     thshen@tju.edu.cn
+    </span>
+   </span>
+   <span class="ltx_author_notes">
+    Equal Contributions.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id15.id1">
+   Existing agents based on large language models (LLMs) demonstrate robust problem-solving capabilities by integrating LLMs’ inherent knowledge, strong in-context learning and zero-shot capabilities, and the use of tools combined with intricately designed LLM invocation workflows by humans. However, these agents still exhibit shortcomings in long-term reasoning and under-use the potential of existing tools, leading to noticeable deficiencies in complex real-world reasoning scenarios.
+To address these limitations, we introduce
+   <span class="ltx_text ltx_font_italic" id="id15.id1.1">
+    Sibyl
+   </span>
+   , a simple yet powerful LLM-based agent framework designed to tackle complex reasoning tasks by efficiently leveraging a minimal set of tools. Drawing inspiration from
+   <span class="ltx_text ltx_font_italic" id="id15.id1.2">
+    Global Workspace Theory
+   </span>
+   ,
+   <span class="ltx_text ltx_font_italic" id="id15.id1.3">
+    Sibyl
+   </span>
+   incorporates a global workspace to enhance the management and sharing of knowledge and conversation history throughout the system. Furthermore, guided by
+   <span class="ltx_text ltx_font_italic" id="id15.id1.4">
+    Society of Mind Theory
+   </span>
+   ,
+   <span class="ltx_text ltx_font_italic" id="id15.id1.5">
+    Sibyl
+   </span>
+   implements a multi-agent debate-based jury to self-refine the final answers, ensuring a comprehensive and balanced approach. This approach aims to reduce system complexity while expanding the scope of problems solvable—from matters typically resolved by humans in minutes to those requiring hours or even days, thus facilitating a shift from System-1 to System-2 thinking.
+   <span class="ltx_text ltx_font_italic" id="id15.id1.6">
+    Sibyl
+   </span>
+   has been designed with a focus on scalability and ease of debugging by incorporating the concept of reentrancy from functional programming from its inception, with the aim of seamless and low effort integration in other LLM applications to improve capabilities.
+Our experimental results on the GAIA benchmark test set reveal that the
+   <span class="ltx_text ltx_font_italic" id="id15.id1.7">
+    Sibyl
+   </span>
+   agent instantiated with GPT-4 achieves state-of-the-art performance with an average score of 34.55%, compared to other agents based on GPT-4.
+We hope that
+   <span class="ltx_text ltx_font_italic" id="id15.id1.8">
+    Sibyl
+   </span>
+   can inspire more reliable and reusable LLM-based agent solutions to address complex real-world reasoning tasks.
+   <span class="ltx_note ltx_role_footnote" id="footnote1">
+    <sup class="ltx_note_mark">
+     1
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       1
+      </span>
+      Our code is available at
+      <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/Ag2S1/Sibyl-System" target="_blank" title="">
+       https://github.com/Ag2S1/Sibyl-System
+      </a>
+      .
+     </span>
+    </span>
+   </span>
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large language models (LLMs) have transformed the landscape of human-computer interaction (HCI) by offering unprecedented capabilities in understanding and generating human-like text. LLM-based agents, which are systems designed to harness these models, effectively orchestrate LLM capabilities to address complex tasks
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Xi et al.,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2023
+     </a>
+     ; Wang et al.,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . These agents leverage human-designed frameworks that utilize the inherent knowledge within LLMs, often employing structured workflows that maximize the potential of in-context learning and zero-shot capabilities. Such strategies allow these agents to engage in sophisticated dialogues and problem-solving scenarios that mirror human cognitive processes
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Sumers et al.,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . By incorporating prior human knowledge into the workflow, LLM-based agents can process and utilize information with a level of proficiency that was previously unattainable.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Despite their abilities, LLM-based agents are often limited by their inability to engage in complex questions of reasoning in real-world scenarios, where the number of reasoning steps can be numerous
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mialon et al.,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . While LLMs excel in simpler, quick-answer scenarios, they struggle significantly when tasks demand lengthy, complex reasoning chains, often resulting in error propagation and a steep decline in accuracy. To address these complex real-world problems, existing systems are often intricately designed, leading to complexity that makes them difficult to evolve or optimize. This complexity not only impedes their practical deployment, but also restricts their adaptability and scalability in various LLM applications, which underscores the need for an approach that has simple design while improving the reasoning capabilities of LLM-based agents.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Furthermore, long-context management also remains a significant hurdle in LLM applications. The collection of abundant external information (e.g, computation output and error messages during coding, or intricate web content) creates a high demand for managing long context sizes effectively within the LLM’s processing capabilities. However,
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Hsieh et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2024
+     </a>
+     )
+    </cite>
+    found that there exists a notable gap between the claimed length (the designed maximum context size a model can handle) and the effective length (the maximum context size a model can effectively manage) that LLMs can process. On the other hand, the challenge of long contexts is further compounded by the need to integrate information from various sources and data formats, often leading to “context dilution” problem where valuable information is overwhelmed by the sheer volume of data
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Xu et al.,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2023
+     </a>
+     ; Shi et al.,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . Effective context management is crucial to ensure that LLMs can maintain focus on relevant information without being sidetracked by less pertinent details. As such, addressing this gap is not just about increasing the raw capacity of models to handle more data but also about improving their ability to discern and prioritize information that is most critical for the task at hand.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    To address the identified limitations in long-term reasoning and system complexity, we introduce
+    <span class="ltx_text ltx_font_italic" id="S1.p4.1.1">
+     Sibyl
+    </span>
+    , a simple yet powerful LLM-based agent framework. The system is compartmentalized into four main modules: tool planner, external information acquisition channel, a jury based on multi-agent debate and a global workspace. Specifically, we introduce an external information acquisition channel to receive and process external information from selected tools. To efficiently compress the received information, we integrate the concept of dialogue states from task-oriented dialogue systems
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Budzianowski et al.,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2018
+     </a>
+     ; Quan et al.,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2020
+     </a>
+     ; Moradshahi et al.,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    into the channel and design a representation language for the compressed information. This adaptation allows for the selective compression of external information, focusing only on incremental details pertinent to solving problems, which diverges from the traditional method of simply appending external information to the conversational history. By doing so, it not only elevates the quality and relevance of the information processed by LLMs but also conserves context length, allowing for more extended steps in reasoning. In addition, we design a global workspace inspired by the
+    <span class="ltx_text ltx_font_italic" id="S1.p4.1.2">
+     Global Workspace Theory
+    </span>
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Baars,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      1993
+     </a>
+     ;
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2005
+     </a>
+     )
+    </cite>
+    that facilitates seamless information sharing among the modules, and a multi-agent debate-based jury under the guidance of
+    <span class="ltx_text ltx_font_italic" id="S1.p4.1.3">
+     Society of Mind Theory
+    </span>
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Minsky,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      1988
+     </a>
+     )
+    </cite>
+    that encourages self-refinement before the final response.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    The inner design of
+    <span class="ltx_text ltx_font_italic" id="S1.p5.1.1">
+     Sibyl
+    </span>
+    is inspired by functional programming principles, emphasizing reusability and statelessness between operations. This is realized through the use of QA functions instead of dialogues in internal LLM inference requests, allowing for each LLM inference to operate independently without the need to maintain a persistent state. By reducing inner dependency on LLM requests and maintaining a simple structure, we hope that
+    <span class="ltx_text ltx_font_italic" id="S1.p5.1.2">
+     Sibyl
+    </span>
+    can be easily reused to facilitate and inspire other LLM-based applications to improve their reasoning capabilities and achieve the shift from System-1 (rapid and intuitive) to System-2 (slow and delibrate) thinking.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    We evaluated the
+    <span class="ltx_text ltx_font_italic" id="S1.p6.1.1">
+     Sibyl
+    </span>
+    agent instantiated by GPT-4o API (text only) in the GAIA benchmark test set, which is carefully designed to probe the depth and robustness of reasoning through a diverse set of real-world questions
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mialon et al.,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+    <span class="ltx_text ltx_font_italic" id="S1.p6.1.2">
+     Sibyl
+    </span>
+    agent achieves an impressive average score of 34.55% on the GAIA test set, outperforming the previous state-of-the-art method based on AutoGen
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wu et al.,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and demonstrating its superior reasoning capabilities. In contrast, widely used systems like AutoGPT-4
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Gravitas,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023
+     </a>
+     )
+    </cite>
+    achieve only an 5% average score. Notably,
+    <span class="ltx_text ltx_font_italic" id="S1.p6.1.3">
+     Sibyl
+    </span>
+    agent secures scores of 32.7% and 16.33% in the more challenging level 2 and level 3 scenarios of GAIA, respectively. These results represent significant relative improvements of 13% and 12% over the prior state-of-the-art method, underscoring
+    <span class="ltx_text ltx_font_italic" id="S1.p6.1.4">
+     Sibyl
+    </span>
+    ’s proficiency in managing intricate, long-term reasoning tasks.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    Our contributions are as follows:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We propose
+       <span class="ltx_text ltx_font_italic" id="S1.I1.i1.p1.1.1">
+        Sibyl
+       </span>
+       , a simple and powerful LLM-based agent framework that embodies a design philosophy centered on simplicity, modularity, and reusability by promoting stateless interactions during inference time, which facilitates ease of debugging and enhancement.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       We develop an external information acquisition channel accompanied by a representation language specifically tailored to efficiently gather and selectively compress external information. Drawing inspiration from
+       <span class="ltx_text ltx_font_italic" id="S1.I1.i2.p1.1.1">
+        Global Workspace Theory
+       </span>
+       and
+       <span class="ltx_text ltx_font_italic" id="S1.I1.i2.p1.1.2">
+        Society of Mind Theory
+       </span>
+       , we also introduce a global workspace that facilitates effective information sharing across modules, and a multi-agent debate-based jury that promotes self-reflection.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       The experimental results on the GAIA benchmark test set demonstrate that the
+       <span class="ltx_text ltx_font_italic" id="S1.I1.i3.p1.1.1">
+        Sibyl
+       </span>
+       agent achieves new state-of-the-art performance, particularly in the challenging Level 2 and Level 3 scenarios, which underscores the improvement of
+       <span class="ltx_text ltx_font_italic" id="S1.I1.i3.p1.1.2">
+        Sibyl
+       </span>
+       in solving complex reasoning tasks.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="110" id="S1.F1.g1" src="/html/2407.10718/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    The overall pipeline of
+    <span class="ltx_text ltx_font_italic" id="S1.F1.2.1">
+     Sibyl
+    </span>
+    framework.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   The Sibyl Framework
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    In this section, we provide a overview of the
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.1">
+     Sibyl
+    </span>
+    framework, focusing on its design philosophy and fundamental modules. As shown in Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , given a user query,
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.2">
+     Sibyl
+    </span>
+    starts with the tool planner which aims to select appropriate tools, functions, and parameters tailored to each specific subtask. Then, we design an external information acquisition channel to call the tools and selectively compress the external information returned by tool execution. Inspired by
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.3">
+     Society of Mind Theory
+    </span>
+    , we incorporate a multi-agent debate-based jury to achieve self-correction and a global workspace to seamlessly share information and enable effective collaboration across all modules. The prompts for each module are described in Appendix
+    <a class="ltx_ref" href="#A3" title="Appendix C Prompts ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+     <span class="ltx_text ltx_ref_tag">
+      C
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Design Philosophy
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The
+     <span class="ltx_text ltx_font_italic" id="S2.SS1.p1.1.1">
+      Sibyl
+     </span>
+     framework is constructed around a core design philosophy that focuses on reducing complexity while enhancing the functional capabilities of LLM-based agents. This philosophy is implemented through several strategic approaches to restructure LLM operations.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Human-oriented Browser Interface Instead of Retrieval Augmented Generation
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px1.p1.1">
+      In conventional LLM-based agent setups, Retrieval Augmented Generation (RAG) often leads to significant information loss due to the limitation of retrieval process, which can lose the sequential information and connection of chunks in long text and have to trade off between information precision and recall. Retrieving information at a coarse level yields a wider range of data but with less precision, while a fine-level retrieval approach ensures a more detailed dataset, albeit sacrificing speed. Inspired by the success of WebGPT
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Nakano et al.,
+       <a class="ltx_ref" href="#bib.bib15" title="">
+        2021
+       </a>
+       )
+      </cite>
+      ,
+      <span class="ltx_text ltx_font_italic" id="S2.SS1.SSS0.Px1.p1.1.1">
+       Sibyl
+      </span>
+      addresses this by adopting a human-oriented browser interface, shifting away from RAG’s constraints towards a more intuitive, human-like method of information retrieval. This form of information gathering is crucial as it retains the relational dynamics of the text, preserving more context and depth in the data accessed by the agent.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Question Answering Function Instead of Dialogues
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px2.p1.1">
+      Recent agent frameworks such as AutoGen
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Wu et al.,
+       <a class="ltx_ref" href="#bib.bib24" title="">
+        2023
+       </a>
+       )
+      </cite>
+      utilize dialogue as the primary mode of communication between different modules. This design is intended to mimic human conversational patterns, making the interaction more natural and user-friendly. However, dialogues are stateful and can create complex dependencies among various LLM inference calls within a session, complicating the debugging and prompt engineering processes significantly.
+      <span class="ltx_text ltx_font_italic" id="S2.SS1.SSS0.Px2.p1.1.1">
+       Sibyl
+      </span>
+      replaces this with a stateless, reentrant QA function that decouples individual LLM inference requests. This transformation significantly simplifies the architecture of the system, facilitating easier maintenance and modification while allowing each component to operate independently without legacy constraints from previous interactions.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Less Universal Tools Instead of More Specialized Tools
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px3.p1.1">
+      <span class="ltx_text ltx_font_italic" id="S2.SS1.SSS0.Px3.p1.1.1">
+       Sibyl
+      </span>
+      centralizes its functionalities around two primary tools: the Web browser and Python environments. It aligns the browser’s interface more closely with human interaction modes, such as using page navigation commands (page down/up), click, and search shortcuts (ctrl+f, ctrl+g). This approach moves away from reliance solely on web crawlers and full-page content parsing, aiming for a more selective and relevant data interaction method that mimics human web usage patterns.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     From System-1 to System-2 Thinking
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px4.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px4.p1.1">
+      The
+      <span class="ltx_text ltx_font_italic" id="S2.SS1.SSS0.Px4.p1.1.1">
+       Sibyl
+      </span>
+      framework places a strong emphasis on enhancing capabilities for long-term memory, planning, and error correction–elements vital for complex, long-distance reasoning.
+     </p>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px4.p2">
+     <ul class="ltx_itemize" id="S2.I1">
+      <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I1.i1.p1">
+        <p class="ltx_p" id="S2.I1.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.I1.i1.p1.1.1">
+          Shared Long-term Memory as First-class Citizen:
+         </span>
+         <span class="ltx_text ltx_font_italic" id="S2.I1.i1.p1.1.2">
+          Sibyl
+         </span>
+         incorporates a global workspace that all modules share, which is designed from the ground up and stores information with an incremental state-based representation language. This language selectively compresses past events, adding only information increments relevant to problem solving, rather than simply appending all incoming data.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S2.I1.i2.p1">
+        <p class="ltx_p" id="S2.I1.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.I1.i2.p1.1.1">
+          Planning and Self-correction:
+         </span>
+         <span class="ltx_text ltx_font_italic" id="S2.I1.i2.p1.1.2">
+          Sibyl
+         </span>
+         summarizes the outcomes from its tools, and plans subsequent steps based on the assessment of current progress. This involves strategic thinking about which pieces of information are necessary and how they should be processed moving forward. In addition,
+         <span class="ltx_text ltx_font_italic" id="S2.I1.i2.p1.1.3">
+          Sibyl
+         </span>
+         introduces a “Jury” mechanism, which utilizes a multi-agent debate format for self-critique and correction. This process allows the model to utilize the information stored in the global workspace efficiently to refine responses and ensure accurate problem solving.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S2.SS1.SSS0.Px4.p3">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px4.p3.1">
+      Through these principles,
+      <span class="ltx_text ltx_font_italic" id="S2.SS1.SSS0.Px4.p3.1.1">
+       Sibyl
+      </span>
+      aims to advance the development of LLM-based agents, shifting towards a model that is not only more aligned with human cognitive processes but also more adaptable and capable of handling the complexities of real-world applications. This holistic approach is key to achieving a deeper, more nuanced interaction with information, leading to better-informed, more reliable decision-making for LLM-based agents.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Tool Planner
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     The tool planner in
+     <span class="ltx_text ltx_font_italic" id="S2.SS2.p1.1.1">
+      Sibyl
+     </span>
+     is a specialized module designed to select the most suitable (tool, function, parameters) triplets and parameters to address incoming queries step by step. Given the planning prompt, it assesses the given query and any associated step history to determine the most effective tools, functions, and parameters for execution. If the query can be resolved straightforwardly and does not require additional tools, the planner can also select “None”, indicating that no additional tools are required for that particular step.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    External Information Aquisition Channel
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     The external information acquisition channel plays a pivotal role in enhancing the agent’s ability to process and utilize information effectively. It first obtains the output of the tool planner, which specifies the tool, function, and parameters to be used. Upon receiving these directives, the appropriate tools are activated to gather and return the needed information.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     Then, the channel performs analysis to extract and verify relevant information for the query. This involves:
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p3">
+    <ul class="ltx_itemize" id="S2.I2">
+     <li class="ltx_item" id="S2.I2.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I2.i1.p1">
+       <p class="ltx_p" id="S2.I2.i1.p1.1">
+        Analyzing the tool results to extract relevant data that directly contributes to answering the question.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I2.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I2.i2.p1">
+       <p class="ltx_p" id="S2.I2.i2.p1.1">
+        Verifying the extracted information against the original question to ensure its accuracy and relevance.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I2.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I2.i3.p1">
+       <p class="ltx_p" id="S2.I2.i3.p1.1">
+        Recording new facts only if they provide unique and necessary information that has not already been captured in the step history.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I2.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I2.i4.p1">
+       <p class="ltx_p" id="S2.I2.i4.p1.1">
+        Deciding if the tool result sufficiently answers the query or if further data gathering is necessary.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p4">
+    <p class="ltx_p" id="S2.SS3.p4.1">
+     If the information from the current step is insufficient, the channel plans a follow-up step to gather more data, choosing the next tool and query that will efficiently lead to the ultimate goal. This planning is detailed, focusing on minimizing unnecessary steps and emphasizing direct and efficient methods to gather required information.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p5">
+    <p class="ltx_p" id="S2.SS3.p5.1">
+     Considering that the information obtained is usually lengthy and noisy, we propose a representation language to selectively compress the information inspired by
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Lee et al. (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2024
+      </a>
+      )
+     </cite>
+     . Unlike simple data appending, selective compression involves integrating only those pieces of information that directly contribute to resolving the query at hand. This is exactly in line with the goal of the dialogue state tracking module in task-oriented dialogue systems, which is designed to selectively compress past information related to accomplish tasks. This approach not only minimizes data redundancy but also enhances the relevance and quality of information maintained in the system’s memory. Specifically, we design a structured output in this step that includes sections for recording the incremental factual information compared to history, explanations of why choosing the next step and how it contributes to answering the question, and the detailed plan of the next step.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.4
+    </span>
+    Multi-agent Debate-based Jury
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p1">
+    <p class="ltx_p" id="S2.SS4.p1.1">
+     The
+     <span class="ltx_text ltx_font_italic" id="S2.SS4.p1.1.1">
+      Society of Mind Theory
+     </span>
+     , proposed by Marvin Minsky, provides a fundamental underpinning for the design of the jury system in the
+     <span class="ltx_text ltx_font_italic" id="S2.SS4.p1.1.2">
+      Sibyl
+     </span>
+     framework. It posits that the mind is composed of a multitude of semi-autonomous agents, each responsible for different aspects of intellectual operation, making complex cognitive processes emerge from the interactions and negotiations between simpler, specialized processes. These agents work in concert, albeit through a decentralized process of negotiation and cooperation, much like a society
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Minsky,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       1988
+      </a>
+      )
+     </cite>
+     . This inspired the multi-agent debate-based jury mechanism in the
+     <span class="ltx_text ltx_font_italic" id="S2.SS4.p1.1.3">
+      Sibyl
+     </span>
+     framework, where multiple agents can discuss and analyze problems, mimicking the cooperative yet independent interaction of Minsky’s mental agents.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p2">
+    <p class="ltx_p" id="S2.SS4.p2.1">
+     Here we instantiate the jury with a minimal implementation using AutoGen
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wu et al.,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , where two primary roles are defined:
+    </p>
+    <ul class="ltx_itemize" id="S2.I3">
+     <li class="ltx_item" id="S2.I3.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I3.i1.p1">
+       <p class="ltx_p" id="S2.I3.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S2.I3.i1.p1.1.1">
+         Actor
+        </span>
+        : This agent attempts to answer the question, explain their thought process in detail, and consider feedback from others critically.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I3.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para ltx_noindent" id="S2.I3.i2.p1">
+       <p class="ltx_p" id="S2.I3.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S2.I3.i2.p1.1.1">
+         Critic
+        </span>
+        : The role of this agent is to identify logical or intellectual errors in the actor’s reasoning.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p3">
+    <p class="ltx_p" id="S2.SS4.p3.1">
+     These roles allow for a structured yet flexible interaction and play a vital role in ensuring the logical coherence and intellectual integrity of the responses provided. We leave the exploration of diverse organizational forms for LLM-based agents for future work, including collaborative models like advisory councils.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS4.p4">
+    <p class="ltx_p" id="S2.SS4.p4.1">
+     In addition, the
+     <span class="ltx_text ltx_font_italic" id="S2.SS4.p4.1.1">
+      Sibyl
+     </span>
+     framework employs a majority vote ensemble method to enhance the stability and quality of the output answers. This method aggregates decisions or suggestions from multiple inferences, using their consensus to finalize the answer. This approach is particularly effective in mitigating individual errors in agent responses, leading to more reliable and accurate problem solving.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.5
+    </span>
+    Global Workspace
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS5.p1">
+    <p class="ltx_p" id="S2.SS5.p1.1">
+     The concept of the global workspace in
+     <span class="ltx_text ltx_font_italic" id="S2.SS5.p1.1.1">
+      Sibyl
+     </span>
+     is deeply influenced by
+     <span class="ltx_text ltx_font_italic" id="S2.SS5.p1.1.2">
+      Global Workspace Theory
+     </span>
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Baars,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       1993
+      </a>
+      ;
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2005
+      </a>
+      )
+     </cite>
+     , which suggests that the brain consists of many specialized processes or modules that operate simultaneously, with a significant portion functioning unconsciously. Attention serves as a spotlight that elevates some of these unconscious activities to conscious awareness within the global workspace. This workspace acts as a crucial hub for the broadcasting and integration of information, allowing its distribution across various modules. This theoretical backdrop inspires the design of the global workspace as an integrative platform for various modules within the
+     <span class="ltx_text ltx_font_italic" id="S2.SS5.p1.1.3">
+      Sibyl
+     </span>
+     framework, facilitating seamless information sharing and a comprehensive understanding of complex problems.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS5.p2">
+    <p class="ltx_p" id="S2.SS5.p2.1">
+     The global workspace acts as a central hub where different modules can broadcast their outputs and insights. This mechanism ensures that despite the modular nature of the system, there is a cohesive and unified approach to problem solving. In addition, information within the global workspace is well-structured and denoised, which not only ensures that the data is easy to access and manipulate by LLMs but also simplifies the debugging and case-analysis processes for human developers. By implementing this global workspace, the framework supports complex information handling and long reasoning sequences, facilitating the evolution from rapid, reflexive responses (System-1 thinking) to more deliberate and structured problem solving (System-2 thinking).
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_paragraph" id="S3.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Datasets
+   </h4>
+   <div class="ltx_para ltx_noindent" id="S3.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S3.SS0.SSS0.Px1.p1.1">
+     We conducted our evaluations on the GAIA dataset
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Mialon et al.,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , a benchmark tailored for general AI assistants. The GAIA dataset is designed to reflect tasks that align closely with human perceptual capabilities, including visual, auditory, and textual modalities. This dataset challenges general-purpose assistants with complex reasoning tasks that even require dozens of steps to solve, similar to those encountered by humans. Such a design significantly magnifies the impact of error propagation, providing a robust evaluation of problem-solving and error-handling capabilities for LLM-based agents.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Settings
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     In our experimental setup for the
+     <span class="ltx_text ltx_font_italic" id="S3.SS1.p1.1.1">
+      Sibyl
+     </span>
+     framework, we utilized two primary tools: a web browser and a Python-based code interpreter. Details of these tools are described in the Appendix
+     <a class="ltx_ref" href="#A1" title="Appendix A Details of Tools ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       A
+      </span>
+     </a>
+     . To balance budget constraints and time cost, we only use the GPT-4o API within the text modal, and limit the maximum number of reasoning steps of the model to 20.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Baselines
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     We compared it against several established baselines on GAIA: 1) GPT-4
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Achiam et al.,
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       2023
+      </a>
+      )
+     </cite>
+     with and without manually configured plugins, 2) AutoGPT-4
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Gravitas,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , which integrates AutoGPT with a GPT-4 backend, 3) An LLM-based agent implemented by AutoGen
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wu et al.,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , a framework designed for automating complex multi-agent scenarios, and 4) FRIDAY
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Wu et al.,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2024
+      </a>
+      )
+     </cite>
+     , an advanced agent utilizing OS-Copilot for automating a broad spectrum of computer tasks, capable of interfacing with various operating system elements including web browsers, code terminals, and multimedia.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Main Results
+   </h3>
+   <figure class="ltx_table" id="S3.T2">
+    <div class="ltx_flex_figure ltx_flex_table">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S3.T2.fig1" style="width:195.1pt;">
+       <div class="ltx_inline-block ltx_transformed_outer" id="S3.T2.fig1.1" style="width:433.6pt;height:270.5pt;vertical-align:-0.0pt;">
+        <span class="ltx_transformed_inner" style="transform:translate(87.0pt,-54.2pt) scale(1.66963998451728,1.66963998451728) ;">
+         <table class="ltx_tabular ltx_align_middle" id="S3.T2.fig1.1.1">
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.1">
+           <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T2.fig1.1.1.1.1">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.1.1.1">
+             Model
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig1.1.1.1.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.1.2.1">
+             Level 1
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig1.1.1.1.3">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.1.3.1">
+             Level 2
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig1.1.1.1.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.1.4.1">
+             Level 3
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_tt" id="S3.T2.fig1.1.1.1.5">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.1.5.1">
+             Overall
+            </span>
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.2">
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.fig1.1.1.2.1">
+            AutoGen
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig1.1.1.2.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.2.2.1">
+             47.31
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig1.1.1.2.3">
+            28.93
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig1.1.1.2.4">
+            14.58
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t" id="S3.T2.fig1.1.1.2.5">
+            32.33
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.3">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.3.1">
+            FRIDAY
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.3.2">
+            40.86
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.3.3">
+            20.13
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.3.4">
+            6.12
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.3.5">
+            24.25
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.4">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.4.1">
+            AutoGPT4
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.4.2">
+            15.05
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.4.3">
+            0.63
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.4.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.4.5">
+            5.00
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.5">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.5.1">
+            GPT4 Turbo
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.5.2">
+            9.68
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.5.3">
+            6.92
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.5.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.5.5">
+            6.67
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.6">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.6.1">
+            GPT4 w/ plugins
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.6.2">
+            30.30
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.6.3">
+            9.70
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.6.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.6.5">
+            14.6
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.7">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.7.1">
+            GPT4
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.7.2">
+            9.68
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.7.3">
+            1.89
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.7.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.7.5">
+            4.00
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.8">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig1.1.1.8.1">
+            GPT3.5
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.8.2">
+            4.30
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.8.3">
+            1.89
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig1.1.1.8.4">
+            2.08
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig1.1.1.8.5">
+            2.67
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig1.1.1.9">
+           <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S3.T2.fig1.1.1.9.1">
+            <span class="ltx_text ltx_font_italic" id="S3.T2.fig1.1.1.9.1.1">
+             Sibyl
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig1.1.1.9.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.9.2.1">
+             47.31
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig1.1.1.9.3">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.9.3.1">
+             32.70
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig1.1.1.9.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.9.4.1">
+             16.33
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig1.1.1.9.5">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig1.1.1.9.5.1">
+             34.55
+            </span>
+           </td>
+          </tr>
+         </table>
+        </span>
+       </div>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         Table 1:
+        </span>
+        Performance on the GAIA test set.
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S3.T2.fig2" style="width:195.1pt;">
+       <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S3.T2.fig2.1" style="width:433.6pt;height:270.5pt;vertical-align:-0.0pt;">
+        <span class="ltx_transformed_inner" style="transform:translate(87.0pt,-54.2pt) scale(1.66963998451728,1.66963998451728) ;">
+         <table class="ltx_tabular ltx_align_middle" id="S3.T2.fig2.1.1">
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.1">
+           <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T2.fig2.1.1.1.1">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.1.1.1">
+             Model
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig2.1.1.1.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.1.2.1">
+             Level 1
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig2.1.1.1.3">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.1.3.1">
+             Level 2
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T2.fig2.1.1.1.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.1.4.1">
+             Level 3
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_tt" id="S3.T2.fig2.1.1.1.5">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.1.5.1">
+             Overall
+            </span>
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.2">
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T2.fig2.1.1.2.1">
+            AutoGen
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig2.1.1.2.2">
+            54.72
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig2.1.1.2.3">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.2.3.1">
+             38.37
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T2.fig2.1.1.2.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.2.4.1">
+             11.54
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t" id="S3.T2.fig2.1.1.2.5">
+            39.39
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.3">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.3.1">
+            FRIDAY
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.3.2">
+            45.28
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.3.3">
+            34.88
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.3.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.3.4.1">
+             11.54
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.3.5">
+            34.55
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.4">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.4.1">
+            AutoGPT4
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.4.2">
+            13.21
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.4.3">
+            0.00
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.4.4">
+            3.85
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.4.5">
+            4.85
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.5">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.5.1">
+            GPT4 Turbo
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.5.2">
+            20.75
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.5.3">
+            5.81
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.5.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.5.5">
+            9.70
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.6">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.6.1">
+            GPT4 w/ plugins
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.6.2">
+            30.30
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.6.3">
+            9.70
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.6.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.6.5">
+            14.60
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.7">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.7.1">
+            GPT4
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.7.2">
+            15.09
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.7.3">
+            2.33
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.7.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.7.5">
+            6.06
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.8">
+           <td class="ltx_td ltx_align_left" id="S3.T2.fig2.1.1.8.1">
+            GPT3.5
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.8.2">
+            7.55
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.8.3">
+            4.65
+           </td>
+           <td class="ltx_td ltx_align_center" id="S3.T2.fig2.1.1.8.4">
+            0.00
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T2.fig2.1.1.8.5">
+            4.85
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T2.fig2.1.1.9">
+           <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S3.T2.fig2.1.1.9.1">
+            <span class="ltx_text ltx_font_italic" id="S3.T2.fig2.1.1.9.1.1">
+             Sibyl
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig2.1.1.9.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.9.2.1">
+             60.38
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig2.1.1.9.3">
+            36.05
+           </td>
+           <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig2.1.1.9.4">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.9.4.1">
+             11.54
+            </span>
+           </td>
+           <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_bb ltx_border_t" id="S3.T2.fig2.1.1.9.5">
+            <span class="ltx_text ltx_font_bold" id="S3.T2.fig2.1.1.9.5.1">
+             40.00
+            </span>
+           </td>
+          </tr>
+         </table>
+        </span>
+       </div>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         Table 2:
+        </span>
+        Performance on the GAIA validation set.
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+   </figure>
+   <figure class="ltx_figure" id="S3.F2">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S3.F2.8" style="width:238.5pt;">
+       <div class="ltx_flex_figure">
+        <div class="ltx_flex_cell ltx_flex_size_1">
+         <div class="ltx_inline-block ltx_figure_panel ltx_align_center ltx_transformed_outer" id="S3.F2.8.8" style="width:433.6pt;height:301.6pt;vertical-align:-0.0pt;">
+          <span class="ltx_transformed_inner" style="transform:translate(83.5pt,-58.1pt) scale(1.62658117863675,1.62658117863675) ;">
+           <table class="ltx_tabular ltx_align_middle" id="S3.F2.8.8.8">
+            <tr class="ltx_tr" id="S3.F2.8.8.8.9">
+             <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S3.F2.8.8.8.9.1">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.8.8.8.9.1.1">
+               Level
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.F2.8.8.8.9.2">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.8.8.8.9.2.1">
+               Correct?
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.F2.8.8.8.9.3">
+              <span class="ltx_text" id="S3.F2.8.8.8.9.3.1">
+              </span>
+              <span class="ltx_text ltx_font_bold" id="S3.F2.8.8.8.9.3.2">
+               <span class="ltx_text" id="S3.F2.8.8.8.9.3.2.1">
+                <span class="ltx_tabular ltx_align_middle" id="S3.F2.8.8.8.9.3.2.1.1">
+                 <span class="ltx_tr" id="S3.F2.8.8.8.9.3.2.1.1.1">
+                  <span class="ltx_td ltx_nopad_r ltx_align_center" id="S3.F2.8.8.8.9.3.2.1.1.1.1">
+                   Avg. Steps of
+                  </span>
+                 </span>
+                 <span class="ltx_tr" id="S3.F2.8.8.8.9.3.2.1.1.2">
+                  <span class="ltx_td ltx_nopad_r ltx_align_center" id="S3.F2.8.8.8.9.3.2.1.1.2.1">
+                   Human
+                  </span>
+                 </span>
+                </span>
+               </span>
+               <span class="ltx_text" id="S3.F2.8.8.8.9.3.2.2">
+               </span>
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.F2.8.8.8.9.4">
+              <span class="ltx_text" id="S3.F2.8.8.8.9.4.1">
+              </span>
+              <span class="ltx_text ltx_font_bold" id="S3.F2.8.8.8.9.4.2">
+               <span class="ltx_text" id="S3.F2.8.8.8.9.4.2.1">
+                <span class="ltx_tabular ltx_align_middle" id="S3.F2.8.8.8.9.4.2.1.1">
+                 <span class="ltx_tr" id="S3.F2.8.8.8.9.4.2.1.1.1">
+                  <span class="ltx_td ltx_nopad_r ltx_align_center" id="S3.F2.8.8.8.9.4.2.1.1.1.1">
+                   Avg. Steps of
+                  </span>
+                 </span>
+                 <span class="ltx_tr" id="S3.F2.8.8.8.9.4.2.1.1.2">
+                  <span class="ltx_td ltx_nopad_r ltx_align_center" id="S3.F2.8.8.8.9.4.2.1.1.2.1">
+                   <span class="ltx_text ltx_font_italic" id="S3.F2.8.8.8.9.4.2.1.1.2.1.1">
+                    Sibyl
+                   </span>
+                   Agent
+                  </span>
+                 </span>
+                </span>
+               </span>
+               <span class="ltx_text" id="S3.F2.8.8.8.9.4.2.2">
+               </span>
+              </span>
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.1.1.1.1">
+             <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.F2.1.1.1.1.2" rowspan="2">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.1.1.1.1.2.1">
+               1
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.1.1.1.1.1">
+              <math alttext="\times" class="ltx_Math" display="inline" id="S3.F2.1.1.1.1.1.m1.1">
+               <semantics id="S3.F2.1.1.1.1.1.m1.1a">
+                <mo id="S3.F2.1.1.1.1.1.m1.1.1" xref="S3.F2.1.1.1.1.1.m1.1.1.cmml">
+                 ×
+                </mo>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.1.1.1.1.1.m1.1b">
+                 <times id="S3.F2.1.1.1.1.1.m1.1.1.cmml" xref="S3.F2.1.1.1.1.1.m1.1.1">
+                 </times>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.1.1.1.1.1.m1.1c">
+                 \times
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.1.1.1.1.3">
+              6.43
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.1.1.1.1.4">
+              5.86
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.2.2.2.2">
+             <td class="ltx_td ltx_align_center" id="S3.F2.2.2.2.2.1">
+              <math alttext="\checkmark" class="ltx_Math" display="inline" id="S3.F2.2.2.2.2.1.m1.1">
+               <semantics id="S3.F2.2.2.2.2.1.m1.1a">
+                <mi id="S3.F2.2.2.2.2.1.m1.1.1" mathvariant="normal" xref="S3.F2.2.2.2.2.1.m1.1.1.cmml">
+                 ✓
+                </mi>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.2.2.2.2.1.m1.1b">
+                 <ci id="S3.F2.2.2.2.2.1.m1.1.1.cmml" xref="S3.F2.2.2.2.2.1.m1.1.1">
+                  ✓
+                 </ci>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.2.2.2.2.1.m1.1c">
+                 \checkmark
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.2.2.2.2.2">
+              4.72
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.2.2.2.2.3">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.2.2.2.2.3.1">
+               2.69
+              </span>
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.3.3.3.3">
+             <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.F2.3.3.3.3.2" rowspan="2">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.3.3.3.3.2.1">
+               2
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.3.3.3.3.1">
+              <math alttext="\times" class="ltx_Math" display="inline" id="S3.F2.3.3.3.3.1.m1.1">
+               <semantics id="S3.F2.3.3.3.3.1.m1.1a">
+                <mo id="S3.F2.3.3.3.3.1.m1.1.1" xref="S3.F2.3.3.3.3.1.m1.1.1.cmml">
+                 ×
+                </mo>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.3.3.3.3.1.m1.1b">
+                 <times id="S3.F2.3.3.3.3.1.m1.1.1.cmml" xref="S3.F2.3.3.3.3.1.m1.1.1">
+                 </times>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.3.3.3.3.1.m1.1c">
+                 \times
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.3.3.3.3.3">
+              7.93
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.3.3.3.3.4">
+              11.73
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.4.4.4.4">
+             <td class="ltx_td ltx_align_center" id="S3.F2.4.4.4.4.1">
+              <math alttext="\checkmark" class="ltx_Math" display="inline" id="S3.F2.4.4.4.4.1.m1.1">
+               <semantics id="S3.F2.4.4.4.4.1.m1.1a">
+                <mi id="S3.F2.4.4.4.4.1.m1.1.1" mathvariant="normal" xref="S3.F2.4.4.4.4.1.m1.1.1.cmml">
+                 ✓
+                </mi>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.4.4.4.4.1.m1.1b">
+                 <ci id="S3.F2.4.4.4.4.1.m1.1.1.cmml" xref="S3.F2.4.4.4.4.1.m1.1.1">
+                  ✓
+                 </ci>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.4.4.4.4.1.m1.1c">
+                 \checkmark
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.4.4.4.4.2">
+              8.06
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.4.4.4.4.3">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.4.4.4.4.3.1">
+               6.03
+              </span>
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.5.5.5.5">
+             <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.F2.5.5.5.5.2" rowspan="2">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.5.5.5.5.2.1">
+               3
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.5.5.5.5.1">
+              <math alttext="\times" class="ltx_Math" display="inline" id="S3.F2.5.5.5.5.1.m1.1">
+               <semantics id="S3.F2.5.5.5.5.1.m1.1a">
+                <mo id="S3.F2.5.5.5.5.1.m1.1.1" xref="S3.F2.5.5.5.5.1.m1.1.1.cmml">
+                 ×
+                </mo>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.5.5.5.5.1.m1.1b">
+                 <times id="S3.F2.5.5.5.5.1.m1.1.1.cmml" xref="S3.F2.5.5.5.5.1.m1.1.1">
+                 </times>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.5.5.5.5.1.m1.1c">
+                 \times
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.5.5.5.5.3">
+              12.52
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.5.5.5.5.4">
+              13.52
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.6.6.6.6">
+             <td class="ltx_td ltx_align_center" id="S3.F2.6.6.6.6.1">
+              <math alttext="\checkmark" class="ltx_Math" display="inline" id="S3.F2.6.6.6.6.1.m1.1">
+               <semantics id="S3.F2.6.6.6.6.1.m1.1a">
+                <mi id="S3.F2.6.6.6.6.1.m1.1.1" mathvariant="normal" xref="S3.F2.6.6.6.6.1.m1.1.1.cmml">
+                 ✓
+                </mi>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.6.6.6.6.1.m1.1b">
+                 <ci id="S3.F2.6.6.6.6.1.m1.1.1.cmml" xref="S3.F2.6.6.6.6.1.m1.1.1">
+                  ✓
+                 </ci>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.6.6.6.6.1.m1.1c">
+                 \checkmark
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.6.6.6.6.2">
+              16.67
+             </td>
+             <td class="ltx_td ltx_align_center" id="S3.F2.6.6.6.6.3">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.6.6.6.6.3.1">
+               6.33
+              </span>
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.7.7.7.7">
+             <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r ltx_border_t" id="S3.F2.7.7.7.7.2" rowspan="2">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.7.7.7.7.2.1">
+               Overall
+              </span>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.7.7.7.7.1">
+              <math alttext="\times" class="ltx_Math" display="inline" id="S3.F2.7.7.7.7.1.m1.1">
+               <semantics id="S3.F2.7.7.7.7.1.m1.1a">
+                <mo id="S3.F2.7.7.7.7.1.m1.1.1" xref="S3.F2.7.7.7.7.1.m1.1.1.cmml">
+                 ×
+                </mo>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.7.7.7.7.1.m1.1b">
+                 <times id="S3.F2.7.7.7.7.1.m1.1.1.cmml" xref="S3.F2.7.7.7.7.1.m1.1.1">
+                 </times>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.7.7.7.7.1.m1.1c">
+                 \times
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.7.7.7.7.3">
+              8.68
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_t" id="S3.F2.7.7.7.7.4">
+              10.90
+             </td>
+            </tr>
+            <tr class="ltx_tr" id="S3.F2.8.8.8.8">
+             <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.F2.8.8.8.8.1">
+              <math alttext="\checkmark" class="ltx_Math" display="inline" id="S3.F2.8.8.8.8.1.m1.1">
+               <semantics id="S3.F2.8.8.8.8.1.m1.1a">
+                <mi id="S3.F2.8.8.8.8.1.m1.1.1" mathvariant="normal" xref="S3.F2.8.8.8.8.1.m1.1.1.cmml">
+                 ✓
+                </mi>
+                <annotation-xml encoding="MathML-Content" id="S3.F2.8.8.8.8.1.m1.1b">
+                 <ci id="S3.F2.8.8.8.8.1.m1.1.1.cmml" xref="S3.F2.8.8.8.8.1.m1.1.1">
+                  ✓
+                 </ci>
+                </annotation-xml>
+                <annotation encoding="application/x-tex" id="S3.F2.8.8.8.8.1.m1.1c">
+                 \checkmark
+                </annotation>
+               </semantics>
+              </math>
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.F2.8.8.8.8.2">
+              6.83
+             </td>
+             <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.F2.8.8.8.8.3">
+              <span class="ltx_text ltx_font_bold" id="S3.F2.8.8.8.8.3.1">
+               4.42
+              </span>
+             </td>
+            </tr>
+           </table>
+          </span>
+         </div>
+        </div>
+        <div class="ltx_flex_break">
+        </div>
+        <div class="ltx_flex_cell ltx_flex_size_1">
+         <figure class="ltx_table ltx_figure_panel ltx_align_center" id="S3.T3">
+          <figcaption class="ltx_caption">
+           <span class="ltx_tag ltx_tag_table">
+            Table 3:
+           </span>
+           Average steps needed by human and
+           <span class="ltx_text ltx_font_italic" id="S3.T3.2.1">
+            Sibyl
+           </span>
+           agent on the GAIA validation set.
+          </figcaption>
+         </figure>
+        </div>
+       </div>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S3.F2.9" style="width:151.8pt;">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="475" id="S3.F2.9.g1" src="/html/2407.10718/assets/x2.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         Figure 2:
+        </span>
+        Steps used to solve questions for human and
+        <span class="ltx_text ltx_font_italic" id="S3.F2.9.2.1">
+         Sibyl
+        </span>
+        agent on the GAIA validation set.
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     We present the results of our experiments on both the test and validation sets of the GAIA dataset in table
+     <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ 3.3 Main Results ‣ 3 Experiments ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S3.T2" title="Table 2 ‣ 3.3 Main Results ‣ 3 Experiments ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , respectively. Our findings highlight that
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p1.1.1">
+      Sibyl
+     </span>
+     outperforms other models in the GAIA private test set, particularly in the more challenging Level 2 and Level 3 scenarios. This improvement is noteworthy given that these levels require longer steps for humans to solve, demonstrating
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p1.1.2">
+      Sibyl
+     </span>
+     ’s enhanced ability to mitigate error propagation in complex reasoning processes. Furthermore, the comparison of performances on the test and validation sets indicates that
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p1.1.3">
+      Sibyl
+     </span>
+     exhibits superior generalization capabilities. The smaller decline in accuracy from validation to test set (40.00 to 34.55) compared to AutoGen (39.39 to 32.33) and FRIDAY (34.55 to 24.25) underscores
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p1.1.4">
+      Sibyl
+     </span>
+     ’s robustness across different operational environments.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     We also analyze the number of steps required to solve problems compared to humans. As shown in Table
+     <a class="ltx_ref" href="#S3.T3" title="Table 3 ‣ Figure 2 ‣ 3.3 Main Results ‣ 3 Experiments ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , in problems where the
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p2.1.1">
+      Sibyl
+     </span>
+     agent was correct, it consistently outperformed humans in efficiency, using significantly fewer steps in levels 1 through 3. This underscores the
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p2.1.2">
+      Sibyl
+     </span>
+     ’s capability to streamline decision-making processes effectively. In addition, further insights are gained from Figure
+     <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3.3 Main Results ‣ 3 Experiments ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , which plots the number of steps taken by humans versus those taken by the
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p2.1.3">
+      Sibyl
+     </span>
+     agent for each question in the GAIA validation set. These results demonstrate that despite being limited to a maximum of 20 reasoning steps, the
+     <span class="ltx_text ltx_font_italic" id="S3.SS3.p2.1.4">
+      Sibyl
+     </span>
+     agent exhibited a high level of reasoning efficiency, indicating strong capability to mitigate unnecessary reasoning and suppress error propagation.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.4
+    </span>
+    Ablation Studies
+   </h3>
+   <figure class="ltx_table" id="S3.T4">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S3.T4.1">
+     <tr class="ltx_tr" id="S3.T4.1.1">
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T4.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.T4.1.1.1.1">
+        Configuration
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T4.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S3.T4.1.1.2.1">
+        Level 1
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T4.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S3.T4.1.1.3.1">
+        Level 2
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_tt" id="S3.T4.1.1.4">
+       <span class="ltx_text ltx_font_bold" id="S3.T4.1.1.4.1">
+        Level 3
+       </span>
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_tt" id="S3.T4.1.1.5">
+       <span class="ltx_text ltx_font_bold" id="S3.T4.1.1.5.1">
+        Overall
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T4.1.2">
+      <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T4.1.2.1">
+       <span class="ltx_text ltx_font_italic" id="S3.T4.1.2.1.1">
+        Sibyl
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.1.2.2">
+       60.38
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.1.2.3">
+       36.05
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T4.1.2.4">
+       11.54
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t" id="S3.T4.1.2.5">
+       40.00
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T4.1.3">
+      <td class="ltx_td ltx_align_left" id="S3.T4.1.3.1">
+       w/o multi-agent debate-based jury
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T4.1.3.2">
+       49.06
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T4.1.3.3">
+       37.21
+      </td>
+      <td class="ltx_td ltx_align_center" id="S3.T4.1.3.4">
+       11.54
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_center" id="S3.T4.1.3.5">
+       36.97
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T4.1.4">
+      <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T4.1.4.1">
+       w/o majority vote-based ensemble
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T4.1.4.2">
+       58.49
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T4.1.4.3">
+       31.39
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T4.1.4.4">
+       10.26
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_center ltx_border_bb" id="S3.T4.1.4.5">
+       36.77
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 4:
+     </span>
+     Results of ablation studies on the GAIA validation set.
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     We further conduct the ablation studies on the validation set of GAIA to investigate the individual contributions of specific components within the
+     <span class="ltx_text ltx_font_italic" id="S3.SS4.p1.1.1">
+      Sibyl
+     </span>
+     framework. We mainly focus on two main components: the multi-agent debate-based jury and the majority vote-based ensemble. As shown in
+     <a class="ltx_ref" href="#S3.T4" title="Table 4 ‣ 3.4 Ablation Studies ‣ 3 Experiments ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     , the removal of the multi-agent debate component resulted in a notable performance drop in the Level 1, which indicates that this component significantly boosts the accuracy for basic question types. However, its removal did not markedly affect the performance in the more challenging Levels 2 and 3. This suggests that while the multi-agent debate is crucial for resolving simpler queries effectively, it does not substantially influence the outcome of more complex reasoning tasks.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p2">
+    <p class="ltx_p" id="S3.SS4.p2.1">
+     To evaluate the impact of the ensemble component, we report the average accuracy across three separate runs to ensure a fair comparison against the ensemble configuration. The individual runs yielded overall accuracies of 40.61, 34.55, and 35.15, respectively, with an average of 36.77, compared to the ensemble’s overall performance of 40.00. While one run did slightly exceed the ensemble result, the ensemble generally provided more stable and consistent outcomes. This demonstrates that although the ensemble does not guarantee superior performance in every instance, it effectively enhances result stability and reliability across varied runs.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS5">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.5
+    </span>
+    Discussion
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS5.p1">
+    <p class="ltx_p" id="S3.SS5.p1.1">
+     In this section, we will explore some insights gained from the development of
+     <span class="ltx_text ltx_font_italic" id="S3.SS5.p1.1.1">
+      Sibyl
+     </span>
+     . We hope that these insights can inspire future LLM-based agent work with more powerful reasoning capabilities.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS5.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Challenges in Complex Reasoning
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS5.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS5.SSS0.Px1.p1.1">
+      Complex reasoning in real-world applications is inherently challenging due to the high risk of error propagation. Even with an 80% accuracy rate at each step, the probability of maintaining this accuracy consistently across 20 steps plummets to merely around 1%. This exponential increase in error risk highlights the critical nature of maintaining high accuracy at every step in reasoning. Furthermore, excessive errors can cause a series of retries which consume significant portions of the context, submerge useful information and hamper the problem-solving process.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS5.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Strategic Approaches to Mitigating Errors
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS5.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS5.SSS0.Px2.p1.1">
+      The decomposition of complex reasoning into simpler, manageable substeps is vital, as improving the success rate of each step can significantly mitigate error propagation. Selective compression of historical information plays a key role here, as most of the data accumulated during web navigation and previous interactions do not directly contribute to solving the problem at hand. This approach not only streamlines information processing, but also focuses on maintaining only the most pertinent data, enhancing overall system efficiency.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS5.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Importance of Debug-oriented Design
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS5.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS5.SSS0.Px3.p1.1">
+      A robust debug-oriented design is essential for reducing debugging costs and facilitating rapid system iteration. By limiting the introduction of state and striving for decoupling between components and even individual LLM inference requests, the system’s maintainability and adaptability are significantly improved. Given that
+      <span class="ltx_text ltx_font_italic" id="S3.SS5.SSS0.Px3.p1.1.1">
+       Sibyl
+      </span>
+      follows the combinator pattern, it can be seamlessly integrated as a low-cost enhancement into existing frameworks, easily replacing the vanilla GPT-4 API. This design can make it more flexible in various LLM applications.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS5.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Optimizing Tool Usage
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS5.SSS0.Px4.p1">
+     <p class="ltx_p" id="S3.SS5.SSS0.Px4.p1.1">
+      Considering the aforementioned error propagation in complex reasoning, optimizing existing tools is often more crucial than adding new ones. The potential of tools such as web browsers is far from fully realized; current LLM agents do not yet match human capabilities in terms of content visibility and operational scope on web platforms. Enhancing these tools to fully exploit their capabilities can provide substantial improvements in performance and utility, thus driving forward the sophistication and effectiveness of AI systems in complex environments.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    The integration of LLMs into autonomous agents marks a significant advancement in the field of artificial intelligence. These agents, capable of sensing their environment, making decisions and taking actions, are at the forefront of pushing AI towards Artificial General Intelligence (AGI)
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Xi et al.,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2023
+     </a>
+     ; Wang et al.,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . These agents, often referred to as LLM-based agents, are increasingly prevalent across a variety of domains, demonstrating the potential of LLM applications in complex scenarios.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Most LLM-based agents are designed for specific applications, highlighting their adaptability but also suffering from a potential limitation in versatility. These applications include mathmatical problem solving
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Gou et al.,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     ; Swan et al.,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , coding
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Yang et al.,
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2024
+     </a>
+     ; Zheng et al.,
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2024
+     </a>
+     )
+    </cite>
+    , role-playing
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Shao et al.,
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     ; Shen et al.,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , and social simulation
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Park et al.,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2023
+     </a>
+     ; Gao et al.,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . To take a step further towards general purpose LLM-based agents that are capable of various general tasks, open-source communities have developed some LLM-based agent framework, such as Langchain
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chase,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , BabyAGI
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Nakajima,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and AutoGPT
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Gravitas,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Equipped with tools and structured frameworks, these agents can competently handle relatively straightforward tasks with human-like capabilities. However, their proficiency in tackling complex real-world challenges remains comparatively limited. This gap indicates the need for further enhancements in general-purpose LLM-based agents to address more intricate problems effectively.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    We introduce
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.1">
+     Sibyl
+    </span>
+    , an agent framework designed to enhance the capabilities of LLMs in complex reasoning tasks. Through the integration of modular design and a global workspace for information sharing and collaboration,
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.2">
+     Sibyl
+    </span>
+    aims to facilitate the transition of LLM-based agents from rapid and intuitive System-1 thinking to slow and delibrate System-2 thinking. Our experimental results on the GAIA benchmark show that the
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.3">
+     Sibyl
+    </span>
+    agent instantiated by GPT-4 outperforms existing state-of-the-art solutions, demonstrating the effectiveness of our proposed framework. We hope that
+    <span class="ltx_text ltx_font_italic" id="S5.p1.1.4">
+     Sibyl
+    </span>
+    can contribute to the promotion of LLM applications to have better capabilities in handling complex real-world tasks.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Achiam et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2303.08774
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Baars (1993)
+    </span>
+    <span class="ltx_bibblock">
+     Bernard J Baars.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.1.1">
+      A cognitive theory of consciousness
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Cambridge University Press, 1993.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Baars (2005)
+    </span>
+    <span class="ltx_bibblock">
+     Bernard J Baars.
+    </span>
+    <span class="ltx_bibblock">
+     Global workspace theory of consciousness: toward a cognitive neuroscience of human experience.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      Progress in brain research
+     </span>
+     , 150:45–53, 2005.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Budzianowski et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Paweł Budzianowski, Tsung-Hsien Wen, Bo-Hsiang Tseng, Iñigo Casanueva, Stefan Ultes, Osman Ramadan, and Milica Gašić.
+    </span>
+    <span class="ltx_bibblock">
+     MultiWOZ - a large-scale multi-domain Wizard-of-Oz dataset for task-oriented dialogue modelling.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing
+     </span>
+     , pp.  5016–5026, Brussels, Belgium, 2018. Association for Computational Linguistics.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.18653/v1/D18-1547
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aclanthology.org/D18-1547" target="_blank" title="">
+      https://aclanthology.org/D18-1547
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chase (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Harrison Chase.
+    </span>
+    <span class="ltx_bibblock">
+     LangChain.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.1.1">
+      URL https://github.com/hwchase17/langchain
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Chen Gao, Xiaochong Lan, Zhihong Lu, Jinzhu Mao, Jinghua Piao, Huandong Wang, Depeng Jin, and Yong Li.
+    </span>
+    <span class="ltx_bibblock">
+     S
+     <sup class="ltx_sup" id="bib.bib6.2.1">
+      3
+     </sup>
+     : Social-network simulation system with large language model-empowered agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.3.1">
+      arXiv preprint arXiv:2307.14984
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhibin Gou, Zhihong Shao, Yeyun Gong, Yujiu Yang, Minlie Huang, Nan Duan, Weizhu Chen, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Tora: A tool-integrated reasoning agent for mathematical problem solving.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2309.17452
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gravitas (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Significant Gravitas.
+    </span>
+    <span class="ltx_bibblock">
+     Auto-GPT: An Autonomous GPT-4 experiment, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.1.1">
+      URL https://github. com/Significant-Gravitas/Auto-GPT
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hsieh et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Cheng-Ping Hsieh, Simeng Sun, Samuel Kriman, Shantanu Acharya, Dima Rekesh, Fei Jia, and Boris Ginsburg.
+    </span>
+    <span class="ltx_bibblock">
+     Ruler: What’s the real context size of your long-context language models?
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2404.06654
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lee et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Andrew H Lee, Sina J Semnani, Galo Castillo-López, Gäel de Chalendar, Monojit Choudhury, Ashna Dua, Kapil Rajesh Kavitha, Sungkyun Kim, Prashant Kodali, Ponnurangam Kumaraguru, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Benchmark underestimates the readiness of multi-lingual dialogue agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2405.17840
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mialon et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Grégoire Mialon, Clémentine Fourrier, Craig Swift, Thomas Wolf, Yann LeCun, and Thomas Scialom.
+    </span>
+    <span class="ltx_bibblock">
+     Gaia: a benchmark for general ai assistants.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2311.12983
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Minsky (1988)
+    </span>
+    <span class="ltx_bibblock">
+     Marvin Minsky.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      Society of mind
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     Simon and Schuster, 1988.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Moradshahi et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Mehrad Moradshahi, Tianhao Shen, Kalika Bali, Monojit Choudhury, Gaël de Chalendar, Anmol Goel, Sungkyun Kim, Prashant Kodali, Ponnurangam Kumaraguru, Nasredine Semmar, et al.
+    </span>
+    <span class="ltx_bibblock">
+     X-risawoz: High-quality end-to-end multilingual dialogue datasets and few-shot agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.1.1">
+      ArXiv preprint
+     </span>
+     , abs/2306.17674, 2023.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://arxiv.org/abs/2306.17674" target="_blank" title="">
+      https://arxiv.org/abs/2306.17674
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nakajima (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yohei Nakajima.
+    </span>
+    <span class="ltx_bibblock">
+     BabyAGI.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.1.1">
+      Python. https://github. com/yoheinakajima/babyagi
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nakano et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Webgpt: Browser-assisted question-answering with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2112.09332
+     </span>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Park et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Joon Sung Park, Joseph O’Brien, Carrie Jun Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein.
+    </span>
+    <span class="ltx_bibblock">
+     Generative agents: Interactive simulacra of human behavior.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.1.1">
+      Proceedings of the 36th annual acm symposium on user interface software and technology
+     </span>
+     , pp.  1–22, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Quan et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Jun Quan, Shian Zhang, Qian Cao, Zizhong Li, and Deyi Xiong.
+    </span>
+    <span class="ltx_bibblock">
+     RiSAWOZ: A large-scale multi-domain Wizard-of-Oz dataset with rich semantic annotations for task-oriented dialogue modeling.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
+     </span>
+     , pp.  930–940, Online, 2020. Association for Computational Linguistics.
+    </span>
+    <span class="ltx_bibblock">
+     doi:
+     <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">
+      10.18653/v1/2020.emnlp-main.67
+     </span>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aclanthology.org/2020.emnlp-main.67" target="_blank" title="">
+      https://aclanthology.org/2020.emnlp-main.67
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yunfan Shao, Linyang Li, Junqi Dai, and Xipeng Qiu.
+    </span>
+    <span class="ltx_bibblock">
+     Character-llm: A trainable agent for role-playing.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing
+     </span>
+     , pp.  13153–13187, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tianhao Shen, Sun Li, and Deyi Xiong.
+    </span>
+    <span class="ltx_bibblock">
+     Roleeval: A bilingual role evaluation benchmark for large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2312.16132
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shi et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Kaize Shi, Xueyao Sun, Qing Li, and Guandong Xu.
+    </span>
+    <span class="ltx_bibblock">
+     Compressing long context for enhancing rag with amr-based concept distillation.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2405.03085
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Sumers et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Theodore R Sumers, Shunyu Yao, Karthik Narasimhan, and Thomas L Griffiths.
+    </span>
+    <span class="ltx_bibblock">
+     Cognitive architectures for language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2309.02427
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Swan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Melanie Swan, Takashi Kido, Eric Roland, and Renato P dos Santos.
+    </span>
+    <span class="ltx_bibblock">
+     Math agents: Computational infrastructure, mathematical embedding, and genomics.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2307.02502
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai Tang, Xu Chen, Yankai Lin, et al.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on large language model based autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.1.1">
+      Frontiers of Computer Science
+     </span>
+     , 18(6):186345, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li, Li Jiang, Xiaoyun Zhang, and Chi Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Autogen: Enabling next-gen llm applications via multi-agent conversation framework.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2308.08155
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Zhiyong Wu, Chengcheng Han, Zichen Ding, Zhenmin Weng, Zhoumianze Liu, Shunyu Yao, Tao Yu, and Lingpeng Kong.
+    </span>
+    <span class="ltx_bibblock">
+     Os-copilot: Towards generalist computer agents with self-improvement.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2402.07456
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xi et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, et al.
+    </span>
+    <span class="ltx_bibblock">
+     The rise and potential of large language model based agents: A survey.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2309.07864
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Peng Xu, Wei Ping, Xianchao Wu, Lawrence McAfee, Chen Zhu, Zihan Liu, Sandeep Subramanian, Evelina Bakhturina, Mohammad Shoeybi, and Bryan Catanzaro.
+    </span>
+    <span class="ltx_bibblock">
+     Retrieval meets long context large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2310.03025
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press.
+    </span>
+    <span class="ltx_bibblock">
+     Swe-agent: Agent-computer interfaces enable automated software engineering.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2405.15793
+     </span>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zheng et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Tianyu Zheng, Ge Zhang, Tianhao Shen, Xueling Liu, Bill Yuchen Lin, Jie Fu, Wenhu Chen, and Xiang Yue.
+    </span>
+    <span class="ltx_bibblock">
+     Opencodeinterpreter: Integrating code generation with execution and refinement.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2402.14658
+     </span>
+     , 2024.
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Details of Tools
+  </h2>
+  <div class="ltx_para ltx_noindent" id="A1.p1">
+   <p class="ltx_p" id="A1.p1.1">
+    In the development of
+    <span class="ltx_text ltx_font_italic" id="A1.p1.1.1">
+     Sibyl
+    </span>
+    , we reuse the tools from the AutoGen
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wu et al.,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Below is a detailed description of each tool and its functions, providing insights into how these tools are utilized within the framework to process and interact with web content efficiently.
+   </p>
+  </div>
+  <section class="ltx_paragraph" id="A1.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Web Browser
+   </h4>
+   <div class="ltx_para ltx_noindent" id="A1.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px1.p1.1">
+     The web browser tool in
+     <span class="ltx_text ltx_font_italic" id="A1.SS0.SSS0.Px1.p1.1.1">
+      Sibyl
+     </span>
+     is designed to perform a variety of functions that facilitate interaction with web pages. These functions are shown in table
+     <a class="ltx_ref" href="#A1.T5" title="Table 5 ‣ Web Browser ‣ Appendix A Details of Tools ‣ Sibyl: Simple yet Effective Agent Framework for Complex Real-world Reasoning">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_table" id="A1.T5">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="A1.T5.1">
+     <tr class="ltx_tr" id="A1.T5.1.1">
+      <td class="ltx_td ltx_align_left ltx_border_tt" id="A1.T5.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="A1.T5.1.1.1.1">
+        Function
+       </span>
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="A1.T5.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="A1.T5.1.1.2.1">
+        Description
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.2">
+      <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T5.1.2.1">
+       informational_web_search
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="A1.T5.1.2.2">
+       Search for information based on a query and return results.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.3">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.3.1">
+       navigational_web_search
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.3.2">
+       Navigate directly to a specific URL based on a search query.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.4">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.4.1">
+       visit_page
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.4.2">
+       Directly access a webpage by URL.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.5">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.5.1">
+       page_up
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.5.2">
+       Scroll up one page in the current view.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.6">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.6.1">
+       page_down
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.6.2">
+       Scroll down one page in the current view.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.7">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.7.1">
+       download_file
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.7.2">
+       Download and attempt to return the text of a file.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.8">
+      <td class="ltx_td ltx_align_left" id="A1.T5.1.8.1">
+       find_on_page_ctrl_f
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left" id="A1.T5.1.8.2">
+       Find and highlight text on a page using a search term.
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="A1.T5.1.9">
+      <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T5.1.9.1">
+       find_next
+      </td>
+      <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="A1.T5.1.9.2">
+       Move to the next occurrence of the search term on a page.
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 5:
+     </span>
+     Web Browser Tool Functions
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="A1.SS0.SSS0.Px1.p2">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px1.p2.1">
+     Additionally, the web browser tool can convert the content of web pages into various formats for better processing, including plain text, HTML, and formats specific to sites like Wikipedia, YouTube, as well as document formats like DOCX, XLSX, PPTX, and multimedia formats such as WAV, MP3 (via ASR), and images (via OCR).
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="A1.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Computer Terminal
+   </h4>
+   <div class="ltx_para ltx_noindent" id="A1.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px2.p1.1">
+     The computer terminal tool serves as a code interpreter within the
+     <span class="ltx_text ltx_font_italic" id="A1.SS0.SSS0.Px2.p1.1.1">
+      Sibyl
+     </span>
+     system. This tool allows the execution of Python code, facilitating dynamic computation and processing tasks which are crucial for complex problem solving and data manipulation within the AI framework.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="A1.SS0.SSS0.Px2.p2">
+    <p class="ltx_p" id="A1.SS0.SSS0.Px2.p2.1">
+     These tools and their functionalities are important in enabling the
+     <span class="ltx_text ltx_font_italic" id="A1.SS0.SSS0.Px2.p2.1.1">
+      Sibyl
+     </span>
+     agent to navigate, interpret, and interact with the digital world effectively, mirroring human-like web browsing and data processing capabilities.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_appendix" id="A2">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix B
+   </span>
+   Ethics Statement
+  </h2>
+  <div class="ltx_para ltx_noindent" id="A2.p1">
+   <p class="ltx_p" id="A2.p1.1">
+    By refining the ability to parse and process multifaceted information,
+    <span class="ltx_text ltx_font_italic" id="A2.p1.1.1">
+     Sibyl
+    </span>
+    helps in delivering more accurate and reliable outputs during complex reasoning in real-world scenarios. This progression helps improve the reliability of responses and reduce the occurrence of hallucinations in the outputs of these models. In addition, during the evaluation phase, we implemented rigorous monitoring of the reasoning processes to identify and prevent any potentially harmful actions that could be executed by the
+    <span class="ltx_text ltx_font_italic" id="A2.p1.1.2">
+     Sibyl
+    </span>
+    system. This precautionary measure is essential to ensure that while the system improves in autonomy, it remains within the bounds of ethical operation. Due to the versatility of general purpose LLM-based agents, we strongly recommend that users of
+    <span class="ltx_text ltx_font_italic" id="A2.p1.1.3">
+     Sibyl
+    </span>
+    also remain vigilant regarding the outputs produced, recognizing the potential impacts that these could have if misapplied. Users are urged to ensure that the deployment of
+    <span class="ltx_text ltx_font_italic" id="A2.p1.1.4">
+     Sibyl
+    </span>
+    is aligned with ethical standards and not used for malicious purposes.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_appendix" id="A3">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix C
+   </span>
+   Prompts
+  </h2>
+  <div class="ltx_para" id="A3.p1">
+   <code class="ltx_verbatim" id="A3.p1.6">
+    <svg class="ltx_picture" height="523.27" id="A3.p1.1.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,523.27) matrix(1 0 0 -1 0 0)">
+      <g fill="#000000" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 517.37 C 0 520.63 2.64 523.27 5.91 523.27 L 594.09 523.27 C 597.36 523.27 600 520.63 600 517.37 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#FFFFFF" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 501.13 L 1.97 517.37 C 1.97 519.54 3.73 521.3 5.91 521.3 L 594.09 521.3 C 596.27 521.3 598.03 519.54 598.03 517.37 L 598.03 501.13 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+       <foreignobject color="#000000" height="12.3" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+         <span class="ltx_p" id="A3.p1.1.pic1.2.2.2.1.1.1">
+          <span class="ltx_text ltx_font_bold" id="A3.p1.1.pic1.2.2.2.1.1.1.1">
+           Prompt Used in Tool Planner
+          </span>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+       <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+        <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+         <span class="ltx_float ltx_lstlisting" id="A3.p1.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+          <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+          </span>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+    <code class="ltx_verbatim" id="A3.p1.6.5">
+     <svg class="ltx_picture" height="524.81" id="A3.p1.2.1.pic1" overflow="visible" version="1.1" width="600">
+      <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,524.81) matrix(1 0 0 -1 0 0)">
+       <g fill="#000000" fill-opacity="1.0">
+        <path d="M 0 5.91 L 0 518.9 C 0 522.17 2.64 524.81 5.91 524.81 L 594.09 524.81 C 597.36 524.81 600 522.17 600 518.9 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+        </path>
+       </g>
+       <g fill="#FFFFFF" fill-opacity="1.0">
+        <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+        </path>
+       </g>
+       <g fill="#F2F2F2" fill-opacity="1.0">
+        <path d="M 1.97 501.13 L 1.97 518.9 C 1.97 521.08 3.73 522.84 5.91 522.84 L 594.09 522.84 C 596.27 522.84 598.03 521.08 598.03 518.9 L 598.03 501.13 Z" style="stroke:none">
+        </path>
+       </g>
+       <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+        <foreignobject color="#000000" height="13.84" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+         <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.2.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+          <span class="ltx_p" id="A3.p1.2.1.pic1.2.2.2.1.1.1">
+           <span class="ltx_text ltx_font_bold" id="A3.p1.2.1.pic1.2.2.2.1.1.1.1">
+            Prompt Used in Tool Planner (continued)
+           </span>
+          </span>
+         </span>
+        </foreignobject>
+       </g>
+       <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+        <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+         <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+          <span class="ltx_float ltx_lstlisting" id="A3.p1.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+           <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+           </span>
+          </span>
+         </span>
+        </foreignobject>
+       </g>
+      </g>
+     </svg>
+     <code class="ltx_verbatim" id="A3.p1.6.5.4">
+      <svg class="ltx_picture" height="523.27" id="A3.p1.3.2.1.pic1" overflow="visible" version="1.1" width="600">
+       <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,523.27) matrix(1 0 0 -1 0 0)">
+        <g fill="#000000" fill-opacity="1.0">
+         <path d="M 0 5.91 L 0 517.37 C 0 520.63 2.64 523.27 5.91 523.27 L 594.09 523.27 C 597.36 523.27 600 520.63 600 517.37 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+         </path>
+        </g>
+        <g fill="#FFFFFF" fill-opacity="1.0">
+         <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+         </path>
+        </g>
+        <g fill="#F2F2F2" fill-opacity="1.0">
+         <path d="M 1.97 501.13 L 1.97 517.37 C 1.97 519.54 3.73 521.3 5.91 521.3 L 594.09 521.3 C 596.27 521.3 598.03 519.54 598.03 517.37 L 598.03 501.13 Z" style="stroke:none">
+         </path>
+        </g>
+        <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+         <foreignobject color="#000000" height="12.3" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+          <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.3.2.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+           <span class="ltx_p" id="A3.p1.3.2.1.pic1.2.2.2.1.1.1">
+            <span class="ltx_text ltx_font_bold" id="A3.p1.3.2.1.pic1.2.2.2.1.1.1.1">
+             Prompt Used for Improve Generated Code
+            </span>
+           </span>
+          </span>
+         </foreignobject>
+        </g>
+        <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+         <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+          <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+           <span class="ltx_float ltx_lstlisting" id="A3.p1.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+            <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+            </span>
+           </span>
+          </span>
+         </foreignobject>
+        </g>
+       </g>
+      </svg>
+      <code class="ltx_verbatim" id="A3.p1.6.5.4.3">
+       <svg class="ltx_picture" height="523.27" id="A3.p1.4.3.2.1.pic1" overflow="visible" version="1.1" width="600">
+        <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,523.27) matrix(1 0 0 -1 0 0)">
+         <g fill="#000000" fill-opacity="1.0">
+          <path d="M 0 5.91 L 0 517.37 C 0 520.63 2.64 523.27 5.91 523.27 L 594.09 523.27 C 597.36 523.27 600 520.63 600 517.37 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+          </path>
+         </g>
+         <g fill="#FFFFFF" fill-opacity="1.0">
+          <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+          </path>
+         </g>
+         <g fill="#F2F2F2" fill-opacity="1.0">
+          <path d="M 1.97 501.13 L 1.97 517.37 C 1.97 519.54 3.73 521.3 5.91 521.3 L 594.09 521.3 C 596.27 521.3 598.03 519.54 598.03 517.37 L 598.03 501.13 Z" style="stroke:none">
+          </path>
+         </g>
+         <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+          <foreignobject color="#000000" height="12.3" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+           <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.4.3.2.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+            <span class="ltx_p" id="A3.p1.4.3.2.1.pic1.2.2.2.1.1.1">
+             <span class="ltx_text ltx_font_bold" id="A3.p1.4.3.2.1.pic1.2.2.2.1.1.1.1">
+              Prompt Used in External Information Aquisition Channel
+             </span>
+            </span>
+           </span>
+          </foreignobject>
+         </g>
+         <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+          <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+           <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+            <span class="ltx_float ltx_lstlisting" id="A3.p1.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+             <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+             </span>
+            </span>
+           </span>
+          </foreignobject>
+         </g>
+        </g>
+       </svg>
+       <code class="ltx_verbatim" id="A3.p1.6.5.4.3.2">
+        <svg class="ltx_picture" height="524.81" id="A3.p1.5.4.3.2.1.pic1" overflow="visible" version="1.1" width="600">
+         <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,524.81) matrix(1 0 0 -1 0 0)">
+          <g fill="#000000" fill-opacity="1.0">
+           <path d="M 0 5.91 L 0 518.9 C 0 522.17 2.64 524.81 5.91 524.81 L 594.09 524.81 C 597.36 524.81 600 522.17 600 518.9 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+           </path>
+          </g>
+          <g fill="#FFFFFF" fill-opacity="1.0">
+           <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+           </path>
+          </g>
+          <g fill="#F2F2F2" fill-opacity="1.0">
+           <path d="M 1.97 501.13 L 1.97 518.9 C 1.97 521.08 3.73 522.84 5.91 522.84 L 594.09 522.84 C 596.27 522.84 598.03 521.08 598.03 518.9 L 598.03 501.13 Z" style="stroke:none">
+           </path>
+          </g>
+          <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+           <foreignobject color="#000000" height="13.84" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+            <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.5.4.3.2.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+             <span class="ltx_p" id="A3.p1.5.4.3.2.1.pic1.2.2.2.1.1.1">
+              <span class="ltx_text ltx_font_bold" id="A3.p1.5.4.3.2.1.pic1.2.2.2.1.1.1.1">
+               Prompt Used in External Information Aquisition Channel (continued)
+              </span>
+             </span>
+            </span>
+           </foreignobject>
+          </g>
+          <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+           <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+            <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+             <span class="ltx_float ltx_lstlisting" id="A3.p1.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+              <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+              </span>
+             </span>
+            </span>
+           </foreignobject>
+          </g>
+         </g>
+        </svg>
+        <code class="ltx_verbatim" id="A3.p1.6.5.4.3.2.1">
+         <svg class="ltx_picture" height="523.27" id="A3.p1.6.5.4.3.2.1.pic1" overflow="visible" version="1.1" width="600">
+          <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,523.27) matrix(1 0 0 -1 0 0)">
+           <g fill="#000000" fill-opacity="1.0">
+            <path d="M 0 5.91 L 0 517.37 C 0 520.63 2.64 523.27 5.91 523.27 L 594.09 523.27 C 597.36 523.27 600 520.63 600 517.37 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+            </path>
+           </g>
+           <g fill="#FFFFFF" fill-opacity="1.0">
+            <path d="M 1.97 5.91 L 1.97 499.16 L 598.03 499.16 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+            </path>
+           </g>
+           <g fill="#F2F2F2" fill-opacity="1.0">
+            <path d="M 1.97 501.13 L 1.97 517.37 C 1.97 519.54 3.73 521.3 5.91 521.3 L 594.09 521.3 C 596.27 521.3 598.03 519.54 598.03 517.37 L 598.03 501.13 Z" style="stroke:none">
+            </path>
+           </g>
+           <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 505.07)">
+            <foreignobject color="#000000" height="12.3" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+             <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="A3.p1.6.5.4.3.2.1.pic1.2.2.2.1.1" style="width:402.3pt;">
+              <span class="ltx_p" id="A3.p1.6.5.4.3.2.1.pic1.2.2.2.1.1.1">
+               <span class="ltx_text ltx_font_bold" id="A3.p1.6.5.4.3.2.1.pic1.2.2.2.1.1.1.1">
+                Prompt Used for Formatting Answers
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+           <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)">
+            <foreignobject color="#000000" height="473.57" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="556.69">
+             <span class="ltx_inline-logical-block ltx_minipage ltx_align_bottom" id="A3.p1.6.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1" style="width:402.3pt;">
+              <span class="ltx_float ltx_lstlisting" id="A3.p1.6.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1">
+               <span class="ltx_listing ltx_lstlisting ltx_listing" id="A3.p1.6.5.4.3.2.1.pic1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.tab1.1">
+               </span>
+              </span>
+             </span>
+            </foreignobject>
+           </g>
+          </g>
+         </svg>
+         <section class="ltx_appendix" id="A4">
+          <h2 class="ltx_title ltx_title_appendix">
+           <span class="ltx_tag ltx_tag_appendix">
+            Appendix D
+           </span>
+           Limitations and Future Directions
+          </h2>
+          <div class="ltx_para ltx_noindent" id="A4.p1">
+           <p class="ltx_p" id="A4.p1.1">
+            Despite the advancements demonstrated by the
+            <span class="ltx_text ltx_font_italic" id="A4.p1.1.1">
+             Sibyl
+            </span>
+            framework, there are inherent limitations that wait to addressed in the future.
+           </p>
+          </div>
+          <section class="ltx_subsection" id="A4.SS1">
+           <h3 class="ltx_title ltx_title_subsection">
+            <span class="ltx_tag ltx_tag_subsection">
+             D.1
+            </span>
+            Limitations
+           </h3>
+           <section class="ltx_paragraph" id="A4.SS1.SSS0.Px1">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Lack of Vision Large Language Model Support
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS1.SSS0.Px1.p1">
+             <p class="ltx_p" id="A4.SS1.SSS0.Px1.p1.1">
+              Currently,
+              <span class="ltx_text ltx_font_italic" id="A4.SS1.SSS0.Px1.p1.1.1">
+               Sibyl
+              </span>
+              primarily operates on textual data and use Optical Character Recognition (OCR) to convert visual information into text modal, thus lacking integration with vision large language models, which restricts its ability to process and interpret visual content as humans do.
+             </p>
+            </div>
+           </section>
+           <section class="ltx_paragraph" id="A4.SS1.SSS0.Px2">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Browser Functionalities
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS1.SSS0.Px2.p1">
+             <p class="ltx_p" id="A4.SS1.SSS0.Px2.p1.1">
+              While
+              <span class="ltx_text ltx_font_italic" id="A4.SS1.SSS0.Px2.p1.1.1">
+               Sibyl
+              </span>
+              utilizes a browser tool, it is not yet equipped with a fully functional browser akin to those used by humans. This limitation affects the agent’s ability to interact with web content in a more natural and efficient manner.
+             </p>
+            </div>
+           </section>
+           <section class="ltx_paragraph" id="A4.SS1.SSS0.Px3">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Learning Mechanisms
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS1.SSS0.Px3.p1">
+             <p class="ltx_p" id="A4.SS1.SSS0.Px3.p1.1">
+              The present system does not incorporate learning mechanisms to adapt and improve from real-world interactions on-the-fly. This may restrict its ability to evolve based on new data or scenarios it encounters.
+             </p>
+            </div>
+           </section>
+          </section>
+          <section class="ltx_subsection" id="A4.SS2">
+           <h3 class="ltx_title ltx_title_subsection">
+            <span class="ltx_tag ltx_tag_subsection">
+             D.2
+            </span>
+            Future Directions
+           </h3>
+           <section class="ltx_paragraph" id="A4.SS2.SSS0.Px1">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Integrating Vision Large Language Models
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS2.SSS0.Px1.p1">
+             <p class="ltx_p" id="A4.SS2.SSS0.Px1.p1.1">
+              Future versions of
+              <span class="ltx_text ltx_font_italic" id="A4.SS2.SSS0.Px1.p1.1.1">
+               Sibyl
+              </span>
+              will incorporate vision large language models to allow the system to handle multimedia content effectively, broadening its applicability across various domains where visual data plays a crucial role.
+             </p>
+            </div>
+           </section>
+           <section class="ltx_paragraph" id="A4.SS2.SSS0.Px2">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Enhancing Browser Capabilities
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS2.SSS0.Px2.p1">
+             <p class="ltx_p" id="A4.SS2.SSS0.Px2.p1.1">
+              There is a pressing need to optimize the browser tool to provide full functionality, mirroring the capabilities available to human users, thereby improving the agent’s interaction with web interfaces.
+             </p>
+            </div>
+           </section>
+           <section class="ltx_paragraph" id="A4.SS2.SSS0.Px3">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Designing Adaptive Learning Mechanisms
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS2.SSS0.Px3.p1">
+             <p class="ltx_p" id="A4.SS2.SSS0.Px3.p1.1">
+              In the future version of
+              <span class="ltx_text ltx_font_italic" id="A4.SS2.SSS0.Px3.p1.1.1">
+               Sibyl
+              </span>
+              , we plan to introduce adaptive learning mechanisms will enable the system to learn from its interactions and experiences, thereby progressively improving its problem-solving strategies and effectiveness.
+             </p>
+            </div>
+           </section>
+           <section class="ltx_paragraph" id="A4.SS2.SSS0.Px4">
+            <h4 class="ltx_title ltx_title_paragraph">
+             Developing LLMs tailored for Agents
+            </h4>
+            <div class="ltx_para ltx_noindent" id="A4.SS2.SSS0.Px4.p1">
+             <p class="ltx_p" id="A4.SS2.SSS0.Px4.p1.1">
+              Future work will also focus on developing LLMs that are specifically optimized for general-purpose AI agents, aiming to enhance their efficiency and effectiveness in complex reasoning tasks. This includes gathering and utilizing data specific to long-distance reasoning processes in real-world scenarios and improving the system’s ability to build and reuse its tools autonomously.
+             </p>
+            </div>
+            <div class="ltx_pagination ltx_role_newpage">
+            </div>
+           </section>
+          </section>
+         </section>
+        </code>
+       </code>
+      </code>
+     </code>
+    </code>
+   </code>
+  </div>
+ </section>
+</article>

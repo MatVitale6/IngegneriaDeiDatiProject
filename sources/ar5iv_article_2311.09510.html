@@ -1,0 +1,2996 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  One Size Does Not Fit All: Customizing Open-Domain Procedures
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yash Kumar Lal
+    <sup class="ltx_sup" id="id15.15.id1">
+     1
+    </sup>
+    <sup class="ltx_sup" id="id16.16.id2">
+     3
+    </sup>
+    , Li Zhang
+    <sup class="ltx_sup" id="id17.17.id3">
+     2
+    </sup>
+    <sup class="ltx_sup" id="id18.18.id4">
+     3
+    </sup>
+    , Faeze Brahman
+    <sup class="ltx_sup" id="id19.19.id5">
+     3
+    </sup>
+    ,
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="id8.8.3">
+     Bodhisattwa Prasad Majumder
+     <sup class="ltx_sup" id="id8.8.3.1">
+      <span class="ltx_text ltx_font_medium" id="id8.8.3.1.1">
+       3
+      </span>
+     </sup>
+     , Peter Clark
+     <sup class="ltx_sup" id="id8.8.3.2">
+      <span class="ltx_text ltx_font_medium" id="id8.8.3.2.1">
+       3
+      </span>
+     </sup>
+     , Niket Tandon
+     <sup class="ltx_sup" id="id8.8.3.3">
+      <span class="ltx_text ltx_font_medium" id="id8.8.3.3.1">
+       3
+      </span>
+     </sup>
+    </span>
+    <br class="ltx_break"/>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id20.20.id6">
+     1
+    </sup>
+    Stony Brook University,
+    <sup class="ltx_sup" id="id21.21.id7">
+     2
+    </sup>
+    University of Pennsylvania
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id22.22.id8">
+     3
+    </sup>
+    Allen Institute for Artificial Intelligence
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id23.23.id9">
+     1
+    </sup>
+    <span class="ltx_text ltx_font_typewriter" id="id24.24.id10">
+     ylal@cs.stonybrook.edu
+    </span>
+    ,
+    <sup class="ltx_sup" id="id25.25.id11">
+     2
+    </sup>
+    <span class="ltx_text ltx_font_typewriter" id="id26.26.id12">
+     zharry@upenn.edu
+    </span>
+    ,
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id27.27.id13">
+     3
+    </sup>
+    <span class="ltx_text ltx_font_typewriter" id="id28.28.id14">
+     {faezeb,bodhisattwam,peterc,nikett}@allenai.org
+     <br class="ltx_break"/>
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id29.id1">
+   How-to procedures, such as how to plant a garden, are ubiquitous.
+But one size does not fit all - humans often need to customize these procedural plans according to their specific needs, e.g., planting a garden without pesticides.
+While large language models (
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.1">
+    LLM
+   </span>
+   s) can fluently generate generic procedures, we present the first study on how well
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.2">
+    LLM
+   </span>
+   s can customize open-domain procedures.
+We introduce
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.3">
+    CustomPlans
+   </span>
+   , a probe dataset of customization hints that encodes diverse user needs for open-domain How-to procedures.
+Using
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.4">
+    LLM
+   </span>
+   s as
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.5">
+    CustomizationAgent
+   </span>
+   and
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.6">
+    ExecutionAgent
+   </span>
+   in different settings, we establish their abilities to perform open-domain procedure customization.
+Human evaluation shows that using these agents in a
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.7">
+    Sequential
+   </span>
+   setting is the best, but they are good enough only ~51% of the time.
+Error analysis shows that
+   <span class="ltx_text ltx_font_smallcaps" id="id29.id1.8">
+    LLM
+   </span>
+   s do not sufficiently address user customization needs in their generated procedures.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.14">
+   <p class="ltx_p" id="p1.14.15">
+    <span class="ltx_text ltx_font_bold" id="p1.14.15.1">
+     One Size Does Not Fit All: Customizing Open-Domain Procedures
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.14.14" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.14.14.14" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.14.14.14.14">
+      <span class="ltx_tr" id="p1.5.5.5.5.5">
+       <span class="ltx_td ltx_align_center" id="p1.5.5.5.5.5.5">
+        <span class="ltx_text ltx_font_bold" id="p1.5.5.5.5.5.5.5">
+         Yash Kumar Lal
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.5.5.1">
+          <span class="ltx_text ltx_font_medium" id="p1.5.5.5.5.5.5.5.1.1">
+           1
+          </span>
+         </sup>
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.5.5.2">
+          <span class="ltx_text ltx_font_medium" id="p1.5.5.5.5.5.5.5.2.1">
+           3
+          </span>
+         </sup>
+         , Li Zhang
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.5.5.3">
+          <span class="ltx_text ltx_font_medium" id="p1.5.5.5.5.5.5.5.3.1">
+           2
+          </span>
+         </sup>
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.5.5.4">
+          <span class="ltx_text ltx_font_medium" id="p1.5.5.5.5.5.5.5.4.1">
+           3
+          </span>
+         </sup>
+         , Faeze Brahman
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.5.5.5">
+          <span class="ltx_text ltx_font_medium" id="p1.5.5.5.5.5.5.5.5.1">
+           3
+          </span>
+         </sup>
+         ,
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.8.8.8.8.8">
+       <span class="ltx_td ltx_align_center" id="p1.8.8.8.8.8.3">
+        <span class="ltx_text ltx_font_bold" id="p1.8.8.8.8.8.3.3">
+         Bodhisattwa Prasad Majumder
+         <sup class="ltx_sup" id="p1.8.8.8.8.8.3.3.1">
+          <span class="ltx_text ltx_font_medium" id="p1.8.8.8.8.8.3.3.1.1">
+           3
+          </span>
+         </sup>
+         , Peter Clark
+         <sup class="ltx_sup" id="p1.8.8.8.8.8.3.3.2">
+          <span class="ltx_text ltx_font_medium" id="p1.8.8.8.8.8.3.3.2.1">
+           3
+          </span>
+         </sup>
+         , Niket Tandon
+         <sup class="ltx_sup" id="p1.8.8.8.8.8.3.3.3">
+          <span class="ltx_text ltx_font_medium" id="p1.8.8.8.8.8.3.3.3.1">
+           3
+          </span>
+         </sup>
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.10.10.10.10.10">
+       <span class="ltx_td ltx_align_center" id="p1.10.10.10.10.10.2">
+        <sup class="ltx_sup" id="p1.10.10.10.10.10.2.1">
+         1
+        </sup>
+        Stony Brook University,
+        <sup class="ltx_sup" id="p1.10.10.10.10.10.2.2">
+         2
+        </sup>
+        University of Pennsylvania
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.11.11.11.11.11">
+       <span class="ltx_td ltx_align_center" id="p1.11.11.11.11.11.1">
+        <sup class="ltx_sup" id="p1.11.11.11.11.11.1.1">
+         3
+        </sup>
+        Allen Institute for Artificial Intelligence
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.13.13.13.13.13">
+       <span class="ltx_td ltx_align_center" id="p1.13.13.13.13.13.2">
+        <sup class="ltx_sup" id="p1.13.13.13.13.13.2.1">
+         1
+        </sup>
+        <span class="ltx_text ltx_font_typewriter" id="p1.13.13.13.13.13.2.2">
+         ylal@cs.stonybrook.edu
+        </span>
+        ,
+        <sup class="ltx_sup" id="p1.13.13.13.13.13.2.3">
+         2
+        </sup>
+        <span class="ltx_text ltx_font_typewriter" id="p1.13.13.13.13.13.2.4">
+         zharry@upenn.edu
+        </span>
+        ,
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.14.14.14.14.14">
+       <span class="ltx_td ltx_align_center" id="p1.14.14.14.14.14.1">
+        <sup class="ltx_sup" id="p1.14.14.14.14.14.1.1">
+         3
+        </sup>
+        <span class="ltx_text ltx_font_typewriter" id="p1.14.14.14.14.14.1.2">
+         {faezeb,bodhisattwam,peterc,nikett}@allenai.org
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    How-to procedures (or procedural plans) serve as building blocks in decision-making processes, even making up for a large fraction of search engine queries
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://observer.com/2018/12/google-most-searched-2018-report-top-questions/" target="_blank" title="">
+        https://observer.com/2018/12/google-most-searched-2018-report-top-questions/
+       </a>
+      </span>
+     </span>
+    </span>
+    .
+WikiHow contains a large collection of high-quality, expert-authored How-to procedures about diverse topics.
+There are a myriad of ways to tailor these generic How-to procedures to suit users by using different customization hints.
+For example, for a How-to procedure like “How to stay healthy”, users can prefer yoga, or a Mediterranean lifestyle, or be dealing with an injury, or more.
+It is infeasible to manually compile innumerable customizations of a procedural plan, and thus it is important to build an automated system to do this.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Customization hints implicitly encode multiple requirements and are subjective — for example, a Mediterranean lifestyle can involve a diet of whole grains, using healthy fats like olive oil, the occasional glass of wine, walking, and more.
+These implicit customizations are best expressed in natural language since it is more practical in a real-world, open-ended setting.
+Thus, we need an automated method that can understand these implicitly expressed needs and make consistent revisions to customize how-to procedures.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Prior work has focused on building supervised customization models for limited domains such as shopping, news and video games
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Rashid et al. (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2002
+     </a>
+     ); Togelius et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2007
+     </a>
+     )
+    </cite>
+    .
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Majumder et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2019
+     </a>
+     )
+    </cite>
+    focus on just customizing cooking recipes while
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Antognini et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    are limited to certain aspects of customization.
+An open-domain setting with natural language customization hints requires a supervision-free model such as
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p3.1.1">
+     LLM
+    </span>
+    s.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="296" id="S1.F1.g1" src="/html/2311.09510/assets/x1.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    There are various ways to customize a procedure for a goal. Each hint leads to a different customized procedure. For each customization, different aspects of the hint need to be considered.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table" id="S1.T1">
+   <table class="ltx_tabular ltx_align_middle" id="S1.T1.1">
+    <tr class="ltx_tr" id="S1.T1.1.1">
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S1.T1.1.1.1">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.1.1.1">
+       <span class="ltx_p" id="S1.T1.1.1.1.1.1" style="width:56.4pt;">
+        <span class="ltx_text ltx_font_bold" id="S1.T1.1.1.1.1.1.1">
+         Goal
+        </span>
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S1.T1.1.1.2">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.1.2.1">
+       <span class="ltx_p" id="S1.T1.1.1.2.1.1" style="width:125.7pt;">
+        <span class="ltx_text ltx_font_bold" id="S1.T1.1.1.2.1.1.1">
+         Uncustomized Procedure
+        </span>
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S1.T1.1.1.3">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.1.3.1">
+       <span class="ltx_p" id="S1.T1.1.1.3.1.1" style="width:95.4pt;">
+        <span class="ltx_text ltx_font_bold" id="S1.T1.1.1.3.1.1.1">
+         Customization Hint
+        </span>
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt" id="S1.T1.1.1.4">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.1.4.1">
+       <span class="ltx_p" id="S1.T1.1.1.4.1.1" style="width:108.4pt;">
+        <span class="ltx_text ltx_font_bold" id="S1.T1.1.1.4.1.1.1">
+         Customization Metadata
+        </span>
+       </span>
+      </span>
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="S1.T1.1.2">
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.2.1">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.2.1.1">
+       <span class="ltx_p" id="S1.T1.1.2.1.1.1" style="width:56.4pt;">
+        Knit a hat
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.2.2">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.2.2.1">
+       <span class="ltx_p" id="S1.T1.1.2.2.1.1" style="width:125.7pt;">
+        - Get knitting needles, yarn …
+        <br class="ltx_break"/>
+        - Learn basic stitches …
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.2.3">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.2.3.1">
+       <span class="ltx_p" id="S1.T1.1.2.3.1.1" style="width:95.4pt;">
+        I want to take up
+        <br class="ltx_break"/>
+        knitting as a hobby
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.2.4">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.2.4.1">
+       <span class="ltx_p" id="S1.T1.1.2.4.1.1" style="width:108.4pt;">
+        Constraint: Refinement
+       </span>
+      </span>
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="S1.T1.1.3">
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.3.1">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.3.1.1">
+       <span class="ltx_p" id="S1.T1.1.3.1.1.1" style="width:56.4pt;">
+        Make banana
+        <br class="ltx_break"/>
+        smoothie
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.3.2">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.3.2.1">
+       <span class="ltx_p" id="S1.T1.1.3.2.1.1" style="width:125.7pt;">
+        - Look up recipe …
+        <br class="ltx_break"/>
+        - Go to store …
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.3.3">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.3.3.1">
+       <span class="ltx_p" id="S1.T1.1.3.3.1.1" style="width:95.4pt;">
+        It is 4am in the
+        <br class="ltx_break"/>
+        morning
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.3.4">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.3.4.1">
+       <span class="ltx_p" id="S1.T1.1.3.4.1.1" style="width:108.4pt;">
+        Constraint: Prerequisite
+       </span>
+      </span>
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="S1.T1.1.4">
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.4.1">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.4.1.1">
+       <span class="ltx_p" id="S1.T1.1.4.1.1.1" style="width:56.4pt;">
+        Stay healthy
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.4.2">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.4.2.1">
+       <span class="ltx_p" id="S1.T1.1.4.2.1.1" style="width:125.7pt;">
+        - Eat a balanced diet …
+        <br class="ltx_break"/>
+        - Exercise regularly …
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.4.3">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.4.3.1">
+       <span class="ltx_p" id="S1.T1.1.4.3.1.1" style="width:95.4pt;">
+        I like the
+        <br class="ltx_break"/>
+        Mediterranean
+        <br class="ltx_break"/>
+        style of living
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S1.T1.1.4.4">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.4.4.1">
+       <span class="ltx_p" id="S1.T1.1.4.4.1.1" style="width:108.4pt;">
+        Constraint: Preference
+       </span>
+      </span>
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="S1.T1.1.5">
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S1.T1.1.5.1">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.5.1.1">
+       <span class="ltx_p" id="S1.T1.1.5.1.1.1" style="width:56.4pt;">
+        Bake bread
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S1.T1.1.5.2">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.5.2.1">
+       <span class="ltx_p" id="S1.T1.1.5.2.1.1" style="width:125.7pt;">
+        - Dissolve yeast in water …
+        <br class="ltx_break"/>
+        - Stir in sugar, salt, oil …
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S1.T1.1.5.3">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.5.3.1">
+       <span class="ltx_p" id="S1.T1.1.5.3.1.1" style="width:95.4pt;">
+        I have been baking
+        <br class="ltx_break"/>
+        for years
+       </span>
+      </span>
+     </td>
+     <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t" id="S1.T1.1.5.4">
+      <span class="ltx_inline-block ltx_align_top" id="S1.T1.1.5.4.1">
+       <span class="ltx_p" id="S1.T1.1.5.4.1.1" style="width:108.4pt;">
+        Expertise: Expert
+       </span>
+      </span>
+     </td>
+    </tr>
+   </table>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Examples from our
+    <span class="ltx_text ltx_font_smallcaps" id="S1.T1.3.1">
+     CustomPlans
+    </span>
+    dataset. Each data point contains a goal, the uncustomized procedure and a customization hint.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    This paper presents the first study of using
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p4.1.1">
+     LLM
+    </span>
+    s to customize open-domain How-to procedures. First, we compile a new dataset,
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p4.1.2">
+     CustomPlans
+    </span>
+    , that contains diverse procedures and customization hints. We manually collect a small, high-quality dataset with diverse procedures and customization hints and also re-formulate two existing WikiHow based datasets —
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p4.1.3">
+     Choice-75
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Hou et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p4.1.4">
+     CoPlan
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Brahman et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    — that contain user scenarios which can serve as customization hints.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    We then evaluate how well
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p5.1.1">
+     LLM
+    </span>
+    s can customize procedures.
+We conduct a set of experiments inspired by prior work on building supervised models that can edit procedures according to constraints.
+Through human evaluation, we establish that using first customizing the original procedure for a goal and then fixing issues related to execution is the best method to generate procedures that satisfy customization hints.
+Even so, we find that
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p5.1.2">
+     LLM
+    </span>
+    s fail to sufficiently address the customization needs, often generating procedures that miss important steps.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    In summary, our contributions are:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_smallcaps" id="S1.I1.i1.p1.1.1">
+        CustomPlans
+       </span>
+       , a probe dataset to study how well
+       <span class="ltx_text ltx_font_smallcaps" id="S1.I1.i1.p1.1.2">
+        LLM
+       </span>
+       s can customize open-domain procedures when provided hints from users.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Using a multi-agent framework,
+       <span class="ltx_text ltx_font_smallcaps" id="S1.I1.i2.p1.1.1">
+        LLM
+       </span>
+       s are able to generate executable customized procedures  51% of the time, leaving significant room for improvement.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       Models are unable to fully address the implicit requirements of user customization hints in their generated procedures.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   The
+   <span class="ltx_text ltx_font_smallcaps" id="S2.1.1">
+    CustomPlans
+   </span>
+   dataset
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Prior work on editing and customizing procedures has focused on specific domains.
+So, data for the task of procedure customization is limited.
+To alleviate this problem, we re-purpose two related datasets and collect more high-quality data from WikiHow to create the
+    <span class="ltx_text ltx_font_smallcaps" id="S2.p1.1.1">
+     CustomPlans
+    </span>
+    probe dataset.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    <span class="ltx_text ltx_font_smallcaps" id="S2.SS1.1.1">
+     CustomPlansReal
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Each WikiHow article consists of a goal (indicated in the title starting with “How to”) and ordered, richly described steps that lead to that goal.
+It already contains articles that include multiple methods for a task.
+Additionally, search queries can be used to retrieve and select articles broadly related to the same goal.
+However, user interaction signals like fine-grained querying related to specific versions of procedures are not available publicly.
+Such signals can be used to improve user experiences.
+Therefore, we create a new probing set that contains a procedural goal and an individual user’s relevant context.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="176" id="S2.F2.g1" src="/html/2311.09510/assets/figures/categorization.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Types of customization hints present in
+     <span class="ltx_text ltx_font_smallcaps" id="S2.F2.2.1">
+      CustomPlans
+     </span>
+     , enabling analysis of diverse customization hints. Prerequisites are usually expressed explicitly, while preferences and refinements may be expressed implicitly in the hint. Expertise usually needs to be inferred from the hint, except in hints collected experts. Some hints also encode both user expertise as well as constraints in their scenarios.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     To compile this data, we start by identifying 9 diverse domains.
+For each domain, we employ two methods to curate WikiHow articles.
+1) Search Results: We devise relevant, popular and pragmatic goals which have relevant instructions present in WikiHow.
+We present each goal to users of relevant persona and ask them to provide their feedback according to their personal preferences.
+For example, for the broad goal of staying healthy, a collected user persona was that of a teenager looking to build long-term healthy habits.
+2) Multiple Methods: For the same set of broad goals, we filter out WikiHow articles that contain multiple methods to achieve the same goal.
+Given the broad goal, users are required to provide situational feedback corresponding to each method.
+Using this approach, we collect 106 customized goals (corresponding to user feedback) over 9 domains and build
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS1.p2.1.1">
+      CustomPlansReal
+     </span>
+     , which contains customization hints collected from humans.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    <span class="ltx_text ltx_font_smallcaps" id="S2.SS2.1.1">
+     CustomPlansSimulated
+    </span>
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     To study decision branching in scripts,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Hou et al. (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      )
+     </cite>
+     created
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS2.p1.1.1">
+      Choice-75
+     </span>
+     , a benchmark of 565 data points which requires selecting the next step in a procedure given descriptive scenarios.
+These scenarios are valid only at a step level.
+However, they can also be incorporated into the full procedure if treated as constraints.
+We treat these scenarios as customization hints.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS2.p2.1.1">
+      CoPlan
+     </span>
+     is a dataset of machine-generated, human-verified scripts.
+We use the test set of 861 data points for the counterfactual plan revision task for our purposes.
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Brahman et al. (
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2023
+      </a>
+      )
+     </cite>
+     collect goals from diverse topics and prompt
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS2.p2.1.2">
+      text-curie-001
+     </span>
+     to generate a set of ordered steps as a plan to achieve that goal.
+     <span class="ltx_text ltx_font_typewriter" id="S2.SS2.p2.1.3">
+      text-curie-001
+     </span>
+     is also used, in a few-shot manner, to generate conditions that can alter these plans.
+Human verification of these components leads to the creation of a test set that contains a goal, an uncustomized procedure and a relevant condition.
+These conditions describe prerequisites to be fulfilled that require the original procedure to be customized in a specific manner.
+We treat these conditions as customization hints.
+The combination of data from these two sources is referred to as
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS2.p2.1.4">
+      CustomPlansSimulated
+     </span>
+     since it contains customization hints generated automatically.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Statistics:
+    <span class="ltx_text ltx_font_smallcaps" id="S2.SS3.1.1">
+     CustomPlans
+    </span>
+    dataset
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     We randomly select 100 procedures and their corresponding customization hints from
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS3.p1.1.1">
+      CustomPlansSimulated
+     </span>
+     and add them to
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS3.p1.1.2">
+      CustomPlansReal
+     </span>
+     to form the
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS3.p1.1.3">
+      CustomPlans
+     </span>
+     evaluation set.
+Overall,
+     <span class="ltx_text ltx_font_smallcaps" id="S2.SS3.p1.1.4">
+      CustomPlans
+     </span>
+     contains 206 data points, each of which is made up of a goal, a list of steps to achieve that goal and a customization hint from a user according to which the procedure should be modified.
+It contains 106 unique goals and 203 unique customization hints.
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S1.T1" title="Table 1 ‣ 1 Introduction ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+      <span class="ltx_text ltx_ref_tag">
+       Table 1
+      </span>
+     </a>
+     shows examples from the dataset.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="410" id="S2.F3.g1" src="/html/2311.09510/assets/figures/task.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     Given a goal
+     <math alttext="G" class="ltx_Math" display="inline" id="S2.F3.5.m1.1">
+      <semantics id="S2.F3.5.m1.1b">
+       <mi id="S2.F3.5.m1.1.1" xref="S2.F3.5.m1.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.F3.5.m1.1c">
+        <ci id="S2.F3.5.m1.1.1.cmml" xref="S2.F3.5.m1.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.F3.5.m1.1d">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     , the uncustomized procedure
+     <math alttext="P" class="ltx_Math" display="inline" id="S2.F3.6.m2.1">
+      <semantics id="S2.F3.6.m2.1b">
+       <mi id="S2.F3.6.m2.1.1" xref="S2.F3.6.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.F3.6.m2.1c">
+        <ci id="S2.F3.6.m2.1.1.cmml" xref="S2.F3.6.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.F3.6.m2.1d">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     to achieve that goal and a customization hint
+     <math alttext="H" class="ltx_Math" display="inline" id="S2.F3.7.m3.1">
+      <semantics id="S2.F3.7.m3.1b">
+       <mi id="S2.F3.7.m3.1.1" xref="S2.F3.7.m3.1.1.cmml">
+        H
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.F3.7.m3.1c">
+        <ci id="S2.F3.7.m3.1.1.cmml" xref="S2.F3.7.m3.1.1">
+         𝐻
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.F3.7.m3.1d">
+        H
+       </annotation>
+      </semantics>
+     </math>
+     from a user, models are required to generate a modified procedure
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S2.F3.8.m4.1">
+      <semantics id="S2.F3.8.m4.1b">
+       <msup id="S2.F3.8.m4.1.1" xref="S2.F3.8.m4.1.1.cmml">
+        <mi id="S2.F3.8.m4.1.1.2" xref="S2.F3.8.m4.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S2.F3.8.m4.1.1.3" xref="S2.F3.8.m4.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S2.F3.8.m4.1c">
+        <apply id="S2.F3.8.m4.1.1.cmml" xref="S2.F3.8.m4.1.1">
+         <csymbol cd="ambiguous" id="S2.F3.8.m4.1.1.1.cmml" xref="S2.F3.8.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S2.F3.8.m4.1.1.2.cmml" xref="S2.F3.8.m4.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S2.F3.8.m4.1.1.3.cmml" xref="S2.F3.8.m4.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.F3.8.m4.1d">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     to achieve the same goal by taking into account the customization hint.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S2.F4">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_3">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S2.F4.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="463" id="S2.F4.sf1.g1" src="/html/2311.09510/assets/x2.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         (a)
+        </span>
+        <span class="ltx_text ltx_font_smallcaps" id="S2.F4.sf1.2.1">
+         Uniform
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_3">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S2.F4.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="527" id="S2.F4.sf2.g1" src="/html/2311.09510/assets/x3.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         (b)
+        </span>
+        <span class="ltx_text ltx_font_smallcaps" id="S2.F4.sf2.2.1">
+         Sequential
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_3">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S2.F4.sf3">
+       <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="572" id="S2.F4.sf3.g1" src="/html/2311.09510/assets/x4.png" width="461"/>
+       <figcaption class="ltx_caption">
+        <span class="ltx_tag ltx_tag_figure">
+         (c)
+        </span>
+        <span class="ltx_text ltx_font_smallcaps" id="S2.F4.sf3.2.1">
+         Parallel
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Different settings of
+     <span class="ltx_text ltx_font_smallcaps" id="S2.F4.3.1">
+      CustomizationAgent
+     </span>
+     and
+     <span class="ltx_text ltx_font_smallcaps" id="S2.F4.4.2">
+      ExecutionAgent
+     </span>
+     for procedure customization
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     We also store relevant metadata for each user persona providing the annotation such as their level of expertise and their constraints like dietary preferences or availability of tools.
+1.2% of these customized procedures can only be performed by domain experts, 7.6% need an intermediate level of expertise, and the rest are beginner-friendly.
+The user comments contain implicit or explicit constraints — 68% contain hard prerequisites, 30% reflect some user preference and the rest mention a target refinement to be achieved.
+The types of customization hints, as well as corresponding examples, in this dataset are presented in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S2.F2" title="Figure 2 ‣ 2.1 CustomPlansReal ‣ 2 The CustomPlans dataset ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 2
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiment Details
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Task
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.4">
+     The task, illustrated in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S2.F3" title="Figure 3 ‣ 2.3 Statistics: CustomPlans dataset ‣ 2 The CustomPlans dataset ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 3
+      </span>
+     </a>
+     , involves taking as input the goal
+     <math alttext="G" class="ltx_Math" display="inline" id="S3.SS1.p1.1.m1.1">
+      <semantics id="S3.SS1.p1.1.m1.1a">
+       <mi id="S3.SS1.p1.1.m1.1.1" xref="S3.SS1.p1.1.m1.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.1.m1.1b">
+        <ci id="S3.SS1.p1.1.m1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.1.m1.1c">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     of the procedure
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS1.p1.2.m2.1">
+      <semantics id="S3.SS1.p1.2.m2.1a">
+       <mi id="S3.SS1.p1.2.m2.1.1" xref="S3.SS1.p1.2.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.2.m2.1b">
+        <ci id="S3.SS1.p1.2.m2.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.2.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     as well as a user customization hint
+     <math alttext="H" class="ltx_Math" display="inline" id="S3.SS1.p1.3.m3.1">
+      <semantics id="S3.SS1.p1.3.m3.1a">
+       <mi id="S3.SS1.p1.3.m3.1.1" xref="S3.SS1.p1.3.m3.1.1.cmml">
+        H
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.3.m3.1b">
+        <ci id="S3.SS1.p1.3.m3.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">
+         𝐻
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.3.m3.1c">
+        H
+       </annotation>
+      </semantics>
+     </math>
+     .
+The output should be a procedure to fulfill the goal while also taking into account the user scenario described in the hint
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p1.4.m4.1">
+      <semantics id="S3.SS1.p1.4.m4.1a">
+       <msup id="S3.SS1.p1.4.m4.1.1" xref="S3.SS1.p1.4.m4.1.1.cmml">
+        <mi id="S3.SS1.p1.4.m4.1.1.2" xref="S3.SS1.p1.4.m4.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S3.SS1.p1.4.m4.1.1.3" xref="S3.SS1.p1.4.m4.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.4.m4.1b">
+        <apply id="S3.SS1.p1.4.m4.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p1.4.m4.1.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p1.4.m4.1.1.2.cmml" xref="S3.SS1.p1.4.m4.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS1.p1.4.m4.1.1.3.cmml" xref="S3.SS1.p1.4.m4.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.4.m4.1c">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+To tailor procedures according to customization hints, one needs to make implicit inferences out of the hints, identify the steps that require changes, and finally consistently apply changes to the different steps.
+We introduce a multi-agent prompting framework to establish the abilities of state-of-the-art
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS1.p1.4.1">
+      LLM
+     </span>
+     s to customize procedures according to user feedback using the
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS1.p1.4.2">
+      CustomPlans
+     </span>
+     dataset.
+Through our experiments, we aim to understand how well models can modify generic procedures to incorporate aspects provided in customization hints.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Models
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Recently, model-based agents have been used to perform different types of reasoning in service of achieving a larger goal
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Yoran et al. (
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+To that end, we disentangle the task of generating customized procedures, delegating customization to
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p1.1.1">
+      CustomizationAgent
+     </span>
+     and ensuring the executability of the generated procedure to
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p1.1.2">
+      ExecutionAgent
+     </span>
+     .
+However, it is unclear how these agents can interact with each other to best generate customized procedures.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.5">
+     Each agent produces a bag of semi-structured edits
+     <math alttext="E" class="ltx_Math" display="inline" id="S3.SS2.p2.1.m1.1">
+      <semantics id="S3.SS2.p2.1.m1.1a">
+       <mi id="S3.SS2.p2.1.m1.1.1" xref="S3.SS2.p2.1.m1.1.1.cmml">
+        E
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.1.m1.1b">
+        <ci id="S3.SS2.p2.1.m1.1.1.cmml" xref="S3.SS2.p2.1.m1.1.1">
+         𝐸
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.1.m1.1c">
+        E
+       </annotation>
+      </semantics>
+     </math>
+     that indicate the operation to be performed (they are only allowed to perform the insert or replace operation), the step in the original procedure
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p2.2.m2.1">
+      <semantics id="S3.SS2.p2.2.m2.1a">
+       <mi id="S3.SS2.p2.2.m2.1.1" xref="S3.SS2.p2.2.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.2.m2.1b">
+        <ci id="S3.SS2.p2.2.m2.1.1.cmml" xref="S3.SS2.p2.2.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.2.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     to perform it on/after, and the new step to replace it with, or insert after it.
+We then apply these edits deterministically on
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p2.3.m3.1">
+      <semantics id="S3.SS2.p2.3.m3.1a">
+       <mi id="S3.SS2.p2.3.m3.1.1" xref="S3.SS2.p2.3.m3.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.3.m3.1b">
+        <ci id="S3.SS2.p2.3.m3.1.1.cmml" xref="S3.SS2.p2.3.m3.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.3.m3.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     to obtain
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p2.4.m4.1">
+      <semantics id="S3.SS2.p2.4.m4.1a">
+       <msup id="S3.SS2.p2.4.m4.1.1" xref="S3.SS2.p2.4.m4.1.1.cmml">
+        <mi id="S3.SS2.p2.4.m4.1.1.2" xref="S3.SS2.p2.4.m4.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S3.SS2.p2.4.m4.1.1.3" xref="S3.SS2.p2.4.m4.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.4.m4.1b">
+        <apply id="S3.SS2.p2.4.m4.1.1.cmml" xref="S3.SS2.p2.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p2.4.m4.1.1.1.cmml" xref="S3.SS2.p2.4.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p2.4.m4.1.1.2.cmml" xref="S3.SS2.p2.4.m4.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p2.4.m4.1.1.3.cmml" xref="S3.SS2.p2.4.m4.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.4.m4.1c">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     i.e., we find the step number in
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p2.5.m5.1">
+      <semantics id="S3.SS2.p2.5.m5.1a">
+       <mi id="S3.SS2.p2.5.m5.1.1" xref="S3.SS2.p2.5.m5.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p2.5.m5.1b">
+        <ci id="S3.SS2.p2.5.m5.1.1.cmml" xref="S3.SS2.p2.5.m5.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p2.5.m5.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     that corresponds to a suggested edit and insert/replace it with the edited text.
+We experiment with three settings for the defined agents:
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p2.5.1">
+      Uniform
+     </span>
+     ,
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p2.5.2">
+      Sequential
+     </span>
+     , and
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p2.5.3">
+      Parallel
+     </span>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.4">
+     <span class="ltx_text ltx_font_bold ltx_font_smallcaps" id="S3.SS2.p3.4.1">
+      Uniform
+     </span>
+     - We first define a single agent that performs the task of suggesting edits about customization as well as executability on
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p3.1.m1.1">
+      <semantics id="S3.SS2.p3.1.m1.1a">
+       <mi id="S3.SS2.p3.1.m1.1.1" xref="S3.SS2.p3.1.m1.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p3.1.m1.1b">
+        <ci id="S3.SS2.p3.1.m1.1.1.cmml" xref="S3.SS2.p3.1.m1.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p3.1.m1.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     to generate
+     <math alttext="P_{c}" class="ltx_Math" display="inline" id="S3.SS2.p3.2.m2.1">
+      <semantics id="S3.SS2.p3.2.m2.1a">
+       <msub id="S3.SS2.p3.2.m2.1.1" xref="S3.SS2.p3.2.m2.1.1.cmml">
+        <mi id="S3.SS2.p3.2.m2.1.1.2" xref="S3.SS2.p3.2.m2.1.1.2.cmml">
+         P
+        </mi>
+        <mi id="S3.SS2.p3.2.m2.1.1.3" xref="S3.SS2.p3.2.m2.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p3.2.m2.1b">
+        <apply id="S3.SS2.p3.2.m2.1.1.cmml" xref="S3.SS2.p3.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p3.2.m2.1.1.1.cmml" xref="S3.SS2.p3.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p3.2.m2.1.1.2.cmml" xref="S3.SS2.p3.2.m2.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p3.2.m2.1.1.3.cmml" xref="S3.SS2.p3.2.m2.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p3.2.m2.1c">
+        P_{c}
+       </annotation>
+      </semantics>
+     </math>
+     .
+This agent is required to understand how to perform both customization towards a hint
+     <math alttext="H" class="ltx_Math" display="inline" id="S3.SS2.p3.3.m3.1">
+      <semantics id="S3.SS2.p3.3.m3.1a">
+       <mi id="S3.SS2.p3.3.m3.1.1" xref="S3.SS2.p3.3.m3.1.1.cmml">
+        H
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p3.3.m3.1b">
+        <ci id="S3.SS2.p3.3.m3.1.1.cmml" xref="S3.SS2.p3.3.m3.1.1">
+         𝐻
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p3.3.m3.1c">
+        H
+       </annotation>
+      </semantics>
+     </math>
+     as well as execution to achieve the goal
+     <math alttext="G" class="ltx_Math" display="inline" id="S3.SS2.p3.4.m4.1">
+      <semantics id="S3.SS2.p3.4.m4.1a">
+       <mi id="S3.SS2.p3.4.m4.1.1" xref="S3.SS2.p3.4.m4.1.1.cmml">
+        G
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p3.4.m4.1b">
+        <ci id="S3.SS2.p3.4.m4.1.1.cmml" xref="S3.SS2.p3.4.m4.1.1">
+         𝐺
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p3.4.m4.1c">
+        G
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p4">
+    <p class="ltx_p" id="S3.SS2.p4.8">
+     <span class="ltx_text ltx_font_bold ltx_font_smallcaps" id="S3.SS2.p4.8.1">
+      Sequential
+     </span>
+     - In this setting, we first obtain a set of edits
+     <math alttext="E_{c}" class="ltx_Math" display="inline" id="S3.SS2.p4.1.m1.1">
+      <semantics id="S3.SS2.p4.1.m1.1a">
+       <msub id="S3.SS2.p4.1.m1.1.1" xref="S3.SS2.p4.1.m1.1.1.cmml">
+        <mi id="S3.SS2.p4.1.m1.1.1.2" xref="S3.SS2.p4.1.m1.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p4.1.m1.1.1.3" xref="S3.SS2.p4.1.m1.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.1.m1.1b">
+        <apply id="S3.SS2.p4.1.m1.1.1.cmml" xref="S3.SS2.p4.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.1.m1.1.1.1.cmml" xref="S3.SS2.p4.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.1.m1.1.1.2.cmml" xref="S3.SS2.p4.1.m1.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p4.1.m1.1.1.3.cmml" xref="S3.SS2.p4.1.m1.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.1.m1.1c">
+        E_{c}
+       </annotation>
+      </semantics>
+     </math>
+     from
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p4.8.2">
+      CustomizationAgent
+     </span>
+     , and apply
+     <math alttext="E_{c}" class="ltx_Math" display="inline" id="S3.SS2.p4.2.m2.1">
+      <semantics id="S3.SS2.p4.2.m2.1a">
+       <msub id="S3.SS2.p4.2.m2.1.1" xref="S3.SS2.p4.2.m2.1.1.cmml">
+        <mi id="S3.SS2.p4.2.m2.1.1.2" xref="S3.SS2.p4.2.m2.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p4.2.m2.1.1.3" xref="S3.SS2.p4.2.m2.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.2.m2.1b">
+        <apply id="S3.SS2.p4.2.m2.1.1.cmml" xref="S3.SS2.p4.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.2.m2.1.1.1.cmml" xref="S3.SS2.p4.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.2.m2.1.1.2.cmml" xref="S3.SS2.p4.2.m2.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p4.2.m2.1.1.3.cmml" xref="S3.SS2.p4.2.m2.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.2.m2.1c">
+        E_{c}
+       </annotation>
+      </semantics>
+     </math>
+     to obtain
+     <math alttext="P_{c}" class="ltx_Math" display="inline" id="S3.SS2.p4.3.m3.1">
+      <semantics id="S3.SS2.p4.3.m3.1a">
+       <msub id="S3.SS2.p4.3.m3.1.1" xref="S3.SS2.p4.3.m3.1.1.cmml">
+        <mi id="S3.SS2.p4.3.m3.1.1.2" xref="S3.SS2.p4.3.m3.1.1.2.cmml">
+         P
+        </mi>
+        <mi id="S3.SS2.p4.3.m3.1.1.3" xref="S3.SS2.p4.3.m3.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.3.m3.1b">
+        <apply id="S3.SS2.p4.3.m3.1.1.cmml" xref="S3.SS2.p4.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.3.m3.1.1.1.cmml" xref="S3.SS2.p4.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.3.m3.1.1.2.cmml" xref="S3.SS2.p4.3.m3.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p4.3.m3.1.1.3.cmml" xref="S3.SS2.p4.3.m3.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.3.m3.1c">
+        P_{c}
+       </annotation>
+      </semantics>
+     </math>
+     .
+Next, we use
+     <math alttext="P_{c}" class="ltx_Math" display="inline" id="S3.SS2.p4.4.m4.1">
+      <semantics id="S3.SS2.p4.4.m4.1a">
+       <msub id="S3.SS2.p4.4.m4.1.1" xref="S3.SS2.p4.4.m4.1.1.cmml">
+        <mi id="S3.SS2.p4.4.m4.1.1.2" xref="S3.SS2.p4.4.m4.1.1.2.cmml">
+         P
+        </mi>
+        <mi id="S3.SS2.p4.4.m4.1.1.3" xref="S3.SS2.p4.4.m4.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.4.m4.1b">
+        <apply id="S3.SS2.p4.4.m4.1.1.cmml" xref="S3.SS2.p4.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.4.m4.1.1.1.cmml" xref="S3.SS2.p4.4.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.4.m4.1.1.2.cmml" xref="S3.SS2.p4.4.m4.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p4.4.m4.1.1.3.cmml" xref="S3.SS2.p4.4.m4.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.4.m4.1c">
+        P_{c}
+       </annotation>
+      </semantics>
+     </math>
+     to extract another set of edits
+     <math alttext="E_{e}" class="ltx_Math" display="inline" id="S3.SS2.p4.5.m5.1">
+      <semantics id="S3.SS2.p4.5.m5.1a">
+       <msub id="S3.SS2.p4.5.m5.1.1" xref="S3.SS2.p4.5.m5.1.1.cmml">
+        <mi id="S3.SS2.p4.5.m5.1.1.2" xref="S3.SS2.p4.5.m5.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p4.5.m5.1.1.3" xref="S3.SS2.p4.5.m5.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.5.m5.1b">
+        <apply id="S3.SS2.p4.5.m5.1.1.cmml" xref="S3.SS2.p4.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.5.m5.1.1.1.cmml" xref="S3.SS2.p4.5.m5.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.5.m5.1.1.2.cmml" xref="S3.SS2.p4.5.m5.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p4.5.m5.1.1.3.cmml" xref="S3.SS2.p4.5.m5.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.5.m5.1c">
+        E_{e}
+       </annotation>
+      </semantics>
+     </math>
+     from
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p4.8.3">
+      ExecutionAgent
+     </span>
+     .
+Finally, we deterministically apply
+     <math alttext="E_{e}" class="ltx_Math" display="inline" id="S3.SS2.p4.6.m6.1">
+      <semantics id="S3.SS2.p4.6.m6.1a">
+       <msub id="S3.SS2.p4.6.m6.1.1" xref="S3.SS2.p4.6.m6.1.1.cmml">
+        <mi id="S3.SS2.p4.6.m6.1.1.2" xref="S3.SS2.p4.6.m6.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p4.6.m6.1.1.3" xref="S3.SS2.p4.6.m6.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.6.m6.1b">
+        <apply id="S3.SS2.p4.6.m6.1.1.cmml" xref="S3.SS2.p4.6.m6.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.6.m6.1.1.1.cmml" xref="S3.SS2.p4.6.m6.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.6.m6.1.1.2.cmml" xref="S3.SS2.p4.6.m6.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p4.6.m6.1.1.3.cmml" xref="S3.SS2.p4.6.m6.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.6.m6.1c">
+        E_{e}
+       </annotation>
+      </semantics>
+     </math>
+     on
+     <math alttext="P_{c}" class="ltx_Math" display="inline" id="S3.SS2.p4.7.m7.1">
+      <semantics id="S3.SS2.p4.7.m7.1a">
+       <msub id="S3.SS2.p4.7.m7.1.1" xref="S3.SS2.p4.7.m7.1.1.cmml">
+        <mi id="S3.SS2.p4.7.m7.1.1.2" xref="S3.SS2.p4.7.m7.1.1.2.cmml">
+         P
+        </mi>
+        <mi id="S3.SS2.p4.7.m7.1.1.3" xref="S3.SS2.p4.7.m7.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.7.m7.1b">
+        <apply id="S3.SS2.p4.7.m7.1.1.cmml" xref="S3.SS2.p4.7.m7.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.7.m7.1.1.1.cmml" xref="S3.SS2.p4.7.m7.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p4.7.m7.1.1.2.cmml" xref="S3.SS2.p4.7.m7.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p4.7.m7.1.1.3.cmml" xref="S3.SS2.p4.7.m7.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.7.m7.1c">
+        P_{c}
+       </annotation>
+      </semantics>
+     </math>
+     to obtain the resulting procedure
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p4.8.m8.1">
+      <semantics id="S3.SS2.p4.8.m8.1a">
+       <msup id="S3.SS2.p4.8.m8.1.1" xref="S3.SS2.p4.8.m8.1.1.cmml">
+        <mi id="S3.SS2.p4.8.m8.1.1.2" xref="S3.SS2.p4.8.m8.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S3.SS2.p4.8.m8.1.1.3" xref="S3.SS2.p4.8.m8.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p4.8.m8.1b">
+        <apply id="S3.SS2.p4.8.m8.1.1.cmml" xref="S3.SS2.p4.8.m8.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p4.8.m8.1.1.1.cmml" xref="S3.SS2.p4.8.m8.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p4.8.m8.1.1.2.cmml" xref="S3.SS2.p4.8.m8.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p4.8.m8.1.1.3.cmml" xref="S3.SS2.p4.8.m8.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p4.8.m8.1c">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+Here, the agents are used in a sequential order, first suggesting edits to meet customization requirements and next to address any execution-related issues that may arise from those edits.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p5">
+    <p class="ltx_p" id="S3.SS2.p5.10">
+     <span class="ltx_text ltx_font_bold ltx_font_smallcaps" id="S3.SS2.p5.10.1">
+      Parallel
+     </span>
+     - Both
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p5.10.2">
+      CustomizationAgent
+     </span>
+     and
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p5.10.3">
+      ExecutionAgent
+     </span>
+     propose their set of edits,
+     <math alttext="E_{c}" class="ltx_Math" display="inline" id="S3.SS2.p5.1.m1.1">
+      <semantics id="S3.SS2.p5.1.m1.1a">
+       <msub id="S3.SS2.p5.1.m1.1.1" xref="S3.SS2.p5.1.m1.1.1.cmml">
+        <mi id="S3.SS2.p5.1.m1.1.1.2" xref="S3.SS2.p5.1.m1.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p5.1.m1.1.1.3" xref="S3.SS2.p5.1.m1.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.1.m1.1b">
+        <apply id="S3.SS2.p5.1.m1.1.1.cmml" xref="S3.SS2.p5.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.1.m1.1.1.1.cmml" xref="S3.SS2.p5.1.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p5.1.m1.1.1.2.cmml" xref="S3.SS2.p5.1.m1.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p5.1.m1.1.1.3.cmml" xref="S3.SS2.p5.1.m1.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.1.m1.1c">
+        E_{c}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="E_{e}" class="ltx_Math" display="inline" id="S3.SS2.p5.2.m2.1">
+      <semantics id="S3.SS2.p5.2.m2.1a">
+       <msub id="S3.SS2.p5.2.m2.1.1" xref="S3.SS2.p5.2.m2.1.1.cmml">
+        <mi id="S3.SS2.p5.2.m2.1.1.2" xref="S3.SS2.p5.2.m2.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p5.2.m2.1.1.3" xref="S3.SS2.p5.2.m2.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.2.m2.1b">
+        <apply id="S3.SS2.p5.2.m2.1.1.cmml" xref="S3.SS2.p5.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.2.m2.1.1.1.cmml" xref="S3.SS2.p5.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p5.2.m2.1.1.2.cmml" xref="S3.SS2.p5.2.m2.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p5.2.m2.1.1.3.cmml" xref="S3.SS2.p5.2.m2.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.2.m2.1c">
+        E_{e}
+       </annotation>
+      </semantics>
+     </math>
+     , upon
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p5.3.m3.1">
+      <semantics id="S3.SS2.p5.3.m3.1a">
+       <mi id="S3.SS2.p5.3.m3.1.1" xref="S3.SS2.p5.3.m3.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.3.m3.1b">
+        <ci id="S3.SS2.p5.3.m3.1.1.cmml" xref="S3.SS2.p5.3.m3.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.3.m3.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     .
+However, this gives rise to conflicting edits according to different objectives, both of which are important to generate
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p5.4.m4.1">
+      <semantics id="S3.SS2.p5.4.m4.1a">
+       <msup id="S3.SS2.p5.4.m4.1.1" xref="S3.SS2.p5.4.m4.1.1.cmml">
+        <mi id="S3.SS2.p5.4.m4.1.1.2" xref="S3.SS2.p5.4.m4.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S3.SS2.p5.4.m4.1.1.3" xref="S3.SS2.p5.4.m4.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.4.m4.1b">
+        <apply id="S3.SS2.p5.4.m4.1.1.cmml" xref="S3.SS2.p5.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.4.m4.1.1.1.cmml" xref="S3.SS2.p5.4.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p5.4.m4.1.1.2.cmml" xref="S3.SS2.p5.4.m4.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p5.4.m4.1.1.3.cmml" xref="S3.SS2.p5.4.m4.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.4.m4.1c">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+To address this, we use
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS2.p5.10.4">
+      ResolutionAgent
+     </span>
+     , which takes as input two bags of edits,
+     <math alttext="E_{c}" class="ltx_Math" display="inline" id="S3.SS2.p5.5.m5.1">
+      <semantics id="S3.SS2.p5.5.m5.1a">
+       <msub id="S3.SS2.p5.5.m5.1.1" xref="S3.SS2.p5.5.m5.1.1.cmml">
+        <mi id="S3.SS2.p5.5.m5.1.1.2" xref="S3.SS2.p5.5.m5.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p5.5.m5.1.1.3" xref="S3.SS2.p5.5.m5.1.1.3.cmml">
+         c
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.5.m5.1b">
+        <apply id="S3.SS2.p5.5.m5.1.1.cmml" xref="S3.SS2.p5.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.5.m5.1.1.1.cmml" xref="S3.SS2.p5.5.m5.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p5.5.m5.1.1.2.cmml" xref="S3.SS2.p5.5.m5.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p5.5.m5.1.1.3.cmml" xref="S3.SS2.p5.5.m5.1.1.3">
+          𝑐
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.5.m5.1c">
+        E_{c}
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="E_{e}" class="ltx_Math" display="inline" id="S3.SS2.p5.6.m6.1">
+      <semantics id="S3.SS2.p5.6.m6.1a">
+       <msub id="S3.SS2.p5.6.m6.1.1" xref="S3.SS2.p5.6.m6.1.1.cmml">
+        <mi id="S3.SS2.p5.6.m6.1.1.2" xref="S3.SS2.p5.6.m6.1.1.2.cmml">
+         E
+        </mi>
+        <mi id="S3.SS2.p5.6.m6.1.1.3" xref="S3.SS2.p5.6.m6.1.1.3.cmml">
+         e
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.6.m6.1b">
+        <apply id="S3.SS2.p5.6.m6.1.1.cmml" xref="S3.SS2.p5.6.m6.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.6.m6.1.1.1.cmml" xref="S3.SS2.p5.6.m6.1.1">
+          subscript
+         </csymbol>
+         <ci id="S3.SS2.p5.6.m6.1.1.2.cmml" xref="S3.SS2.p5.6.m6.1.1.2">
+          𝐸
+         </ci>
+         <ci id="S3.SS2.p5.6.m6.1.1.3.cmml" xref="S3.SS2.p5.6.m6.1.1.3">
+          𝑒
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.6.m6.1c">
+        E_{e}
+       </annotation>
+      </semantics>
+     </math>
+     , and produces a merged set of edits
+     <math alttext="E" class="ltx_Math" display="inline" id="S3.SS2.p5.7.m7.1">
+      <semantics id="S3.SS2.p5.7.m7.1a">
+       <mi id="S3.SS2.p5.7.m7.1.1" xref="S3.SS2.p5.7.m7.1.1.cmml">
+        E
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.7.m7.1b">
+        <ci id="S3.SS2.p5.7.m7.1.1.cmml" xref="S3.SS2.p5.7.m7.1.1">
+         𝐸
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.7.m7.1c">
+        E
+       </annotation>
+      </semantics>
+     </math>
+     .
+Finally, applying
+     <math alttext="E" class="ltx_Math" display="inline" id="S3.SS2.p5.8.m8.1">
+      <semantics id="S3.SS2.p5.8.m8.1a">
+       <mi id="S3.SS2.p5.8.m8.1.1" xref="S3.SS2.p5.8.m8.1.1.cmml">
+        E
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.8.m8.1b">
+        <ci id="S3.SS2.p5.8.m8.1.1.cmml" xref="S3.SS2.p5.8.m8.1.1">
+         𝐸
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.8.m8.1c">
+        E
+       </annotation>
+      </semantics>
+     </math>
+     on the original procedure
+     <math alttext="P" class="ltx_Math" display="inline" id="S3.SS2.p5.9.m9.1">
+      <semantics id="S3.SS2.p5.9.m9.1a">
+       <mi id="S3.SS2.p5.9.m9.1.1" xref="S3.SS2.p5.9.m9.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.9.m9.1b">
+        <ci id="S3.SS2.p5.9.m9.1.1.cmml" xref="S3.SS2.p5.9.m9.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.9.m9.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     results in
+     <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p5.10.m10.1">
+      <semantics id="S3.SS2.p5.10.m10.1a">
+       <msup id="S3.SS2.p5.10.m10.1.1" xref="S3.SS2.p5.10.m10.1.1.cmml">
+        <mi id="S3.SS2.p5.10.m10.1.1.2" xref="S3.SS2.p5.10.m10.1.1.2.cmml">
+         P
+        </mi>
+        <mo id="S3.SS2.p5.10.m10.1.1.3" xref="S3.SS2.p5.10.m10.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p5.10.m10.1b">
+        <apply id="S3.SS2.p5.10.m10.1.1.cmml" xref="S3.SS2.p5.10.m10.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p5.10.m10.1.1.1.cmml" xref="S3.SS2.p5.10.m10.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p5.10.m10.1.1.2.cmml" xref="S3.SS2.p5.10.m10.1.1.2">
+          𝑃
+         </ci>
+         <ci id="S3.SS2.p5.10.m10.1.1.3.cmml" xref="S3.SS2.p5.10.m10.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p5.10.m10.1c">
+        P^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T2">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S3.T2.1">
+     <tr class="ltx_tr" id="S3.T2.1.1">
+      <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t" id="S3.T2.1.1.1">
+       Method
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.1.2">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.1.2.1">
+        Customized
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.1.3">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.1.3.1">
+        Executable
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.1.4">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.1.4.1">
+        FullyCorrect
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T2.1.2">
+      <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t" id="S3.T2.1.2.1">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.2.1.1">
+        Sequential
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.2.2">
+       60.68%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.2.3">
+       72.33%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S3.T2.1.2.4">
+       51.94%
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T2.1.3">
+      <td class="ltx_td ltx_align_center ltx_border_l ltx_border_r" id="S3.T2.1.3.1">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.3.1.1">
+        Uniform
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T2.1.3.2">
+       54.85%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T2.1.3.3">
+       71.36%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_r" id="S3.T2.1.3.4">
+       47.09%
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T2.1.4">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_l ltx_border_r" id="S3.T2.1.4.1">
+       <span class="ltx_text ltx_font_smallcaps" id="S3.T2.1.4.1.1">
+        Parallel
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_b ltx_border_r" id="S3.T2.1.4.2">
+       53.88%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_b ltx_border_r" id="S3.T2.1.4.3">
+       70.87%
+      </td>
+      <td class="ltx_td ltx_align_right ltx_border_b ltx_border_r" id="S3.T2.1.4.4">
+       45.63%
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Customizability, executability and overall correct (strictest measure) of procedures generated by different approaches as judged by majority of human evaluators.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Evaluation
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     For open-ended text generation tasks like procedure customization, the absence of an automatic evaluation that correlates well with human judgments is a major challenge
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Chen et al. (
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       2019
+      </a>
+      ); Ma et al. (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2019
+      </a>
+      ); Caglayan et al. (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2020
+      </a>
+      ); Howcroft et al. (
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2020
+      </a>
+      ); Lal et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2021
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="532" id="S3.F5.g1" src="/html/2311.09510/assets/x5.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     MTurk interface presented to crowdsource workers to judge model generated procedures.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     We conduct a human evaluation with a standardized interface to compare different models.
+We want to measure whether a model produces procedures that meet the requirements of the customization hint, as well as whether the generated procedures can be executed to achieve the goal.
+To this end, we pose questions about whether a procedure can be performed as is to accomplish the given goal (
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p2.1.1">
+      Executable
+     </span>
+     ), and whether it satisfies a presented customization constraint (
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p2.1.2">
+      Customized
+     </span>
+     ).
+This serves as the human evaluation interface for our task.
+A sample HIT can be seen in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.F5" title="Figure 5 ‣ 3.3 Evaluation ‣ 3 Experiment Details ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 5
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p3">
+    <p class="ltx_p" id="S3.SS3.p3.1">
+     For each goal, customization hint, and a model’s generated procedure, we ask 3 distinct annotators to provide judgments about customizability and executability of that procedure.
+A procedure can be complete in an aspect, missing steps, have extra steps, have underspecified steps, or have incorrect steps.
+We take majority vote of annotator judgments for the
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p3.1.1">
+      Customized
+     </span>
+     and
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p3.1.2">
+      Executable
+     </span>
+     criteria.
+If a plan is judged to be both
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p3.1.3">
+      Customized
+     </span>
+     and
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p3.1.4">
+      Executable
+     </span>
+     by a majority of annotators, we consider it to be
+     <span class="ltx_text ltx_font_smallcaps" id="S3.SS3.p3.1.5">
+      FullyCorrect
+     </span>
+     .
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    We report majority statistics for customizability, executability and correctness of different models in
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S3.T2" title="Table 2 ‣ 3.2 Models ‣ 3 Experiment Details ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+     <span class="ltx_text ltx_ref_tag">
+      Table 2
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Using
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p2.1.1">
+     CustomizationAgent
+    </span>
+    and
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p2.1.2">
+     ExecutionAgent
+    </span>
+    in
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p2.1.3">
+     Sequential
+    </span>
+    order is the best at producing customized procedures
+    <math alttext="P^{\prime}" class="ltx_Math" display="inline" id="S4.p2.1.m1.1">
+     <semantics id="S4.p2.1.m1.1a">
+      <msup id="S4.p2.1.m1.1.1" xref="S4.p2.1.m1.1.1.cmml">
+       <mi id="S4.p2.1.m1.1.1.2" xref="S4.p2.1.m1.1.1.2.cmml">
+        P
+       </mi>
+       <mo id="S4.p2.1.m1.1.1.3" xref="S4.p2.1.m1.1.1.3.cmml">
+        ′
+       </mo>
+      </msup>
+      <annotation-xml encoding="MathML-Content" id="S4.p2.1.m1.1b">
+       <apply id="S4.p2.1.m1.1.1.cmml" xref="S4.p2.1.m1.1.1">
+        <csymbol cd="ambiguous" id="S4.p2.1.m1.1.1.1.cmml" xref="S4.p2.1.m1.1.1">
+         superscript
+        </csymbol>
+        <ci id="S4.p2.1.m1.1.1.2.cmml" xref="S4.p2.1.m1.1.1.2">
+         𝑃
+        </ci>
+        <ci id="S4.p2.1.m1.1.1.3.cmml" xref="S4.p2.1.m1.1.1.3">
+         ′
+        </ci>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p2.1.m1.1c">
+       P^{\prime}
+      </annotation>
+     </semantics>
+    </math>
+    .
+It performs better than using just one agent in
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p2.1.4">
+     Uniform
+    </span>
+    , which, in turn, is better than using both agents in
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p2.1.5">
+     Parallel
+    </span>
+    setting.
+We note that execution accuracy for all models are similar.
+However, performance differs based on how well a model can address implicit and explicit customization needs.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p3.1.1">
+     Procedures are not sufficiently customized
+    </span>
+    .
+All methods suffer from the problem of missing steps, indicating that none of them adequately address the requirements stated implicitly or explicitly in the customization hint for the procedure.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p4.1.1">
+     Procedures are not direct
+    </span>
+    .
+For the executability aspect, each method suffers the most from generating unnecessary steps, which often hinder achieving the goal of the procedure
+    <math alttext="G" class="ltx_Math" display="inline" id="S4.p4.1.m1.1">
+     <semantics id="S4.p4.1.m1.1a">
+      <mi id="S4.p4.1.m1.1.1" xref="S4.p4.1.m1.1.1.cmml">
+       G
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S4.p4.1.m1.1b">
+       <ci id="S4.p4.1.m1.1.1.cmml" xref="S4.p4.1.m1.1.1">
+        𝐺
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S4.p4.1.m1.1c">
+       G
+      </annotation>
+     </semantics>
+    </math>
+    .
+Furthermore, procedures generated by
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p4.1.2">
+     Parallel
+    </span>
+    also suffer from missing steps.
+We hypothesize that this problems arises because
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p4.1.3">
+     ResolutionAgent
+    </span>
+    is unable to correctly merge bags of edits from
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p4.1.4">
+     CustomizationAgent
+    </span>
+    and
+    <span class="ltx_text ltx_font_smallcaps" id="S4.p4.1.5">
+     ExecutionAgent
+    </span>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    Over the past few years, as information about users has been readily available, user-facing technology has become increasingly customized.
+Customization has been widely studied in the context of such technology, like search engines
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Rashid et al. (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2002
+     </a>
+     )
+    </cite>
+    , chatbots
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Majumder et al. (
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2020
+     </a>
+     )
+    </cite>
+    and game content
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shaker et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2010
+     </a>
+     ); Togelius et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2007
+     </a>
+     )
+    </cite>
+    .
+There is some work on customized procedural content generation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Togelius et al. (
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2011
+     </a>
+     ); Yannakakis and Togelius (
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2011
+     </a>
+     )
+    </cite>
+    .
+However, they focus on video game content rather than everyday procedures related to pragmatic goals.
+Previous research has shown the value of customization in various settings.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Kapusta et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2019
+     </a>
+     )
+    </cite>
+    present a method to customize collaborative plans for robot-assisted dressing.
+Building customized care plans is crucial for patients with severe illnesses
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lin et al. (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2017
+     </a>
+     ); Anbari et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2020
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Procedural text understanding addresses the task of tracking entity states throughout the text
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bosselut et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2018
+     </a>
+     ); Henaff et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2017
+     </a>
+     )
+    </cite>
+    .
+Generating such texts
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Aouladomar and Saint-Dizier (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2005
+     </a>
+     )
+    </cite>
+    involves different types of understanding such as temporal reasoning and entity linking.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Mori et al. (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2014
+     </a>
+     )
+    </cite>
+    generated a procedural text from a meaning representation taking intermediate states into account.
+ChattyChef
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Le et al. (
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2023
+     </a>
+     )
+    </cite>
+    uses the conversational setting to generate cooking instructions and iteratively refine its step ordering.
+To study decision branching in procedural text,
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Hou et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    generated user scenarios and choices for various steps in a procedure and presented
+    <span class="ltx_text ltx_font_smallcaps" id="S5.p2.1.1">
+     Choice-75
+    </span>
+    .
+For the task of counterfactual planning,
+    <span class="ltx_text ltx_font_smallcaps" id="S5.p2.1.2">
+     CoPlan
+    </span>
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Brahman et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2023
+     </a>
+     )
+    </cite>
+    collects conditions and combines them with a revised list of steps.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Majumder et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2019
+     </a>
+     )
+    </cite>
+    use historical user preferences to generate customized recipes.
+But they only focus on one domain (here, cooking) and only on one dimension to model customization.
+LLMs have been shown to generate procedural text well but it is unclear how they can be customized for diverse user preferences.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    Customized language models are designed and trained to capture language patters specific to individual users.
+Such models are often better than using more general models for human-level NLP tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lynn et al. (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2017
+     </a>
+     )
+    </cite>
+    .
+    <cite class="ltx_cite ltx_citemacro_citet">
+     King and Cook (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2020
+     </a>
+     )
+    </cite>
+    examined methods for creating customized language models using interpolating, fine-tuning and priming.
+Similarly,
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Welch et al. (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2022
+     </a>
+     )
+    </cite>
+    present another approach for fine-tuning and interpolation to customize LMs.
+In the context of LLMs, role-based prompting is a recent trend.
+Pseudo Dialog Prompting
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Han et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2022
+     </a>
+     )
+    </cite>
+    is a method to build prompts for LLMs so that chatbots mimic fictional characters, while
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Vincent et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2023
+     </a>
+     )
+    </cite>
+    release a dataset of character annotations to induce personas in LLM output.
+However, it is still unclear how to encapsulate more fine-grained aspects of customization.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    This paper studies the capabilities of current
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.1">
+     LLM
+    </span>
+    s to customize open-domain How-to procedures.
+We introduce a probe dataset,
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.2">
+     CustomPlans
+    </span>
+    , for this task.
+Using
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.3">
+     LLM
+    </span>
+    s as
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.4">
+     CustomizationAgent
+    </span>
+    and
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.5">
+     ExecutionAgent
+    </span>
+    in different settings, we establish their abilities to perform open-domain procedure customization.
+Human evaluation shows that using these agents in a
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.6">
+     Sequential
+    </span>
+    setting is the best, but they are good enough only ~51% of the time.
+Error analysis shows that
+    <span class="ltx_text ltx_font_smallcaps" id="S6.p1.1.7">
+     LLM
+    </span>
+    s do not sufficiently address user customization needs in their generated procedures.
+Further, the generated plans contain extra steps because of which they cannot be often executed.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Anbari et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Allison Brandt Anbari, Pamela L. Ostby, and Pamela Ginex. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Breast cancer–related lymphedema: Personalized plans of care to guide survivorship.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Current Breast Cancer Reports
+     </em>
+     , 12:237 – 243.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Antognini et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Diego Antognini, Shuyang Li, Boi Faltings, and Julian McAuley. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2023.eacl-main.28" target="_blank" title="">
+      Assistive recipe editing through critiquing
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics
+     </em>
+     , pages 375–384, Dubrovnik, Croatia. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Aouladomar and Saint-Dizier (2005)
+    </span>
+    <span class="ltx_bibblock">
+     Farida Aouladomar and Patrick Saint-Dizier. 2005.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/W05-1618" target="_blank" title="">
+      Towards generating procedural texts: An exploration of their rhetorical and argumentative structure
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Proceedings of the Tenth European Workshop on Natural Language Generation (ENLG-05)
+     </em>
+     , Aberdeen, Scotland. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bosselut et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Antoine Bosselut, Omer Levy, Ari Holtzman, Corin Ennis, Dieter Fox, and Yejin Choi. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     Simulating action dynamics with neural process networks.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      ICLR
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brahman et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Faeze Brahman, Chandra Bhagavatula, Valentina Pyatkin, Jena D. Hwang, Xiang Lorraine Li, Hirona J. Arai, Soumya Sanyal, Keisuke Sakaguchi, Xiang Ren, and Yejin Choi. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.19472" target="_blank" title="">
+      Plasma: Making small language models better procedural knowledge models for (counterfactual) planning
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Caglayan et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Ozan Caglayan, Pranava Madhyastha, and Lucia Specia. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2020.coling-main.210" target="_blank" title="">
+      Curious case of language generation evaluation metrics: A cautionary tale
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Proceedings of the 28th International Conference on Computational Linguistics
+     </em>
+     , pages 2322–2328, Barcelona, Spain (Online). International Committee on Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Anthony Chen, Gabriel Stanovsky, Sameer Singh, and Matt Gardner. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/D19-5817" target="_blank" title="">
+      Evaluating question answering evaluation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      Proceedings of the 2nd Workshop on Machine Reading for Question Answering
+     </em>
+     , pages 119–124, Hong Kong, China. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Han et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Seungju Han, Beomsu Kim, Jin Yong Yoo, Seokjun Seo, Sangbum Kim, Enkhbayar Erdenee, and Buru Chang. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.naacl-main.377" target="_blank" title="">
+      Meet your favorite character: Open-domain chatbot mimicking fictional characters with only a few utterances
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies
+     </em>
+     , pages 5114–5132, Seattle, United States. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Henaff et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Mikael Henaff, Jason Weston, Arthur Szlam, Antoine Bordes, and Yann LeCun. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     Tracking the world state with recurrent entity networks.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      ICLR
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhaoyi Joey Hou, Li Zhang, and Chris Callison-Burch. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Choice-75: A dataset on decision branching in script learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2309.11737
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Howcroft et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     David M. Howcroft, Anya Belz, Miruna-Adriana Clinciu, Dimitra Gkatzia, Sadid A. Hasan, Saad Mahamood, Simon Mille, Emiel van Miltenburg, Sashank Santhanam, and Verena Rieser. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2020.inlg-1.23" target="_blank" title="">
+      Twenty years of confusion in human evaluation: NLG needs evaluation sheets and standardised definitions
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      Proceedings of the 13th International Conference on Natural Language Generation
+     </em>
+     , pages 169–182, Dublin, Ireland. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kapusta et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Ariel Kapusta, Zackory M. Erickson, Henry M. Clever, Wenhao Yu, C. Karen Liu, Greg Turk, and Charles C. Kemp. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Personalized collaborative plans for robot-assisted dressing via optimization and simulation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Autonomous Robots
+     </em>
+     , 43:2183 – 2207.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     King and Cook (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Milton King and Paul Cook. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://aclanthology.org/2020.lrec-1.299" target="_blank" title="">
+      Evaluating approaches to personalizing language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Proceedings of the Twelfth Language Resources and Evaluation Conference
+     </em>
+     , pages 2461–2469, Marseille, France. European Language Resources Association.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lal et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Yash Kumar Lal, Nathanael Chambers, Raymond Mooney, and Niranjan Balasubramanian. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2021.findings-acl.53" target="_blank" title="">
+      TellMeWhy: A dataset for answering why-questions in narratives
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021
+     </em>
+     , pages 596–610, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Le et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Duong Minh Le, Ruohao Guo, Wei Xu, and Alan Ritter. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.17280" target="_blank" title="">
+      Improved instruction ordering in recipe-grounded conversation
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Hung-Hsin Lin, Nien Wei, T-Y. Chou, Chun-Chi Lin, Yuan-Tsu Lan, Shin-Ching Chang, Huann-Sheng Wang, Shung-Haur Yang, Wei-Shone Chen, Tzu chen Lin, Jen-Kou Lin, and Jeng-Kai Jiang. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     Building personalized treatment plans for early-stage colorectal cancer patients.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      Oncotarget
+     </em>
+     , 8:13805 – 13817.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lynn et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Veronica Lynn, Youngseo Son, Vivek Kulkarni, Niranjan Balasubramanian, and H. Andrew Schwartz. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/D17-1119" target="_blank" title="">
+      Human centered NLP with user-factor adaptation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 1146–1155, Copenhagen, Denmark. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ma et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Qingsong Ma, Johnny Wei, Ondřej Bojar, and Yvette Graham. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/W19-5302" target="_blank" title="">
+      Results of the WMT19 metrics shared task: Segment-level and strong MT systems pose big challenges
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Proceedings of the Fourth Conference on Machine Translation (Volume 2: Shared Task Papers, Day 1)
+     </em>
+     , pages 62–90, Florence, Italy. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Majumder et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Bodhisattwa Prasad Majumder, Harsh Jhamtani, Taylor Berg-Kirkpatrick, and Julian McAuley. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2020.emnlp-main.739" target="_blank" title="">
+      Like hiking? you probably enjoy nature: Persona-grounded dialog with commonsense expansions
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)
+     </em>
+     , pages 9194–9206, Online. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Majumder et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Bodhisattwa Prasad Majumder, Shuyang Li, Jianmo Ni, and Julian McAuley. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/D19-1613" target="_blank" title="">
+      Generating personalized recipes from historical user preferences
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)
+     </em>
+     , pages 5976–5982, Hong Kong, China. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mori et al. (2014)
+    </span>
+    <span class="ltx_bibblock">
+     Shinsuke Mori, Hirokuni Maeta, Tetsuro Sasada, Koichiro Yoshino, Atsushi Hashimoto, Takuya Funatomi, and Yoko Yamakata. 2014.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.3115/v1/W14-4418" target="_blank" title="">
+      FlowGraph2Text: Automatic sentence skeleton compilation for procedural text generation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      Proceedings of the 8th International Natural Language Generation Conference (INLG)
+     </em>
+     , pages 118–122, Philadelphia, Pennsylvania, U.S.A. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Rashid et al. (2002)
+    </span>
+    <span class="ltx_bibblock">
+     Al Mamunur Rashid, Istvan Albert, Dan Cosley, Shyong K. Lam, Sean M. McNee, Joseph A. Konstan, and John Riedl. 2002.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1145/502716.502737" target="_blank" title="">
+      Getting to know you: Learning new user preferences in recommender systems
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      Proceedings of the 7th International Conference on Intelligent User Interfaces
+     </em>
+     , IUI ’02, page 127–134, New York, NY, USA. Association for Computing Machinery.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shaker et al. (2010)
+    </span>
+    <span class="ltx_bibblock">
+     Noor Shaker, Georgios Yannakakis, and Julian Togelius. 2010.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1609/aiide.v6i1.12399" target="_blank" title="">
+      Towards automatic personalized content generation for platform games
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment
+     </em>
+     , 6(1):63–68.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Togelius et al. (2007)
+    </span>
+    <span class="ltx_bibblock">
+     Julian Togelius, Renzo De Nardi, and Simon M. Lucas. 2007.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1109/CIG.2007.368106" target="_blank" title="">
+      Towards automatic personalised content creation for racing games
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      2007 IEEE Symposium on Computational Intelligence and Games
+     </em>
+     , pages 252–259.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Togelius et al. (2011)
+    </span>
+    <span class="ltx_bibblock">
+     Julian Togelius, Georgios N. Yannakakis, Kenneth O. Stanley, and Cameron Browne. 2011.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1109/TCIAIG.2011.2148116" target="_blank" title="">
+      Search-based procedural content generation: A taxonomy and survey
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      IEEE Transactions on Computational Intelligence and AI in Games
+     </em>
+     , 3(3):172–186.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Vincent et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Sebastian Vincent, Rowanne Sumner, Alice Dowek, Charlotte Blundell, Emily Preston, Chris Bayliss, Chris Oakley, and Carolina Scarton. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Personalised language modelling of screen characters using rich metadata annotations.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2303.16618
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Welch et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Charles Welch, Chenxi Gu, Jonathan K. Kummerfeld, Veronica Perez-Rosas, and Rada Mihalcea. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/2022.acl-long.122" target="_blank" title="">
+      Leveraging similar users for personalized language modeling with limited data
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)
+     </em>
+     , pages 1742–1752, Dublin, Ireland. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yannakakis and Togelius (2011)
+    </span>
+    <span class="ltx_bibblock">
+     Georgios N. Yannakakis and Julian Togelius. 2011.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1109/T-AFFC.2011.6" target="_blank" title="">
+      Experience-driven procedural content generation
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      IEEE Transactions on Affective Computing
+     </em>
+     , 2(3):147–161.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yoran et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Ori Yoran, Tomer Wolfson, Ben Bogin, Uri Katz, Daniel Deutch, and Jonathan Berant. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Answering questions by meta-reasoning over multiple chains of thought.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Mechanical Turk tasks
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    Instructions
+   </h3>
+   <div class="ltx_para" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     We present the instructions given to annotators for both the tasks in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#A1.F6" title="Figure 6 ‣ A.1 Instructions ‣ Appendix A Mechanical Turk tasks ‣ One Size Does Not Fit All: Customizing Open-Domain Procedures">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 6
+      </span>
+     </a>
+     .
+Annotators were given clear direction for the task, as well as provided examples for various cases of desirable and undesirable characteristics of a procedure.
+We restricted the task to master turkers.
+The master turkers are paid 0.30$ per HIT, which translates to 17$/hr according to average time needed for completion.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="A1.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="411" id="A1.F6.g1" src="/html/2311.09510/assets/x6.png" width="461"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Instructions for MTurk tasks
+    </figcaption>
+   </figure>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+</article>

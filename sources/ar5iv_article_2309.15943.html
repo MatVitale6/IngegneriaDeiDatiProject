@@ -1,0 +1,2845 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_font_bold ltx_title_document" style="font-size:173%;">
+  Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yongchao Chen
+    <sup class="ltx_sup" id="id9.9.id1">
+     <span class="ltx_text ltx_font_italic" id="id9.9.id1.1">
+      1,2
+     </span>
+    </sup>
+    , Jacob Arkin
+    <sup class="ltx_sup" id="id10.10.id2">
+     <span class="ltx_text ltx_font_italic" id="id10.10.id2.1">
+      1
+     </span>
+    </sup>
+    , Yang Zhang
+    <sup class="ltx_sup" id="id11.11.id3">
+     <span class="ltx_text ltx_font_italic" id="id11.11.id3.1">
+      3
+     </span>
+    </sup>
+    , Nicholas Roy
+    <sup class="ltx_sup" id="id12.12.id4">
+     <span class="ltx_text ltx_font_italic" id="id12.12.id4.1">
+      1
+     </span>
+    </sup>
+    , and Chuchu Fan
+    <sup class="ltx_sup" id="id13.13.id5">
+     <span class="ltx_text ltx_font_italic" id="id13.13.id5.1">
+      1
+     </span>
+    </sup>
+   </span>
+   <span class="ltx_author_notes">
+    <sup class="ltx_sup" id="id14.14.id1">
+     <span class="ltx_text ltx_font_italic" id="id14.14.id1.1">
+      1
+     </span>
+    </sup>
+    Massachusetts Institute of Technology. jarkin@mit.edu, nickroy@csail.mit.edu, chuchu@mit.edu
+    <sup class="ltx_sup" id="id15.15.id1">
+     <span class="ltx_text ltx_font_italic" id="id15.15.id1.1">
+      2
+     </span>
+    </sup>
+    Harvard University. yongchaochen@fas.harvard.edu
+    <sup class="ltx_sup" id="id16.16.id1">
+     <span class="ltx_text ltx_font_italic" id="id16.16.id1.1">
+      3
+     </span>
+    </sup>
+    MIT-IBM Watson AI Lab. yang.zhang2@ibm.com
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id17.id1">
+   A flurry of recent work has demonstrated that pre-trained large language models (LLMs) can be effective task planners for a variety of single-robot tasks. The planning performance of LLMs is significantly improved via prompting techniques, such as in-context learning or re-prompting with state feedback, placing new importance on the token budget for the context window. An under-explored but natural next direction is to investigate LLMs as multi-robot task planners. However, long-horizon, heterogeneous multi-robot planning introduces new challenges of coordination while also pushing up against the limits of context window length. It is therefore critical to find token-efficient LLM planning frameworks that are also able to reason about the complexities of multi-robot coordination. In this work, we compare the task success rate and token efficiency of four multi-agent communication frameworks (centralized, decentralized, and two hybrid) as applied to four coordination-dependent multi-agent 2D task scenarios for increasing numbers of agents. We find that a hybrid framework achieves better task success rates across all four tasks and scales better to more agents. We further demonstrate the hybrid frameworks in 3D simulations where the vision-to-text problem and dynamical errors are considered. See our project website
+   <span class="ltx_note ltx_role_footnote" id="footnotex1">
+    <sup class="ltx_note_mark">
+     4
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       4
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       4
+      </span>
+      https://yongchao98.github.io/MIT-REALM-Multi-Robot/
+     </span>
+    </span>
+   </span>
+   for prompts, videos, and code.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    I
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S1.1.1">
+    INTRODUCTION
+   </span>
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Multi-robot systems have great potential as a tool for operations that require the completion of many tasks, such as warehouse management. Planning for these systems is often challenging due to heterogeneous robot capabilities, coordination during tasks requiring multiple robots, inter-dependencies of separate tasks, and general safety considerations (e.g. collision avoidance). Further, the difficulty scales with the number of robots. Previous work has used algorithm-based
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    or learning-based
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    methods to control multi-robot systems. Such approaches are typically tuned for a specific scenario, requiring significant engineering effort that limits generalization into novel tasks or scenarios.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Motivated by the ability of pre-trained large language models (LLMs) to generalize to new task domains
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , there have been many recent efforts to use them for single-agent task planning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    . Planning performance is significantly improved through clever use of the context provided to the LLM, whether via techniques for initial prompts (e.g., in-context learning, chain-of-thought) or iterative re-prompting with feedback (e.g., environment state changes, detected errors). Given this success, there is new interest in investigating LLMs as task planners for multi-robot systems
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    . These recent efforts address systems consisting of two or three robots; they assign an LLM to each robot and have the models engage in collaborative dialogue rounds to try to find good plans.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Scaling to systems of many robots and tasks with longer horizons is an issue for approaches that assign each robot its own LLM agent. First, both the number of possible coordinating actions and the possible action inter-dependencies grow exponentially with the number of agents, making the reasoning more difficult for the language models. Second, the context provided to each LLM contains the responses of each other LLM for the current round of dialogue in addition to the history of dialogue, actions, and states from prior rounds; so, scaling the number of agents also scales the context token length requirements toward their modern limits and increases the runtime of LLM inference (and API costs). Moreover, the immediately relevant information in the context can become diluted in longer prompts. These limitations are beyond the scope of prior work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Our goal is to preserve the generalizability of LLMs as task planners for multi-robot settings while addressing the challenges of scaling to many agents. We argue that different frameworks for integrating LLM planners into multi-robot task planning can improve both scalability and task planning success rates. In this work, we compare four different frameworks (Figure
+    <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    ) of cooperative dialogue for task planning among multiple LLMs for increasing numbers of robots. For each, planning is performed incrementally in which the LLMs collaborate to find the next action to take for each agent in the system. The first approach (DMAS) uses a decentralized communication framework in which each robot is provided its own LLM agent and dialogue proceeds in rounds of turn-taking. The second approach (CMAS) uses a centralized framework in which a single LLM produces the next action for all robots in the system. We also propose two hybrid versions of these two approaches: (1) a variant of DMAS that adds a central LLM responsible for providing an initial plan to prime the dialogue (HMAS-1) and (2) a variant of CMAS that gives each robot an LLM with which to provide robot-local feedback to the central LLM planner. To further address issues of token length due to historical dialogue and planning context, we also propose a truncated prompt that only includes state-action information from prior dialogue rounds. We evaluate the performance of each approach in four different task planning environments inspired by warehouse settings. To further demonstrate LLMs as multi-robot planners, we apply these approaches to a simulated 3D manipulation task that requires coordination among the manipulators.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    II
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S2.1.1">
+    PROBLEM DESCRIPTION
+   </span>
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.3">
+    This work focuses on task planning for multi-robot systems. We consider a cooperative multi-robot task scenario with
+    <math alttext="N" class="ltx_Math" display="inline" id="S2.p1.1.m1.1">
+     <semantics id="S2.p1.1.m1.1a">
+      <mi id="S2.p1.1.m1.1.1" xref="S2.p1.1.m1.1.1.cmml">
+       N
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.1.m1.1b">
+       <ci id="S2.p1.1.m1.1.1.cmml" xref="S2.p1.1.m1.1.1">
+        𝑁
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.1.m1.1c">
+       N
+      </annotation>
+     </semantics>
+    </math>
+    robots and
+    <math alttext="M" class="ltx_Math" display="inline" id="S2.p1.2.m2.1">
+     <semantics id="S2.p1.2.m2.1a">
+      <mi id="S2.p1.2.m2.1.1" xref="S2.p1.2.m2.1.1.cmml">
+       M
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.2.m2.1b">
+       <ci id="S2.p1.2.m2.1.1.cmml" xref="S2.p1.2.m2.1.1">
+        𝑀
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.2.m2.1c">
+       M
+      </annotation>
+     </semantics>
+    </math>
+    LLM agents. We assume that each LLM agent has full knowledge of the environment and each robot’s capabilities. The robot capabilities can be heterogeneous, requiring the planners to assign tasks to robots accordingly. In order to provide each LLM with the task goals and observations, we manually define functions to translate them into text prompts. We also define functions to map the output of the LLM planners into pre-defined robot actions. Planning is performed iteratively, choosing the next action for each robot to take. At each iteration, the
+    <math alttext="M" class="ltx_Math" display="inline" id="S2.p1.3.m3.1">
+     <semantics id="S2.p1.3.m3.1a">
+      <mi id="S2.p1.3.m3.1.1" xref="S2.p1.3.m3.1.1.cmml">
+       M
+      </mi>
+      <annotation-xml encoding="MathML-Content" id="S2.p1.3.m3.1b">
+       <ci id="S2.p1.3.m3.1.1.cmml" xref="S2.p1.3.m3.1.1">
+        𝑀
+       </ci>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S2.p1.3.m3.1c">
+       M
+      </annotation>
+     </semantics>
+    </math>
+    LLM agents engage in collaborative dialogue to find a consensus for the next set of robot actions. Given the next action, the robots act in the environment, and the resulting new state is provided as context to the LLMs for the next planning iteration.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="630" id="S2.F1.g1" src="/html/2309.15943/assets/Images/prompt-simplified2.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Simplified prompt example of the HMAS-1 local agent. The acquired ’Response1’ acts as the initial plan, or otherwise sent to the next local agent for further discussion.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="550" id="S2.F2.g1" src="/html/2309.15943/assets/Images/prompt-simplified.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Simplified prompt example of the HMAS-2 central agent. The generated ’Response1’ is sent to local agents for feedback. Once the central-local iteration terminates, the output plan is checked for syntactic correctness.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="S2.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="316" id="S2.F3.g1" src="/html/2309.15943/assets/Images/Systems.png" width="538"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 3:
+    </span>
+    Four LLM-based multi-agent communication frameworks compared in this work. The circles represent robots that may have actions in the current step and the ’LLM’ text represents each LLM agent. The overlap between one circle and one ’LLM’ text means that the robot is delegated with one LLM agent to express its special opinions to other agents. The ’LLM’ text without the overlapped circle represents a central planning agent.
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    III
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S3.1.1">
+    METHODS
+   </span>
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Given the goal and the current environment state as text, the LLM agents engage in dialogue per the communication framework (Section
+    <a class="ltx_ref" href="#S3.SS2" title="III-B Communication Frameworks for Sub-task Plan ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+     <span class="ltx_text ltx_ref_tag">
+      <span class="ltx_text">
+       III-B
+      </span>
+     </span>
+    </a>
+    ) in order to generate an initial set of actions for the robots to take. Before execution, this action set is checked by an external rules-based verifier for syntax errors; any errors are provided as feedback to re-prompt for correction. Given a syntactically correct set of actions, the robots then execute those actions in the environment, resulting in a new environment state. We show examples of the prompt structure for the HMAS-1 and HMAS-2 approaches in Figure
+    <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    and Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    respectively. We describe the main components of the initial prompt in the next subsection.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS1.5.1.1">
+      III-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS1.6.2">
+     Main Components of LLM Prompt
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     We use the same basic structure to prompt each LLM agent, but the specifics of the prompt depend on the individual agent’s role. The prompt structure consists of the following main components:
+    </p>
+    <ul class="ltx_itemize" id="S3.I1">
+     <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i1.p1">
+       <p class="ltx_p" id="S3.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+         Task Description
+        </span>
+        : the requirements and constraints of the task for the multi-robot system to accomplish.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i2.p1">
+       <p class="ltx_p" id="S3.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+         Step History
+        </span>
+        : the history of dialogue, environment states, and actions from previous steps in the iterative planning process. We describe this in more detail in Section
+        <a class="ltx_ref" href="#S3.SS3" title="III-C Step History ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+         <span class="ltx_text ltx_ref_tag">
+          <span class="ltx_text">
+           III-C
+          </span>
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i3.p1">
+       <p class="ltx_p" id="S3.I1.i3.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+         Current State
+        </span>
+        : the objects in the environment (boxes) and their properties (position and volume).
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i4" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i4.p1">
+       <p class="ltx_p" id="S3.I1.i4.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i4.p1.1.1">
+         Robot State &amp; Capability
+        </span>
+        : the capabilities (available actions) of each robot and their current location. This prompt component is synthesized by our pre-defined functions. Note that the available actions include possible collisions; it is the responsibility of the planner to find safe plans.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i5" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i5.p1">
+       <p class="ltx_p" id="S3.I1.i5.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i5.p1.1.1">
+         Agent Specialized Prompt
+        </span>
+        : the prompt for each local agent emphasizes its own state and indicates the responses and initial plans of the other agents. For frameworks with a central agent, the prompt for that agent includes feedback from the local agents. Further, each agent is provided a persona.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i6" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i6.p1">
+       <p class="ltx_p" id="S3.I1.i6.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i6.p1.1.1">
+         Communication Instruction
+        </span>
+        : the instruction for how to respond to other agents &amp; how to format the output.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I1.i7" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S3.I1.i7.p1">
+       <p class="ltx_p" id="S3.I1.i7.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I1.i7.p1.1.1">
+         Plan Syntactic Checking Feedback
+        </span>
+        : (optional) explanation of syntax errors in the generated output. The syntactic checking ensures that the output is formatted correctly and uses available actions.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS2.5.1.1">
+      III-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS2.6.2">
+     Communication Frameworks for Sub-task Plan
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     We compare the four LLM-based multi-robot planning frameworks shown in Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     . The Decentralized Multi-agent System framework (DMAS) is shown in Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     (a) and is the framework used in previous works on LLMs as multi-robot planners
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     . Each robot is assigned an LLM planner and another agent to whom it should send its comments. The agents use a turn-taking approach for dialogue, as illustrated. The comments from prior agents in the dialogue are concatenated and included as part of the prompt for the next agent; thus, the prompt length increases over the duration of the dialogue for the current planning iteration. The dialogue ends once the current agent outputs “EXECUTE" followed by the action for each agent.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     The Centralized Multi-agent System framework (CMAS) is shown in Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     (c). This approach incorporates only a single LLM as a central planner that is responsible for assigning the actions for each robot at each planning iteration.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     We propose two Hybrid Multi-agent System frameworks, HMAS-1 (Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     (b)) &amp; HMAS-2 (Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ II PROBLEM DESCRIPTION ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     (d)), that are variants of DMAS and CMAS respectively. In HMAS-1, a central LLM planner proposes an initial set of actions for the current planning iteration that is provided to each of the robots’ LLM planners; the robots’ LLMs then proceed as done in DMAS. In HMAS-2, a central LLM planner generates an initial set of actions for each robot, as done in CMAS; however, each robot has an LLM agent that checks its assigned action and provides feedback to the central planner. In the case of a local agent disagreeing with its assigned action, the central agent will re-plan. This process repeats until each robot’s LLM agrees with its assigned action. Note that in both HMAS-1 and HMAS-2, only the agents that will take an action participate in the dialogue, thus reducing the duration of dialogue and the corresponding number of tokens in the prompts.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS3.5.1.1">
+      III-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS3.6.2">
+     Step History
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     Including the full history of the dialogue, environment states, and actions rapidly exhausts the context token budget for the LLM planners, constraining the performance of these frameworks. We therefore compare three approaches in an ablation study of the historical information included in the context: (1) no historical information, (2) only state-action pair history (no dialogue), and (3) the full history. We only include the results for all three approaches in the ablation study; since we found that (2) has the best trade-off between task performance and token efficiency (see Section
+     <a class="ltx_ref" href="#S4.SS3" title="IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       <span class="ltx_text">
+        IV-C
+       </span>
+      </span>
+     </a>
+     ), all other experiments are performed with only state-action pair history.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S3.SS4.5.1.1">
+      III-D
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S3.SS4.6.2">
+     Token Length Constraint
+    </span>
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     We use gpt-4-0613 and gpt-3.5-turbo-0613 in this work, which have context token limits of 8192 and 4097, respectively. To make sure the total token length (prompt + response) does not surpass these limits, we employ a sliding context window over the step history part of the prompt; the step history will include as many of the most recent steps as permissible without surpassing a total prompt length of 3500 tokens.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="300" id="S3.F4.g1" src="/html/2309.15943/assets/Images/Environments.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Four multi-robot task planning environments.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    IV
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S4.1.1">
+    EXPERIMENTS
+   </span>
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS1.5.1.1">
+      IV-A
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS1.6.2">
+     Testing Environments
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     To compare the four different LLM-based planning frameworks, we design four multi-robot task planning environments inspired by a warehouse setting. In order to evaluate how these frameworks scale to many robots, we instantiate each environment with increasing numbers of robots. For BoxNet1 and BoxNet2, we run trials of 4, 8, 16, and 32 robots. For Warehouse and BoxLift, we run trials 4, 6, 8, and 10 robots. For each number of robots in each environment, we perform 10 trials with varied initial conditions, resulting in 40 total trials per environment.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     We track whether each trial resulted in task execution. A task is considered a failure in the following conditions: (1) the dialogue among agents results in a context length beyond the token limit, (2) the agents do not reach consensus before a pre-specified limit of dialogue rounds, (3) the syntactic checking iterates beyond a pre-specified limit, (4) the number of planning iterations exceeds a limit before reaching the goal, and (5) the plan results in a collision. We choose the limits for (1), (2), (3), and (4) such that the failure is very likely a result of endless dialogue or actions. Note that only BoxNet2 and Warehouse can have collision.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.1">
+      BoxNet1
+     </span>
+     Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ III-D Token Length Constraint ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     (a) shows the BoxNet1 environment. The environment consists of cell regions, robot arms, colored boxes, and colored goal locations (circles) for each box. The goal is to move each box into its associated goal location in the fewest time steps. The robot arms are confined to the cell they occupy. Each arm has three possible actions: (1) move a box within its cell to a neighboring cell, (2) move a box within its cell to a goal location within its cell, and (3) do nothing. We assume no collisions.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.2">
+      BoxNet2
+     </span>
+     Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ III-D Token Length Constraint ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     (b) shows the BoxNet2 environment, which is similar to BoxNet1. In this environment, each box can only be moved between cells by being placed at a corner (red circles), and a given corner can only hold one box at a time; we treat placing two or more boxes on the same corner as a collision (and thus task failure). Each arm in this environment has three possible actions: (1) move a box from a corner to a different corner of the cell, (2) move a box from a corner to a goal location within the its cell, and (3) do nothing. The constraint on box movement and possibility of collision makes this scenario more challenging than BoxNet1.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.3">
+      Warehouse
+     </span>
+     Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ III-D Token Length Constraint ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     (c) shows the Warehouse environment. In this environment, mobile manipulators are tasked with moving all of the boxes (green) to the target region (blue) in the fewest time steps. Each robot can only move between permissible locations (red) by traveling along the gray paths; in a single time step, a robot cannot move beyond an adjacent permissible location. We treat two robots occupying the same location as a collision, resulting in task failure. A robot can pick up a box only when at a permissible location that is immediately adjacent to it. Each robot has six possible actions: (1) &amp; (2) move left or right (if a permissible location exists), (3) pick up an adjacent box, (4) place a box in the target region, (5) move from the target region to any of the adjacent permissible locations, and (6) do nothing.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p2.1.4">
+      BoxLift
+     </span>
+     Figure
+     <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ III-D Token Length Constraint ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       4
+      </span>
+     </a>
+     (d) shows the BoxLift environment. In this environment, robots are tasked to lift each box (green) in the fewest time steps. The robots are able to lift different amounts of weight, and the boxes have different sizes and weights. In a single time step, multiple robots can be assigned to lift the same box. The box is lifted if the total capability of the robots lifting is greater than the box’s weight. As an additional challenge, the LLM agents are only able to observe the size of each box, not their weight. This is meant to simulate real situations in which box size roughly correlates with weight. The size and weight of each box is roughly proportional, but we introduce some variability. The LLM agents are provided feedback about whether or not the box was successfully lifted. This environment attempts to test the LLM planner’s ability to efficiently assign heterogeneous robots to collaboritve tasks and also incorporate prior experience when planning.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS2.5.1.1">
+      IV-B
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS2.6.2">
+     Metrics
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.9">
+     To measure how well each framework is able to plan, we report the average task success rate and average number of steps per plan. To measure the token efficiency and API usage, we also report the average number of tokens used per plan and the average number of API calls per plan. The average number of steps per plan, the average number of tokens per plan, and the average number of API calls per plan only include plans that were successful. We therefore report normalized values for those three metrics. Let
+     <math alttext="\mathcal{M}" class="ltx_Math" display="inline" id="S4.SS2.p1.1.m1.1">
+      <semantics id="S4.SS2.p1.1.m1.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S4.SS2.p1.1.m1.1.1" xref="S4.SS2.p1.1.m1.1.1.cmml">
+        ℳ
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.1.m1.1b">
+        <ci id="S4.SS2.p1.1.m1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1">
+         ℳ
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.1.m1.1c">
+        \mathcal{M}
+       </annotation>
+      </semantics>
+     </math>
+     be the set of values for a given metric
+     <math alttext="M" class="ltx_Math" display="inline" id="S4.SS2.p1.2.m2.1">
+      <semantics id="S4.SS2.p1.2.m2.1a">
+       <mi id="S4.SS2.p1.2.m2.1.1" xref="S4.SS2.p1.2.m2.1.1.cmml">
+        M
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.2.m2.1b">
+        <ci id="S4.SS2.p1.2.m2.1.1.cmml" xref="S4.SS2.p1.2.m2.1.1">
+         𝑀
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.2.m2.1c">
+        M
+       </annotation>
+      </semantics>
+     </math>
+     , e.g. average API calls, such that
+     <math alttext="m_{i}\in\mathcal{M}" class="ltx_Math" display="inline" id="S4.SS2.p1.3.m3.1">
+      <semantics id="S4.SS2.p1.3.m3.1a">
+       <mrow id="S4.SS2.p1.3.m3.1.1" xref="S4.SS2.p1.3.m3.1.1.cmml">
+        <msub id="S4.SS2.p1.3.m3.1.1.2" xref="S4.SS2.p1.3.m3.1.1.2.cmml">
+         <mi id="S4.SS2.p1.3.m3.1.1.2.2" xref="S4.SS2.p1.3.m3.1.1.2.2.cmml">
+          m
+         </mi>
+         <mi id="S4.SS2.p1.3.m3.1.1.2.3" xref="S4.SS2.p1.3.m3.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S4.SS2.p1.3.m3.1.1.1" xref="S4.SS2.p1.3.m3.1.1.1.cmml">
+         ∈
+        </mo>
+        <mi class="ltx_font_mathcaligraphic" id="S4.SS2.p1.3.m3.1.1.3" xref="S4.SS2.p1.3.m3.1.1.3.cmml">
+         ℳ
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.3.m3.1b">
+        <apply id="S4.SS2.p1.3.m3.1.1.cmml" xref="S4.SS2.p1.3.m3.1.1">
+         <in id="S4.SS2.p1.3.m3.1.1.1.cmml" xref="S4.SS2.p1.3.m3.1.1.1">
+         </in>
+         <apply id="S4.SS2.p1.3.m3.1.1.2.cmml" xref="S4.SS2.p1.3.m3.1.1.2">
+          <csymbol cd="ambiguous" id="S4.SS2.p1.3.m3.1.1.2.1.cmml" xref="S4.SS2.p1.3.m3.1.1.2">
+           subscript
+          </csymbol>
+          <ci id="S4.SS2.p1.3.m3.1.1.2.2.cmml" xref="S4.SS2.p1.3.m3.1.1.2.2">
+           𝑚
+          </ci>
+          <ci id="S4.SS2.p1.3.m3.1.1.2.3.cmml" xref="S4.SS2.p1.3.m3.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <ci id="S4.SS2.p1.3.m3.1.1.3.cmml" xref="S4.SS2.p1.3.m3.1.1.3">
+          ℳ
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.3.m3.1c">
+        m_{i}\in\mathcal{M}
+       </annotation>
+      </semantics>
+     </math>
+     is the value of metric
+     <math alttext="M" class="ltx_Math" display="inline" id="S4.SS2.p1.4.m4.1">
+      <semantics id="S4.SS2.p1.4.m4.1a">
+       <mi id="S4.SS2.p1.4.m4.1.1" xref="S4.SS2.p1.4.m4.1.1.cmml">
+        M
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.4.m4.1b">
+        <ci id="S4.SS2.p1.4.m4.1.1.cmml" xref="S4.SS2.p1.4.m4.1.1">
+         𝑀
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.4.m4.1c">
+        M
+       </annotation>
+      </semantics>
+     </math>
+     for the
+     <math alttext="i^{th}" class="ltx_Math" display="inline" id="S4.SS2.p1.5.m5.1">
+      <semantics id="S4.SS2.p1.5.m5.1a">
+       <msup id="S4.SS2.p1.5.m5.1.1" xref="S4.SS2.p1.5.m5.1.1.cmml">
+        <mi id="S4.SS2.p1.5.m5.1.1.2" xref="S4.SS2.p1.5.m5.1.1.2.cmml">
+         i
+        </mi>
+        <mrow id="S4.SS2.p1.5.m5.1.1.3" xref="S4.SS2.p1.5.m5.1.1.3.cmml">
+         <mi id="S4.SS2.p1.5.m5.1.1.3.2" xref="S4.SS2.p1.5.m5.1.1.3.2.cmml">
+          t
+         </mi>
+         <mo id="S4.SS2.p1.5.m5.1.1.3.1" lspace="0em" rspace="0em" xref="S4.SS2.p1.5.m5.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S4.SS2.p1.5.m5.1.1.3.3" xref="S4.SS2.p1.5.m5.1.1.3.3.cmml">
+          h
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.5.m5.1b">
+        <apply id="S4.SS2.p1.5.m5.1.1.cmml" xref="S4.SS2.p1.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S4.SS2.p1.5.m5.1.1.1.cmml" xref="S4.SS2.p1.5.m5.1.1">
+          superscript
+         </csymbol>
+         <ci id="S4.SS2.p1.5.m5.1.1.2.cmml" xref="S4.SS2.p1.5.m5.1.1.2">
+          𝑖
+         </ci>
+         <apply id="S4.SS2.p1.5.m5.1.1.3.cmml" xref="S4.SS2.p1.5.m5.1.1.3">
+          <times id="S4.SS2.p1.5.m5.1.1.3.1.cmml" xref="S4.SS2.p1.5.m5.1.1.3.1">
+          </times>
+          <ci id="S4.SS2.p1.5.m5.1.1.3.2.cmml" xref="S4.SS2.p1.5.m5.1.1.3.2">
+           𝑡
+          </ci>
+          <ci id="S4.SS2.p1.5.m5.1.1.3.3.cmml" xref="S4.SS2.p1.5.m5.1.1.3.3">
+           ℎ
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.5.m5.1c">
+        i^{th}
+       </annotation>
+      </semantics>
+     </math>
+     framework. Let
+     <math alttext="\hat{\mathcal{M}}" class="ltx_Math" display="inline" id="S4.SS2.p1.6.m6.1">
+      <semantics id="S4.SS2.p1.6.m6.1a">
+       <mover accent="true" id="S4.SS2.p1.6.m6.1.1" xref="S4.SS2.p1.6.m6.1.1.cmml">
+        <mi class="ltx_font_mathcaligraphic" id="S4.SS2.p1.6.m6.1.1.2" xref="S4.SS2.p1.6.m6.1.1.2.cmml">
+         ℳ
+        </mi>
+        <mo id="S4.SS2.p1.6.m6.1.1.1" xref="S4.SS2.p1.6.m6.1.1.1.cmml">
+         ^
+        </mo>
+       </mover>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.6.m6.1b">
+        <apply id="S4.SS2.p1.6.m6.1.1.cmml" xref="S4.SS2.p1.6.m6.1.1">
+         <ci id="S4.SS2.p1.6.m6.1.1.1.cmml" xref="S4.SS2.p1.6.m6.1.1.1">
+          ^
+         </ci>
+         <ci id="S4.SS2.p1.6.m6.1.1.2.cmml" xref="S4.SS2.p1.6.m6.1.1.2">
+          ℳ
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.6.m6.1c">
+        \hat{\mathcal{M}}
+       </annotation>
+      </semantics>
+     </math>
+     be the set of values for the normalized metric
+     <math alttext="\hat{M}" class="ltx_Math" display="inline" id="S4.SS2.p1.7.m7.1">
+      <semantics id="S4.SS2.p1.7.m7.1a">
+       <mover accent="true" id="S4.SS2.p1.7.m7.1.1" xref="S4.SS2.p1.7.m7.1.1.cmml">
+        <mi id="S4.SS2.p1.7.m7.1.1.2" xref="S4.SS2.p1.7.m7.1.1.2.cmml">
+         M
+        </mi>
+        <mo id="S4.SS2.p1.7.m7.1.1.1" xref="S4.SS2.p1.7.m7.1.1.1.cmml">
+         ^
+        </mo>
+       </mover>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.7.m7.1b">
+        <apply id="S4.SS2.p1.7.m7.1.1.cmml" xref="S4.SS2.p1.7.m7.1.1">
+         <ci id="S4.SS2.p1.7.m7.1.1.1.cmml" xref="S4.SS2.p1.7.m7.1.1.1">
+          ^
+         </ci>
+         <ci id="S4.SS2.p1.7.m7.1.1.2.cmml" xref="S4.SS2.p1.7.m7.1.1.2">
+          𝑀
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.7.m7.1c">
+        \hat{M}
+       </annotation>
+      </semantics>
+     </math>
+     such that the normalized metric value
+     <math alttext="\hat{m}_{i}\in\hat{\mathcal{M}}" class="ltx_Math" display="inline" id="S4.SS2.p1.8.m8.1">
+      <semantics id="S4.SS2.p1.8.m8.1a">
+       <mrow id="S4.SS2.p1.8.m8.1.1" xref="S4.SS2.p1.8.m8.1.1.cmml">
+        <msub id="S4.SS2.p1.8.m8.1.1.2" xref="S4.SS2.p1.8.m8.1.1.2.cmml">
+         <mover accent="true" id="S4.SS2.p1.8.m8.1.1.2.2" xref="S4.SS2.p1.8.m8.1.1.2.2.cmml">
+          <mi id="S4.SS2.p1.8.m8.1.1.2.2.2" xref="S4.SS2.p1.8.m8.1.1.2.2.2.cmml">
+           m
+          </mi>
+          <mo id="S4.SS2.p1.8.m8.1.1.2.2.1" xref="S4.SS2.p1.8.m8.1.1.2.2.1.cmml">
+           ^
+          </mo>
+         </mover>
+         <mi id="S4.SS2.p1.8.m8.1.1.2.3" xref="S4.SS2.p1.8.m8.1.1.2.3.cmml">
+          i
+         </mi>
+        </msub>
+        <mo id="S4.SS2.p1.8.m8.1.1.1" xref="S4.SS2.p1.8.m8.1.1.1.cmml">
+         ∈
+        </mo>
+        <mover accent="true" id="S4.SS2.p1.8.m8.1.1.3" xref="S4.SS2.p1.8.m8.1.1.3.cmml">
+         <mi class="ltx_font_mathcaligraphic" id="S4.SS2.p1.8.m8.1.1.3.2" xref="S4.SS2.p1.8.m8.1.1.3.2.cmml">
+          ℳ
+         </mi>
+         <mo id="S4.SS2.p1.8.m8.1.1.3.1" xref="S4.SS2.p1.8.m8.1.1.3.1.cmml">
+          ^
+         </mo>
+        </mover>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.8.m8.1b">
+        <apply id="S4.SS2.p1.8.m8.1.1.cmml" xref="S4.SS2.p1.8.m8.1.1">
+         <in id="S4.SS2.p1.8.m8.1.1.1.cmml" xref="S4.SS2.p1.8.m8.1.1.1">
+         </in>
+         <apply id="S4.SS2.p1.8.m8.1.1.2.cmml" xref="S4.SS2.p1.8.m8.1.1.2">
+          <csymbol cd="ambiguous" id="S4.SS2.p1.8.m8.1.1.2.1.cmml" xref="S4.SS2.p1.8.m8.1.1.2">
+           subscript
+          </csymbol>
+          <apply id="S4.SS2.p1.8.m8.1.1.2.2.cmml" xref="S4.SS2.p1.8.m8.1.1.2.2">
+           <ci id="S4.SS2.p1.8.m8.1.1.2.2.1.cmml" xref="S4.SS2.p1.8.m8.1.1.2.2.1">
+            ^
+           </ci>
+           <ci id="S4.SS2.p1.8.m8.1.1.2.2.2.cmml" xref="S4.SS2.p1.8.m8.1.1.2.2.2">
+            𝑚
+           </ci>
+          </apply>
+          <ci id="S4.SS2.p1.8.m8.1.1.2.3.cmml" xref="S4.SS2.p1.8.m8.1.1.2.3">
+           𝑖
+          </ci>
+         </apply>
+         <apply id="S4.SS2.p1.8.m8.1.1.3.cmml" xref="S4.SS2.p1.8.m8.1.1.3">
+          <ci id="S4.SS2.p1.8.m8.1.1.3.1.cmml" xref="S4.SS2.p1.8.m8.1.1.3.1">
+           ^
+          </ci>
+          <ci id="S4.SS2.p1.8.m8.1.1.3.2.cmml" xref="S4.SS2.p1.8.m8.1.1.3.2">
+           ℳ
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.8.m8.1c">
+        \hat{m}_{i}\in\hat{\mathcal{M}}
+       </annotation>
+      </semantics>
+     </math>
+     for the
+     <math alttext="i^{th}" class="ltx_Math" display="inline" id="S4.SS2.p1.9.m9.1">
+      <semantics id="S4.SS2.p1.9.m9.1a">
+       <msup id="S4.SS2.p1.9.m9.1.1" xref="S4.SS2.p1.9.m9.1.1.cmml">
+        <mi id="S4.SS2.p1.9.m9.1.1.2" xref="S4.SS2.p1.9.m9.1.1.2.cmml">
+         i
+        </mi>
+        <mrow id="S4.SS2.p1.9.m9.1.1.3" xref="S4.SS2.p1.9.m9.1.1.3.cmml">
+         <mi id="S4.SS2.p1.9.m9.1.1.3.2" xref="S4.SS2.p1.9.m9.1.1.3.2.cmml">
+          t
+         </mi>
+         <mo id="S4.SS2.p1.9.m9.1.1.3.1" lspace="0em" rspace="0em" xref="S4.SS2.p1.9.m9.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S4.SS2.p1.9.m9.1.1.3.3" xref="S4.SS2.p1.9.m9.1.1.3.3.cmml">
+          h
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S4.SS2.p1.9.m9.1b">
+        <apply id="S4.SS2.p1.9.m9.1.1.cmml" xref="S4.SS2.p1.9.m9.1.1">
+         <csymbol cd="ambiguous" id="S4.SS2.p1.9.m9.1.1.1.cmml" xref="S4.SS2.p1.9.m9.1.1">
+          superscript
+         </csymbol>
+         <ci id="S4.SS2.p1.9.m9.1.1.2.cmml" xref="S4.SS2.p1.9.m9.1.1.2">
+          𝑖
+         </ci>
+         <apply id="S4.SS2.p1.9.m9.1.1.3.cmml" xref="S4.SS2.p1.9.m9.1.1.3">
+          <times id="S4.SS2.p1.9.m9.1.1.3.1.cmml" xref="S4.SS2.p1.9.m9.1.1.3.1">
+          </times>
+          <ci id="S4.SS2.p1.9.m9.1.1.3.2.cmml" xref="S4.SS2.p1.9.m9.1.1.3.2">
+           𝑡
+          </ci>
+          <ci id="S4.SS2.p1.9.m9.1.1.3.3.cmml" xref="S4.SS2.p1.9.m9.1.1.3.3">
+           ℎ
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS2.p1.9.m9.1c">
+        i^{th}
+       </annotation>
+      </semantics>
+     </math>
+     framework is:
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <table class="ltx_equation ltx_eqn_table" id="S4.E1">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="\hat{m}_{i}=\frac{m_{i}}{min(\mathcal{M})}" class="ltx_Math" display="block" id="S4.E1.m1.1">
+         <semantics id="S4.E1.m1.1a">
+          <mrow id="S4.E1.m1.1.2" xref="S4.E1.m1.1.2.cmml">
+           <msub id="S4.E1.m1.1.2.2" xref="S4.E1.m1.1.2.2.cmml">
+            <mover accent="true" id="S4.E1.m1.1.2.2.2" xref="S4.E1.m1.1.2.2.2.cmml">
+             <mi id="S4.E1.m1.1.2.2.2.2" xref="S4.E1.m1.1.2.2.2.2.cmml">
+              m
+             </mi>
+             <mo id="S4.E1.m1.1.2.2.2.1" xref="S4.E1.m1.1.2.2.2.1.cmml">
+              ^
+             </mo>
+            </mover>
+            <mi id="S4.E1.m1.1.2.2.3" xref="S4.E1.m1.1.2.2.3.cmml">
+             i
+            </mi>
+           </msub>
+           <mo id="S4.E1.m1.1.2.1" xref="S4.E1.m1.1.2.1.cmml">
+            =
+           </mo>
+           <mfrac id="S4.E1.m1.1.1" xref="S4.E1.m1.1.1.cmml">
+            <msub id="S4.E1.m1.1.1.3" xref="S4.E1.m1.1.1.3.cmml">
+             <mi id="S4.E1.m1.1.1.3.2" xref="S4.E1.m1.1.1.3.2.cmml">
+              m
+             </mi>
+             <mi id="S4.E1.m1.1.1.3.3" xref="S4.E1.m1.1.1.3.3.cmml">
+              i
+             </mi>
+            </msub>
+            <mrow id="S4.E1.m1.1.1.1" xref="S4.E1.m1.1.1.1.cmml">
+             <mi id="S4.E1.m1.1.1.1.3" xref="S4.E1.m1.1.1.1.3.cmml">
+              m
+             </mi>
+             <mo id="S4.E1.m1.1.1.1.2" lspace="0em" rspace="0em" xref="S4.E1.m1.1.1.1.2.cmml">
+              ​
+             </mo>
+             <mi id="S4.E1.m1.1.1.1.4" xref="S4.E1.m1.1.1.1.4.cmml">
+              i
+             </mi>
+             <mo id="S4.E1.m1.1.1.1.2a" lspace="0em" rspace="0em" xref="S4.E1.m1.1.1.1.2.cmml">
+              ​
+             </mo>
+             <mi id="S4.E1.m1.1.1.1.5" xref="S4.E1.m1.1.1.1.5.cmml">
+              n
+             </mi>
+             <mo id="S4.E1.m1.1.1.1.2b" lspace="0em" rspace="0em" xref="S4.E1.m1.1.1.1.2.cmml">
+              ​
+             </mo>
+             <mrow id="S4.E1.m1.1.1.1.6.2" xref="S4.E1.m1.1.1.1.cmml">
+              <mo id="S4.E1.m1.1.1.1.6.2.1" stretchy="false" xref="S4.E1.m1.1.1.1.cmml">
+               (
+              </mo>
+              <mi class="ltx_font_mathcaligraphic" id="S4.E1.m1.1.1.1.1" xref="S4.E1.m1.1.1.1.1.cmml">
+               ℳ
+              </mi>
+              <mo id="S4.E1.m1.1.1.1.6.2.2" stretchy="false" xref="S4.E1.m1.1.1.1.cmml">
+               )
+              </mo>
+             </mrow>
+            </mrow>
+           </mfrac>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S4.E1.m1.1b">
+           <apply id="S4.E1.m1.1.2.cmml" xref="S4.E1.m1.1.2">
+            <eq id="S4.E1.m1.1.2.1.cmml" xref="S4.E1.m1.1.2.1">
+            </eq>
+            <apply id="S4.E1.m1.1.2.2.cmml" xref="S4.E1.m1.1.2.2">
+             <csymbol cd="ambiguous" id="S4.E1.m1.1.2.2.1.cmml" xref="S4.E1.m1.1.2.2">
+              subscript
+             </csymbol>
+             <apply id="S4.E1.m1.1.2.2.2.cmml" xref="S4.E1.m1.1.2.2.2">
+              <ci id="S4.E1.m1.1.2.2.2.1.cmml" xref="S4.E1.m1.1.2.2.2.1">
+               ^
+              </ci>
+              <ci id="S4.E1.m1.1.2.2.2.2.cmml" xref="S4.E1.m1.1.2.2.2.2">
+               𝑚
+              </ci>
+             </apply>
+             <ci id="S4.E1.m1.1.2.2.3.cmml" xref="S4.E1.m1.1.2.2.3">
+              𝑖
+             </ci>
+            </apply>
+            <apply id="S4.E1.m1.1.1.cmml" xref="S4.E1.m1.1.1">
+             <divide id="S4.E1.m1.1.1.2.cmml" xref="S4.E1.m1.1.1">
+             </divide>
+             <apply id="S4.E1.m1.1.1.3.cmml" xref="S4.E1.m1.1.1.3">
+              <csymbol cd="ambiguous" id="S4.E1.m1.1.1.3.1.cmml" xref="S4.E1.m1.1.1.3">
+               subscript
+              </csymbol>
+              <ci id="S4.E1.m1.1.1.3.2.cmml" xref="S4.E1.m1.1.1.3.2">
+               𝑚
+              </ci>
+              <ci id="S4.E1.m1.1.1.3.3.cmml" xref="S4.E1.m1.1.1.3.3">
+               𝑖
+              </ci>
+             </apply>
+             <apply id="S4.E1.m1.1.1.1.cmml" xref="S4.E1.m1.1.1.1">
+              <times id="S4.E1.m1.1.1.1.2.cmml" xref="S4.E1.m1.1.1.1.2">
+              </times>
+              <ci id="S4.E1.m1.1.1.1.3.cmml" xref="S4.E1.m1.1.1.1.3">
+               𝑚
+              </ci>
+              <ci id="S4.E1.m1.1.1.1.4.cmml" xref="S4.E1.m1.1.1.1.4">
+               𝑖
+              </ci>
+              <ci id="S4.E1.m1.1.1.1.5.cmml" xref="S4.E1.m1.1.1.1.5">
+               𝑛
+              </ci>
+              <ci id="S4.E1.m1.1.1.1.1.cmml" xref="S4.E1.m1.1.1.1.1">
+               ℳ
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S4.E1.m1.1c">
+           \hat{m}_{i}=\frac{m_{i}}{min(\mathcal{M})}
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right" rowspan="1">
+        <span class="ltx_tag ltx_tag_equation ltx_align_right">
+         (1)
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     The best value for the normalized metrics is 1.0. The framework that performs best for one of those metrics will thus have a value of 1.0.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS3.5.1.1">
+      IV-C
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS3.6.2">
+     Results
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Table
+     <a class="ltx_ref" href="#S4.T1" title="Table I ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       I
+      </span>
+     </a>
+     shows the experimental results for the four LLM-based multi-robot planning frameworks.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS3.p1.1.1">
+      Communication Frameworks
+     </span>
+     We note a few key results. The HMAS-2 framework outputs plans with highest quality since it achieves highest success rates and the fewest actions per plan. The CMAS framework has the fewest API calls and uses the fewest tokens; this is expected as it uses a single LLM and only requires one API call to generate the plan (assuming no syntax errors). The DMAS framework uses the most API calls and tokens, and also has the lowest task success rate. We observe that the LLM agents in DMAS often take many rounds of dialogue per planning step to decide to act, resulting in long dialogues. During the dialogue, the agents often repeat what previous agents have said without contributing anything new; or, agents will repeatedly propose the same action, diluting the context of important information
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     . HMAS-1, our hybrid variant of DMAS, primes the dialogue with an initial plan from a central LLM planner. This modification significantly improves the performance of the dialgoue that follows. We hypothesize that the initial plan serves as better starting point than DMAS, thus leading to better performance metrics. However, HMAS-2 outperforms HMAS-1 in all metrics. We show one example of HMAS-1 dialogue in Figure
+     <a class="ltx_ref" href="#S4.F5" title="Figure 5 ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     . It shows that the LLM agents can get stuck on their proposed action, leading to inefficient dialogue.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="458" id="S4.F5.g1" src="/html/2309.15943/assets/Images/prompt-HMAS1.png" width="419"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     Simplified communication example of HMAS-1. The local agents hesitate on possible actions, making the dialogue endless.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S4.T1">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      TABLE I:
+     </span>
+     Evaluation results on four tasks. We report average success rates (
+     <math alttext="\uparrow" class="ltx_Math" display="inline" id="S4.T1.5.m1.1">
+      <semantics id="S4.T1.5.m1.1b">
+       <mo id="S4.T1.5.m1.1.1" stretchy="false" xref="S4.T1.5.m1.1.1.cmml">
+        ↑
+       </mo>
+       <annotation-xml encoding="MathML-Content" id="S4.T1.5.m1.1c">
+        <ci id="S4.T1.5.m1.1.1.cmml" xref="S4.T1.5.m1.1.1">
+         ↑
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T1.5.m1.1d">
+        \uparrow
+       </annotation>
+      </semantics>
+     </math>
+     ) over 40 runs across 4 agent numbers per task, average number of steps per plan (
+     <math alttext="\downarrow" class="ltx_Math" display="inline" id="S4.T1.6.m2.1">
+      <semantics id="S4.T1.6.m2.1b">
+       <mo id="S4.T1.6.m2.1.1" stretchy="false" xref="S4.T1.6.m2.1.1.cmml">
+        ↓
+       </mo>
+       <annotation-xml encoding="MathML-Content" id="S4.T1.6.m2.1c">
+        <ci id="S4.T1.6.m2.1.1.cmml" xref="S4.T1.6.m2.1.1">
+         ↓
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T1.6.m2.1d">
+        \downarrow
+       </annotation>
+      </semantics>
+     </math>
+     ), average API calls (
+     <math alttext="\downarrow" class="ltx_Math" display="inline" id="S4.T1.7.m3.1">
+      <semantics id="S4.T1.7.m3.1b">
+       <mo id="S4.T1.7.m3.1.1" stretchy="false" xref="S4.T1.7.m3.1.1.cmml">
+        ↓
+       </mo>
+       <annotation-xml encoding="MathML-Content" id="S4.T1.7.m3.1c">
+        <ci id="S4.T1.7.m3.1.1.cmml" xref="S4.T1.7.m3.1.1">
+         ↓
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T1.7.m3.1d">
+        \downarrow
+       </annotation>
+      </semantics>
+     </math>
+     ), and average number of tokens across all runs (
+     <math alttext="\downarrow" class="ltx_Math" display="inline" id="S4.T1.8.m4.1">
+      <semantics id="S4.T1.8.m4.1b">
+       <mo id="S4.T1.8.m4.1.1" stretchy="false" xref="S4.T1.8.m4.1.1.cmml">
+        ↓
+       </mo>
+       <annotation-xml encoding="MathML-Content" id="S4.T1.8.m4.1c">
+        <ci id="S4.T1.8.m4.1.1.cmml" xref="S4.T1.8.m4.1.1">
+         ↓
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.T1.8.m4.1d">
+        \downarrow
+       </annotation>
+      </semantics>
+     </math>
+     ). Apart from success rate, the later three values are normalized over successful runs.
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T1.9">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T1.9.1.1">
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_t" id="S4.T1.9.1.1.1">
+       </th>
+       <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.9.1.1.2">
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.9.1.1.3">
+        DMAS
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.9.1.1.4">
+        HMAS-1
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.9.1.1.5">
+        CMAS
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.9.1.1.6">
+        HMAS-2
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.9.1.1.7">
+        <table class="ltx_tabular ltx_align_middle" id="S4.T1.9.1.1.7.1">
+         <tr class="ltx_tr" id="S4.T1.9.1.1.7.1.1">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.7.1.1.1">
+           HMAS-2
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.9.1.1.7.1.2">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.7.1.2.1">
+           w/o History
+          </td>
+         </tr>
+        </table>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.9.1.1.8">
+        <table class="ltx_tabular ltx_align_middle" id="S4.T1.9.1.1.8.1">
+         <tr class="ltx_tr" id="S4.T1.9.1.1.8.1.1">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.8.1.1.1">
+           HMAS-2
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.9.1.1.8.1.2">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.8.1.2.1">
+           w/ All History
+          </td>
+         </tr>
+        </table>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.9.1.1.9">
+        <table class="ltx_tabular ltx_align_middle" id="S4.T1.9.1.1.9.1">
+         <tr class="ltx_tr" id="S4.T1.9.1.1.9.1.1">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.9.1.1.1">
+           CMAS
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.9.1.1.9.1.2">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.9.1.2.1">
+           (GPT-3)
+          </td>
+         </tr>
+        </table>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T1.9.1.1.10">
+        <table class="ltx_tabular ltx_align_middle" id="S4.T1.9.1.1.10.1">
+         <tr class="ltx_tr" id="S4.T1.9.1.1.10.1.1">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.10.1.1.1">
+           HMAS-2
+          </td>
+         </tr>
+         <tr class="ltx_tr" id="S4.T1.9.1.1.10.1.2">
+          <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T1.9.1.1.10.1.2.1">
+           (GPT-3)
+          </td>
+         </tr>
+        </table>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T1.9.2.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.9.2.1.1" rowspan="4">
+        <span class="ltx_text" id="S4.T1.9.2.1.1.1">
+         BoxNet 1
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.9.2.1.2">
+        Success
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.2.1.3">
+        25.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.2.1.4">
+        52.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.2.1.5">
+        75.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.2.1.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.2.1.6.1">
+         82.5%
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.2.1.7">
+        77.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.2.1.8">
+        75.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.2.1.9">
+        12.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.2.1.10">
+        27.5%
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.3.2">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.3.2.1">
+        Steps
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.3.2.2">
+        2.25
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.3.2.3">
+        1.58
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.3.2.4">
+        1.92
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.3.2.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.3.2.5.1">
+         1.33
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.3.2.6">
+        1.45
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.3.2.7">
+        1.34
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.3.2.8">
+        2.76
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.3.2.9">
+        1.74
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.4.3">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.4.3.1">
+        API Calls
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.4.3.2">
+        16.00
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.4.3.3">
+        5.06
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.4.3.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.4.3.4.1">
+         1.89
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.4.3.5">
+        4.62
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.4.3.6">
+        4.61
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.4.3.7">
+        4.41
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.4.3.8">
+        3.21
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.4.3.9">
+        6.33
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.5.4">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.5.4.1">
+        Tokens
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.5.4.2">
+        48.56
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.5.4.3">
+        13.80
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.5.4.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.5.4.4.1">
+         4.09
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.5.4.5">
+        9.00
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.5.4.6">
+        4.18
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.5.4.7">
+        8.95
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.5.4.8">
+        6.73
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.5.4.9">
+        10.02
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.6.5">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.9.6.5.1" rowspan="4">
+        <span class="ltx_text" id="S4.T1.9.6.5.1.1">
+         BoxNet 2
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.9.6.5.2">
+        Success
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.6.5.3">
+        0.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.6.5.4">
+        7.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.6.5.5">
+        27.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.6.5.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.6.5.6.1">
+         57.5%
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.6.5.7">
+        27.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.6.5.8">
+        32.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.6.5.9">
+        0.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.6.5.10">
+        5.0%
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.7.6">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.7.6.1">
+        Steps
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.7.6.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.7.6.3">
+        1.38
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.7.6.4">
+        1.22
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.7.6.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.7.6.5.1">
+         1.21
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.7.6.6">
+        1.69
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.7.6.7">
+        1.24
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.7.6.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.7.6.9">
+        1.29
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.8.7">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.8.7.1">
+        API Calls
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.8.7.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.8.7.3">
+        8.24
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.8.7.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.8.7.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.8.7.5">
+        3.35
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.8.7.6">
+        4.20
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.8.7.7">
+        2.39
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.8.7.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.8.7.9">
+        3.97
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.9.8">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.9.8.1">
+        Tokens
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.9.8.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.9.8.3">
+        9.32
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.9.8.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.9.8.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.9.8.5">
+        5.22
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.9.8.6">
+        3.89
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.9.8.7">
+        3.16
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.9.8.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.9.8.9">
+        5.83
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.10.9">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.9.10.9.1" rowspan="4">
+        <span class="ltx_text" id="S4.T1.9.10.9.1.1">
+         Warehouse
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.9.10.9.2">
+        Success
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.10.9.3">
+        0.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.10.9.4">
+        5.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.10.9.5">
+        15.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.10.9.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.10.9.6.1">
+         62.5%
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.10.9.7">
+        45.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.10.9.8">
+        52.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.10.9.9">
+        0.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.10.9.10">
+        10.0%
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.11.10">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.11.10.1">
+        Steps
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.11.10.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.11.10.3">
+        1.62
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.11.10.4">
+        1.73
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.11.10.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.11.10.5.1">
+         1.16
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.11.10.6">
+        1.23
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.11.10.7">
+        1.34
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.11.10.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.11.10.9">
+        1.19
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.12.11">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.12.11.1">
+        API Calls
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.12.11.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.12.11.3">
+        8.52
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.12.11.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.12.11.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.12.11.5">
+        5.48
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.12.11.6">
+        5.62
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.12.11.7">
+        5.71
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.12.11.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.12.11.9">
+        6.33
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.13.12">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.13.12.1">
+        Tokens
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.13.12.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.13.12.3">
+        14.02
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.13.12.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.13.12.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.13.12.5">
+        9.21
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.13.12.6">
+        9.98
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.13.12.7">
+        10.56
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.13.12.8">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.13.12.9">
+        10.09
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.14.13">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t" id="S4.T1.9.14.13.1" rowspan="4">
+        <span class="ltx_text" id="S4.T1.9.14.13.1.1">
+         BoxLift
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.9.14.13.2">
+        Success
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.14.13.3">
+        52.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.14.13.4">
+        67.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.14.13.5">
+        90.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.14.13.6">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.14.13.6.1">
+         100.0%
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.14.13.7">
+        0.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.14.13.8">
+        90.0%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.9.14.13.9">
+        12.5%
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.9.14.13.10">
+        20.0%
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.15.14">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.15.14.1">
+        Steps
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.15.14.2">
+        1.42
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.15.14.3">
+        1.33
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.15.14.4">
+        1.99
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.15.14.5">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.15.14.5.1">
+         1.11
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.15.14.6">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.15.14.7">
+        1.17
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.15.14.8">
+        2.82
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.15.14.9">
+        1.65
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.16.15">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S4.T1.9.16.15.1">
+        API Calls
+       </th>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.16.15.2">
+        37.13
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.16.15.3">
+        18.99
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.16.15.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.16.15.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.16.15.5">
+        14.90
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.16.15.6">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.16.15.7">
+        15.21
+       </td>
+       <td class="ltx_td ltx_align_center" id="S4.T1.9.16.15.8">
+        1.76
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.9.16.15.9">
+        18.92
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.9.17.16">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r" id="S4.T1.9.17.16.1">
+        Tokens
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.9.17.16.2">
+        50.34
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.9.17.16.3">
+        24.54
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.9.17.16.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.9.17.16.4.1">
+         1.00
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.9.17.16.5">
+        21.52
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.9.17.16.6">
+        -
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.9.17.16.7">
+        28.02
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.9.17.16.8">
+        2.04
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.9.17.16.9">
+        25.42
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </figure>
+   <figure class="ltx_figure" id="S4.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="442" id="S4.F6.g1" src="/html/2309.15943/assets/Images/success-agent-num.png" width="538"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     Success rate vs. robot number for CMAS and HMAS-2 methods in four testing environments.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S4.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="432" id="S4.F7.g1" src="/html/2309.15943/assets/Images/prompt-HMAS2.png" width="479"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     Simplified communication example of HMAS-2. The local agents detect the collision risk and report it to the central agent.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     We also report the trend of task success rates as a function of increasing numbers of agents, as shown in Figure
+     <a class="ltx_ref" href="#S4.F6" title="Figure 6 ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     . For low numbers of agents, CMAS is competitive with HMAS-2; however, CMAS scales significantly worse to more agents. For more challenging tasks like Warehouse, CMAS performs worse than HMAS-2 for all numbers of agents, indicating that a single central LLM planner tends to generate unreasonable plans for more complex multi-robot task scenarios. Unlike CMAS, HMAS-2 is able to check and correct for errors in plans, such as identifying actions that would result in a collision. Figure
+     <a class="ltx_ref" href="#S4.F7" title="Figure 7 ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     shows one example of dialogue correcting the flawed plan via feedback from local LLM agents.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS3.p2.1.1">
+      Step History Method
+     </span>
+     In Table
+     <a class="ltx_ref" href="#S4.T1" title="Table I ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       I
+      </span>
+     </a>
+     , we report the results of HMAS-2 for different step history prompts, as described in Section
+     <a class="ltx_ref" href="#S3.SS3" title="III-C Step History ‣ III METHODS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       <span class="ltx_text">
+        III-C
+       </span>
+      </span>
+     </a>
+     . The framework performs much worse when provided no history of prior actions or dialogue rounds than when provided with the state-action pair history; this is consistent with our intution that the past actions provide useful information for future decisions. The framework performs a bit worse when provided the full history than when provided with the state-action pair history. We hypothesize that this is a result of context dilution
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ]
+     </cite>
+     from long dialogue histories.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S4.SS3.p2.1.2">
+      GPT-3 Performance
+     </span>
+     A common trend among pre-trained LLM evaluations is that some capabilities do not emerge until a model reaches sufficient size or is trained on sufficient amounts of quality data
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ]
+     </cite>
+     . We report the results of CMAS and HMAS-2 when using GPT-3 as the LLM and find that it performs significantly worse than GPT-4. It is a useful reminder that the quality of LLM-based planners depends on the quality and capability of the underlying LLM.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F8">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="461" id="S4.F8.g1" src="/html/2309.15943/assets/Images/3D-simulation.png" width="359"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 8:
+     </span>
+     3D simulation environments: robot arms collaborate to move all the boxes into the same colored bowls. Each robot arm has a limited workspace and can only move within its assigned region (divided by the blue lines).
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS4">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     <span class="ltx_text" id="S4.SS4.5.1.1">
+      IV-D
+     </span>
+    </span>
+    <span class="ltx_text ltx_font_italic" id="S4.SS4.6.2">
+     3D Simulation
+    </span>
+   </h3>
+   <div class="ltx_para" id="S4.SS4.p1">
+    <p class="ltx_p" id="S4.SS4.p1.1">
+     In addition to the 2D scenarios for our experiments, we also perform experiments in a 3D environment simulated using Pybullet
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ]
+     </cite>
+     , as illustrated in Figure
+     <a class="ltx_ref" href="#S4.F8" title="Figure 8 ‣ IV-C Results ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     . The task and environment are similar to BoxNet1 and BoxNet2. The environment consists of colored boxes, colored bowls, and robot arms. The goal is to move each colored box into its associated bowl of the same color in the fewest actions. Each arm is immobile and confined to actions within its workspace (indicated by the dotted blue lines). Arms can only pick and place boxes that are within its workspace or on the border. Pick and place actions are executed via pre-defined motion primitives. Unlike BoxNet2, boxes can be placed anywhere that is reachable along the boundary, so collisions are possible but unlikely. We again test the scalability to more agents and instantiate the environment with either three or six arms (each has its own workspace). The 3D environment has an additional complexity of using an image-to-text model (ViLD
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ]
+     </cite>
+     ) to provide bounding boxes and text descriptions for each object. Further, the 3D simulation has a richer environment model that permits action execution errors due to dynamical factors (e.g., a box slips out of a gripper) that require re-planning. The iterative nature of the LLM-based planning frameworks in this work naturally handles such instances of replanning.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS4.p2">
+    <p class="ltx_p" id="S4.SS4.p2.1">
+     We do ten runs for each scenario. Table
+     <a class="ltx_ref" href="#S4.T2" title="Table II ‣ IV-D 3D Simulation ‣ IV EXPERIMENTS ‣ Scalable Multi-Robot Collaboration with Large Language Models: Centralized or Decentralized Systems?">
+      <span class="ltx_text ltx_ref_tag">
+       II
+      </span>
+     </a>
+     shows the results of the experiments with three and six agents, respectively. Both CMAS and HMAS-2 achieve 100% success rates. CMAS used more action steps than HMAS-2 in the six robot situation, consistent with our results from the 2D environments that CMAS performs worse than HMAS-2 in more complex tasks.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_table">
+      TABLE II:
+     </span>
+     Evaluation results on 3D simulations. We report average values over 10 runs. Reported numbers of action steps, number of API calls, and number of tokens are normalized values.
+    </figcaption>
+    <div class="ltx_inline-block ltx_transformed_outer" id="S4.T2.1" style="width:433.6pt;height:108.8pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(26.7pt,-6.7pt) scale(1.14027064059461,1.14027064059461) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S4.T2.1.1">
+       <thead class="ltx_thead">
+        <tr class="ltx_tr" id="S4.T2.1.1.1.1">
+         <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.1.1.1.1">
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="4" id="S4.T2.1.1.1.1.2">
+          Three Robots
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="4" id="S4.T2.1.1.1.1.3">
+          Six Robots
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.2.2">
+         <th class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r" id="S4.T2.1.1.2.2.1">
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.2">
+          Success
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.3">
+          Steps
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.4">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T2.1.1.2.2.4.1">
+           <tr class="ltx_tr" id="S4.T2.1.1.2.2.4.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T2.1.1.2.2.4.1.1.1">
+             API
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T2.1.1.2.2.4.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T2.1.1.2.2.4.1.2.1">
+             Calls
+            </td>
+           </tr>
+          </table>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T2.1.1.2.2.5">
+          Tokens
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.6">
+          Success
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.7">
+          Steps
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.2.2.8">
+          <table class="ltx_tabular ltx_align_middle" id="S4.T2.1.1.2.2.8.1">
+           <tr class="ltx_tr" id="S4.T2.1.1.2.2.8.1.1">
+            <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T2.1.1.2.2.8.1.1.1">
+             API
+            </td>
+           </tr>
+           <tr class="ltx_tr" id="S4.T2.1.1.2.2.8.1.2">
+            <td class="ltx_td ltx_nopad_r ltx_align_center" id="S4.T2.1.1.2.2.8.1.2.1">
+             Calls
+            </td>
+           </tr>
+          </table>
+         </th>
+         <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" id="S4.T2.1.1.2.2.9">
+          Tokens
+         </th>
+        </tr>
+       </thead>
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S4.T2.1.1.3.1">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.1.3.1.1">
+          CMAS
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.2">
+          100%
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.3">
+          1.0
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.4">
+          1.0
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.3.1.5">
+          1.0
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.6">
+          100%
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.7">
+          1.39
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.1.3.1.8">
+          1.0
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.1.3.1.9">
+          1.18
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S4.T2.1.1.4.2">
+         <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r" id="S4.T2.1.1.4.2.1">
+          HMAS-2
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.2">
+          100%
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.3">
+          1.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.4">
+          3.45
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T2.1.1.4.2.5">
+          3.28
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.6">
+          100%
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.7">
+          1.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T2.1.1.4.2.8">
+          2.65
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T2.1.1.4.2.9">
+          1.31
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    V
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S5.1.1">
+    RELATED WORK
+   </span>
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S5.p1.1.1">
+     LLMs for Robotics
+    </span>
+    A representative set of prior work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      17
+     </a>
+     ]
+    </cite>
+    uses LLMs to select actions from pre-defined skill primitives and complete the tasks step by step with texts or codes as the intermediate, such as SayCan
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , Inner Monologue
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      18
+     </a>
+     ]
+    </cite>
+    , Code-As-Policy
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ]
+    </cite>
+    , and ProgGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    . Regarding to connect task planning and motion planning, prior work such as Text2Motion
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      21
+     </a>
+     ]
+    </cite>
+    and AutoTAMP
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    studies integrating LLMs with traditional Task and Motion Planners. Other work explores querying LLMs to output rewards of robot actions so that independent reward-based planners can be connected. The reward formats can be real values
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    , temporal logics
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    , or patterns
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    . The recent two work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    firstly extend LLMs into multi-robot situations, while the robot number is limited to two or three and the scalability of frameworks and step history approaches is not considered. A recent work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ]
+    </cite>
+    considers the scalability of LLM-based single-robot planning in broader environments with more objects.
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="S5.p1.1.2">
+     Dialogues and Debates of LLMs
+    </span>
+    Outside the Robotics domain, LLM-based multi-agent discussion has shown impressive capability to promote the research in social behaviors
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    , dialogue-based games
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      29
+     </a>
+     ]
+    </cite>
+    , and software development
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      30
+     </a>
+     ]
+    </cite>
+    . Recent work shows that discussion among multiple LLM agents can improve factuality and accuracy
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      32
+     </a>
+     ]
+    </cite>
+    . Prior work focuses more on understanding LLM behaviors or improving the solution for a single question.
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="S5.p1.1.3">
+     Multi-Robot Collaboration
+    </span>
+    Multi-robot collaboration has been extensively studied many decades, especially on multi-arm and multi-drone motion planning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib33" title="">
+      33
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib34" title="">
+      34
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib35" title="">
+      35
+     </a>
+     ]
+    </cite>
+    . The traditional methods rely on sampling-based methods for trajectory generation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      36
+     </a>
+     ]
+    </cite>
+    , or formal methods to optimize Task and Motion Planning
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib37" title="">
+      37
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib35" title="">
+      35
+     </a>
+     ]
+    </cite>
+    . Recent work also explored learning-based methods as alternatives
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib38" title="">
+      38
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib39" title="">
+      39
+     </a>
+     ]
+    </cite>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    VI
+   </span>
+   <span class="ltx_text ltx_font_smallcaps" id="S6.1.1">
+    CONCLUSION
+   </span>
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    Our work considers the scalability of LLM-based multi-robot task planning for long-horizon tasks to systems with many robots with heterogeneous capabilities. We propose several new frameworks for collaborative LLM dialogue and find that hybrid approaches with both central and local LLM planners produce the most successful plans and scale best to large number of agents. Future work can explore more complex tasks with more hierarchical frameworks of robot groups, e.g., each agent for each specialized robot sub-group.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     W. Liu, K. Leahy, Z. Serlin, and C. Belta, “Robust multi-agent coordination from catl+ specifications,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      2023 American Control Conference (ACC)
+     </em>
+     .   IEEE, 2023, pp. 3529–3534.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Chen, J. Arkin, Y. Zhang, N. Roy, and C. Fan, “Autotamp: Autoregressive task and motion planning with llms as translators and checkers,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2306.06531
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     M. Cavorsi, B. Capelli, L. Sabattini, and S. Gil, “Multi-robot adversarial resilience using control barrier functions,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Robotics: Science and Systems
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     F. Zhang, C. Jia, Y.-C. Li, L. Yuan, Y. Yu, and Z. Zhang, “Discovering generalizable multi-agent coordination skills from multi-task offline data,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      The Eleventh International Conference on Learning Representations
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     M. Samvelyan, T. Rashid, C. S. De Witt, G. Farquhar, N. Nardelli, T. G. Rudner, C.-M. Hung, P. H. Torr, J. Foerster, and S. Whiteson, “The starcraft multi-agent challenge,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:1902.04043
+     </em>
+     , 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      et al.
+     </em>
+     , “Language models are few-shot learners,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.2.2">
+      Advances in neural information processing systems
+     </em>
+     , vol. 33, pp. 1877–1901, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     T. Kojima, S. S. Gu, M. Reid, Y. Matsuo, and Y. Iwasawa, “Large language models are zero-shot reasoners,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      ICML 2022 Workshop on Knowledge Retrieval and Language Models
+     </em>
+     , 2022. [Online]. Available:
+     <a class="ltx_ref ltx_url" href="https://openreview.net/forum?id=6p3AuaHAFiN" target="_blank" title="">
+      https://openreview.net/forum?id=6p3AuaHAFiN
+     </a>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     M. Ahn, A. Brohan, N. Brown, Y. Chebotar, O. Cortes, B. David, C. Finn, K. Gopalakrishnan, K. Hausman, A. Herzog,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      et al.
+     </em>
+     , “Do as i can, not as i say: Grounding language in robotic affordances,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.2.2">
+      arXiv preprint arXiv:2204.01691
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     W. Huang, P. Abbeel, D. Pathak, and I. Mordatch, “Language models as zero-shot planners: Extracting actionable knowledge for embodied agents,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      International Conference on Machine Learning
+     </em>
+     .   PMLR, 2022, pp. 9118–9147.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     H. Zhang, W. Du, J. Shan, Q. Zhou, Y. Du, J. B. Tenenbaum, T. Shu, and C. Gan, “Building cooperative embodied agents modularly with large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2307.02485
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Mandi, S. Jain, and S. Song, “Roco: Dialectic multi-robot collaboration with large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2307.04738
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     N. F. Liu, K. Lin, J. Hewitt, A. Paranjape, M. Bevilacqua, F. Petroni, and P. Liang, “Lost in the middle: How language models use long contexts,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2307.03172
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     E. Coumans and Y. Bai, “Pybullet, a python module for physics simulation for games, robotics and machine learning,”
+     <a class="ltx_ref ltx_url" href="http://pybullet.org" target="_blank" title="">
+      http://pybullet.org
+     </a>
+     , 2016–2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     X. Gu, T.-Y. Lin, W. Kuo, and Y. Cui, “Open-vocabulary object detection via vision and language knowledge distillation,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2104.13921
+     </em>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     N. Wake, A. Kanehira, K. Sasabuchi, J. Takamatsu, and K. Ikeuchi, “Chatgpt empowered long-step robot control in various environments: A case application,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2304.03893
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     M. Skreta, N. Yoshikawa, S. Arellano-Rubach, Z. Ji, L. B. Kristensen, K. Darvish, A. Aspuru-Guzik, F. Shkurti, and A. Garg, “Errors are useful prompts: Instruction guided task programming with verifier-assisted iterative prompting,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2303.14100
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     L. Guan, K. Valmeekam, S. Sreedharan, and S. Kambhampati, “Leveraging pre-trained large language models to construct and utilize world models for model-based task planning,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      arXiv preprint arXiv:2305.14909
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     W. Huang, F. Xia, T. Xiao, H. Chan, J. Liang, P. Florence, A. Zeng, J. Tompson, I. Mordatch, Y. Chebotar,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      et al.
+     </em>
+     , “Inner monologue: Embodied reasoning through planning with language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.2.2">
+      arXiv preprint arXiv:2207.05608
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     J. Liang, W. Huang, F. Xia, P. Xu, K. Hausman, B. Ichter, P. Florence, and A. Zeng, “Code as policies: Language model programs for embodied control,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2209.07753
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     I. Singh, V. Blukis, A. Mousavian, A. Goyal, D. Xu, J. Tremblay, D. Fox, J. Thomason, and A. Garg, “ProgPrompt: Generating situated robot task plans using large language models,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      International Conference on Robotics and Automation (ICRA)
+     </em>
+     , 2023. [Online]. Available:
+     <a class="ltx_ref ltx_url" href="https://arxiv.org/abs/2209.11302" target="_blank" title="">
+      https://arxiv.org/abs/2209.11302
+     </a>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     K. Lin, C. Agia, T. Migimatsu, M. Pavone, and J. Bohg, “Text2motion: From natural language instructions to feasible plans,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2303.12153
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     W. Yu, N. Gileadi, C. Fu, S. Kirmani, K.-H. Lee, M. G. Arenas, H.-T. L. Chiang, T. Erez, L. Hasenclever, J. Humplik,
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      et al.
+     </em>
+     , “Language to rewards for robotic skill synthesis,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.2.2">
+      arXiv preprint arXiv:2306.08647
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     S. Tan, B. Ivanovic, X. Weng, M. Pavone, and P. Kraehenbuehl, “Language conditioned traffic generation,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      arXiv preprint arXiv:2307.07947
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Chen, R. Gandhi, Y. Zhang, and C. Fan, “Nl2tl: Transforming natural languages to temporal logics using large language models,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2305.07766
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     J. X. Liu, Z. Yang, B. Schornstein, S. Liang, I. Idrees, S. Tellex, and A. Shah, “Lang2LTL: Translating natural language commands to temporal specification with large language models,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      Workshop on Language and Robotics at CoRL 2022
+     </em>
+     , 2022. [Online]. Available:
+     <a class="ltx_ref ltx_url" href="https://openreview.net/forum?id=VxfjGZzrdn" target="_blank" title="">
+      https://openreview.net/forum?id=VxfjGZzrdn
+     </a>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     S. Mirchandani, F. Xia, P. Florence, B. Ichter, D. Driess, M. G. Arenas, K. Rao, D. Sadigh, and A. Zeng, “Large language models as general pattern machines,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2307.04721
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     K. Rana, J. Haviland, S. Garg, J. Abou-Chakra, I. Reid, and N. Suenderhauf, “Sayplan: Grounding large language models using 3d scene graphs for scalable task planning,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2307.06135
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     G. Li, H. A. A. K. Hammoud, H. Itani, D. Khizbullin, and B. Ghanem, “Camel: Communicative agents for" mind" exploration of large scale language model society,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2303.17760
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     D. Schlangen, “Dialogue games for benchmarking language understanding: Motivation, taxonomy, strategy,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2304.07007
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     C. Qian, X. Cong, C. Yang, W. Chen, Y. Su, J. Xu, Z. Liu, and M. Sun, “Communicative agents for software development,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      arXiv preprint arXiv:2307.07924
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Du, S. Li, A. Torralba, J. B. Tenenbaum, and I. Mordatch, “Improving factuality and reasoning in language models through multiagent debate,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2305.14325
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Wang, S. Mao, W. Wu, T. Ge, F. Wei, and H. Ji, “Unleashing cognitive synergy in large language models: A task-solving agent through multi-persona self-collaboration,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      arXiv preprint arXiv:2307.05300
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     Y. Koga and J.-C. Latombe, “On multi-arm manipulation planning,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      Proceedings of the 1994 IEEE International Conference on Robotics and Automation
+     </em>
+     .   IEEE, 1994, pp. 945–952.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     B. Williams, “Multi-agent path finding for precedence-constrained goal sequences,” in
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      International Joint Conference on Autonomous Agents and Multiagent Systems (AAMAS)
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     V. N. Hartmann, A. Orthey, D. Driess, O. S. Oguz, and M. Toussaint, “Long-horizon multi-robot rearrangement planning for construction assembly,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib35.1.1">
+      IEEE Transactions on Robotics
+     </em>
+     , vol. 39, no. 1, pp. 239–252, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     S. Karaman and E. Frazzoli, “Sampling-based algorithms for optimal motion planning,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib36.1.1">
+      The international journal of robotics research
+     </em>
+     , vol. 30, no. 7, pp. 846–894, 2011.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     Z. Liu, M. Guo, and Z. Li, “Time minimization and online synchronization for multi-agent systems under collaborative temporal tasks,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib37.1.1">
+      arXiv preprint arXiv:2208.07756
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     C.-C. Wong, S.-Y. Chien, H.-M. Feng, and H. Aoyama, “Motion planning for dual-arm robot based on soft actor-critic,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib38.1.1">
+      IEEE Access
+     </em>
+     , vol. 9, pp. 26 871–26 885, 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     H. Ha, J. Xu, and S. Song, “Learning a decentralized multi-arm motion planner,”
+     <em class="ltx_emph ltx_font_italic" id="bib.bib39.1.1">
+      arXiv preprint arXiv:2011.02608
+     </em>
+     , 2020.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

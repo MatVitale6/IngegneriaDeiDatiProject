@@ -1,0 +1,1467 @@
+<article class="ltx_document ltx_authors_1line" lang="en">
+ <h1 class="ltx_title ltx_title_document">
+  TrainerAgent: Customizable and Efficient Model Training
+  <br class="ltx_break"/>
+  through LLM-Powered Multi-Agent System
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Haoyuan Li
+    <sup class="ltx_sup" id="id1.1.id1">
+     1
+    </sup>
+    ,
+Hao Jiang
+    <sup class="ltx_sup" id="id2.2.id2">
+     1
+    </sup>
+    ,
+Tianke Zhang
+    <sup class="ltx_sup" id="id3.3.id3">
+     1,2
+    </sup>
+    ,
+Zhelun Yu
+    <sup class="ltx_sup" id="id4.4.id4">
+     1
+    </sup>
+    ,
+Aoxiong Yin
+    <sup class="ltx_sup" id="id5.5.id5">
+     3
+    </sup>
+    ,
+    <br class="ltx_break"/>
+    Hao Cheng
+    <sup class="ltx_sup" id="id6.6.id6">
+     1
+    </sup>
+    ,
+Siming Fu
+    <sup class="ltx_sup" id="id7.7.id7">
+     1
+    </sup>
+    ,
+Yuhao Zhang
+    <sup class="ltx_sup" id="id8.8.id8">
+     1
+    </sup>
+    ,
+Wanggui He
+    <sup class="ltx_sup" id="id9.9.id9">
+     1
+    </sup>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id10.10.id10">
+     1
+    </sup>
+    Taotian Group,
+    <sup class="ltx_sup" id="id11.11.id11">
+     2
+    </sup>
+    Tsinghua University,
+    <sup class="ltx_sup" id="id12.12.id12">
+     3
+    </sup>
+    Zhejiang University
+   </span>
+   <span class="ltx_author_notes">
+    Corresponding author.
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id13.id1">
+   <span class="ltx_text" id="id13.id1.1">
+    Training AI models has always been challenging, especially when there is a need for custom models to provide personalized services. Algorithm engineers often face a lengthy process to iteratively develop models tailored to specific business requirements, making it even more difficult for non-experts. The quest for high-quality and efficient model development, along with the emergence of Large Language Model (LLM) Agents, has become a key focus in the industry. Leveraging the powerful analytical, planning, and decision-making capabilities of LLM, we propose a TrainerAgent system comprising a multi-agent framework including Task, Data, Model and Server agents. These agents analyze user-defined tasks, input data, and requirements (e.g., accuracy, speed), optimizing them comprehensively from both data and model perspectives to obtain satisfactory models, and finally deploy these models as online service.
+Experimental evaluations on classical discriminative and generative tasks in computer vision and natural language processing domains demonstrate that our system consistently produces models that meet the desired criteria. Furthermore, the system exhibits the ability to critically identify and reject unattainable tasks, such as fantastical scenarios or unethical requests, ensuring robustness and safety.
+This research presents a significant advancement in achieving desired models with increased efficiency and quality as compared to traditional model development, facilitated by the integration of LLM-powered analysis, decision-making, and execution capabilities, as well as the collaboration among four agents.
+We anticipate that our work will contribute to the advancement of research on TrainerAgent in both academic and industry communities, potentially establishing it as a new paradigm for model development in the field of AI.
+   </span>
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The rapid advancement of artificial intelligence (AI) has revolutionized numerous industries, enabling personalized and efficient services that were once unimaginable. However, the process of training AI models to meet specific business requirements remains a daunting and time-consuming challenge. This is particularly pertinent for non-experts who struggle to navigate the intricacies of model development and customization. Bridging this gap between user needs and model development has become a pressing concern in the AI industry.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Nowadays, autonomous agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib33" title="">
+      33
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    utilizing Large Language Models (LLMs) offer promising opportunities to enhance and replicate human workflows, which seems to able to solve ease the concern above.
+Specially, HuggingGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ]
+    </cite>
+    , a framework that employs large language models like ChatGPT as controllers to integrate various specialized AI models for complex tasks. It uses natural language as an interface to streamline task execution across different domains and modalities, demonstrating the potential for more advanced AI systems. MetaGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    introduces a meta-programming framework that enhances LLM-based multi-agent systems by incorporating standardized workflows to reduce logic errors and increase task efficiency. It achieves superior performance by assigning specialized roles to agents for collaborative problem-solving, outperforming existing chat-based solutions in complex benchmarks.
+AutoGen
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    provides an open-source platform for building complex LLM applications, allowing for inter-agent communication and a blend of LLM capabilities, human inputs, and additional tools. It enables the customization of conversational patterns and agent behaviors, demonstrating its versatility and effectiveness across a wide range of fields, from technical domains to creative industries.
+However, the current agent system is unable to satisfactorily accomplish the construction of specific requirements, from user needs to model training and deployment, particularly in terms of model training. It lacks dedicated mechanisms to ensure the success rate of system operation and the training effectiveness of the final model.
+Although there are also some works that specialize in training models using LLMs, they still have significant limitations. AutoML-GPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    merges the power of LLM with expert system insights to automate AI model training, encompassing data processing to design and experiment execution. It simplifies the development of AI solutions by using standardized prompts based on comprehensive model and data descriptions. This unified approach has proven effective across various AI tasks, including those in language and vision, and excels in adapting to and tuning for new datasets as evidenced by rigorous testing. However, it requires fixed model inputs, which is rigid, demanding a high understanding of algorithms for users, while our system accepts natural language inputs, automatically comprehends the specific AI models involved, and performs training and optimization. Prompt2Model
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ]
+    </cite>
+    advances the field by proposing a method that uses natural language task descriptions to train specialized models, offering competence with fewer computational resources than LLM. It retrieves existing datasets, generates additional data using LLMs, and fine-tunes models for improved performance. However, Prompt2Model has limitations in scalability, lack of consideration for user private databases, and reliance on huggingface. It is also limited to NLP tasks and lacks flexibility.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    To build an intelligent system that can directly comprehend user-customized requirements and efficiently accomplish model training and deployment with enhanced flexibility, we propose TrainerAgent, a cutting-edge, customizable, and highly efficient model training system powered by groundbreaking LLM-powered Agents.
+Leveraging the remarkable analytical, scheduling, and decision-making capabilities of LLM, our system aims to revolutionize the way models are developed and deployed. By introducing a multi-agent framework comprising Task, Data, Model, and Server agents, TrainerAgent offers a comprehensive solution that optimizes models from both data and model perspectives, resulting in highly satisfactory outcomes. Specifically, The Task Agent acts as a hub, coordinating the activities of the other agents and interacting with the user, responsible for task parsing, global planning, coordination among agents, and user interaction. It parses user-defined tasks, develops a comprehensive plan for model development, coordinates agent activities, and provides a user-friendly interface. The Data Agent handles various data processing operations such as collection, cleaning, labeling, augmentation, reduction, and visualization. It works in collaboration with the Task Agent, receiving data processing requirements and instructions, and autonomously planning and executing these operations. The Model Agent is responsible for model initialization, optimization, ensemble, compression, evaluation, and visualization. It selects appropriate pre-trained models, optimizes their performance, conducts model compression, evaluates their performance, and provides visual representations and summaries of the models. The Server Agent handles model deployment based on user-defined online service requirements. It estimates resource needs, performs model conversion for compatibility and efficiency, and prepares interface documents for seamless integration with various applications and systems.
+And each agent is composed of several components and is provided with a system prompt and Standard Operating Procedures (SOPs) to guide their actions. The agents analyze requirements, plan their actions, and autonomously complete complex subtasks as Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    shown.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="274" id="S1.F1.1.g1" src="/html/2311.06622/assets/figs/f2.png" width="598"/>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S1.F1.3.1.1" style="font-size:90%;">
+      Figure 1
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S1.F1.4.2" style="font-size:90%;">
+     Interaction and Responsibilities of Agents.
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    To evaluate the effectiveness of TrainerAgent, we conducted rigorous experimental evaluations on classical discriminative and generative tasks within the domains of computer vision (CV) and natural language processing (NLP) as Figure
+    <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.2 Responsibility of Each Agent ‣ 2 TrainerAgent ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    and
+    <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3 Experiments ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    shown. The results consistently demonstrated that our system produces exceptional models that meet the desired criteria.
+The qualitative analysis of the Visual Grounding, Image Generation and Text Classification task in the proposed TrainerAgent system demonstrates its ability to effectively handle internally constructed tasks, perform preliminary planning, and facilitate collaboration among different agents. The specialized agents also showcase their competence in fulfilling their assigned responsibilities. These features collectively contribute to the overall functionality and effectiveness of the TrainerAgent system.
+Moreover, TrainerAgent showcased its remarkable ability to identify and reject unattainable tasks, ensuring the robustness and safety of the model development.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Our research makes several significant contributions to the field of AI model development. Firstly, we introduce a novel system that automates the entire process, from requirement analysis to model training and deployment. This is the first of its kind and addresses the challenges faced by algorithm engineers in developing custom models for personalized services. Secondly, our approach utilizes a multi-agent framework comprising Task, Data, Model, and Server agents. These agents work collaboratively, each with their specific roles, to optimize user-defined tasks, input data, and requirements. This comprehensive optimization, considering both data and model perspectives, ensures the generation of satisfactory models that meet desired criteria such as accuracy and speed. Lastly, our system undergoes extensive experimental evaluations in computer vision and natural language processing domains. These evaluations demonstrate the consistent production of high-quality models that meet the desired criteria. Additionally, our system showcases the remarkable ability to identify and reject unattainable tasks, ensuring robustness and safety. We anticipate that our research will have a substantial impact on both academic and industry communities and establish the TrainerAgent system as a new paradigm for model development in AI.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   TrainerAgent
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Framework
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     In Section 1, as we have mentioned, our system can understand user’s intent and ultimately train a model that satisfies the user’s requirements based on four agents.
+Next, we will introduce how the entire system operates.
+Firstly, like most LLM-powered agents
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       20
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       24
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       7
+      </a>
+      ]
+     </cite>
+     , each agent in our system comprises the following components: profile, memory, perception, planning, action, and response, as illustrated in Figure
+     <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     (a).
+Specifically, our agents are initially fed a system prompt as profile, informing them of the system overview and their responsibilities, and encoding Standard Operating Procedures (SOPs)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       1
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ]
+     </cite>
+     into prompts .
+Moreover, during the interaction of Agents, the current requirements from user or other agents, as well as the memory of all past system interactions, are fed into the current agent.
+It then analyzes the current requirements, and enters the planning phase, organizing thoughts, set objectives, and determine the steps needed to achieve those objectives. Agents can also modify their plans through introspection to adapt to current circumstances. Next, the agent will take action based on the results of planning, and ultimately responds to the agent or user who provided the requirement. Through these operations, an agent can autonomously complete complex subtasks through various tools.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     However, the journey from business requirement identification to the final model deployment in the actual business scenario is not simple, involving numerous complex analysis and optimization. Based on our preliminary experiments, it is challenging and insufficientfor a single Agent to meet user requirements efficiently and effectively.
+Therefore, in our framework, we break down the entire process into four parts: task parsing and planning, data acquisition and analysis, model training and testing, and service deployment. These are implemented collaboratively by Task, Data, Model, and Server Agents respectively, as shown in Figure
+     <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     (b).
+Among them, the Task Agent acts as a hub, with all other agents interacting through it. It also interacts with the user, while the other three agents only focus on their specific tasks.
+Next, we will introduce the specific responsibilities for the four agents.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Responsibility of Each Agent
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p1.1.1">
+      Task Agent
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     Task agent is the core agent in the TrainerAgent system, responsible for task parsing, global planning, coordination, and user interaction to ensure efficient and effective model development.
+Firstly, the Task agent conducts task parsing, which involves parsing the user-defined tasks and extracting relevant information. This process includes identifying the specific goals and requirements of the tasks, such as the desired model accuracy, speed, or any other specific criteria. The parsed tasks are then transformed into a structured JSON format, enabling effective communication and collaboration with the other agents for further analysis and processing.
+Once the tasks are parsed, the Task agent engages in global planning. This step involves developing a comprehensive plan for model development that takes into account the parsed tasks, available input data, and the capabilities of the other agents. The Task agent assesses the feasibility and potential challenges associated with the tasks, considering factors such as data availability, computational resources, and model complexity. This planning phase aims to optimize the model development process and ensure that the subsequent steps are well-informed and aligned with the user’s requirements.
+Furthermore, the Task agent plays a pivotal role in coordinating the activities of the other agents within the system. It acts as a central coordinator, orchestrating the collaboration and communication between the Data, Model, and Server agents. This coordination ensures that the tasks are processed efficiently, and the agents work in tandem towards achieving the desired models. The Task agent schedules and assigns tasks to the relevant agents, monitors their progress, and resolves any conflicts or dependencies that may arise.
+In addition to its coordination role, the Task agent also facilitates user interaction. It provides a user-friendly interface that allows users to interact with the TrainerAgent system. Users can provide feedback, refine their requirements, or monitor the progress of model development through this interface.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p3.1.1">
+      Data Agent
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p4">
+    <p class="ltx_p" id="S2.SS2.p4.1">
+     The Data agent plays a crucial role in the TrainerAgent system, primarily responsible for processing various types of data. To facilitate effective data processing, we have developed an extensive internal knowledge base within the Data Agent. This knowledge base encompasses a wide range of data modalities, including tabular, image, text, audio, and video data. It equips the agent with the understanding of which tools and techniques to employ for different types of data and specific processing scenarios. In cases where a suitable operation is not readily available in the knowledge base, the Data agent conducts online searches to find appropriate approaches.
+The Data agent operates in collaboration with the Task agent, receiving data processing requirements and instructions from the Task agent. Based on these requirements, the Data agent autonomously performs planning and action to execute the necessary operations.
+Specifically, the Data agent is responsible for data collection, which involves gathering relevant data from various sources such as internal databases or web scraping. This ensures a diverse and comprehensive dataset for model development.
+Furthermore, the Data agent conducts data cleaning, which focuses on removing noise, outliers, and inconsistencies from the collected data as well as correcting the annotation. This step aims to enhance the quality and reliability of the dataset, ensuring that subsequent modeling processes are based on clean and accurate data.
+Moreover, on scenarios where annotated data is insufficient, the Data agent possesses the capability to perform automatic data labeling. For instance, the Data agent can employ methods based on pre-training large-scale models to generate preliminary labels for various types of data, enabling the model to learn from a larger and more diverse dataset.
+Additionally, the Data agent performs data augmentation, which involves generating additional training samples by applying various transformations and modifications to the existing data. This technique helps to increase the diversity and generalization capability of the dataset, leading to improved model performance.
+Also, the Data agent conducts data reduction, which focuses on reducing the dimensionality or size of the dataset while preserving its key information. This step is particularly useful when dealing with large datasets or computationally intensive models, allowing for more efficient model training.
+Lastly, the Data agent facilitates data visualization, providing visual representations and summaries of the dataset to aid in data exploration and understanding. This enables users to gain insights into the data distribution and patterns, assisting in making informed decisions throughout the model development process.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="385" id="S2.F2.1.g1" src="/html/2311.06622/assets/figs/demo1.png" width="628"/>
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S2.F2.3.1.1" style="font-size:90%;">
+       Figure 2
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S2.F2.4.2" style="font-size:90%;">
+      Qualitative Analysis of Visual Grounding Task. The user presents a task to develop a model for Visual Grounding in live streaming, with specific performance and deployment requirements, and the Task Agent parses these requirements and initiates a preliminary planning. The Data Agent retrieves relevant Product Grounding dataset from internal databases and enhances it with image and text preprocessing techniques. The Model Agent then selects a pre-trained model from an internal library, trains and evaluates it against the set criteria. The Server Agent converts the model’s format for deployment, estimates online resource required, sets up the service infrastructure on the specified platform, writes the API document, and establishes continuously monitoring mechanisms. The result is a well-trained model capable of providing an online service for product grounding in live streaming.
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p5">
+    <p class="ltx_p" id="S2.SS2.p5.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p5.1.1">
+      Model Agent
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p6">
+    <p class="ltx_p" id="S2.SS2.p6.1">
+     The Model agent is responsible for training and validating models. Similar to the Data agent, the Model agent receives task requirements and instructions from the Task agent. It autonomously performs planning and takes action based on these inputs.
+Specifically, the Model agent is responsible for model initialization, which involves the selection of appropriate pre-trained models for specific tasks. The internal model repository including a comprehensive collection of pre-trained models suitable for different tasks and the huggingface model retriever provide a vast array of pre-trained models, allowing the Model agent to identify the most suitable ones based on the task requirements.
+Furthermore, the Model agent carries out optimization processes to enhance the performance of the selected models, along with standardized training scripts based on huggingface. Leveraging the internal training knowledge base we built, the Model agent automates various optimization techniques such as hyperparameter tuning, learning rate scheduling, and regularization. This ensures that the models are trained effectively and efficiently. The Model agent can leverage ensemble methods to improve model performance if needed.
+Moreover, the Model agent performs model compression, aiming to reduce the size and complexity of the models without significant performance degradation. This enables efficient deployment of models in resource-constrained environments and facilitates faster inference.
+The Model agent also conducts model evaluation to assess the performance and generalization of the trained models. Various evaluation metrics and techniques are employed to ensure the models meet the user-desired criteria and deliver reliable predictions.
+Furthermore, the Model agent facilitates model visualization, providing visual representations and summaries of the models’ architecture, learned representations, and decision boundaries. This aids in model interpretation and understanding, allowing users to gain insights into the model’s behavior.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p7">
+    <p class="ltx_p" id="S2.SS2.p7.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p7.1.1">
+      Server Agent
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p8">
+    <p class="ltx_p" id="S2.SS2.p8.1">
+     The Server Agent handles the deployment of models based on user-defined online service requirements. Similar to the Data and Model agents, the Server agent receives requirements from the Task agent and autonomously performs planning and actions.
+Specifically, the Server agent conducts resource estimation, dynamically assessing the computational and memory resources required for model deployment. This estimation considers factors such as server specifications and expected service concurrency. By accurately estimating resource needs, the Server agent ensures efficient utilization of available infrastructure and prevents resource bottlenecks during model serving.
+Furthermore, the Server agent is responsible for model conversion, ensuring compatibility and efficiency during the deployment process. It performs conversions from frameworks like PyTorch or TensorFlow to formats such as ONNX and TensorRT. This enables seamless integration with different runtime environments and optimizes model inference performance.
+Moreover, the Server agent focuses on interface document preparation to facilitate collaboration between engineering and business teams. It prepares comprehensive and parameterized service invocation interfaces, enabling seamless communication and integration of the deployed models into various applications and systems. These interface documents serve as a reference for both technical implementation and business integration.
+In summary, the Server agent ensures efficient resource allocation, seamless deployment, and effective integration of the models into real-world applications. Through its contributions, the Server agent strengthens the practicality and usability of the TrainerAgent system.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    To validate the effectiveness of our TrainerAgent, we conducted experiments on real-world business scenarios from Taobao, a popular e-commerce platform, in both computer vision (CV) and natural language processing (NLP) domains. Specifically, we focused on classical discriminative and generative tasks including Visual Grounding, Image Generation, and Text Classification. Additionally, we also tested the system’s ability to handle challenging tasks that could lead to failure.
+In our experiments, we utilize GPT-4 as a standalone agent within the TrainerAgent system. Each agent is individually configured with a profile, also known as a system prompt. Users directly interact with the TrainerAgent system through dialogue, ultimately completing the model training process.
+Note that although our experiments were conducted specifically within the Taobao, the TrainerAgent system can be generalized and applied in various real-world scenarios.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S3.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="223" id="S3.F3.1.g1" src="/html/2311.06622/assets/figs/demo3.png" width="628"/>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S3.F3.3.1.1" style="font-size:90%;">
+      Figure 3
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S3.F3.4.2" style="font-size:90%;">
+     Interaction with TrainerAgent in Text Classification Task.
+    </span>
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Visual Grounding
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Visual Grounding (VG)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       9
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       28
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ]
+     </cite>
+     aims to localize the objects on an image according to a text query. Similarly, Product Grounding
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ]
+     </cite>
+     aims to ground product, internally constructed within Taobao previously, which is more simple than a completely new task. Thus, we input all requirement into the system for both the training and deployment processesy to test the capabilities of TrainerAgent.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     As shown in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.2 Responsibility of Each Agent ‣ 2 TrainerAgent ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , the system successfully accomplishes the internally constructed Product Grounding task, addressing the specific performance and deployment requirements presented by the user. This highlights the system’s capability to handle task specifications and deliver satisfactory results. TrainerAgent system exemplifies a collaborative, adaptive, and efficient multi-agent framework for AI model development, embodying advantages in task analysis, data processing, model training, and server deployment. Each Agent is designed to perform specialized tasks, collaborating and communicating with each other to make optimal decisions collectively.
+Specifically, the Task Agent exhibits effective preliminary planning by parsing the task requirements and initiating the planning process. Furthermore, the Task Agent demonstrates great interaction and collaboration with the other four specialized agents. This emphasizes the system’s ability to facilitate coordination and communication among different agents, ensuring a smooth workflow and efficient task execution. In addition, the other three specialized agents (Data Agent, Model Agent, and Server Agent) each perform their designated roles in a competent manner. The Data Agent retrieves relevant product grounding dataset from internal databases and enhances it through image and text preprocessing techniques. The Model Agent selects a pre-trained model from an internal library, trains and evaluates it against the specified criteria. The Server Agent undertakes various tasks such as model format conversion, resource estimation, service infrastructure setup, API documentation writing, and continuous monitoring. This highlights the system’s capability to delegate specific responsibilities to the specialized agents, ensuring that each agent contributes to the overall success of the task.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.1">
+     The qualitative analysis of the Visual Grounding task in the proposed TrainerAgent system demonstrates its ability to effectively handle internally constructed tasks, perform preliminary planning, and facilitate collaboration among different agents. The specialized agents also showcase their competence in fulfilling their assigned responsibilities. These features collectively contribute to the overall functionality and effectiveness of the TrainerAgent system.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.1">
+     In addition, we conducted experiments on Image Generation, which are presented in the Appendix.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Text Classification
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     In this part, we will explore the pure NLP domain, where ChatGPT’s powerful capabilities make handling NLP tasks more convenient, requiring less reliance on external tools compared with vision or audio domain. For instance, ChatGPT can directly analyze textual data and perform tasks such as data generation, augmentation, and error correction. In the following, we take the example of a classic text classification task to illustrate how TrainerAgent deals with the scarcity of annotated data, as shown in Figure
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3 Experiments ‣ TrainerAgent: Customizable and Efficient Model Training through LLM-Powered Multi-Agent System">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     In this experiment, we utilize the TrainerAgent to develop a classifier for determining whether a product promotion contains benefits information. Unlike the scenario where the user provides requirements all at once in Visual Grounding, this experiment is conducted in a step-by-step interactive manner involving more human participation, with the system adapting to the user’s requirements and providing assistance throughout the process.
+The User initially expresses their need for a classifier with an accuracy of at least 90% and a parameter count below 10 million. The Task Agent performs an initial task analysis and conducts preliminary model and data searches. However, no existing model is found that meets the user’s requirements. Instead of providing an unsatisfactory solution, the Task Agent suggests training a specific model using the available data.
+The Data Agent plays a crucial role in this experiment. It assists the Task Agent in analyzing the data and determines that the input data format, sentence structure, and semantics are messy. Additionally, the Data Agent identifies that the initial dataset of 30 labeled pairs is insufficient for training an accurate model. Based on past experience and data quality assessment, the Data Agent recommends a minimum of 100 labeled pairs for the task.
+The User responds by providing an updated dataset of 100 labeled pairs, acknowledging that there might be labeling errors present. The Data Agent proceeds to improve the data quality by performing several tasks. Firstly, it cleans the input data by removing stopwords to enhance the model’s performance. Secondly, the annotation data of lines 7 and 12 are corrected using the internal ChatGPT_corrector tool, ensuring accurate labeling. Thirdly, to expand the dataset, the Data Agent retrieves an additional 1000 input data instances from Taobao Mall. Lastly, the input data is automatically labeled using the internal ChatGPT_annotator tool.
+The Model Agent, responsible for model selection and training, makes a decision based on the user’s requirement for a small parameter count. It chooses the albert-tiny model for training. However, during the evaluation phase, the model’s accuracy is found to be 86%, falling short of the desired 90% accuracy. To address this issue, the Model Agent autonomously selects a hierarchical training mode, optimizing the training process for the final small model. In this mode, the llama2-7b model is employed for pseudo-labeling, generating a larger labeled dataset. Subsequently, the albert-tiny model is trained on this expanded dataset. The final evaluation yields an accuracy of 92%, meeting the user’s requirement.
+During the experiment, the User makes an additional request to deploy the trained model on a specific platform with a 2GB container. The Server Agent swiftly responds by converting the model to TensorRT format using PyTorch model conversion tools. Resource estimation determines that to achieve a minimum QPS of 100, eight 2GB containers are required. The Server Agent sets up the service infrastructure, executes the deployment script provided by the platform, and implements monitoring and logging mechanisms to track the deployed service’s performance, usage, and potential issues.
+This experiment demonstrates the effectiveness of the TrainerAgent system in developing a text classifier. The iterative and interactive nature of the experiment allows for a smoother and more user-involved process compared to a one-time requirement submission. The Task Agent’s analysis, the Data Agent’s data-related tasks, and the Model Agent’s autonomous training mode selection showcase the system’s capabilities and adaptability. Additionally, the system effortlessly accommodates the User’s request for deployment, demonstrating the ease of integrating sudden deployment requirements into the system’s workflow.
+In addition to the experiments shown above, our system can be applied to many multimodal tasks
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       10
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Failed or Refused Tasks
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     In this part, we will introduce tasks that our systems might fail or refuse to do.
+Our system may fail to solve pretty challenging task. Suppose a user requests a tough task (e.g. Video Question Answering
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       27
+      </a>
+      ]
+     </cite>
+     ), however, there is no labeled data available for training the model, and the user demands a high accuracy for the task. After conducting an extensive analysis, our Task Agent can autonomously determine that it cannot meet the user’s requirements due to the lack of labeled data and the performance limitations of existing models.
+Despite conducting extensive data and model searches, the Agents are unable to find suitable resources to meet the user’s requirements. To overcome this limitation, the Agents request user intervention, such as manually annotating more data to improve model performance. If the user does not provide the necessary assistance, our system will appropriately conclude that it cannot fulfill the task due to the lack of available resources and training data.
+Additionally, our TrainerAgent will refuse to implement tasks for ethical reasons. In order to uphold ethical standards and ensure the safety of users, our system will refuse to perform certain tasks. For example, if a user requests the system to generate content that is harmful, offensive, or violates ethical norms, the Task Agent understands the request and its potential consequences. The Agent recognizes the importance of responsible AI usage and the potential harm that such generated content can cause. It prioritizes user well-being and the ethical implications of the task. Therefore, the Agent firmly refuses to comply with the request, ensuring that the system does not contribute to the dissemination of harmful or inappropriate content. The Agent emphasizes the ethical guidelines and ethical responsibility of the system, fostering a safe and supportive environment for users.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     By incorporating the Agent’s understanding and decision-making process, these detailed explanations showcase how the system assesses tasks, recognizes limitations, and considers ethical implications. This enhances the system’s user-centric approach and responsible deployment of AI models.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this paper, we present a pioneering TrainerAgent system that revolutionizes the process of AI model development. This system leverages a multi-agent framework comprising Task, Data, Model, and Server agents, each playing a pivotal role in streamlining the development process. By comprehensively analyzing user-defined tasks, data, and requirements, our TrainerAgent optimizes models from both data and model perspectives, resulting in the creation of highly satisfactory models that can be seamlessly deployed as online services. The proposed TrainerAgent system offers a plethora of advantages over traditional model development approaches. Firstly, it dramatically reduces the time and effort required to develop customized models, opening the doors to AI for non-experts and accelerating the pace of innovation. Secondly, it ensures that the produced models meet the desired criteria, such as accuracy and speed, through a comprehensive optimization process. This not only boosts the quality and effectiveness of the models but also enhances the overall user experience. However, our system still has several limitations.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    Lower Success Rate: Currently, our TrainerAgent system relies on pre-established local model running scripts, which limits its ability to successfully run on any open-source code available on platforms like GitHub. To address this limitation, we are committed to enhancing the system’s capability to automatically understand documentation, such as readme files, and autonomously execute the code, thereby improving the success rate of model implementation.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    Dependence on Human Interaction: The TrainerAgent system still requires interaction with humans to ensure optimal performance and customization. However, as the system undergoes iterative improvements, we aim to minimize this dependence and ultimately achieve an end-to-end model training and deployment process. By doing so, we will reduce the need for extensive manual intervention, enhancing the system’s autonomy and usability.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    Limited Generalization: While our system demonstrates effectiveness in various tasks, its generalization across a wide range of domains and applications may be limited. The current version of TrainerAgent focuses on discriminative and generative tasks in computer vision and natural language processing. To address this limitation, future iterations of the system will incorporate additional domains and expand the scope of task applicability, allowing for more diverse and comprehensive model development.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p5">
+   <p class="ltx_p" id="S4.p5.1">
+    Ethical Implications: As with any AI system, our TrainerAgent system raises ethical considerations. While efforts are made to ensure the system adheres to ethical guidelines, there is always a possibility of unintended consequences or biases in decision-making. We are committed to ongoing research and development to address these ethical implications and incorporate safeguards to mitigate potential risks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p6">
+   <p class="ltx_p" id="S4.p6.1">
+    Despite these limitations, our TrainerAgent system represents a significant step forward in customizable and efficient model training. Through continuous improvements and addressing these limitations, we aim to enhance the system’s performance, adaptability, and overall impact in both academic and industry settings.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib1.1.1" style="font-size:90%;">
+      R.M. Belbin.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.2.1" style="font-size:90%;">
+      Team Roles at Work
+     </span>
+     <span class="ltx_text" id="bib.bib1.3.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib1.4.1" style="font-size:90%;">
+      Routledge, 2012.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib2.1.1" style="font-size:90%;">
+      Tianle Cai, Xuezhi Wang, Tengyu Ma, Xinyun Chen, and Denny Zhou.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib2.2.1" style="font-size:90%;">
+      Large language models as tool makers.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib2.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib3.1.1" style="font-size:90%;">
+      Kan Chen, Rama Kovvuri, and Ram Nevatia.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib3.2.1" style="font-size:90%;">
+      Query-guided regression network with context policy for phrase grounding.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib3.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.4.2" style="font-size:90%;">
+      ICCV
+     </span>
+     <span class="ltx_text" id="bib.bib3.5.3" style="font-size:90%;">
+      , 2017.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib4.1.1" style="font-size:90%;">
+      T. DeMarco and T.R. Lister.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.2.1" style="font-size:90%;">
+      Peopleware: Productive Projects and Teams
+     </span>
+     <span class="ltx_text" id="bib.bib4.3.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib4.4.1" style="font-size:90%;">
+      Addison-Wesley, 2013.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib5.1.1" style="font-size:90%;">
+      Jiajun Deng, Zhengyuan Yang, Tianlang Chen, Wengang Zhou, and Houqiang Li.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib5.2.1" style="font-size:90%;">
+      Transvg: End-to-end visual grounding with transformers.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.3.1" style="font-size:90%;">
+      CoRR
+     </span>
+     <span class="ltx_text" id="bib.bib5.4.2" style="font-size:90%;">
+      , abs/2104.08541, 2021.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib6.1.1" style="font-size:90%;">
+      Yilun Du, Shuang Li, Antonio Torralba, Joshua B. Tenenbaum, and Igor Mordatch.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib6.2.1" style="font-size:90%;">
+      Improving factuality and reasoning in language models through multiagent debate, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib7.1.1" style="font-size:90%;">
+      Rui Hao, Linmei Hu, Weijian Qi, Qingliu Wu, Yirui Zhang, and Liqiang Nie.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib7.2.1" style="font-size:90%;">
+      Chatllm network: More brains, more intelligence.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib7.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib8.1.1" style="font-size:90%;">
+      Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, Chenyu Ran, et al.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib8.2.1" style="font-size:90%;">
+      Metagpt: Meta programming for multi-agent collaborative framework.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2308.00352
+     </span>
+     <span class="ltx_text" id="bib.bib8.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib9.1.1" style="font-size:90%;">
+      Ronghang Hu, Marcus Rohrbach, Jacob Andreas, Trevor Darrell, and Kate Saenko.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib9.2.1" style="font-size:90%;">
+      Modeling relationships in referential expressions with compositional modular networks.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib9.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.4.2" style="font-size:90%;">
+      CVPR
+     </span>
+     <span class="ltx_text" id="bib.bib9.5.3" style="font-size:90%;">
+      , 2017.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib10.1.1" style="font-size:90%;">
+      Rongjie Huang, Yi Ren, Jinglin Liu, Chenye Cui, and Zhou Zhao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib10.2.1" style="font-size:90%;">
+      Generspeech: Towards style transfer for generalizable out-of-domain text-to-speech.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib10.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.4.2" style="font-size:90%;">
+      Advances in Neural Information Processing Systems
+     </span>
+     <span class="ltx_text" id="bib.bib10.5.3" style="font-size:90%;">
+      .
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib11.1.1" style="font-size:90%;">
+      Rongjie Huang, Zhou Zhao, Huadai Liu, Jinglin Liu, Chenye Cui, and Yi Ren.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib11.2.1" style="font-size:90%;">
+      Prodiff: Progressive fast diffusion model for high-quality text-to-speech.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib11.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.4.2" style="font-size:90%;">
+      Proceedings of the 30th ACM International Conference on Multimedia
+     </span>
+     <span class="ltx_text" id="bib.bib11.5.3" style="font-size:90%;">
+      , pages 2595–2605, 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib12.1.1" style="font-size:90%;">
+      Tao Jin, Siyu Huang, Yingming Li, and Zhongfei Zhang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib12.2.1" style="font-size:90%;">
+      Dual low-rank multimodal fusion.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib12.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.4.2" style="font-size:90%;">
+      Findings of the Association for Computational Linguistics: EMNLP 2020
+     </span>
+     <span class="ltx_text" id="bib.bib12.5.3" style="font-size:90%;">
+      , pages 377–387, 2020.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib13.1.1" style="font-size:90%;">
+      Andrej Karpathy and Li Fei-Fei.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib13.2.1" style="font-size:90%;">
+      Deep visual-semantic alignments for generating image descriptions.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.3.1" style="font-size:90%;">
+      IEEE Trans. Pattern Anal. Mach. Intell.
+     </span>
+     <span class="ltx_text" id="bib.bib13.4.2" style="font-size:90%;">
+      , 39(4):664–676, 2017.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib14.1.1" style="font-size:90%;">
+      Guohao Li, Hasan Abed Al Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib14.2.1" style="font-size:90%;">
+      Camel: Communicative agents for” mind” exploration of large scale language model society.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib14.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.1.1" style="font-size:90%;">
+      Haoyuan Li, Hao Jiang, Tao Jin, Mengyan Li, Yan Chen, Zhijie Lin, Yang Zhao, and Zhou Zhao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.2.1" style="font-size:90%;">
+      Date: Domain adaptive product seeker for e-commerce.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.4.2" style="font-size:90%;">
+      CVPR
+     </span>
+     <span class="ltx_text" id="bib.bib15.5.3" style="font-size:90%;">
+      , pages 19315–19324, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib16.1.1" style="font-size:90%;">
+      Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Zhaopeng Tu, and Shuming Shi.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib16.2.1" style="font-size:90%;">
+      Encouraging divergent thinking in large language models through multi-agent debate.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib16.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.1.1" style="font-size:90%;">
+      Zhijie Lin, Zhou Zhao, Haoyuan Li, Jinglin Liu, Meng Zhang, Xingshan Zeng, and Xiaofei He.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.2.1" style="font-size:90%;">
+      Simullr: Simultaneous lip reading transducer with attention-guided adaptive memory.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.4.2" style="font-size:90%;">
+      Proceedings of the 29th ACM International Conference on Multimedia
+     </span>
+     <span class="ltx_text" id="bib.bib17.5.3" style="font-size:90%;">
+      , pages 1359–1367, 2021.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib18.1.1" style="font-size:90%;">
+      Yongfei Liu, Bo Wan, Lin Ma, and Xuming He.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib18.2.1" style="font-size:90%;">
+      Relation-aware instance refinement for weakly supervised visual grounding.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib18.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.4.2" style="font-size:90%;">
+      CVPR
+     </span>
+     <span class="ltx_text" id="bib.bib18.5.3" style="font-size:90%;">
+      , pages 5612–5621, 2021.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib19.1.1" style="font-size:90%;">
+      Agile Manifesto.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.2.1" style="font-size:90%;">
+      Manifesto for agile software development
+     </span>
+     <span class="ltx_text" id="bib.bib19.3.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib19.4.1" style="font-size:90%;">
+      Snowbird, UT, 2001.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib20.1.1" style="font-size:90%;">
+      Joon Sung Park, Joseph C O’Brien, Carrie J Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib20.2.1" style="font-size:90%;">
+      Generative agents: Interactive simulacra of human behavior.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib20.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.1.1" style="font-size:90%;">
+      Anna Rohrbach, Marcus Rohrbach, Ronghang Hu, Trevor Darrell, and Bernt Schiele.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.2.1" style="font-size:90%;">
+      Grounding of textual phrases in images by reconstruction.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.4.2" style="font-size:90%;">
+      ECCV
+     </span>
+     <span class="ltx_text" id="bib.bib21.5.3" style="font-size:90%;">
+      , volume 9905, pages 817–834, 2016.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib22.1.1" style="font-size:90%;">
+      Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting Zhuang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib22.2.1" style="font-size:90%;">
+      Hugginggpt: Solving ai tasks with chatgpt and its friends in huggingface.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2303.17580
+     </span>
+     <span class="ltx_text" id="bib.bib22.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib23.1.1" style="font-size:90%;">
+      Vijay Viswanathan, Chenyang Zhao, Amanda Bertsch, Tongshuang Wu, and Graham Neubig.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib23.2.1" style="font-size:90%;">
+      Prompt2model: Generating deployable models from natural language instructions.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2308.12261
+     </span>
+     <span class="ltx_text" id="bib.bib23.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib24.1.1" style="font-size:90%;">
+      Zhenhailong Wang, Shaoguang Mao, Wenshan Wu, Tao Ge, Furu Wei, and Heng Ji.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib24.2.1" style="font-size:90%;">
+      Unleashing cognitive synergy in large language models: A task-solving agent through multi-persona self-collaboration.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.3.1" style="font-size:90%;">
+      arXiv preprint
+     </span>
+     <span class="ltx_text" id="bib.bib24.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib25.1.1" style="font-size:90%;">
+      Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li, Li Jiang, Xiaoyun Zhang, and Chi Wang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib25.2.1" style="font-size:90%;">
+      Autogen: Enabling next-gen llm applications via multi-agent conversation framework.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2308.08155
+     </span>
+     <span class="ltx_text" id="bib.bib25.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib26.1.1" style="font-size:90%;">
+      Yan Xia, Zhou Zhao, Shangwei Ye, Yang Zhao, Haoyuan Li, and Yi Ren.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib26.2.1" style="font-size:90%;">
+      Video-guided curriculum learning for spoken video grounding.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib26.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.4.2" style="font-size:90%;">
+      Proceedings of the 30th ACM International Conference on Multimedia
+     </span>
+     <span class="ltx_text" id="bib.bib26.5.3" style="font-size:90%;">
+      , pages 5191–5200, 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib27.1.1" style="font-size:90%;">
+      Hui Yang, Lekha Chaisorn, Yunlong Zhao, Shi-Yong Neo, and Tat-Seng Chua.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib27.2.1" style="font-size:90%;">
+      Videoqa: question answering on news video.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib27.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.4.2" style="font-size:90%;">
+      Proceedings of the eleventh ACM international conference on Multimedia
+     </span>
+     <span class="ltx_text" id="bib.bib27.5.3" style="font-size:90%;">
+      , pages 632–641, 2003.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib28.1.1" style="font-size:90%;">
+      Zhengyuan Yang, Boqing Gong, Liwei Wang, Wenbing Huang, Dong Yu, and Jiebo Luo.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib28.2.1" style="font-size:90%;">
+      A fast and accurate one-stage approach to visual grounding.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib28.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.4.2" style="font-size:90%;">
+      ICCV
+     </span>
+     <span class="ltx_text" id="bib.bib28.5.3" style="font-size:90%;">
+      , 2019.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib29.1.1" style="font-size:90%;">
+      Aoxiong Yin, Zhou Zhao, Jinglin Liu, Weike Jin, Meng Zhang, Xingshan Zeng, and Xiaofei He.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib29.2.1" style="font-size:90%;">
+      Simulslt: End-to-end simultaneous sign language translation.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib29.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.4.2" style="font-size:90%;">
+      Proceedings of the 29th ACM International Conference on Multimedia
+     </span>
+     <span class="ltx_text" id="bib.bib29.5.3" style="font-size:90%;">
+      , pages 4118–4127, 2021.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.1.1" style="font-size:90%;">
+      Licheng Yu, Zhe Lin, Xiaohui Shen, Jimei Yang, Xin Lu, Mohit Bansal, and Tamara L. Berg.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.2.1" style="font-size:90%;">
+      Mattnet: Modular attention network for referring expression comprehension.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.4.2" style="font-size:90%;">
+      CVPR
+     </span>
+     <span class="ltx_text" id="bib.bib30.5.3" style="font-size:90%;">
+      , 2018.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib31.1.1" style="font-size:90%;">
+      Shujian Zhang, Chengyue Gong, Lemeng Wu, Xingchao Liu, and Mingyuan Zhou.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib31.2.1" style="font-size:90%;">
+      Automl-gpt: Automatic machine learning with gpt.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2305.02499
+     </span>
+     <span class="ltx_text" id="bib.bib31.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib32.1.1" style="font-size:90%;">
+      Yang Zhao, Chen Zhang, Haifeng Huang, Haoyuan Li, and Zhou Zhao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib32.2.1" style="font-size:90%;">
+      Towards effective multi-modal interchanges in zero-resource sounding object localization.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib32.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.4.2" style="font-size:90%;">
+      NIPS
+     </span>
+     <span class="ltx_text" id="bib.bib32.5.3" style="font-size:90%;">
+      , 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib33.1.1" style="font-size:90%;">
+      Mingchen Zhuge, Haozhe Liu, Francesco Faccio, Dylan R Ashley, Róbert Csordás, Anand Gopalakrishnan, Abdullah Hamdi, Hasan Abed Al Kader Hammoud, Vincent Herrmann, Kazuki Irie, et al.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib33.2.1" style="font-size:90%;">
+      Mindstorms in natural language-based societies of mind.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.3.1" style="font-size:90%;">
+      arXiv preprint arXiv:2305.17066
+     </span>
+     <span class="ltx_text" id="bib.bib33.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

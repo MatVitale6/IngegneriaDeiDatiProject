@@ -1,0 +1,2400 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  MindSearch 思·索:
+  <br class="ltx_break"/>
+  Mimicking Human Minds Elicits Deep AI Searcher
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Zehui Chen
+    <sup class="ltx_sup" id="id10.10.id1">
+     <span class="ltx_text ltx_font_italic" id="id10.10.id1.1">
+      1∗
+     </span>
+    </sup>
+    , Kuikun Liu
+    <sup class="ltx_sup" id="id11.11.id2">
+     <span class="ltx_text ltx_font_italic" id="id11.11.id2.1">
+      2∗
+     </span>
+    </sup>
+    , Qiuchen Wang
+    <sup class="ltx_sup" id="id12.12.id3">
+     <span class="ltx_text ltx_font_italic" id="id12.12.id3.1">
+      1
+     </span>
+    </sup>
+    , Jiangning Liu
+    <sup class="ltx_sup" id="id13.13.id4">
+     <span class="ltx_text ltx_font_italic" id="id13.13.id4.1">
+      2
+     </span>
+    </sup>
+    ,
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_bold" id="id8.8.4">
+     Wenwei Zhang
+     <sup class="ltx_sup" id="id8.8.4.1">
+      <span class="ltx_text ltx_font_medium ltx_font_italic" id="id8.8.4.1.1">
+       2
+      </span>
+     </sup>
+     , Kai Chen
+     <sup class="ltx_sup" id="id8.8.4.2">
+      <span class="ltx_text ltx_font_medium ltx_font_italic" id="id8.8.4.2.1">
+       2†
+      </span>
+     </sup>
+     , Feng Zhao
+     <sup class="ltx_sup" id="id8.8.4.3">
+      <span class="ltx_text ltx_font_medium ltx_font_italic" id="id8.8.4.3.1">
+       1†
+      </span>
+     </sup>
+     <br class="ltx_break"/>
+     <br class="ltx_break"/>
+     <sup class="ltx_sup" id="id8.8.4.4">
+      <span class="ltx_text ltx_font_medium" id="id8.8.4.4.1">
+       1
+      </span>
+     </sup>
+    </span>
+    University of Science and Technology of China
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id14.14.id5">
+     2
+    </sup>
+    Shanghai AI Laboratory
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id15.id1">
+   Information seeking and integration is a complex cognitive task that consumes enormous time and effort.
+Search engines reshape the way of seeking information but often fail to align with complex human intentions.
+Inspired by the remarkable progress of Large Language Models (LLMs), recent works attempt to solve the information-seeking and integration task by combining LLMs and search engines.
+However, these methods still obtain unsatisfying performance due to three challenges: (1) complex requests often cannot be accurately and completely retrieved by the search engine once; (2) corresponding information to be integrated is spread over multiple web pages along with massive noise; and (3) a large number of web pages with long contents may quickly exceed the maximum context length of LLMs.
+Inspired by the cognitive process when humans solve these problems, we introduce MindSearch (思·索) to mimic the human minds in web information seeking and integration, which can be instantiated by a simple yet effective LLM-based multi-agent framework consisting of a WebPlanner and WebSearcher.
+The WebPlanner models the human mind of multi-step information seeking as a dynamic graph construction process: it decomposes the user query into atomic sub-questions as nodes in the graph and progressively extends the graph based on the search result from WebSearcher. Tasked with each sub-question, WebSearcher performs hierarchical information retrieval with search engines and collects valuable information for WebPlanner.
+The multi-agent design of MindSearch enables the whole framework to seek and integrate information parallelly from larger-scale (
+   <span class="ltx_text ltx_font_italic" id="id15.id1.1">
+    e.g.
+   </span>
+   , more than 300) web pages in
+   <span class="ltx_text ltx_font_bold" id="id15.id1.2">
+    3 minute
+   </span>
+   , which is worth
+   <span class="ltx_text ltx_font_bold" id="id15.id1.3">
+    3 hours
+   </span>
+   of human effort.
+Based on either GPT-4o or InternLM2.5-7B models, MindSearch demonstrates significant improvement in the response quality in terms of depth and breadth, on both closed-set and open-set QA problems.
+Besides, responses from MindSearch based on InternLM2.5-7B are preferable by humans to ChatGPT-Web (by GPT-4o) and Perplexity.ai applications, which implies that MindSearch with open-source models can already deliver a competitive solution to the proprietary AI search engine.
+Code and models are available at
+   <a class="ltx_ref ltx_href" href="https://github.com/InternLM/MindSearch" target="_blank" title="">
+    https://github.com/InternLM/MindSearch
+   </a>
+   .
+  </p>
+ </div>
+ <span class="ltx_note ltx_role_footnote" id="footnote1">
+  <sup class="ltx_note_mark">
+   †
+  </sup>
+  <span class="ltx_note_outer">
+   <span class="ltx_note_content">
+    <sup class="ltx_note_mark">
+     †
+    </sup>
+    Project Page:
+    <a class="ltx_ref ltx_href" href="https://mindsearch.netlify.app" target="_blank" title="">
+     https://mindsearch.netlify.app
+    </a>
+   </span>
+  </span>
+ </span>
+ <span class="ltx_note ltx_role_footnote" id="footnote1a">
+  <sup class="ltx_note_mark">
+   †
+  </sup>
+  <span class="ltx_note_outer">
+   <span class="ltx_note_content">
+    <sup class="ltx_note_mark">
+     †
+    </sup>
+    <sup class="ltx_sup" id="footnote1a.1">
+     ∗
+    </sup>
+    Equal Contribution. Alphabetical order
+    <sup class="ltx_sup" id="footnote1a.2">
+     <span class="ltx_text ltx_font_italic" id="footnote1a.2.1">
+      †
+     </span>
+    </sup>
+    Corresponding author
+   </span>
+  </span>
+ </span>
+ <figure class="ltx_figure" id="S0.F1">
+  <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="395" id="S0.F1.g1" src="/html/2407.20183/assets/figs/framework.png" width="598"/>
+  <figcaption class="ltx_caption ltx_centering">
+   <span class="ltx_tag ltx_tag_figure">
+    Figure 1:
+   </span>
+   <span class="ltx_text ltx_font_bold" id="S0.F1.2.1">
+    The overall framework of MindSearch.
+   </span>
+   It consists of two main ingredients: WebPlanner and WebSearcher. WebPlanner acts as a high-level planner, orchestrating the reasoning steps and multiple WebSearchers. WebSearcher conducts fine-grained web searches and summarizes valuable information back to the planner, formalizing a simple yet effective multi-agent framework.
+  </figcaption>
+ </figure>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Information seeking and integration is a necessary cognitive process before analysis and decision-making in all walks of life, which usually consumes enormous human efforts and time.
+The birth of search engines
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Brin &amp; Page,
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      1998
+     </a>
+     ; Berkhin,
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2005
+     </a>
+     )
+    </cite>
+    significantly has reshaped and eased the information-seeking process of human society, however, it still suffers in integrating web information based on complex human intentions.
+Recently, Large Language Models (LLMs) have showcased remarkable progress in reasoning, language understanding, and information integration across a variety of domains
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Achiam et al.,
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ; Team et al.,
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      2024
+     </a>
+     ; Touvron et al.,
+     <a class="ltx_ref" href="#bib.bib46" title="">
+      2023
+     </a>
+     ; Cai et al.,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2024
+     </a>
+     )
+    </cite>
+    , whereas they struggling to deliver accurate knowledge in responses
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Ji et al.,
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023
+     </a>
+     ; Gu et al.,
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    The complementary advantages of LLMs and search engines highlights a compelling opportunity for their combination, where the reasoning prowess of LLMs can be complemented by the extensive web information accessible via search engines, potentially revolutionizing the solution of web information seeking and integration.
+Previous works
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Asai et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     ; Chan et al.,
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2024
+     </a>
+     )
+    </cite>
+    simply treat the information seeking and integration task as a vanilla retrieve-augmented generation (RAG) task
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chen et al.,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2017
+     </a>
+     ; Lin et al.,
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+Such a formulation, although straightforward, often results in sub-optimal performance due to a superficial engagement with the depth and complexity of web-based information retrieval, facing three major challenges for more complex user queries:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    (1) Real-world problems often require in-depth analysis and proper decomposition of the question before retrieving the related information, which cannot be done by retrieving web pages at once.
+    <br class="ltx_break"/>
+    (2) The overwhelming volume of searched web pages and massive information noise pose great challenges for LLMs for efficient information integration.
+    <br class="ltx_break"/>
+    (3) The rapid proliferation of web search content can quickly exceed the maximum context length of LLMs, which further decreases the information integration performance.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    Inspired by how human experts solve real-world problems, we propose MindSearch 思·索
+    <span class="ltx_note ltx_role_footnote" id="footnote1b">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       The Chinese name ’思·索‘ means thinking as human and exploring by searching
+      </span>
+     </span>
+    </span>
+    , a simple yet effective LLM-based multi-agent framework, which consists of a WebPlanner (mimic human minds for problem reasoning) and multiple WebSearcher (manage the information seeking process).
+Given a user query, the WebPlanner first decomposes the query into multiple atomic sub-questions that can be parallelly solved and dispatches them to the respective WebSearcher. To further enhance the reasoning ability, WebPlanner models the complex problem-solving process as an iterative graph construction: by predefining a list of standard code interfaces related to the construction of the topological mind graph, WebPlanner is able to progressively decompose the question into sequential/parallel sub-problems by adding nodes/edges in the graph via Python code generation.
+Meanwhile, the WebSearcher, tasked with each sub-problem, employs a hierarchical retrieval process to extract valuable data for LLMs, which significantly improves the information aggregation efficiency facing massive search pages.
+By distributing different aspects of the reasoning and retrieval process to specialized agents, MindSearch effectively reduces the load on each single agent, facilitating a more robust handling of long contexts. It seamlessly bridges the gap between the raw data retrieval capabilities of search engines and the context-understanding power of LLMs.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    To validate the effectiveness of MindSearch, we conducted extensive evaluations on both closed-set and open-set question-answering (QA) problems using GPT-4o and InternLM2.5-7B-Chat models. The experimental results demonstrate a substantial improvement in response quality, both in the dimensions of depth and breadth. Moreover, comparative analysis shows that the responses of MindSearch are more preferred by human evaluators over those from existing applications like ChatGPT-Web (based on GPT-4o) and Perplexity Pro. These findings suggest that MindSearch with open-source LLMs can offer a highly competitive solution for AI-driven search engines.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   MindSearch
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    To effectively synergize the
+web information retrieval capabilities of search engines and the reasoning and information integration capability of LLMs, MindSearch consists of a WebPlanner and a group of WebSearchers (Fig.
+    <a class="ltx_ref" href="#S0.F1" title="Figure 1 ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    ). WebPlanner first decomposes the user question into sequential or parallel search tasks via reasoning on the graph and determines the next step based on the search feedback (Sec.
+    <a class="ltx_ref" href="#S2.SS1" title="2.1 WebPlanner: Planning via Graph Construction ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+     <span class="ltx_text ltx_ref_tag">
+      2.1
+     </span>
+    </a>
+    ). WebSearcher is tasked with the query and performs hierarchical information retrieval on the Internet to answer sub-questions (Sec.
+    <a class="ltx_ref" href="#S2.SS2" title="2.2 WebSearcher: Web Browsing with Hierarchical Retrieval ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+     <span class="ltx_text ltx_ref_tag">
+      2.2
+     </span>
+    </a>
+    ). We also discuss the context management within the scope of the multi-agent design in Sec.
+    <a class="ltx_ref" href="#S2.SS3" title="2.3 LLM Context Management in MindSearch ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+     <span class="ltx_text ltx_ref_tag">
+      2.3
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="623" id="S2.F2.g1" src="/html/2407.20183/assets/figs/planner_demo.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    <span class="ltx_text ltx_font_bold" id="S2.F2.2.1">
+     A concrete example of how WebPlanner addresses the question step by step via planning as coding.
+    </span>
+    During each turn, WebPlanner outputs a series of thoughts along with the generated code. The code will be executed and yield the search results to the planner. At the last turn, the WebPlanner directly provides the final response without any code generation.
+   </figcaption>
+  </figure>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    WebPlanner: Planning via Graph Construction
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The WebPlanner functions as a high-level planner, orchestrating the reasoning steps and coordinating other agents. However, we observed that merely prompting the LLM to plan the entire data workflow architecture does not yield satisfactory performance. Specifically, current LLMs struggle with decomposing complex questions and understanding their topological relationships, leading to coarse-grained search queries. This approach underutilizes the potential of LLMs to serve as intermediaries between humans and search engines, transforming human intentions into step-by-step search tasks and delivering accurate responses.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.5">
+     To enhance the capability of LLM in addressing complex questions, we model the problem-solving process as a directed acyclic graph (DAG). Given a user question
+     <math alttext="Q" class="ltx_Math" display="inline" id="S2.SS1.p2.1.m1.1">
+      <semantics id="S2.SS1.p2.1.m1.1a">
+       <mi id="S2.SS1.p2.1.m1.1.1" xref="S2.SS1.p2.1.m1.1.1.cmml">
+        Q
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p2.1.m1.1b">
+        <ci id="S2.SS1.p2.1.m1.1.1.cmml" xref="S2.SS1.p2.1.m1.1.1">
+         𝑄
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p2.1.m1.1c">
+        Q
+       </annotation>
+      </semantics>
+     </math>
+     , the solution trajectory is represented as
+     <math alttext="G(Q)=\langle V,E\rangle" class="ltx_Math" display="inline" id="S2.SS1.p2.2.m2.3">
+      <semantics id="S2.SS1.p2.2.m2.3a">
+       <mrow id="S2.SS1.p2.2.m2.3.4" xref="S2.SS1.p2.2.m2.3.4.cmml">
+        <mrow id="S2.SS1.p2.2.m2.3.4.2" xref="S2.SS1.p2.2.m2.3.4.2.cmml">
+         <mi id="S2.SS1.p2.2.m2.3.4.2.2" xref="S2.SS1.p2.2.m2.3.4.2.2.cmml">
+          G
+         </mi>
+         <mo id="S2.SS1.p2.2.m2.3.4.2.1" lspace="0em" rspace="0em" xref="S2.SS1.p2.2.m2.3.4.2.1.cmml">
+          ​
+         </mo>
+         <mrow id="S2.SS1.p2.2.m2.3.4.2.3.2" xref="S2.SS1.p2.2.m2.3.4.2.cmml">
+          <mo id="S2.SS1.p2.2.m2.3.4.2.3.2.1" stretchy="false" xref="S2.SS1.p2.2.m2.3.4.2.cmml">
+           (
+          </mo>
+          <mi id="S2.SS1.p2.2.m2.1.1" xref="S2.SS1.p2.2.m2.1.1.cmml">
+           Q
+          </mi>
+          <mo id="S2.SS1.p2.2.m2.3.4.2.3.2.2" stretchy="false" xref="S2.SS1.p2.2.m2.3.4.2.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <mo id="S2.SS1.p2.2.m2.3.4.1" xref="S2.SS1.p2.2.m2.3.4.1.cmml">
+         =
+        </mo>
+        <mrow id="S2.SS1.p2.2.m2.3.4.3.2" xref="S2.SS1.p2.2.m2.3.4.3.1.cmml">
+         <mo id="S2.SS1.p2.2.m2.3.4.3.2.1" stretchy="false" xref="S2.SS1.p2.2.m2.3.4.3.1.cmml">
+          ⟨
+         </mo>
+         <mi id="S2.SS1.p2.2.m2.2.2" xref="S2.SS1.p2.2.m2.2.2.cmml">
+          V
+         </mi>
+         <mo id="S2.SS1.p2.2.m2.3.4.3.2.2" xref="S2.SS1.p2.2.m2.3.4.3.1.cmml">
+          ,
+         </mo>
+         <mi id="S2.SS1.p2.2.m2.3.3" xref="S2.SS1.p2.2.m2.3.3.cmml">
+          E
+         </mi>
+         <mo id="S2.SS1.p2.2.m2.3.4.3.2.3" stretchy="false" xref="S2.SS1.p2.2.m2.3.4.3.1.cmml">
+          ⟩
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p2.2.m2.3b">
+        <apply id="S2.SS1.p2.2.m2.3.4.cmml" xref="S2.SS1.p2.2.m2.3.4">
+         <eq id="S2.SS1.p2.2.m2.3.4.1.cmml" xref="S2.SS1.p2.2.m2.3.4.1">
+         </eq>
+         <apply id="S2.SS1.p2.2.m2.3.4.2.cmml" xref="S2.SS1.p2.2.m2.3.4.2">
+          <times id="S2.SS1.p2.2.m2.3.4.2.1.cmml" xref="S2.SS1.p2.2.m2.3.4.2.1">
+          </times>
+          <ci id="S2.SS1.p2.2.m2.3.4.2.2.cmml" xref="S2.SS1.p2.2.m2.3.4.2.2">
+           𝐺
+          </ci>
+          <ci id="S2.SS1.p2.2.m2.1.1.cmml" xref="S2.SS1.p2.2.m2.1.1">
+           𝑄
+          </ci>
+         </apply>
+         <list id="S2.SS1.p2.2.m2.3.4.3.1.cmml" xref="S2.SS1.p2.2.m2.3.4.3.2">
+          <ci id="S2.SS1.p2.2.m2.2.2.cmml" xref="S2.SS1.p2.2.m2.2.2">
+           𝑉
+          </ci>
+          <ci id="S2.SS1.p2.2.m2.3.3.cmml" xref="S2.SS1.p2.2.m2.3.3">
+           𝐸
+          </ci>
+         </list>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p2.2.m2.3c">
+        G(Q)=\langle V,E\rangle
+       </annotation>
+      </semantics>
+     </math>
+     , where
+     <math alttext="V" class="ltx_Math" display="inline" id="S2.SS1.p2.3.m3.1">
+      <semantics id="S2.SS1.p2.3.m3.1a">
+       <mi id="S2.SS1.p2.3.m3.1.1" xref="S2.SS1.p2.3.m3.1.1.cmml">
+        V
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p2.3.m3.1b">
+        <ci id="S2.SS1.p2.3.m3.1.1.cmml" xref="S2.SS1.p2.3.m3.1.1">
+         𝑉
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p2.3.m3.1c">
+        V
+       </annotation>
+      </semantics>
+     </math>
+     is a set of nodes
+     <math alttext="v" class="ltx_Math" display="inline" id="S2.SS1.p2.4.m4.1">
+      <semantics id="S2.SS1.p2.4.m4.1a">
+       <mi id="S2.SS1.p2.4.m4.1.1" xref="S2.SS1.p2.4.m4.1.1.cmml">
+        v
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p2.4.m4.1b">
+        <ci id="S2.SS1.p2.4.m4.1.1.cmml" xref="S2.SS1.p2.4.m4.1.1">
+         𝑣
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p2.4.m4.1c">
+        v
+       </annotation>
+      </semantics>
+     </math>
+     , each representing an independent web search, including an auxiliary START node (the initial question) and an END node (the final answer).
+     <math alttext="E" class="ltx_Math" display="inline" id="S2.SS1.p2.5.m5.1">
+      <semantics id="S2.SS1.p2.5.m5.1a">
+       <mi id="S2.SS1.p2.5.m5.1.1" xref="S2.SS1.p2.5.m5.1.1.cmml">
+        E
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS1.p2.5.m5.1b">
+        <ci id="S2.SS1.p2.5.m5.1.1.cmml" xref="S2.SS1.p2.5.m5.1.1">
+         𝐸
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS1.p2.5.m5.1c">
+        E
+       </annotation>
+      </semantics>
+     </math>
+     represents directed edges indicating the reasoning topological relationships between nodes (search contents). This DAG formalism captures the complexity of finding the optimal execution path, providing a more formal and intuitive representation for LLMs.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     Leveraging the superior performance of current LLMs on code tasks
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Guo et al.,
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2024
+      </a>
+      ; Roziere et al.,
+      <a class="ltx_ref" href="#bib.bib40" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , we explicitly prompt the model to interact with the graph through code writing. To achieve this, we predefined atomic code functions to add nodes or edges to the graph (Step 1 and 2 in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ). At each turn, the LLM first reads the entire dialogue, including previously generated code and web search results, then outputs thoughts and new code for reasoning on the mind graph, which is executed with a Python interpreter. During execution, once a node is added to the reasoning graph, it invokes a WebSearcher to execute the search process and summarize the information. Since the newly added nodes are only dependent on nodes generated in previous steps, we can parallel them to achieve a much faster information aggregation speed. When all information is collected, the planner produces the final response by adding the end node (Step 3 in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ).
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     By integrating with the Python interpreter, WebPlanner interacts with the graph through unified code actions, dynamically constructing the reasoning path. This ”code as planning” process enables the LLM to fully leverage its superior code generation ability, benefiting control and data flow in long-context scenarios and leading to better performance in solving complex problems.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    WebSearcher: Web Browsing with Hierarchical Retrieval
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     WebSearcher acts as a sophisticated RAG (Retrieve-and-Generate) agent with internet access, summarizing valuable responses based on search results (Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ 2.2 WebSearcher: Web Browsing with Hierarchical Retrieval ‣ 2 MindSearch ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     ). Due to the massive content available on the web, it is challenging for LLMs to process all related pages within a limited context length (
+     <span class="ltx_text ltx_font_italic" id="S2.SS2.p1.1.1">
+      e.g.
+     </span>
+     8K tokens). To address this, we employ a straightforward coarse-to-fine selection strategy. Initially, the LLM generates several similar queries based on the assigned questions from the WebPlanner to broaden the search content and thus improve the recall of relevant information. These queries are then executed through various search APIs, such as Google, Bing, and DuckDuckGo, which return key contents including web URLs, titles, and summaries. The search results are automatically merged based on the web URLs, and the LLM is prompted to select the most valuable pages for detailed reading. The full content of the selected web URLs is then added to the input of LLM. After reading these results, the LLM generates a response to answer the original question based on the search results. This hierarchical retrieval approach significantly reduces the difficulty of navigating massive web pages and allows to efficiently extract highly relevant information with in-depth details.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="91" id="S2.F3.g1" src="/html/2407.20183/assets/figs/searcher.png" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="S2.F3.2.1">
+      A detailed working pipeline of WebSearcher.
+     </span>
+     It comprises at most 4 steps: query rewrite, search content aggregation, detailed page selection, and final summarization.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    LLM Context Management in MindSearch
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.1">
+     MindSearch provides a simple multi-agent solution to complex information seeking and integration with search engines. Such a paradigm also naturally enables long-context management among different agents, which improves the overall efficiency of the framework, especially under circumstances that require the model to quickly read plenty of web pages.
+Since the WebPlanner distributes the search tasks into separate search agents and only relies on the searched results from WebSearcher, WebPlanner can purely focus on the decomposition and analysis of the user question without being distracted by the over-length web search results.
+Meanwhile, each WebSearcher only needs to search contents for its tasked sub-query, without distraction from other contents.
+Thanks to the explicit role distribution, MindSearch greatly reduces context computation during the whole process, delivering an efficient context management solution to long-context tasks for LLM. Such a multi-agent framework also provides a straightforward and simple long-context task construction pipeline for training single LLMs, which is also observed in
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Team,
+      <a class="ltx_ref" href="#bib.bib45" title="">
+       2024
+      </a>
+      )
+     </cite>
+     .
+Eventually, MindSearch collects and integrates related information from more than 300 pages in less than 3 minute, which could take human experts about 3 hours to finish a similar cognitive workload.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS3.p2">
+    <p class="ltx_p" id="S2.SS3.p2.1">
+     Due to the explicit context state transfer across multiple agents, we need to carefully handle the context during the whole workflow. We empirically find simply focusing the decomposed query from the Planner may lose useful information during the information collection phase due to the local receptive field inside the search agent. How to effectively handle the context between multiple agents is non-trivial. We find that the constructed topological relations through the directed graph edges help us easily handle the context across different agents. More specifically, we simply prefix the response from its father node as well as the root node when executing each search agent. Therefore, each WebSearcher can effectively focus on its sub-task without losing the previous related context as well as the final goal.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    We evaluate MindSearch on two primary categories of Question Answering (QA) tasks: closed-set QA and open-set QA, which reflects both the subjective and objective judgment of MindSearch. For a fair comparison, all models only have access to the Internet through BING search API, and no extra reference sources are considered.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Open-Set QA
+   </h3>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.1
+     </span>
+     Implementation Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS1.p1.1">
+      To better gauge the utility and search performance, we carefully curate 100 real-world human queries and collect responses from MindSearch (InternLM2.5-7b-chat
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Cai et al.,
+       <a class="ltx_ref" href="#bib.bib7" title="">
+        2024
+       </a>
+       )
+      </cite>
+      ), Perplexity.ai (its Pro version) , and ChatGPT with search plugin
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Achiam et al. (
+       <a class="ltx_ref" href="#bib.bib1" title="">
+        2023
+       </a>
+       )
+      </cite>
+      . We ask five human experts to manually select their preferred responses, in terms of the following three aspects:
+     </p>
+     <ul class="ltx_itemize" id="S3.I1">
+      <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I1.i1.p1">
+        <p class="ltx_p" id="S3.I1.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+          Depth
+         </span>
+         : Depth refers to the thoroughness and profundity of an answer. A response with depth provides detailed information and delves into the intricacies of a question.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I1.i2.p1">
+        <p class="ltx_p" id="S3.I1.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+          Breadth
+         </span>
+         : Breadth pertains to the scope and diversity covered by an answer. A response with breadth touches on various aspects of the question or multiple related fields, offering different perspectives or solutions.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para ltx_noindent" id="S3.I1.i3.p1">
+        <p class="ltx_p" id="S3.I1.i3.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+          Factuality
+         </span>
+         : Factuality is the degree to which an answer is accurate and fact-based. It should be grounded in reliable data and information, avoiding errors or misleading content, and ensuring the truthfulness and credibility of the information provided.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS1.p2">
+     <p class="ltx_p" id="S3.SS1.SSS1.p2.1">
+      The final results are determined based on major votes. During the evaluation, the correspondence between the response and its method is invisible to the evaluators to guarantee fairness.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F4">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="121" id="S3.F4.g1" src="/html/2407.20183/assets/figs/openset.png" width="568"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 4:
+      </span>
+      <span class="ltx_text ltx_font_bold" id="S3.F4.2.1">
+       Subjective evaluation results judged by human experts on open-set QA questions.
+      </span>
+      MindSearch outperforms ChatGPT-Web and Perplexity.ai Pro by a large margin in terms of depth, breadth, and facticity.
+     </figcaption>
+    </figure>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS1.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.1.2
+     </span>
+     Results and Analysis
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS2.p1.1">
+      The evaluation results are depicted in Figure
+      <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.1.1 Implementation Details ‣ 3.1 Open-Set QA ‣ 3 Experiments ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      and we also provide quantitative results in Figure
+      <a class="ltx_ref" href="#S3.F5" title="Figure 5 ‣ 3.1.2 Results and Analysis ‣ 3.1 Open-Set QA ‣ 3 Experiments ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      . From Figure
+      <a class="ltx_ref" href="#S3.F4" title="Figure 4 ‣ 3.1.1 Implementation Details ‣ 3.1 Open-Set QA ‣ 3 Experiments ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+       <span class="ltx_text ltx_ref_tag">
+        4
+       </span>
+      </a>
+      , we can observe an absolute improvement in terms of the depth and breadth of the model response, which validates the superiority of our proposed WebPlanner. By integrating code into the DAG construction phase, LLM is able to progressively decompose the complex problem into executable queries while balancing the tradeoff between time efficiency and the exploration of the search space. Besides, MindSearch goes through more fine-grained search topics about the question, therefore providing more compact and detailed responses compared to other models. However, MindSearch does not yield better performance in terms of facticity. We suspect that more detailed search results may distract the concentration of the model on the initial problem, especially when LLM holds incomplete long-context capability. Therefore, a natural future work of MindSearch is to alleviate the hallucination issues during the web browsing process.
+     </p>
+    </div>
+    <figure class="ltx_figure" id="S3.F5">
+     <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="257" id="S3.F5.g1" src="/html/2407.20183/assets/figs/openset_demo.png" width="568"/>
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_figure">
+       Figure 5:
+      </span>
+      <span class="ltx_text ltx_font_bold" id="S3.F5.2.1">
+       Solution trajectory comparison between MindSearch and Perplexity.ai (Pro) on the same question.
+      </span>
+      MindSearch provides more detailed and proper responses thanks to its fine-grained searches.
+     </figcaption>
+    </figure>
+    <figure class="ltx_table" id="S3.T1">
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 1:
+      </span>
+      <span class="ltx_text ltx_font_bold" id="S3.T1.2.1">
+       Performance comparison on various closed-set QA tasks
+      </span>
+      . We select two representative LLMs: GPT-4o (close-sourced) and InternLM2.5-7b-chat (open-sourced).
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.3">
+      <thead class="ltx_thead">
+       <tr class="ltx_tr" id="S3.T1.3.1.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt" id="S3.T1.3.1.1.1" rowspan="2">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.1.1">
+          Model
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.3.1.1.2" rowspan="2">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.2.1">
+          Bamboogle
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" colspan="3" id="S3.T1.3.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.3.1">
+          Musique
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" colspan="3" id="S3.T1.3.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.4.1">
+          HotpotQA
+         </span>
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.3.1.1.5">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.1.1.5.1">
+          AVG
+         </span>
+        </th>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.2.2">
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S3.T1.3.2.2.1">
+         2-hop
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S3.T1.3.2.2.2">
+         3-hop
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S3.T1.3.2.2.3">
+         4-hop
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S3.T1.3.2.2.4">
+         Easy
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column" id="S3.T1.3.2.2.5">
+         Medium
+        </th>
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r" id="S3.T1.3.2.2.6">
+         Hard
+        </th>
+        <th class="ltx_td ltx_th ltx_th_column" id="S3.T1.3.2.2.7">
+        </th>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.3.3">
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_t" colspan="9" id="S3.T1.3.3.3.1">
+         Closed-Souced LLM (GPT-4o)
+        </th>
+       </tr>
+      </thead>
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S3.T1.3.4.1">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.3.4.1.1">
+         w/o Search Engine
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.2">
+         70.4
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.3">
+         54.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.4">
+         22.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.5">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.4.1.5.1">
+          20.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.6">
+         73.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.7">
+         69.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.3.4.1.8">
+         66.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.4.1.9">
+         53.5
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.5.2">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S3.T1.3.5.2.1">
+         ReAct Search
+        </th>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.2">
+         75.2
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.3">
+         48.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.4">
+         25.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.5">
+         13.3
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.6">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.5.2.6.1">
+          81.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.7">
+         73.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.3.5.2.8">
+         70.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.5.2.9">
+         55.1
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.6.3">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S3.T1.3.6.3.1">
+         MindSearch
+        </th>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.2">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.2.1">
+          76.8
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.3">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.3.1">
+          60.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.4">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.4.1">
+          35.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.5">
+         14.6
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.6">
+         80.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.7">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.7.1">
+          74.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.3.6.3.8">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.8.1">
+          78.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.6.3.9">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.6.3.9.1">
+          59.8
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.7.4">
+        <th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" colspan="9" id="S3.T1.3.7.4.1">
+         Open-Sourced LLM (InternLM2.5-7b-chat)
+        </th>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.8.5">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.3.8.5.1">
+         w/o Search Engine
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.2">
+         34.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.3">
+         28.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.4">
+         10.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.5">
+         17.3
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.6">
+         47.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.7">
+         26.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.3.8.5.8">
+         40.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.3.8.5.9">
+         28.9
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.9.6">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r" id="S3.T1.3.9.6.1">
+         ReAct Search
+        </th>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.2">
+         55.2
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.3">
+         38.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.4">
+         17.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.5">
+         16.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.6">
+         69.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.7">
+         56.0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.3.9.6.8">
+         49.0
+        </td>
+        <td class="ltx_td ltx_align_center" id="S3.T1.3.9.6.9">
+         42.9
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S3.T1.3.10.7">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S3.T1.3.10.7.1">
+         MindSearch
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.2">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.2.1">
+          67.8
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.3">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.3.1">
+          46.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.4">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.4.1">
+          20.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.5">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.5.1">
+          18.6
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.6">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.6.1">
+          69.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.7">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.7.1">
+          66.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S3.T1.3.10.7.8">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.8.1">
+          57.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.3.10.7.9">
+         <span class="ltx_text ltx_font_bold" id="S3.T1.3.10.7.9.1">
+          49.2
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </figure>
+    <div class="ltx_para ltx_noindent" id="S3.SS1.SSS2.p2">
+     <p class="ltx_p" id="S3.SS1.SSS2.p2.1">
+      In addition to quantitative results, we also provide a qualitative response comparison between Perplexity.ai (Pro) and MindSearch to deliver an intuitive understanding of their performance. From Figure
+      <a class="ltx_ref" href="#S3.F5" title="Figure 5 ‣ 3.1.2 Results and Analysis ‣ 3.1 Open-Set QA ‣ 3 Experiments ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      , we can observe that MindSearch yields more concrete and detailed responses. We empirically find that our better responses can be attributed to the proper planning search paths compared to Perplexity.ai, which also indicates that how to decompose the human intention is the key step to the final problem.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Closed-Set QA
+   </h3>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1
+     </span>
+     Implementation Details
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS1.p1.1">
+      We extensively evaluate our approach on a wide range of closed-set QA tasks, including Bamboogle
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Press et al.,
+       <a class="ltx_ref" href="#bib.bib36" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , Musique
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Trivedi et al.,
+       <a class="ltx_ref" href="#bib.bib47" title="">
+        2022
+       </a>
+       )
+      </cite>
+      , and HotpotQA
+      <cite class="ltx_cite ltx_citemacro_citep">
+       (Yang et al.,
+       <a class="ltx_ref" href="#bib.bib49" title="">
+        2018
+       </a>
+       )
+      </cite>
+      . To further validate the generalization of our approach, we select both closed-source LLM (GPT-4o) and open-source LLM (InternLM2.5-7b-chat) as our LLM backend. Since our approach adopts a zero-shot experimental setting, we utilize a subjective LLM evaluator (GPT4-o) to gauge the correctness of HotpotQA.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS2">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.2
+     </span>
+     Results and Analysis
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S3.SS2.SSS2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS2.p1.1">
+      In Table
+      <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.1.2 Results and Analysis ‣ 3.1 Open-Set QA ‣ 3 Experiments ‣ MindSearch 思·索: Mimicking Human Minds Elicits Deep AI Searcher">
+       <span class="ltx_text ltx_ref_tag">
+        1
+       </span>
+      </a>
+      , we compare our approach with two straight-forward baselines: raw LLM without search engines (w/o Search Engine), and simply treating search engines as an external tool and adopting a ReAct-style interaction (ReAct Search). We can conclude that MindSearch significantly outperforms its vanilla baselines by a large margin, validating the effectiveness of the proposed method. These advantages are amplified when transferring from closed-sourced LLMs to open-sourced LLMs, which further proves that MindSeach provides a simple approach to enhance weak LLMs with broader knowledge and alleviate hallucination issues.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Related Work
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Tool Utilization with LLM
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     The Tool Learning framework empowers LLMs to seamlessly integrate with a variety of tools
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Qin et al.,
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       2023
+      </a>
+      ; Hao et al.,
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       2024
+      </a>
+      ; Zhuang et al.,
+      <a class="ltx_ref" href="#bib.bib55" title="">
+       2024
+      </a>
+      ; Chen et al.,
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , such as search engines
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chan et al.,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2024
+      </a>
+      )
+     </cite>
+     , databases
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Parisi et al.,
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , and APIs
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Li et al.,
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2023
+      </a>
+      ; Patil et al.,
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , offering dynamic solutions to complex problems. This integration is not only beneficial for enhancing the interpretability and trustworthiness of LLMs but also for improving their robustness and adaptability across diverse tasks, including reducing hallucinations
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Ji et al.,
+      <a class="ltx_ref" href="#bib.bib22" title="">
+       2024
+      </a>
+      )
+     </cite>
+     , code generation
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Gou et al.,
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , and question answering
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       2024
+      </a>
+      )
+     </cite>
+     . Recent research has focused on enhancing the tool integration component of Tool Learning systems. Works such as
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Huang et al.,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023
+      </a>
+      ; Shen et al.,
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       2023
+      </a>
+      ; Schick et al.,
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       2024
+      </a>
+      )
+     </cite>
+     have concentrated on improving the retrieval mechanisms, ensuring that LLMs can access the most pertinent tools for a given task. Other studies, like
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Qian et al.,
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       2023
+      </a>
+      ; Yuan et al.,
+      <a class="ltx_ref" href="#bib.bib52" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , aim at refining the LLMs’ ability to effectively utilize the retrieved information, optimizing the reading and comprehension processes within the framework.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    RAG with LLM
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     RAG demonstrates significant advantages in addressing knowledge-intensive problems, especially in open-domain scenarios with the integration of search engines
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chen et al.,
+      <a class="ltx_ref" href="#bib.bib9" title="">
+       2017
+      </a>
+      ; Li et al.,
+      <a class="ltx_ref" href="#bib.bib28" title="">
+       2017
+      </a>
+      )
+     </cite>
+     . RAG allows LLMs to integrate with the retriever, providing timely information and offering effective solutions. Moreover, RAG is also applied in various tasks such as reducing hallucinations
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Shuster et al.,
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       2021
+      </a>
+      ; Gu et al.,
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2024
+      </a>
+      )
+     </cite>
+     , code generation
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Zhou et al.,
+      <a class="ltx_ref" href="#bib.bib54" title="">
+       2022
+      </a>
+      )
+     </cite>
+     , and question answering
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Lewis et al.,
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       2020
+      </a>
+      )
+     </cite>
+     . Recently, some work
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Karpukhin et al.,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       2020
+      </a>
+      ; Xiong et al.,
+      <a class="ltx_ref" href="#bib.bib48" title="">
+       2020
+      </a>
+      ; Qu et al.,
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       2020
+      </a>
+      )
+     </cite>
+     focuses on enhancing the retrieval component of RAG systems, while others
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Izacard &amp; Grave,
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2020
+      </a>
+      ; Borgeaud et al.,
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2022
+      </a>
+      ; Yu et al.,
+      <a class="ltx_ref" href="#bib.bib51" title="">
+       2021
+      </a>
+      ; Lei et al.,
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2017
+      </a>
+      )
+     </cite>
+     enhances the language model’s ability as a reader to optimize the framework.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     With the advancement of LLM capabilities, some researchers have begun to reoptimize frameworks and redesign methodologies for model training. SAIL
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Luo et al.,
+      <a class="ltx_ref" href="#bib.bib31" title="">
+       2023
+      </a>
+      )
+     </cite>
+     trains LLM to be more focused on credible and informative search results. Self-RAG
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Asai et al.,
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      )
+     </cite>
+     enables LMMs to independently fetch, introspect, and augment their text generation capabilities. RQ-RAG
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Chan et al.,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2024
+      </a>
+      )
+     </cite>
+     enhances query formulation by learning to refine queries through an iterative process.
+Our work integrates web search capabilities into LLMs, enhancing response quality by retrieving valuable information from the Internet.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Web Agents
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Web automation agents have evolved from question-answering tools to sophisticated systems capable of complex web interactions. Early models like WebGPT
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Nakano et al.,
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       2021
+      </a>
+      )
+     </cite>
+     and WebGLM
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Liu et al.,
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       2023
+      </a>
+      )
+     </cite>
+     primarily addressed QA tasks, while recent advancements have shifted towards more dynamic operations
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Yao et al.,
+      <a class="ltx_ref" href="#bib.bib50" title="">
+       2022
+      </a>
+      ; He et al.,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2024
+      </a>
+      )
+     </cite>
+     . MindAct
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Deng et al.,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       2024
+      </a>
+      )
+     </cite>
+     and WebAgent
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Gur et al.,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       2023
+      </a>
+      )
+     </cite>
+     represent this progression, with the latter showing exceptional web navigation despite deployment challenges due to its size. AutoWebGLM
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Lai et al.,
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2024
+      </a>
+      )
+     </cite>
+     offers a practical alternative with robust capabilities and a more compact model size. The incorporation of reinforcement learning
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Bai et al.,
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       2024
+      </a>
+      )
+     </cite>
+     and behavior cloning techniques
+     <cite class="ltx_cite ltx_citemacro_citep">
+      (Zheng et al.,
+      <a class="ltx_ref" href="#bib.bib53" title="">
+       2024
+      </a>
+      ; Patel et al.,
+      <a class="ltx_ref" href="#bib.bib34" title="">
+       2024
+      </a>
+      )
+     </cite>
+     paves the way for even more autonomous and efficient web automation, moving the field towards scalable and versatile solutions for real-world applications.
+This paper mainly focuses more on the web information-seeking and integration task with search engines instead of web browsing, and solves the main challenges with a multi-agent framework.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    This paper introduces MindSearch, a novel LLM-based multi-agent framework for complex web information-seeking and integration tasks, by more comprehensively leveraging the strengths of both search engines and LLMs.
+MindSearch conducts effective and sufficient decomposition of complex queries followed by hierarchical information retrieval to improve the precision and recall of the retrieved relevant web information, by modeling the problem-solving process as an iterative graph construction.
+The multi-agent design distributes the cognitive load among specialized agents, facilitating robust handling of complex and lengthy contexts.
+Extensive evaluations on closed-set and open-set QA problems using GPT-4o and InternLM2.5-7B models demonstrated significant advantages in the response quality of MindSearch.
+The results that human evaluators preferred the responses from MindSearch over those from ChatGPT-Web and Perplexity.ai indicate its competitive edge in AI-driven search solutions.
+We wish this work pave the way for future research on multi-agent framework for solving human-level complex cognitive tasks.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Acknowledgement
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    We would like to express our sincere gratitude to Jiaye Ge for her outstanding technical insights, product design skills, and coordination abilities. We also thank Zhongying Tu, Ying Zhao, Fang Fang, and Yiting Wang for their efficient execution in developing the project demo. Our gratitude extends to Xingyuan Liu, Shuaike Li, Zike Pan, Weijia Song, and Yuzhe Gu for their efforts in project suggestion.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Achiam et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2303.08774
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Asai et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Akari Asai, Zeqiu Wu, Yizhong Wang, Avirup Sil, and Hannaneh Hajishirzi.
+    </span>
+    <span class="ltx_bibblock">
+     Self-rag: Learning to retrieve, generate, and critique through self-reflection.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2310.11511
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bai et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Hao Bai, Yifei Zhou, Mert Cemri, Jiayi Pan, Alane Suhr, Sergey Levine, and Aviral Kumar.
+    </span>
+    <span class="ltx_bibblock">
+     Digirl: Training in-the-wild device-control agents with autonomous reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2406.11896
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Berkhin (2005)
+    </span>
+    <span class="ltx_bibblock">
+     Pavel Berkhin.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on pagerank computing.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      Internet mathematics
+     </em>
+     , 2(1):73–120, 2005.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Borgeaud et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Sebastian Borgeaud, Arthur Mensch, Jordan Hoffmann, Trevor Cai, Eliza Rutherford, Katie Millican, George Bm Van Den Driessche, Jean-Baptiste Lespiau, Bogdan Damoc, Aidan Clark, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Improving language models by retrieving from trillions of tokens.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      International conference on machine learning
+     </em>
+     , pp.  2206–2240. PMLR, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brin &amp; Page (1998)
+    </span>
+    <span class="ltx_bibblock">
+     Sergey Brin and Lawrence Page.
+    </span>
+    <span class="ltx_bibblock">
+     The anatomy of a large-scale hypertextual web search engine.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      Computer networks and ISDN systems
+     </em>
+     , 30(1-7):107–117, 1998.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cai et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Zheng Cai, Maosong Cao, Haojiong Chen, Kai Chen, Keyu Chen, Xin Chen, Xun Chen, Zehui Chen, Zhi Chen, Pei Chu, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Internlm2 technical report.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2403.17297
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chan et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Chi-Min Chan, Chunpu Xu, Ruibin Yuan, Hongyin Luo, Wei Xue, Yike Guo, and Jie Fu.
+    </span>
+    <span class="ltx_bibblock">
+     Rq-rag: Learning to refine queries for retrieval augmented generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2404.00610
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Danqi Chen, Adam Fisch, Jason Weston, and Antoine Bordes.
+    </span>
+    <span class="ltx_bibblock">
+     Reading wikipedia to answer open-domain questions.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:1704.00051
+     </em>
+     , 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zehui Chen, Weihua Du, Wenwei Zhang, Kuikun Liu, Jiangning Liu, Miao Zheng, Jingming Zhuo, Songyang Zhang, Dahua Lin, Kai Chen, et al.
+    </span>
+    <span class="ltx_bibblock">
+     T-eval: Evaluating the tool utilization capability step by step.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2312.14033
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Zehui Chen, Kuikun Liu, Qiuchen Wang, Wenwei Zhang, Jiangning Liu, Dahua Lin, Kai Chen, and Feng Zhao.
+    </span>
+    <span class="ltx_bibblock">
+     Agent-flan: Designing data and methods of effective agent tuning for large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2403.12881
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Deng et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Sam Stevens, Boshi Wang, Huan Sun, and Yu Su.
+    </span>
+    <span class="ltx_bibblock">
+     Mind2web: Towards a generalist agent for the web.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Zhibin Gou, Zhihong Shao, Yeyun Gong, Yujiu Yang, Minlie Huang, Nan Duan, Weizhu Chen, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Tora: A tool-integrated reasoning agent for mathematical problem solving.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2309.17452
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gu et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Yuzhe Gu, Ziwei Ji, Wenwei Zhang, Chengqi Lyu, Dahua Lin, and Kai Chen.
+    </span>
+    <span class="ltx_bibblock">
+     Anah-v2: Scaling analytical hallucination annotation of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2407.04693
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Guo et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai Dong, Wentao Zhang, Guanting Chen, Xiao Bi, Yu Wu, YK Li, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Deepseek-coder: When the large language model meets programming–the rise of code intelligence.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2401.14196
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gur et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Izzeddin Gur, Hiroki Furuta, Austin Huang, Mustafa Safdari, Yutaka Matsuo, Douglas Eck, and Aleksandra Faust.
+    </span>
+    <span class="ltx_bibblock">
+     A real-world webagent with planning, long context understanding, and program synthesis.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2307.12856
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hao et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Shibo Hao, Tianyang Liu, Zhen Wang, and Zhiting Hu.
+    </span>
+    <span class="ltx_bibblock">
+     Toolkengpt: Augmenting frozen language models with massive tools via tool embeddings.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Advances in neural information processing systems
+     </em>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     He et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Hongliang He, Wenlin Yao, Kaixin Ma, Wenhao Yu, Yong Dai, Hongming Zhang, Zhenzhong Lan, and Dong Yu.
+    </span>
+    <span class="ltx_bibblock">
+     Webvoyager: Building an end-to-end web agent with large multimodal models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      arXiv preprint arXiv:2401.13919
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yue Huang, Jiawen Shi, Yuan Li, Chenrui Fan, Siyuan Wu, Qihui Zhang, Yixin Liu, Pan Zhou, Yao Wan, Neil Zhenqiang Gong, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Metatool benchmark for large language models: Deciding whether to use tools and which to use.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2310.03128
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Izacard &amp; Grave (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Gautier Izacard and Edouard Grave.
+    </span>
+    <span class="ltx_bibblock">
+     Leveraging passage retrieval with generative models for open domain question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2007.01282
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ji et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea Madotto, and Pascale Fung.
+    </span>
+    <span class="ltx_bibblock">
+     Survey of hallucination in natural language generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      ACM Computing Surveys
+     </em>
+     , 55(12):1–38, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ji et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Ziwei Ji, Yuzhe Gu, Wenwei Zhang, Chengqi Lyu, Dahua Lin, and Kai Chen.
+    </span>
+    <span class="ltx_bibblock">
+     Anah: Analytical annotation of hallucinations in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      arXiv preprint arXiv:2405.20315
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Karpukhin et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Vladimir Karpukhin, Barlas Oğuz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih.
+    </span>
+    <span class="ltx_bibblock">
+     Dense passage retrieval for open-domain question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib23.1.1">
+      arXiv preprint arXiv:2004.04906
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lai et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Hanyu Lai, Xiao Liu, Iat Long Iong, Shuntian Yao, Yuxuan Chen, Pengbo Shen, Hao Yu, Hanchen Zhang, Xiaohan Zhang, Yuxiao Dong, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Autowebglm: Bootstrap and reinforce a large language model-based web navigating agent.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      arXiv preprint arXiv:2404.03648
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lei et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Xiangyu Lei, Guilin Zhang, Shuaijun Li, Huihuan Qian, and Yangsheng Xu.
+    </span>
+    <span class="ltx_bibblock">
+     Dual-spring agv shock absorption system design: Dynamic analysis and simulations.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      2017 IEEE International Conference on Robotics and Biomimetics (ROBIO)
+     </em>
+     , pp.  1068–1074. IEEE, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lewis et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Retrieval-augmented generation for knowledge-intensive nlp tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 33:9459–9474, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Minghao Li, Yingxiu Zhao, Bowen Yu, Feifan Song, Hangyu Li, Haiyang Yu, Zhoujun Li, Fei Huang, and Yongbin Li.
+    </span>
+    <span class="ltx_bibblock">
+     Api-bank: A comprehensive benchmark for tool-augmented llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2304.08244
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Shuaijun Li, Guilin Zhang, Xiangyu Lei, Xiao Yu, Huihuan Qian, and Yangsheng Xu.
+    </span>
+    <span class="ltx_bibblock">
+     Trajectory tracking control of a unicycle-type mobile robot with a new planning algorithm.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      2017 IEEE International Conference on Robotics and Biomimetics (ROBIO)
+     </em>
+     , pp.  780–786. IEEE, 2017.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lin et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xi Victoria Lin, Xilun Chen, Mingda Chen, Weijia Shi, Maria Lomeli, Rich James, Pedro Rodriguez, Jacob Kahn, Gergely Szilvasy, Mike Lewis, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Ra-dit: Retrieval-augmented dual instruction tuning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2310.01352
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xiao Liu, Hanyu Lai, Hao Yu, Yifan Xu, Aohan Zeng, Zhengxiao Du, Peng Zhang, Yuxiao Dong, and Jie Tang.
+    </span>
+    <span class="ltx_bibblock">
+     Webglm: Towards an efficient web-enhanced question answering system with human preferences.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining
+     </em>
+     , pp.  4549–4560, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Luo et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hongyin Luo, Yung-Sung Chuang, Yuan Gong, Tianhua Zhang, Yoon Kim, Xixin Wu, Danny Fox, Helen Meng, and James Glass.
+    </span>
+    <span class="ltx_bibblock">
+     Sail: Search-augmented instruction learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2305.15225
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Nakano et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher Hesse, Shantanu Jain, Vineet Kosaraju, William Saunders, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Webgpt: Browser-assisted question-answering with human feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      arXiv preprint arXiv:2112.09332
+     </em>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Parisi et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aaron Parisi, Yao Zhao, and Noah Fiedel.
+    </span>
+    <span class="ltx_bibblock">
+     Talm: Tool augmented language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      arXiv preprint arXiv:2205.12255
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Patel et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Ajay Patel, Markus Hofmarcher, Claudiu Leoveanu-Condrei, Marius-Constantin Dinu, Chris Callison-Burch, and Sepp Hochreiter.
+    </span>
+    <span class="ltx_bibblock">
+     Large language models can self-improve at web agent tasks.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib34.1.1">
+      arXiv preprint arXiv:2405.20309
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Patil et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shishir G Patil, Tianjun Zhang, Xin Wang, and Joseph E Gonzalez.
+    </span>
+    <span class="ltx_bibblock">
+     Gorilla: Large language model connected with massive apis.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib35.1.1">
+      arXiv preprint arXiv:2305.15334
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Press et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Ofir Press, Muru Zhang, Sewon Min, Ludwig Schmidt, Noah A Smith, and Mike Lewis.
+    </span>
+    <span class="ltx_bibblock">
+     Measuring and narrowing the compositionality gap in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib36.1.1">
+      arXiv preprint arXiv:2210.03350
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qian et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Cheng Qian, Chi Han, Yi R Fung, Yujia Qin, Zhiyuan Liu, and Heng Ji.
+    </span>
+    <span class="ltx_bibblock">
+     Creator: Tool creation for disentangling abstract and concrete reasoning of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib37.1.1">
+      arXiv preprint arXiv:2305.14318
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qin et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Toolllm: Facilitating large language models to master 16000+ real-world apis.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib38.1.1">
+      arXiv preprint arXiv:2307.16789
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qu et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Yingqi Qu, Yuchen Ding, Jing Liu, Kai Liu, Ruiyang Ren, Wayne Xin Zhao, Daxiang Dong, Hua Wu, and Haifeng Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Rocketqa: An optimized training approach to dense passage retrieval for open-domain question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib39.1.1">
+      arXiv preprint arXiv:2010.08191
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Roziere et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Baptiste Roziere, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi, Jingyu Liu, Tal Remez, Jérémy Rapin, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Code llama: Open foundation models for code.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib40.1.1">
+      arXiv preprint arXiv:2308.12950
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Schick et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom.
+    </span>
+    <span class="ltx_bibblock">
+     Toolformer: Language models can teach themselves to use tools.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib41.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 36, 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yongliang Shen, Kaitao Song, Xu Tan, Wenqi Zhang, Kan Ren, Siyu Yuan, Weiming Lu, Dongsheng Li, and Yueting Zhuang.
+    </span>
+    <span class="ltx_bibblock">
+     Taskbench: Benchmarking large language models for task automation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib42.1.1">
+      arXiv preprint arXiv:2311.18760
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shuster et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Kurt Shuster, Spencer Poff, Moya Chen, Douwe Kiela, and Jason Weston.
+    </span>
+    <span class="ltx_bibblock">
+     Retrieval augmentation reduces hallucination in conversation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib43.1.1">
+      arXiv preprint arXiv:2104.07567
+     </em>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Team et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Gemma Team, Thomas Mesnard, Cassidy Hardin, Robert Dadashi, Surya Bhupatiraju, Shreya Pathak, Laurent Sifre, Morgane Rivière, Mihir Sanjay Kale, Juliette Love, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Gemma: Open models based on gemini research and technology.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib44.1.1">
+      arXiv preprint arXiv:2403.08295
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib45">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Team (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Qwen Team.
+    </span>
+    <span class="ltx_bibblock">
+     Generalizing an llm from 8k to 1m context using qwen-agent, May 2024.
+    </span>
+    <span class="ltx_bibblock">
+     URL
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://qwenlm.github.io/blog/qwen-agent-2405/" target="_blank" title="">
+      https://qwenlm.github.io/blog/qwen-agent-2405/
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib46">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Touvron et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Llama 2: Open foundation and fine-tuned chat models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib46.1.1">
+      arXiv preprint arXiv:2307.09288
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib47">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Trivedi et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal.
+    </span>
+    <span class="ltx_bibblock">
+     Musique: Multihop questions via single-hop question composition.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib47.1.1">
+      Transactions of the Association for Computational Linguistics
+     </em>
+     , 10:539–554, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib48">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xiong et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Lee Xiong, Chenyan Xiong, Ye Li, Kwok-Fung Tang, Jialin Liu, Paul Bennett, Junaid Ahmed, and Arnold Overwijk.
+    </span>
+    <span class="ltx_bibblock">
+     Approximate nearest neighbor negative contrastive learning for dense text retrieval.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib48.1.1">
+      arXiv preprint arXiv:2007.00808
+     </em>
+     , 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib49">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yang et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William W Cohen, Ruslan Salakhutdinov, and Christopher D Manning.
+    </span>
+    <span class="ltx_bibblock">
+     Hotpotqa: A dataset for diverse, explainable multi-hop question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib49.1.1">
+      arXiv preprint arXiv:1809.09600
+     </em>
+     , 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib50">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Howard Chen, John Yang, and Karthik Narasimhan.
+    </span>
+    <span class="ltx_bibblock">
+     Webshop: Towards scalable real-world web interaction with grounded language agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib50.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:20744–20757, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib51">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yu et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Donghan Yu, Chenguang Zhu, Yuwei Fang, Wenhao Yu, Shuohang Wang, Yichong Xu, Xiang Ren, Yiming Yang, and Michael Zeng.
+    </span>
+    <span class="ltx_bibblock">
+     Kg-fid: Infusing knowledge graph in fusion-in-decoder for open-domain question answering.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib51.1.1">
+      arXiv preprint arXiv:2110.04330
+     </em>
+     , 2021.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib52">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yuan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Lifan Yuan, Yangyi Chen, Xingyao Wang, Yi R Fung, Hao Peng, and Heng Ji.
+    </span>
+    <span class="ltx_bibblock">
+     Craft: Customizing llms by creating and retrieving from specialized toolsets.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib52.1.1">
+      arXiv preprint arXiv:2309.17428
+     </em>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib53">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zheng et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Boyuan Zheng, Boyu Gou, Jihyung Kil, Huan Sun, and Yu Su.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4v (ision) is a generalist web agent, if grounded.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib53.1.1">
+      arXiv preprint arXiv:2401.01614
+     </em>
+     , 2024.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib54">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Shuyan Zhou, Uri Alon, Frank F Xu, Zhiruo Wang, Zhengbao Jiang, and Graham Neubig.
+    </span>
+    <span class="ltx_bibblock">
+     Docprompting: Generating code by retrieving the docs.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib54.1.1">
+      arXiv preprint arXiv:2207.05987
+     </em>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib55">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhuang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Yuchen Zhuang, Yue Yu, Kuan Wang, Haotian Sun, and Chao Zhang.
+    </span>
+    <span class="ltx_bibblock">
+     Toolqa: A dataset for llm question answering with external tools.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib55.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 36, 2024.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

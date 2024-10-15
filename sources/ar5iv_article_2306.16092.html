@@ -1,0 +1,1758 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  ChatLaw: Open-Source Legal Large Language Model with Integrated External Knowledge Bases
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Jiaxi Cui
+    <br class="ltx_break"/>
+    Peking University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id1">
+     jiaxicui@chatlaw.cloud
+    </span>
+    <br class="ltx_break"/>
+    &amp;Zongjian Li
+    <sup class="ltx_sup" id="id3.3.id2">
+     ∗
+    </sup>
+    <br class="ltx_break"/>
+    Peking University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id4.4.id3">
+     chestnutlzj@chatlaw.cloud
+    </span>
+    <br class="ltx_break"/>
+    &amp;Yang Yan
+    <br class="ltx_break"/>
+    Peking University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id5.5.id4">
+     yyang@stu.pku.edu.cn
+    </span>
+    <br class="ltx_break"/>
+    &amp;Bohua Chen
+    <br class="ltx_break"/>
+    Peking University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id6.6.id5">
+     bohua@chatlaw.cloud
+    </span>
+    <br class="ltx_break"/>
+    &amp;Li Yuan
+    <br class="ltx_break"/>
+    Peking University
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id7.7.id6">
+     yuanli-ece@pku.edu.cn
+    </span>
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    Equal Contribution.Corresponding Author
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id8.id1">
+   Large Language Models (LLMs) have shown the potential to revolutionize natural language processing tasks in various domains, sparking great interest in vertical-specific large models. However, unlike proprietary models such as BloombergGPT and FinGPT, which have leveraged their unique data accumulations to make strides in the finance domain, there hasn’t not many similar large language models in the Chinese legal domain to facilitate its digital transformation.
+  </p>
+  <p class="ltx_p" id="id9.id2">
+   In this paper, we propose an open-source legal large language model named ChatLaw. Due to the importance of data quality, we carefully designed a legal domain fine-tuning dataset. Additionally, to overcome the problem of model hallucinations in legal data screening during reference data retrieval, we introduce a method that combines vector database retrieval with keyword retrieval to effectively reduce the inaccuracy of relying solely on vector database retrieval. Furthermore, we propose a self-attention method to enhance the ability of large models to overcome errors present in reference data, further optimizing the issue of model hallucinations at the model level and improving the problem-solving capabilities of large models. We also open-sourced our model and part of the data at
+   <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/PKU-YuanGroup/ChatLaw" target="_blank" title="">
+    https://github.com/PKU-YuanGroup/ChatLaw
+   </a>
+   .
+  </p>
+ </div>
+ <figure class="ltx_figure" id="S0.F1">
+  <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="291" id="S0.F1.g1" src="/html/2306.16092/assets/x1.png" width="461"/>
+  <figcaption class="ltx_caption ltx_centering">
+   <span class="ltx_tag ltx_tag_figure">
+    <span class="ltx_text" id="S0.F1.2.1.1" style="font-size:90%;">
+     Figure 1
+    </span>
+    :
+   </span>
+   <span class="ltx_text" id="S0.F1.3.2" style="font-size:90%;">
+    ChatLaw Framework
+   </span>
+  </figcaption>
+ </figure>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    The continuous expansion and development of artificial intelligence have provided a fertile ground for the proliferation of large-scale language models. Models such as ChatGPT, GPT4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      5
+     </a>
+     ]
+    </cite>
+    , LLaMA
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ]
+    </cite>
+    , Falcon
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    , Vicuna
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    , and ChatGLM
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      12
+     </a>
+     ]
+    </cite>
+    have demonstrated remarkable performance in various conventional tasks, unleashing tremendous potential for the field of law. However, it is evident that acquiring high-quality, relevant, and up-to-date data is a crucial factor in the development of large language models. Therefore, the development of effective and efficient open-source legal language models has become of paramount importance.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    In the realm of artificial intelligence, the development of large-scale models has permeated various domains such as healthcare, education, and finance: BloombergGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ]
+    </cite>
+    , FinGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ]
+    </cite>
+    , Huatuo
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      8
+     </a>
+     ]
+    </cite>
+    , ChatMed
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      14
+     </a>
+     ]
+    </cite>
+    , These models have demonstrated their utility and impact in tackling complex tasks and generating valuable insights. However, the field of law, with its inherent importance and demand for accuracy, stands as a domain that necessitates dedicated research and development of a specialized legal model.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Law plays a pivotal role in shaping societies, governing human interactions, and upholding justice. Legal professionals rely on accurate and up-to-date information to make informed decisions, interpret laws, and provide legal counsel. The complexities of legal language, nuanced interpretations, and the ever-evolving nature of legislation present unique challenges that require tailored solutions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    However, when it comes to legal issues, there is often a phenomenon of hallucination and nonsensical outputs, even with the most advanced model like GPT4. People tend to believe that fine-tuning a model with specific domain knowledge would yield satisfactory results. However, in reality, this is not the case with early legal LLM (LawGPT), as there are still many instances of hallucination and unreliable outputs.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    We initially recognized the need for a Chinese legal LLM. However, at the time, there were no commercially available Chinese models surpassing the scale of 13 billion parameters. Therefore, we built upon the foundation of OpenLLAMA, a commercially viable model, by expanding the Chinese vocabulary and incorporating training data from sources like MOSS. This allowed us to create a foundational Chinese language model. Subsequently, we incorporated legal-specific data to train our legal model——ChatLaw.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    The key contributions of this paper are as follows:
+   </p>
+   <ol class="ltx_enumerate" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i1.p1.1.1">
+        Effective Approach to Mitigate Hallucination:
+       </span>
+       We propose an approach to address hallucination by enhancing the model’s training process and incorporating four modules during inference: ”consult,” ”reference”, ”self-suggestion” and ”response.” By integrating vertical models and knowledge bases through the reference module, we inject domain-specific knowledge into the model and leverage accurate information from the knowledge base, reducing the occurrence of hallucinations.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i2.p1.1.1">
+        Legal Feature Word Extraction Model based on LLM:
+       </span>
+       We train a model that extracts legal feature words from users’ everyday language. This model identifies words with legal significance, enabling efficient identification and analysis of legal contexts within user input.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i3.p1.1.1">
+        Legal Text Similarity Calculation Model based on BERT:
+       </span>
+       We train a model to measure the similarity between users’ everyday language and a dataset consisting of 930,000 relevant legal case texts. This enables the creation of a vector database for efficient retrieval of similar legal texts, facilitating further analysis and reference.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4.
+     </span>
+     <div class="ltx_para" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S1.I1.i4.p1.1.1">
+        Construction of a Chinese Legal Exam Testing Dataset:
+       </span>
+       We curate a dataset specifically designed for testing legal domain knowledge in Chinese. Additionally, we design an ELO arena scoring mechanism to compare the performance of different models in legal multiple-choice questions.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    Furthermore, we observed that a single general-purpose legal LLM may not perform optimally across all tasks in this domain. Therefore, we trained different models for various scenarios, such as multiple-choice questions, keyword extraction, and question-answering. To handle the selection and deployment of these models, we employed a big LLM as a controller using the methodology provided by HuggingGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      6
+     </a>
+     ]
+    </cite>
+    . This controller model dynamically determines which specific model to invoke based on each user’s request, ensuring the most suitable model is utilized for the given task.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Dataset
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    In constructing the dataset, we employed several approaches to ensure its comprehensiveness and diversity. The dataset composition methods are as follows:
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p2.1.1">
+     Collection of a vast amount of original legal data:
+    </span>
+    This includes gathering legal news, social media content, and discussions from legal industry forums. These sources provide a diverse range of real-world legal text, offering insights into various legal topics and discussions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p3">
+   <blockquote class="ltx_quote" id="S2.p3.1">
+    <p class="ltx_p" id="S2.p3.1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.p3.1.1.1" style="font-size:90%;">
+      Question
+     </span>
+     :
+     <span class="ltx_text" id="S2.p3.1.1.2" style="font-size:90%;">
+      在一名大学生的日记里写满“一定要干掉乙，可以采用的方法很多，最好是投毒”的话语，但是未见行动，某日辅导员看到日记后报案，请问这种行为是否属于故意杀人罪？
+     </span>
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S2.p3.1.1.3" style="font-size:90%;">
+      Answer
+     </span>
+     :
+     <span class="ltx_text" id="S2.p3.1.1.4" style="font-size:90%;">
+      根据您提供的情况，一名大学生在日记中写满“一定要干掉乙，可以采用的方法很多，最好是投毒”的话语，但是一直未见行动，某日辅导员看到甲的日记，很担心便报案。根据我国《刑法》规定，这种行为属于犯意表示，无罪。
+      <br class="ltx_break"/>
+     </span>
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S2.p4">
+   <p class="ltx_p" id="S2.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p4.1.1">
+     Construction based on legal regulations and judicial interpretations:
+    </span>
+    To ensure comprehensive coverage of legal knowledge, we incorporate relevant legal regulations and judicial interpretations into the dataset. This ensures that the dataset reflects the legal framework and provides accurate and up-to-date information.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p5">
+   <blockquote class="ltx_quote" id="S2.p5.1">
+    <p class="ltx_p" id="S2.p5.1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.p5.1.1.1" style="font-size:90%;">
+      Question
+     </span>
+     :
+     <span class="ltx_text" id="S2.p5.1.1.2" style="font-size:90%;">
+      如果某个工人每天工作10小时，那么每周工作时间超过了规定吗？
+     </span>
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S2.p5.1.1.3" style="font-size:90%;">
+      Answer
+     </span>
+     :
+     <span class="ltx_text" id="S2.p5.1.1.4" style="font-size:90%;">
+      根据《劳动法》第三十六条，每日工作时间不得超过8小时，因此每周工作时间将超过44小时，超过了规定。
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S2.p5.1.1.4.1">
+       Question
+      </span>
+     </span>
+     :
+     <span class="ltx_text" id="S2.p5.1.1.5" style="font-size:90%;">
+      如果一个外国人在我国战时向国外武装力量提供武器装备，是否构成资敌罪？
+     </span>
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S2.p5.1.1.6" style="font-size:90%;">
+      Answer
+     </span>
+     :
+     <span class="ltx_text" id="S2.p5.1.1.7" style="font-size:90%;">
+      不构成资敌罪。根据《刑法》第一百一十二条规定，资敌罪主体只能是我国公民，外国人、无国籍人不能成为资敌罪主体。因此，外国人在我国战时向国外武装力量提供武器装备，不构成资敌罪。
+      <br class="ltx_break"/>
+     </span>
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S2.p6">
+   <p class="ltx_p" id="S2.p6.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p6.1.1">
+     Crawling real legal consultation data:
+    </span>
+    We retrieve authentic legal consultation data, leveraging existing legal consultation datasets. This enables the inclusion of real-world legal scenarios and questions that users commonly encounter, enriching the dataset with practical legal examples.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p7">
+   <blockquote class="ltx_quote" id="S2.p7.1">
+    <p class="ltx_p" id="S2.p7.1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.p7.1.1.1" style="font-size:90%;">
+      Question
+     </span>
+     :
+     <span class="ltx_text" id="S2.p7.1.1.2" style="font-size:90%;">
+      我想问一下，当事人如果无力支付律师费用，律师应该减收或免收费用的情况有哪些？比如，因为被检察院错误逮捕而请求赔偿的案件，在作业期间发生伤残并请求单位支付医疗费和生活费的案件，以及因交通肇事罪而聘请律师作辩护的案件？
+     </span>
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S2.p7.1.1.3" style="font-size:90%;">
+      Answer
+     </span>
+     :
+     <span class="ltx_text" id="S2.p7.1.1.4" style="font-size:90%;">
+      是的，如果当事人无力支付律师费用，律师应该减收或免收费用的情况包括：因为被检察院错误逮捕而请求赔偿的案件、在作业期间发生伤残并请求单位支付医疗费和生活费的案件，以及因交通肇事罪而聘请律师作辩护的案件。这些案件都属于特殊情况，律师应该及时帮助当事人解决相关问题，支持当事人实现正义，因此，律师应根据当事人的实际情况减收或免收费用。
+      <br class="ltx_break"/>
+     </span>
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S2.p8">
+   <p class="ltx_p" id="S2.p8.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p8.1.1">
+     Construction of multiple-choice questions for the bar exam:
+    </span>
+    We create a set of multiple-choice questions specifically designed for the bar exam. These questions cover various legal topics and test users’ understanding and application of legal principles.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p9">
+   <blockquote class="ltx_quote" id="S2.p9.1">
+    <p class="ltx_p" id="S2.p9.1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.p9.1.1.1" style="font-size:90%;">
+      Question
+     </span>
+     :
+     <span class="ltx_text" id="S2.p9.1.1.2" style="font-size:90%;">
+      红星中学采用伪劣产品铺设足球场，致使刺激性气味四处散发，并严重污染了场地底下土壤。于是，甲环保协会向市中级人民法院提起诉讼，请求判令红星中学拆除新建的足球场，并对污染的土壤采取修复措施。法院在受理后第7日书面告知市环保局。此时，市人民检察院也就此向法院提起公益诉讼，法院将其列为共同原告。双方当事人经协商达成的和解协议，法院未予审查即发出公告。公告期满后，应双方当事人请求，法院未制作调解书。关于本案，市中级人民法院的下列哪些做法是不合法的？A. 受理后第7日书面告知市环保局B. 对和解协议未经审查即发出公告C. 将市人民检察院列为共同原告D. 应双方当事人请求未制作调解书
+     </span>
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S2.p9.1.1.3" style="font-size:90%;">
+      Answer
+     </span>
+     :
+     <span class="ltx_text" id="S2.p9.1.1.4" style="font-size:90%;">
+      《民诉解释》第286条规定，人民法院受理公益诉讼案件后，应当在10日内书面告知相关行政主管部门。市中院受理后第7日告知，符合法律规定。A选项合法，不当选。《民诉解释》第289条第2款规定，当事人达成和解或者调解协议后，人民法院应当将和解或者调解协议进行公告。公告期间不得少于30日。据此，法院公告前不审查，并不违反法律规定。B选项合法，不当选。《民事诉讼法》第55条第2款规定，人民检察院在履行职责中发现破坏生态环境和资源保护、食品药品安全领域侵害众多消费者合法权益等损害社会公共利益的行为，在没有前款规定的机关和组织或者前款规定的机关和组织不提起诉讼的情况下，可以向人民法院提起诉讼；前款规定的机关或者组织提起诉讼的，人民检察院可以支持起诉。据此，本案已有环保协会提起公益诉讼，检察机关只能作为支持起诉人参与公益诉讼，而不能成为共同原告。C选项不合法，当选。《民诉解释》第289条第3款规定，公告期满后，人民法院经审查，和解或者调解协议不违反社会公共利益的，应当出具调解书。据此，公益诉讼案件法院必须制作调解书。D选项不合法，当选。
+      <br class="ltx_break"/>
+     </span>
+    </p>
+   </blockquote>
+  </div>
+  <div class="ltx_para" id="S2.p10">
+   <p class="ltx_p" id="S2.p10.1">
+    By incorporating data from these diverse sources and construction methods, our dataset encompasses a wide range of legal contexts, ensuring that the developed model is capable of effectively understanding and addressing various legal scenarios.
+   </p>
+  </div>
+  <div class="ltx_para" id="S2.p11">
+   <p class="ltx_p" id="S2.p11.1">
+    Once these data components are collected, the dataset undergoes a rigorous cleaning process. This involves filtering out short and incoherent responses, ensuring that only high-quality and meaningful text is included. Additionally, to enhance the dataset, we leverage the ChatGPT API for assisted construction, allowing us to generate supplementary data based on the existing dataset.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Training Process
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    The Keyword LLM is a language model that extracts keywords from abstract consulting problems raised by users. The Law LLM, on the other hand, extracts legal terminology that may be involved in user consultations. The ChatLaw LLM is the ultimate language model that outputs responses to users. It refers to relevant legal clauses and utilizes its own summarization and Q&amp;A function to generate advice for users in their consultations.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    ChatLaw LLM
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     To train ChatLAW, we fine-tuned it on the basis of Ziya-LLaMA-13B
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib11" title="">
+       11
+      </a>
+      ]
+     </cite>
+     using Low-Rank Adaptation (LoRA)
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ]
+     </cite>
+     . Additionally, we introduced the self-suggestion role to further alleviate model hallucination issues. The training process was carried out on multiple A100 GPUs and the training costs were further reduced with the help of deepspeed.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Keyword LLM
+   </h3>
+   <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+    <figcaption class="ltx_caption">
+     <span class="ltx_tag ltx_tag_float">
+      <span class="ltx_text ltx_font_bold" id="alg1.2.1.1">
+       Algorithm 1
+      </span>
+     </span>
+     Legal retrieval based on Large Langu Model keyword extraction
+    </figcaption>
+    <div class="ltx_listing ltx_listing" id="alg1.3">
+     <div class="ltx_listingline" id="alg1.l1">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l1.1.1.1" style="font-size:80%;">
+        1:
+       </span>
+      </span>
+      Initialize the BERT model for embedding and keyword extraction model.
+     </div>
+     <div class="ltx_listingline" id="alg1.l2">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l2.1.1.1" style="font-size:80%;">
+        2:
+       </span>
+      </span>
+      Initialize the legal database as
+      <math alttext="\mathcal{L}" class="ltx_Math" display="inline" id="alg1.l2.m1.1">
+       <semantics id="alg1.l2.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="alg1.l2.m1.1.1" xref="alg1.l2.m1.1.1.cmml">
+         ℒ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l2.m1.1b">
+         <ci id="alg1.l2.m1.1.1.cmml" xref="alg1.l2.m1.1.1">
+          ℒ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l2.m1.1c">
+         \mathcal{L}
+        </annotation>
+       </semantics>
+      </math>
+      , where
+      <math alttext="\mathbf{l}_{i}\in\mathcal{L}" class="ltx_Math" display="inline" id="alg1.l2.m2.1">
+       <semantics id="alg1.l2.m2.1a">
+        <mrow id="alg1.l2.m2.1.1" xref="alg1.l2.m2.1.1.cmml">
+         <msub id="alg1.l2.m2.1.1.2" xref="alg1.l2.m2.1.1.2.cmml">
+          <mi id="alg1.l2.m2.1.1.2.2" xref="alg1.l2.m2.1.1.2.2.cmml">
+           𝐥
+          </mi>
+          <mi id="alg1.l2.m2.1.1.2.3" xref="alg1.l2.m2.1.1.2.3.cmml">
+           i
+          </mi>
+         </msub>
+         <mo id="alg1.l2.m2.1.1.1" xref="alg1.l2.m2.1.1.1.cmml">
+          ∈
+         </mo>
+         <mi class="ltx_font_mathcaligraphic" id="alg1.l2.m2.1.1.3" xref="alg1.l2.m2.1.1.3.cmml">
+          ℒ
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l2.m2.1b">
+         <apply id="alg1.l2.m2.1.1.cmml" xref="alg1.l2.m2.1.1">
+          <in id="alg1.l2.m2.1.1.1.cmml" xref="alg1.l2.m2.1.1.1">
+          </in>
+          <apply id="alg1.l2.m2.1.1.2.cmml" xref="alg1.l2.m2.1.1.2">
+           <csymbol cd="ambiguous" id="alg1.l2.m2.1.1.2.1.cmml" xref="alg1.l2.m2.1.1.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l2.m2.1.1.2.2.cmml" xref="alg1.l2.m2.1.1.2.2">
+            𝐥
+           </ci>
+           <ci id="alg1.l2.m2.1.1.2.3.cmml" xref="alg1.l2.m2.1.1.2.3">
+            𝑖
+           </ci>
+          </apply>
+          <ci id="alg1.l2.m2.1.1.3.cmml" xref="alg1.l2.m2.1.1.3">
+           ℒ
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l2.m2.1c">
+         \mathbf{l}_{i}\in\mathcal{L}
+        </annotation>
+       </semantics>
+      </math>
+      and i represents the i-th law. Let M be the number of laws in the legal database.
+     </div>
+     <div class="ltx_listingline" id="alg1.l3">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l3.1.1.1" style="font-size:80%;">
+        3:
+       </span>
+      </span>
+      Initialize the legal scores as
+      <math alttext="\mathcal{S}" class="ltx_Math" display="inline" id="alg1.l3.m1.1">
+       <semantics id="alg1.l3.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="alg1.l3.m1.1.1" xref="alg1.l3.m1.1.1.cmml">
+         𝒮
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m1.1b">
+         <ci id="alg1.l3.m1.1.1.cmml" xref="alg1.l3.m1.1.1">
+          𝒮
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m1.1c">
+         \mathcal{S}
+        </annotation>
+       </semantics>
+      </math>
+      , where
+      <math alttext="s_{i}\in\mathcal{S}" class="ltx_Math" display="inline" id="alg1.l3.m2.1">
+       <semantics id="alg1.l3.m2.1a">
+        <mrow id="alg1.l3.m2.1.1" xref="alg1.l3.m2.1.1.cmml">
+         <msub id="alg1.l3.m2.1.1.2" xref="alg1.l3.m2.1.1.2.cmml">
+          <mi id="alg1.l3.m2.1.1.2.2" xref="alg1.l3.m2.1.1.2.2.cmml">
+           s
+          </mi>
+          <mi id="alg1.l3.m2.1.1.2.3" xref="alg1.l3.m2.1.1.2.3.cmml">
+           i
+          </mi>
+         </msub>
+         <mo id="alg1.l3.m2.1.1.1" xref="alg1.l3.m2.1.1.1.cmml">
+          ∈
+         </mo>
+         <mi class="ltx_font_mathcaligraphic" id="alg1.l3.m2.1.1.3" xref="alg1.l3.m2.1.1.3.cmml">
+          𝒮
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m2.1b">
+         <apply id="alg1.l3.m2.1.1.cmml" xref="alg1.l3.m2.1.1">
+          <in id="alg1.l3.m2.1.1.1.cmml" xref="alg1.l3.m2.1.1.1">
+          </in>
+          <apply id="alg1.l3.m2.1.1.2.cmml" xref="alg1.l3.m2.1.1.2">
+           <csymbol cd="ambiguous" id="alg1.l3.m2.1.1.2.1.cmml" xref="alg1.l3.m2.1.1.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l3.m2.1.1.2.2.cmml" xref="alg1.l3.m2.1.1.2.2">
+            𝑠
+           </ci>
+           <ci id="alg1.l3.m2.1.1.2.3.cmml" xref="alg1.l3.m2.1.1.2.3">
+            𝑖
+           </ci>
+          </apply>
+          <ci id="alg1.l3.m2.1.1.3.cmml" xref="alg1.l3.m2.1.1.3">
+           𝒮
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m2.1c">
+         s_{i}\in\mathcal{S}
+        </annotation>
+       </semantics>
+      </math>
+      represents the score corresponding to the
+      <math alttext="i" class="ltx_Math" display="inline" id="alg1.l3.m3.1">
+       <semantics id="alg1.l3.m3.1a">
+        <mi id="alg1.l3.m3.1.1" xref="alg1.l3.m3.1.1.cmml">
+         i
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m3.1b">
+         <ci id="alg1.l3.m3.1.1.cmml" xref="alg1.l3.m3.1.1">
+          𝑖
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m3.1c">
+         i
+        </annotation>
+       </semantics>
+      </math>
+      -th law, all initialized to 0. The number of elements in
+      <math alttext="\mathcal{S}" class="ltx_Math" display="inline" id="alg1.l3.m4.1">
+       <semantics id="alg1.l3.m4.1a">
+        <mi class="ltx_font_mathcaligraphic" id="alg1.l3.m4.1.1" xref="alg1.l3.m4.1.1.cmml">
+         𝒮
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m4.1b">
+         <ci id="alg1.l3.m4.1.1.cmml" xref="alg1.l3.m4.1.1">
+          𝒮
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m4.1c">
+         \mathcal{S}
+        </annotation>
+       </semantics>
+      </math>
+      is also
+      <math alttext="M" class="ltx_Math" display="inline" id="alg1.l3.m5.1">
+       <semantics id="alg1.l3.m5.1a">
+        <mi id="alg1.l3.m5.1.1" xref="alg1.l3.m5.1.1.cmml">
+         M
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l3.m5.1b">
+         <ci id="alg1.l3.m5.1.1.cmml" xref="alg1.l3.m5.1.1">
+          𝑀
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l3.m5.1c">
+         M
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </div>
+     <div class="ltx_listingline" id="alg1.l4">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l4.1.1.1" style="font-size:80%;">
+        4:
+       </span>
+      </span>
+      Extracting keywords from user queries using a keyword extraction model, and then inputting each keyword into a BERT model to obtain a collection of
+      <math alttext="\mathcal{K}" class="ltx_Math" display="inline" id="alg1.l4.m1.1">
+       <semantics id="alg1.l4.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="alg1.l4.m1.1.1" xref="alg1.l4.m1.1.1.cmml">
+         𝒦
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m1.1b">
+         <ci id="alg1.l4.m1.1.1.cmml" xref="alg1.l4.m1.1.1">
+          𝒦
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m1.1c">
+         \mathcal{K}
+        </annotation>
+       </semantics>
+      </math>
+      keyword vectors, where
+      <math alttext="\mathbf{k}_{i}" class="ltx_Math" display="inline" id="alg1.l4.m2.1">
+       <semantics id="alg1.l4.m2.1a">
+        <msub id="alg1.l4.m2.1.1" xref="alg1.l4.m2.1.1.cmml">
+         <mi id="alg1.l4.m2.1.1.2" xref="alg1.l4.m2.1.1.2.cmml">
+          𝐤
+         </mi>
+         <mi id="alg1.l4.m2.1.1.3" xref="alg1.l4.m2.1.1.3.cmml">
+          i
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m2.1b">
+         <apply id="alg1.l4.m2.1.1.cmml" xref="alg1.l4.m2.1.1">
+          <csymbol cd="ambiguous" id="alg1.l4.m2.1.1.1.cmml" xref="alg1.l4.m2.1.1">
+           subscript
+          </csymbol>
+          <ci id="alg1.l4.m2.1.1.2.cmml" xref="alg1.l4.m2.1.1.2">
+           𝐤
+          </ci>
+          <ci id="alg1.l4.m2.1.1.3.cmml" xref="alg1.l4.m2.1.1.3">
+           𝑖
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m2.1c">
+         \mathbf{k}_{i}
+        </annotation>
+       </semantics>
+      </math>
+      represents the vector for the
+      <math alttext="i" class="ltx_Math" display="inline" id="alg1.l4.m3.1">
+       <semantics id="alg1.l4.m3.1a">
+        <mi id="alg1.l4.m3.1.1" xref="alg1.l4.m3.1.1.cmml">
+         i
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m3.1b">
+         <ci id="alg1.l4.m3.1.1.cmml" xref="alg1.l4.m3.1.1">
+          𝑖
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m3.1c">
+         i
+        </annotation>
+       </semantics>
+      </math>
+      th keyword, with a total of
+      <math alttext="N" class="ltx_Math" display="inline" id="alg1.l4.m4.1">
+       <semantics id="alg1.l4.m4.1a">
+        <mi id="alg1.l4.m4.1.1" xref="alg1.l4.m4.1.1.cmml">
+         N
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m4.1b">
+         <ci id="alg1.l4.m4.1.1.cmml" xref="alg1.l4.m4.1.1">
+          𝑁
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m4.1c">
+         N
+        </annotation>
+       </semantics>
+      </math>
+      keywords. We obtain
+      <math alttext="\mathbf{s}" class="ltx_Math" display="inline" id="alg1.l4.m5.1">
+       <semantics id="alg1.l4.m5.1a">
+        <mi id="alg1.l4.m5.1.1" xref="alg1.l4.m5.1.1.cmml">
+         𝐬
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l4.m5.1b">
+         <ci id="alg1.l4.m5.1.1.cmml" xref="alg1.l4.m5.1.1">
+          𝐬
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l4.m5.1c">
+         \mathbf{s}
+        </annotation>
+       </semantics>
+      </math>
+      by inputting the user’s question into BERT.
+     </div>
+     <div class="ltx_listingline" id="alg1.l5">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l5.1.1.1" style="font-size:80%;">
+        5:
+       </span>
+      </span>
+      Initialize
+      <math alttext="\alpha" class="ltx_Math" display="inline" id="alg1.l5.m1.1">
+       <semantics id="alg1.l5.m1.1a">
+        <mi id="alg1.l5.m1.1.1" xref="alg1.l5.m1.1.1.cmml">
+         α
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l5.m1.1b">
+         <ci id="alg1.l5.m1.1.1.cmml" xref="alg1.l5.m1.1.1">
+          𝛼
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l5.m1.1c">
+         \alpha
+        </annotation>
+       </semantics>
+      </math>
+      for assigning weight to
+      <math alttext="\mathbf{s}" class="ltx_Math" display="inline" id="alg1.l5.m2.1">
+       <semantics id="alg1.l5.m2.1a">
+        <mi id="alg1.l5.m2.1.1" xref="alg1.l5.m2.1.1.cmml">
+         𝐬
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="alg1.l5.m2.1b">
+         <ci id="alg1.l5.m2.1.1.cmml" xref="alg1.l5.m2.1.1">
+          𝐬
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l5.m2.1c">
+         \mathbf{s}
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </div>
+     <div class="ltx_listingline" id="alg1.l6">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l6.1.1.1" style="font-size:80%;">
+        6:
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l6.2">
+       for
+      </span>
+      <math alttext="i\ to\ N" class="ltx_Math" display="inline" id="alg1.l6.m1.1">
+       <semantics id="alg1.l6.m1.1a">
+        <mrow id="alg1.l6.m1.1.1" xref="alg1.l6.m1.1.1.cmml">
+         <mi id="alg1.l6.m1.1.1.2" xref="alg1.l6.m1.1.1.2.cmml">
+          i
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1" lspace="0.500em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.3" xref="alg1.l6.m1.1.1.3.cmml">
+          t
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.4" xref="alg1.l6.m1.1.1.4.cmml">
+          o
+         </mi>
+         <mo id="alg1.l6.m1.1.1.1b" lspace="0.500em" rspace="0em" xref="alg1.l6.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l6.m1.1.1.5" xref="alg1.l6.m1.1.1.5.cmml">
+          N
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l6.m1.1b">
+         <apply id="alg1.l6.m1.1.1.cmml" xref="alg1.l6.m1.1.1">
+          <times id="alg1.l6.m1.1.1.1.cmml" xref="alg1.l6.m1.1.1.1">
+          </times>
+          <ci id="alg1.l6.m1.1.1.2.cmml" xref="alg1.l6.m1.1.1.2">
+           𝑖
+          </ci>
+          <ci id="alg1.l6.m1.1.1.3.cmml" xref="alg1.l6.m1.1.1.3">
+           𝑡
+          </ci>
+          <ci id="alg1.l6.m1.1.1.4.cmml" xref="alg1.l6.m1.1.1.4">
+           𝑜
+          </ci>
+          <ci id="alg1.l6.m1.1.1.5.cmml" xref="alg1.l6.m1.1.1.5">
+           𝑁
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l6.m1.1c">
+         i\ to\ N
+        </annotation>
+       </semantics>
+      </math>
+      <span class="ltx_text ltx_font_bold" id="alg1.l6.3">
+       do
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l7">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l7.1.1.1" style="font-size:80%;">
+        7:
+       </span>
+      </span>
+      <math alttext="\mathbf{v}_{i}=\frac{\mathbf{k}_{i}}{||\mathbf{k}_{i}||}+\alpha\frac{\mathbf{s}}{||\mathbf{s}||}" class="ltx_Math" display="inline" id="alg1.l7.m1.2">
+       <semantics id="alg1.l7.m1.2a">
+        <mrow id="alg1.l7.m1.2.3" xref="alg1.l7.m1.2.3.cmml">
+         <msub id="alg1.l7.m1.2.3.2" xref="alg1.l7.m1.2.3.2.cmml">
+          <mi id="alg1.l7.m1.2.3.2.2" xref="alg1.l7.m1.2.3.2.2.cmml">
+           𝐯
+          </mi>
+          <mi id="alg1.l7.m1.2.3.2.3" xref="alg1.l7.m1.2.3.2.3.cmml">
+           i
+          </mi>
+         </msub>
+         <mo id="alg1.l7.m1.2.3.1" xref="alg1.l7.m1.2.3.1.cmml">
+          =
+         </mo>
+         <mrow id="alg1.l7.m1.2.3.3" xref="alg1.l7.m1.2.3.3.cmml">
+          <mfrac id="alg1.l7.m1.1.1" xref="alg1.l7.m1.1.1.cmml">
+           <msub id="alg1.l7.m1.1.1.3" xref="alg1.l7.m1.1.1.3.cmml">
+            <mi id="alg1.l7.m1.1.1.3.2" xref="alg1.l7.m1.1.1.3.2.cmml">
+             𝐤
+            </mi>
+            <mi id="alg1.l7.m1.1.1.3.3" xref="alg1.l7.m1.1.1.3.3.cmml">
+             i
+            </mi>
+           </msub>
+           <mrow id="alg1.l7.m1.1.1.1.1" xref="alg1.l7.m1.1.1.1.2.cmml">
+            <mo id="alg1.l7.m1.1.1.1.1.2" maxsize="142%" minsize="142%" xref="alg1.l7.m1.1.1.1.2.1.cmml">
+             ‖
+            </mo>
+            <msub id="alg1.l7.m1.1.1.1.1.1" xref="alg1.l7.m1.1.1.1.1.1.cmml">
+             <mi id="alg1.l7.m1.1.1.1.1.1.2" xref="alg1.l7.m1.1.1.1.1.1.2.cmml">
+              𝐤
+             </mi>
+             <mi id="alg1.l7.m1.1.1.1.1.1.3" xref="alg1.l7.m1.1.1.1.1.1.3.cmml">
+              i
+             </mi>
+            </msub>
+            <mo id="alg1.l7.m1.1.1.1.1.3" maxsize="142%" minsize="142%" xref="alg1.l7.m1.1.1.1.2.1.cmml">
+             ‖
+            </mo>
+           </mrow>
+          </mfrac>
+          <mo id="alg1.l7.m1.2.3.3.1" xref="alg1.l7.m1.2.3.3.1.cmml">
+           +
+          </mo>
+          <mrow id="alg1.l7.m1.2.3.3.2" xref="alg1.l7.m1.2.3.3.2.cmml">
+           <mi id="alg1.l7.m1.2.3.3.2.2" xref="alg1.l7.m1.2.3.3.2.2.cmml">
+            α
+           </mi>
+           <mo id="alg1.l7.m1.2.3.3.2.1" lspace="0em" rspace="0em" xref="alg1.l7.m1.2.3.3.2.1.cmml">
+            ​
+           </mo>
+           <mfrac id="alg1.l7.m1.2.2" xref="alg1.l7.m1.2.2.cmml">
+            <mi id="alg1.l7.m1.2.2.3" xref="alg1.l7.m1.2.2.3.cmml">
+             𝐬
+            </mi>
+            <mrow id="alg1.l7.m1.2.2.1.3" xref="alg1.l7.m1.2.2.1.2.cmml">
+             <mo id="alg1.l7.m1.2.2.1.3.1" maxsize="142%" minsize="142%" xref="alg1.l7.m1.2.2.1.2.1.cmml">
+              ‖
+             </mo>
+             <mi id="alg1.l7.m1.2.2.1.1" xref="alg1.l7.m1.2.2.1.1.cmml">
+              𝐬
+             </mi>
+             <mo id="alg1.l7.m1.2.2.1.3.2" maxsize="142%" minsize="142%" xref="alg1.l7.m1.2.2.1.2.1.cmml">
+              ‖
+             </mo>
+            </mrow>
+           </mfrac>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l7.m1.2b">
+         <apply id="alg1.l7.m1.2.3.cmml" xref="alg1.l7.m1.2.3">
+          <eq id="alg1.l7.m1.2.3.1.cmml" xref="alg1.l7.m1.2.3.1">
+          </eq>
+          <apply id="alg1.l7.m1.2.3.2.cmml" xref="alg1.l7.m1.2.3.2">
+           <csymbol cd="ambiguous" id="alg1.l7.m1.2.3.2.1.cmml" xref="alg1.l7.m1.2.3.2">
+            subscript
+           </csymbol>
+           <ci id="alg1.l7.m1.2.3.2.2.cmml" xref="alg1.l7.m1.2.3.2.2">
+            𝐯
+           </ci>
+           <ci id="alg1.l7.m1.2.3.2.3.cmml" xref="alg1.l7.m1.2.3.2.3">
+            𝑖
+           </ci>
+          </apply>
+          <apply id="alg1.l7.m1.2.3.3.cmml" xref="alg1.l7.m1.2.3.3">
+           <plus id="alg1.l7.m1.2.3.3.1.cmml" xref="alg1.l7.m1.2.3.3.1">
+           </plus>
+           <apply id="alg1.l7.m1.1.1.cmml" xref="alg1.l7.m1.1.1">
+            <divide id="alg1.l7.m1.1.1.2.cmml" xref="alg1.l7.m1.1.1">
+            </divide>
+            <apply id="alg1.l7.m1.1.1.3.cmml" xref="alg1.l7.m1.1.1.3">
+             <csymbol cd="ambiguous" id="alg1.l7.m1.1.1.3.1.cmml" xref="alg1.l7.m1.1.1.3">
+              subscript
+             </csymbol>
+             <ci id="alg1.l7.m1.1.1.3.2.cmml" xref="alg1.l7.m1.1.1.3.2">
+              𝐤
+             </ci>
+             <ci id="alg1.l7.m1.1.1.3.3.cmml" xref="alg1.l7.m1.1.1.3.3">
+              𝑖
+             </ci>
+            </apply>
+            <apply id="alg1.l7.m1.1.1.1.2.cmml" xref="alg1.l7.m1.1.1.1.1">
+             <csymbol cd="latexml" id="alg1.l7.m1.1.1.1.2.1.cmml" xref="alg1.l7.m1.1.1.1.1.2">
+              norm
+             </csymbol>
+             <apply id="alg1.l7.m1.1.1.1.1.1.cmml" xref="alg1.l7.m1.1.1.1.1.1">
+              <csymbol cd="ambiguous" id="alg1.l7.m1.1.1.1.1.1.1.cmml" xref="alg1.l7.m1.1.1.1.1.1">
+               subscript
+              </csymbol>
+              <ci id="alg1.l7.m1.1.1.1.1.1.2.cmml" xref="alg1.l7.m1.1.1.1.1.1.2">
+               𝐤
+              </ci>
+              <ci id="alg1.l7.m1.1.1.1.1.1.3.cmml" xref="alg1.l7.m1.1.1.1.1.1.3">
+               𝑖
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+           <apply id="alg1.l7.m1.2.3.3.2.cmml" xref="alg1.l7.m1.2.3.3.2">
+            <times id="alg1.l7.m1.2.3.3.2.1.cmml" xref="alg1.l7.m1.2.3.3.2.1">
+            </times>
+            <ci id="alg1.l7.m1.2.3.3.2.2.cmml" xref="alg1.l7.m1.2.3.3.2.2">
+             𝛼
+            </ci>
+            <apply id="alg1.l7.m1.2.2.cmml" xref="alg1.l7.m1.2.2">
+             <divide id="alg1.l7.m1.2.2.2.cmml" xref="alg1.l7.m1.2.2">
+             </divide>
+             <ci id="alg1.l7.m1.2.2.3.cmml" xref="alg1.l7.m1.2.2.3">
+              𝐬
+             </ci>
+             <apply id="alg1.l7.m1.2.2.1.2.cmml" xref="alg1.l7.m1.2.2.1.3">
+              <csymbol cd="latexml" id="alg1.l7.m1.2.2.1.2.1.cmml" xref="alg1.l7.m1.2.2.1.3.1">
+               norm
+              </csymbol>
+              <ci id="alg1.l7.m1.2.2.1.1.cmml" xref="alg1.l7.m1.2.2.1.1">
+               𝐬
+              </ci>
+             </apply>
+            </apply>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l7.m1.2c">
+         \mathbf{v}_{i}=\frac{\mathbf{k}_{i}}{||\mathbf{k}_{i}||}+\alpha\frac{\mathbf{s}}{||\mathbf{s}||}
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l8">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l8.1.1.1" style="font-size:80%;">
+        8:
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l8.2">
+       for
+      </span>
+      <math alttext="j\ to\ M" class="ltx_Math" display="inline" id="alg1.l8.m1.1">
+       <semantics id="alg1.l8.m1.1a">
+        <mrow id="alg1.l8.m1.1.1" xref="alg1.l8.m1.1.1.cmml">
+         <mi id="alg1.l8.m1.1.1.2" xref="alg1.l8.m1.1.1.2.cmml">
+          j
+         </mi>
+         <mo id="alg1.l8.m1.1.1.1" lspace="0.500em" rspace="0em" xref="alg1.l8.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l8.m1.1.1.3" xref="alg1.l8.m1.1.1.3.cmml">
+          t
+         </mi>
+         <mo id="alg1.l8.m1.1.1.1a" lspace="0em" rspace="0em" xref="alg1.l8.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l8.m1.1.1.4" xref="alg1.l8.m1.1.1.4.cmml">
+          o
+         </mi>
+         <mo id="alg1.l8.m1.1.1.1b" lspace="0.500em" rspace="0em" xref="alg1.l8.m1.1.1.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l8.m1.1.1.5" xref="alg1.l8.m1.1.1.5.cmml">
+          M
+         </mi>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l8.m1.1b">
+         <apply id="alg1.l8.m1.1.1.cmml" xref="alg1.l8.m1.1.1">
+          <times id="alg1.l8.m1.1.1.1.cmml" xref="alg1.l8.m1.1.1.1">
+          </times>
+          <ci id="alg1.l8.m1.1.1.2.cmml" xref="alg1.l8.m1.1.1.2">
+           𝑗
+          </ci>
+          <ci id="alg1.l8.m1.1.1.3.cmml" xref="alg1.l8.m1.1.1.3">
+           𝑡
+          </ci>
+          <ci id="alg1.l8.m1.1.1.4.cmml" xref="alg1.l8.m1.1.1.4">
+           𝑜
+          </ci>
+          <ci id="alg1.l8.m1.1.1.5.cmml" xref="alg1.l8.m1.1.1.5">
+           𝑀
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l8.m1.1c">
+         j\ to\ M
+        </annotation>
+       </semantics>
+      </math>
+      <span class="ltx_text ltx_font_bold" id="alg1.l8.3">
+       do
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l9">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l9.1.1.1" style="font-size:80%;">
+        9:
+       </span>
+      </span>
+      <math alttext="s_{j}\xleftarrow{}s_{j}+cossim(\mathbf{v}_{i},\mathbf{l}_{j})" class="ltx_Math" display="inline" id="alg1.l9.m1.2">
+       <semantics id="alg1.l9.m1.2a">
+        <mrow id="alg1.l9.m1.2.2" xref="alg1.l9.m1.2.2.cmml">
+         <msub id="alg1.l9.m1.2.2.4" xref="alg1.l9.m1.2.2.4.cmml">
+          <mi id="alg1.l9.m1.2.2.4.2" xref="alg1.l9.m1.2.2.4.2.cmml">
+           s
+          </mi>
+          <mi id="alg1.l9.m1.2.2.4.3" xref="alg1.l9.m1.2.2.4.3.cmml">
+           j
+          </mi>
+         </msub>
+         <mover accent="true" id="alg1.l9.m1.2.2.3" xref="alg1.l9.m1.2.2.3.cmml">
+          <mo id="alg1.l9.m1.2.2.3.2" stretchy="false" xref="alg1.l9.m1.2.2.3.2.cmml">
+           ←
+          </mo>
+          <mi id="alg1.l9.m1.2.2.3.1" xref="alg1.l9.m1.2.2.3.1.cmml">
+          </mi>
+         </mover>
+         <mrow id="alg1.l9.m1.2.2.2" xref="alg1.l9.m1.2.2.2.cmml">
+          <msub id="alg1.l9.m1.2.2.2.4" xref="alg1.l9.m1.2.2.2.4.cmml">
+           <mi id="alg1.l9.m1.2.2.2.4.2" xref="alg1.l9.m1.2.2.2.4.2.cmml">
+            s
+           </mi>
+           <mi id="alg1.l9.m1.2.2.2.4.3" xref="alg1.l9.m1.2.2.2.4.3.cmml">
+            j
+           </mi>
+          </msub>
+          <mo id="alg1.l9.m1.2.2.2.3" xref="alg1.l9.m1.2.2.2.3.cmml">
+           +
+          </mo>
+          <mrow id="alg1.l9.m1.2.2.2.2" xref="alg1.l9.m1.2.2.2.2.cmml">
+           <mi id="alg1.l9.m1.2.2.2.2.4" xref="alg1.l9.m1.2.2.2.2.4.cmml">
+            c
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mi id="alg1.l9.m1.2.2.2.2.5" xref="alg1.l9.m1.2.2.2.2.5.cmml">
+            o
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3a" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mi id="alg1.l9.m1.2.2.2.2.6" xref="alg1.l9.m1.2.2.2.2.6.cmml">
+            s
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3b" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mi id="alg1.l9.m1.2.2.2.2.7" xref="alg1.l9.m1.2.2.2.2.7.cmml">
+            s
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3c" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mi id="alg1.l9.m1.2.2.2.2.8" xref="alg1.l9.m1.2.2.2.2.8.cmml">
+            i
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3d" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mi id="alg1.l9.m1.2.2.2.2.9" xref="alg1.l9.m1.2.2.2.2.9.cmml">
+            m
+           </mi>
+           <mo id="alg1.l9.m1.2.2.2.2.3e" lspace="0em" rspace="0em" xref="alg1.l9.m1.2.2.2.2.3.cmml">
+            ​
+           </mo>
+           <mrow id="alg1.l9.m1.2.2.2.2.2.2" xref="alg1.l9.m1.2.2.2.2.2.3.cmml">
+            <mo id="alg1.l9.m1.2.2.2.2.2.2.3" stretchy="false" xref="alg1.l9.m1.2.2.2.2.2.3.cmml">
+             (
+            </mo>
+            <msub id="alg1.l9.m1.1.1.1.1.1.1.1" xref="alg1.l9.m1.1.1.1.1.1.1.1.cmml">
+             <mi id="alg1.l9.m1.1.1.1.1.1.1.1.2" xref="alg1.l9.m1.1.1.1.1.1.1.1.2.cmml">
+              𝐯
+             </mi>
+             <mi id="alg1.l9.m1.1.1.1.1.1.1.1.3" xref="alg1.l9.m1.1.1.1.1.1.1.1.3.cmml">
+              i
+             </mi>
+            </msub>
+            <mo id="alg1.l9.m1.2.2.2.2.2.2.4" xref="alg1.l9.m1.2.2.2.2.2.3.cmml">
+             ,
+            </mo>
+            <msub id="alg1.l9.m1.2.2.2.2.2.2.2" xref="alg1.l9.m1.2.2.2.2.2.2.2.cmml">
+             <mi id="alg1.l9.m1.2.2.2.2.2.2.2.2" xref="alg1.l9.m1.2.2.2.2.2.2.2.2.cmml">
+              𝐥
+             </mi>
+             <mi id="alg1.l9.m1.2.2.2.2.2.2.2.3" xref="alg1.l9.m1.2.2.2.2.2.2.2.3.cmml">
+              j
+             </mi>
+            </msub>
+            <mo id="alg1.l9.m1.2.2.2.2.2.2.5" stretchy="false" xref="alg1.l9.m1.2.2.2.2.2.3.cmml">
+             )
+            </mo>
+           </mrow>
+          </mrow>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l9.m1.2b">
+         <apply id="alg1.l9.m1.2.2.cmml" xref="alg1.l9.m1.2.2">
+          <apply id="alg1.l9.m1.2.2.3.cmml" xref="alg1.l9.m1.2.2.3">
+           <csymbol cd="latexml" id="alg1.l9.m1.2.2.3.1.cmml" xref="alg1.l9.m1.2.2.3.1">
+            absent
+           </csymbol>
+           <ci id="alg1.l9.m1.2.2.3.2.cmml" xref="alg1.l9.m1.2.2.3.2">
+            ←
+           </ci>
+          </apply>
+          <apply id="alg1.l9.m1.2.2.4.cmml" xref="alg1.l9.m1.2.2.4">
+           <csymbol cd="ambiguous" id="alg1.l9.m1.2.2.4.1.cmml" xref="alg1.l9.m1.2.2.4">
+            subscript
+           </csymbol>
+           <ci id="alg1.l9.m1.2.2.4.2.cmml" xref="alg1.l9.m1.2.2.4.2">
+            𝑠
+           </ci>
+           <ci id="alg1.l9.m1.2.2.4.3.cmml" xref="alg1.l9.m1.2.2.4.3">
+            𝑗
+           </ci>
+          </apply>
+          <apply id="alg1.l9.m1.2.2.2.cmml" xref="alg1.l9.m1.2.2.2">
+           <plus id="alg1.l9.m1.2.2.2.3.cmml" xref="alg1.l9.m1.2.2.2.3">
+           </plus>
+           <apply id="alg1.l9.m1.2.2.2.4.cmml" xref="alg1.l9.m1.2.2.2.4">
+            <csymbol cd="ambiguous" id="alg1.l9.m1.2.2.2.4.1.cmml" xref="alg1.l9.m1.2.2.2.4">
+             subscript
+            </csymbol>
+            <ci id="alg1.l9.m1.2.2.2.4.2.cmml" xref="alg1.l9.m1.2.2.2.4.2">
+             𝑠
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.4.3.cmml" xref="alg1.l9.m1.2.2.2.4.3">
+             𝑗
+            </ci>
+           </apply>
+           <apply id="alg1.l9.m1.2.2.2.2.cmml" xref="alg1.l9.m1.2.2.2.2">
+            <times id="alg1.l9.m1.2.2.2.2.3.cmml" xref="alg1.l9.m1.2.2.2.2.3">
+            </times>
+            <ci id="alg1.l9.m1.2.2.2.2.4.cmml" xref="alg1.l9.m1.2.2.2.2.4">
+             𝑐
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.2.5.cmml" xref="alg1.l9.m1.2.2.2.2.5">
+             𝑜
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.2.6.cmml" xref="alg1.l9.m1.2.2.2.2.6">
+             𝑠
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.2.7.cmml" xref="alg1.l9.m1.2.2.2.2.7">
+             𝑠
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.2.8.cmml" xref="alg1.l9.m1.2.2.2.2.8">
+             𝑖
+            </ci>
+            <ci id="alg1.l9.m1.2.2.2.2.9.cmml" xref="alg1.l9.m1.2.2.2.2.9">
+             𝑚
+            </ci>
+            <interval closure="open" id="alg1.l9.m1.2.2.2.2.2.3.cmml" xref="alg1.l9.m1.2.2.2.2.2.2">
+             <apply id="alg1.l9.m1.1.1.1.1.1.1.1.cmml" xref="alg1.l9.m1.1.1.1.1.1.1.1">
+              <csymbol cd="ambiguous" id="alg1.l9.m1.1.1.1.1.1.1.1.1.cmml" xref="alg1.l9.m1.1.1.1.1.1.1.1">
+               subscript
+              </csymbol>
+              <ci id="alg1.l9.m1.1.1.1.1.1.1.1.2.cmml" xref="alg1.l9.m1.1.1.1.1.1.1.1.2">
+               𝐯
+              </ci>
+              <ci id="alg1.l9.m1.1.1.1.1.1.1.1.3.cmml" xref="alg1.l9.m1.1.1.1.1.1.1.1.3">
+               𝑖
+              </ci>
+             </apply>
+             <apply id="alg1.l9.m1.2.2.2.2.2.2.2.cmml" xref="alg1.l9.m1.2.2.2.2.2.2.2">
+              <csymbol cd="ambiguous" id="alg1.l9.m1.2.2.2.2.2.2.2.1.cmml" xref="alg1.l9.m1.2.2.2.2.2.2.2">
+               subscript
+              </csymbol>
+              <ci id="alg1.l9.m1.2.2.2.2.2.2.2.2.cmml" xref="alg1.l9.m1.2.2.2.2.2.2.2.2">
+               𝐥
+              </ci>
+              <ci id="alg1.l9.m1.2.2.2.2.2.2.2.3.cmml" xref="alg1.l9.m1.2.2.2.2.2.2.2.3">
+               𝑗
+              </ci>
+             </apply>
+            </interval>
+           </apply>
+          </apply>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l9.m1.2c">
+         s_{j}\xleftarrow{}s_{j}+cossim(\mathbf{v}_{i},\mathbf{l}_{j})
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+     <div class="ltx_listingline" id="alg1.l10">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l10.1.1.1" style="font-size:80%;">
+        10:
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l10.2">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l10.3">
+       for
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l11">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l11.1.1.1" style="font-size:80%;">
+        11:
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l11.2">
+       end
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l11.3">
+       for
+      </span>
+     </div>
+     <div class="ltx_listingline" id="alg1.l12">
+      <span class="ltx_tag ltx_tag_listingline">
+       <span class="ltx_text" id="alg1.l12.1.1.1" style="font-size:80%;">
+        12:
+       </span>
+      </span>
+      <span class="ltx_text ltx_font_bold" id="alg1.l12.2">
+       return
+      </span>
+      <math alttext="TopK(\mathcal{S})" class="ltx_Math" display="inline" id="alg1.l12.m1.1">
+       <semantics id="alg1.l12.m1.1a">
+        <mrow id="alg1.l12.m1.1.2" xref="alg1.l12.m1.1.2.cmml">
+         <mi id="alg1.l12.m1.1.2.2" xref="alg1.l12.m1.1.2.2.cmml">
+          T
+         </mi>
+         <mo id="alg1.l12.m1.1.2.1" lspace="0em" rspace="0em" xref="alg1.l12.m1.1.2.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l12.m1.1.2.3" xref="alg1.l12.m1.1.2.3.cmml">
+          o
+         </mi>
+         <mo id="alg1.l12.m1.1.2.1a" lspace="0em" rspace="0em" xref="alg1.l12.m1.1.2.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l12.m1.1.2.4" xref="alg1.l12.m1.1.2.4.cmml">
+          p
+         </mi>
+         <mo id="alg1.l12.m1.1.2.1b" lspace="0em" rspace="0em" xref="alg1.l12.m1.1.2.1.cmml">
+          ​
+         </mo>
+         <mi id="alg1.l12.m1.1.2.5" xref="alg1.l12.m1.1.2.5.cmml">
+          K
+         </mi>
+         <mo id="alg1.l12.m1.1.2.1c" lspace="0em" rspace="0em" xref="alg1.l12.m1.1.2.1.cmml">
+          ​
+         </mo>
+         <mrow id="alg1.l12.m1.1.2.6.2" xref="alg1.l12.m1.1.2.cmml">
+          <mo id="alg1.l12.m1.1.2.6.2.1" stretchy="false" xref="alg1.l12.m1.1.2.cmml">
+           (
+          </mo>
+          <mi class="ltx_font_mathcaligraphic" id="alg1.l12.m1.1.1" xref="alg1.l12.m1.1.1.cmml">
+           𝒮
+          </mi>
+          <mo id="alg1.l12.m1.1.2.6.2.2" stretchy="false" xref="alg1.l12.m1.1.2.cmml">
+           )
+          </mo>
+         </mrow>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="alg1.l12.m1.1b">
+         <apply id="alg1.l12.m1.1.2.cmml" xref="alg1.l12.m1.1.2">
+          <times id="alg1.l12.m1.1.2.1.cmml" xref="alg1.l12.m1.1.2.1">
+          </times>
+          <ci id="alg1.l12.m1.1.2.2.cmml" xref="alg1.l12.m1.1.2.2">
+           𝑇
+          </ci>
+          <ci id="alg1.l12.m1.1.2.3.cmml" xref="alg1.l12.m1.1.2.3">
+           𝑜
+          </ci>
+          <ci id="alg1.l12.m1.1.2.4.cmml" xref="alg1.l12.m1.1.2.4">
+           𝑝
+          </ci>
+          <ci id="alg1.l12.m1.1.2.5.cmml" xref="alg1.l12.m1.1.2.5">
+           𝐾
+          </ci>
+          <ci id="alg1.l12.m1.1.1.cmml" xref="alg1.l12.m1.1.1">
+           𝒮
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="alg1.l12.m1.1c">
+         TopK(\mathcal{S})
+        </annotation>
+       </semantics>
+      </math>
+     </div>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     Creating ChatLaw product by combining vertical-specific LLM with a knowledge base, it is crucial to retrieve relevant information from the knowledge base based on user queries. We initially tried traditional software development methods such as MySQL and Elasticsearch for retrieval, but the results were unsatisfactory. Therefore, we attempted to use a pre-trained BERT model for embedding, followed by methods such as Faiss
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib4" title="">
+       4
+      </a>
+      ]
+     </cite>
+     to calculate cosine similarity and extract the top k legal regulations related to user queries. However, this method often yields suboptimal results when the user’s question is vague. Therefore, we aim to extract key information from user queries and use the vector embedding of this information to design an algorithm to improve matching accuracy.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     Due to the significant advantages of large models in understanding user queries, we fine-tuned an LLM to extract the keywords from user queries. After obtaining multiple keywords, we adopted
+     <span class="ltx_text ltx_font_bold" id="S3.SS2.p2.1.1">
+      Algorithm 1
+     </span>
+     to retrieve relevant legal provisions.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="366" id="S3.F2.g1" src="/html/2306.16092/assets/images/keyword_law.jpg" width="598"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S3.F2.2.1.1" style="font-size:90%;">
+       Figure 2
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S3.F2.3.2" style="font-size:90%;">
+      Result of Keyword LLM and Law LLM
+     </span>
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.3
+    </span>
+    Law LLM
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     We trained a BERT model using a dataset of 937k national case law examples to extract corresponding legal provisions and judicial interpretations from user queries. This Law LLM model forms an essential component of the ChatLaw product.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experiment and Analysis
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    Evaluating the performance of the Large Language Model (LLM) has always been a challenge. For this purpose, we have collected national judicial examination questions over a decade and compiled a test dataset containing 2000 questions with their standard answers to measure the models’ ability to handle legal multiple-choice questions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    However, we found that the accuracy rates of the models are generally quite low. Under these circumstances, simply comparing accuracy rates seems to hold little significance. Therefore, we have established an evaluation mechanism for model competition for Elo points, inspired by the matchmaking mechanism in e-sports and the design of Chatbot Arena
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      13
+     </a>
+     ]
+    </cite>
+    , to more effectively assess the models’ abilities to handle legal multiple-choice questions.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S4.F4">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_bottom" id="S4.F4.1" style="width:108.4pt;">
+      <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="820" id="S4.F4.1.g1" src="/html/2306.16092/assets/images/elo.jpg" width="598"/>
+      <figcaption class="ltx_caption ltx_centering">
+       <span class="ltx_tag ltx_tag_figure">
+        <span class="ltx_text" id="S4.F4.1.1.1.1" style="font-size:90%;">
+         Figure 3
+        </span>
+        :
+       </span>
+       <span class="ltx_text" id="S4.F4.1.2.2" style="font-size:90%;">
+        ELO Ranking up until June 25
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_bottom" id="S4.F4.2" style="width:303.5pt;">
+      <img alt="Refer to caption" class="ltx_graphics ltx_img_square" height="529" id="S4.F4.2.g1" src="/html/2306.16092/assets/images/win_rate.png" width="598"/>
+      <figcaption class="ltx_caption ltx_centering">
+       <span class="ltx_tag ltx_tag_figure">
+        <span class="ltx_text" id="S4.F4.2.1.1.1" style="font-size:90%;">
+         Figure 4
+        </span>
+        :
+       </span>
+       <span class="ltx_text" id="S4.F4.2.2.2" style="font-size:90%;">
+        LLM Win Rate
+       </span>
+      </figcaption>
+     </figure>
+    </div>
+   </div>
+  </figure>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    Through the analysis of the above experimental results, we can make the following observations:
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p4">
+   <p class="ltx_p" id="S4.p4.1">
+    (1) The introduction of legal-related Q&amp;A and statute data can to some extent improve the model’s performance on multiple-choice questions;
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p5">
+   <p class="ltx_p" id="S4.p5.1">
+    (2) The addition of specific task types for training significantly improves the model’s performance on such tasks. For example, the reason why the ChatLaw model outperforms GPT-4 is that we used a large number of multiple-choice questions as training data;
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p6">
+   <p class="ltx_p" id="S4.p6.1">
+    (3) Legal multiple-choice questions require complex logical reasoning, so models with a larger number of parameters usually perform better.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Conclusions
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    In this paper, we proposed ChatLaw, a legal large language model(LLM) developed using legal domain knowledge. We propose a novel approach that combines LLM with vector knowledge databases, which significantly alleviates the hallucination problem commonly seen in LLM. Our stable model handling strategies enable the resolution of various legal domain problems. Additionally, we release a dataset for legal multiple-choice questions and design an ELO model ranking mechanism.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    However, our limitations arise due to the scale of the base model. Our performance in tasks such as logical reasoning and deduction is not optimal. Additionally, after incorporating a large amount of domain-specific data, further research is required to improve the generalization of ChatLaw for generic tasks. There are potential social risks on ChatLaw, and we advise users to make use of our method for proper purposes.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     Ebtesam Almazrouei, Hamza Alobeidli, Abdulaziz Alshamsi, Alessandro Cappelli,
+Ruxandra Cojocaru, Merouane Debbah, Etienne Goffinet, Daniel Heslow, Julien
+Launay, Quentin Malartic, Badreddine Noune, Baptiste Pannier, and Guilherme
+Penedo.
+    </span>
+    <span class="ltx_bibblock">
+     Falcon-40B: an open large language model with state-of-the-art
+performance.
+    </span>
+    <span class="ltx_bibblock">
+     2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin
+Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez, Ion Stoica, and
+Eric P. Xing.
+    </span>
+    <span class="ltx_bibblock">
+     Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt
+quality, March 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+Wang, Lu Wang, and Weizhu Chen.
+    </span>
+    <span class="ltx_bibblock">
+     LoRA: Low-rank adaptation of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.1.1">
+      International Conference on Learning Representations
+     </span>
+     , 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     Jeff Johnson, Matthijs Douze, and Hervé Jégou.
+    </span>
+    <span class="ltx_bibblock">
+     Billion-scale similarity search with GPUs.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.1.1">
+      IEEE Transactions on Big Data
+     </span>
+     , 7(3):535–547, 2019.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting
+Zhuang.
+    </span>
+    <span class="ltx_bibblock">
+     Hugginggpt: Solving ai tasks with chatgpt and its friends in hugging
+face, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne
+Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric
+Hambro, Faisal Azhar, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Llama: Open and efficient foundation language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2302.13971
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     Haochun Wang, Chi Liu, Nuwa Xi, Zewen Qiang, Sendong Zhao, Bing Qin, and Ting
+Liu.
+    </span>
+    <span class="ltx_bibblock">
+     Huatuo: Tuning llama model with chinese medical knowledge, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     Shijie Wu, Ozan Irsoy, Steven Lu, Vadim Dabravolski, Mark Dredze, Sebastian
+Gehrmann, Prabhanjan Kambadur, David Rosenberg, and Gideon Mann.
+    </span>
+    <span class="ltx_bibblock">
+     Bloomberggpt: A large language model for finance, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     Hongyang Yang, Xiao-Yang Liu, and Christina Dan Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Fingpt: Open-source financial large language models, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     Ping Yang, Junjie Wang, Ruyi Gan, Xinyu Zhu, Lin Zhang, Ziwei Wu, Xinyu Gao,
+Jiaxing Zhang, and Tetsuya Sakai.
+    </span>
+    <span class="ltx_bibblock">
+     Zero-shot learners for natural language understanding via a unified
+multiple choice perspective, 2022.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     Aohan Zeng, Xiao Liu, Zhengxiao Du, Zihan Wang, Hanyu Lai, Ming Ding, Zhuoyi
+Yang, Yifan Xu, Wendi Zheng, Xiao Xia, Weng Lam Tam, Zixuan Ma, Yufei Xue,
+Jidong Zhai, Wenguang Chen, Zhiyuan Liu, Peng Zhang, Yuxiao Dong, and Jie
+Tang.
+    </span>
+    <span class="ltx_bibblock">
+     GLM-130b: An open bilingual pre-trained model.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.1.1">
+      The Eleventh International Conference on Learning
+Representations (ICLR)
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao
+Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric. P Xing, Hao Zhang, Joseph E.
+Gonzalez, and Ion Stoica.
+    </span>
+    <span class="ltx_bibblock">
+     Judging llm-as-a-judge with mt-bench and chatbot arena, 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     Wei Zhu and Xiaoling Wang.
+    </span>
+    <span class="ltx_bibblock">
+     Chatmed: A chinese medical large language model.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/michael-wzhu/ChatMed" target="_blank" title="">
+      https://github.com/michael-wzhu/ChatMed
+     </a>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

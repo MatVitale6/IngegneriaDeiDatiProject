@@ -1,0 +1,722 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  <span class="ltx_text" id="id1.1" style="position:relative; bottom:-8.5pt;">
+   <img alt="[Uncaptioned image]" class="ltx_graphics ltx_img_square" height="40" id="id1.1.g1" src="/html/2402.17531/assets/images/nisse.jpg" width="40"/>
+  </span>
+  Nissist: An Incident Mitigation Copilot based on Troubleshooting Guides
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Kaikai An
+   </span>
+   <span class="ltx_author_notes">
+    This work is done during the internship at Microsoft.
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Fangkai Yang
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Liqun Li
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Zhixing Ren
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Hao Huang
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Lu Wang
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <br class="ltx_break"/>
+    Pu Zhao
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Yu Kang
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Hua Ding
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Qingwei Lin
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Saravan Rajmohan
+   </span>
+  </span>
+  <span class="ltx_author_before">
+  </span>
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Qi Zhang
+    <br class="ltx_break"/>
+    Microsoft
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   Effective incident management is pivotal for the smooth operation of enterprises-level cloud services. In order to expedite incident mitigation, service teams compile troubleshooting knowledge into Troubleshooting Guides (TSGs) accessible to on-call engineers (OCEs). While automated pipelines are enabled to resolve the most frequent and easy incidents, there still exist complex incidents that require OCEs’ intervention. However, TSGs are often unstructured and incomplete, which requires manual interpretation by OCEs, leading to on-call fatigue and decreased productivity, especially among new-hire OCEs. In this work, we propose
+   <span class="ltx_text ltx_font_italic" id="id2.id1.1">
+    Nissist
+   </span>
+   which leverages TSGs and incident mitigation histories to provide proactive suggestions, reducing human intervention. Leveraging Large Language Models (LLM), Nissist extracts insights from unstructured TSGs and historical incident mitigation discussions, forming a comprehensive knowledge base. Its multi-agent system design enhances proficiency in precisely discerning user queries, retrieving relevant information, and delivering systematic plans consecutively. Through our user case and experiment, we demonstrate that Nissist significant reduce Time to Mitigate (TTM) in incident mitigation, alleviating operational burdens on OCEs and improving service reliability. Our demo is available at
+   <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://aka.ms/nissist_demo" target="_blank" title="">
+    https://aka.ms/nissist_demo
+   </a>
+   <span class="ltx_note ltx_role_footnote" id="footnote1">
+    <sup class="ltx_note_mark">
+     1
+    </sup>
+    <span class="ltx_note_outer">
+     <span class="ltx_note_content">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_tag ltx_tag_note">
+       1
+      </span>
+      Work in progress, code will be released later.
+     </span>
+    </span>
+   </span>
+   .
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    In the rapidly evolving landscape of cloud operation, incident management stands as a pivotal challenge for enterprise-level cloud service providers such as Microsoft, Google, and Amazon. The profound impact of incidents, exemplified by notable events such as the Amazon outage
+    <cite class="ltx_cite ltx_citemacro_cite">
+     O’Donovan (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , underscores the need for a robust incident management system. Incidents can range from minor operational interruptions to severe system failures, with potential consequences including financial loss, operational disruption, reputational harm, and legal complications. Swiftly identifying, troubleshooting, and resolving system incidents is essential for maintaining service reliability and operational continuity.
+While automated pipelines can handle low-severity incidents due to their simplicity and commonality, high-severity incidents require immediate and hands-on intervention by On-Call Engineers (OCEs), beyond the capabilities of automated systems.
+Service teams address this challenge by documenting frequent troubleshooting steps in Troubleshooting Guides (TSGs), empowering OCEs to efficiently resolve incidents.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    To investigate the effect of TSGs on incident mitigation, we analyze around 1000 high-severity incidents in the recent twelve months that demand immediate intervention from OCEs.
+Consistent with findings from prior studies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Jiang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2020
+     </a>
+     ); Shetty
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2022
+     </a>
+     ); Jiang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , which demonstrate the efficacy of TSGs in incident mitigation. We found that incidents paired with TSGs exhibit a 60% shorter average time-to-mitigate (TTM) compared to those without TSGs, emphasizing the pivotal role played by TSGs. This trend is consistent across various companies, as evidenced by research
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lotufo
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2015
+     </a>
+     ); Li
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2018
+     </a>
+     )
+    </cite>
+    , even among those employing different forms of TSGs.
+However, despite their utility, as highlighted by
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shetty
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2022
+     </a>
+     ); Chen
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , the unstructured format, varying quantity, and propensity for internal use purpose of TSGs, impede their optimal utilization. Particularly, such unstructured TSGs pose challenges for new hires and contribute to the complexity of the incident mitigation process, especially in scenarios requiring coordination across multiple teams.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Recent works have focused on leveraging TSGs to facilitate incident mitigation process.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shetty
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2022
+     </a>
+     )
+    </cite>
+    fine-tunes models to extract knowledge from TSGs, while
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Jiang
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     ); Chen
+     <span class="ltx_text ltx_font_italic">
+      et al.
+     </span>
+     (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    identify relevant TSGs in root cause analysis. However, the prevalent unstructured nature of existing TSGs limits the effectiveness of fine-tuning procedures, and the complexity of high-severity incidents still require human interventions. In this work, we propose
+    <span class="ltx_text ltx_font_italic" id="S1.p3.1.1">
+     Nissist
+    </span>
+    , aiming to reduce OCE workload and assist incident mitigation processes. Firstly, we establish a set of rigorous TSG criteria to convert unstructured TSGs into structured, high-quality formats leveraging Large Language Models (LLMs), while also providing guidelines for OCEs when documenting new TSGs. Subsequently, we propose a novel structure of knowledge base comprising discrete, executable nodes extracted from TSGs and enriched by historical incident mitigation discussions.
+Moreover, we introduce an advanced multi-agent system designed to proficiently interpret queries, retrieve relevant knowledge nodes, and formulate actionable plans. By interacting with Nissist, OCEs navigate each mitigation stage via a methodical and step-by-step protocol, optimizing incident mitigation trajectories and reducing reliance on direct human intervention.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   System Overview
+  </h2>
+  <figure class="ltx_figure" id="S2.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="166" id="S2.F1.g1" src="/html/2402.17531/assets/x1.png" width="415"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    The Incident Mitigation Framework with Nissist. When incidents exceed automation capabilities, OCEs engage in iterative interactions with Nissist. Nissist interprets OCE queries, retrieves knowledge from the knowledge base, and formulates actions. Actions that cannot be carried out by existing execution engines are then delegated to OCEs for manual execution.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    As illustrated in Figure
+    <a class="ltx_ref" href="#S2.F1" title="Figure 1 ‣ 2 System Overview ‣ Nissist: An Incident Mitigation Copilot based on Troubleshooting Guides">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , OCEs engage in iterative interactions with Nissist when automation tools are insufficient to address an incident. Initially, Nissist constructs the
+    <span class="ltx_text ltx_font_italic" id="S2.p1.1.1">
+     Knowledge Base
+    </span>
+    offline by parsing unstructured TSGs and enriches it with insights from historical incident mitigation discussions not covered in TSGs. Subsequently, it iteratively processes OCE queries. Each module, powered by LLMs, serves as an agent responsible for specific tasks, including interpreting intents, selecting the most relevant knowledge, suggesting actions, etc. These modules concurrently communicate with each other to efficiently handle incident mitigation.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Constructing the Knowledge Base
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The primary source of knowledge is derived from unstructured TSGs, which typically encompass information on investigating and mitigating incidents. However, their unstructured nature poses challenges for traditional data retrieval methods, as the appropriate action may not always exhibit semantic or lexical similarity to the query due to unstructured nature. Additionally, incident mitigation often requires a sequential steps of actions. Chunking TSGs in retrieval methods can result in the disruption of this sequence, particularly when certain steps are spread across multiple TSGs, and collectively represent the entire flow of steps.
+To address this, we develop quality criteria and use LLMs to reformat original TSGs into structured ones, including background, terminology, FAQ, flow, and appendix. In particular, “flow” represents sequential steps of actions. We then construct a knowledge base comprising nodes, each containing type, intent, action, and linker. “Intent” describes the purpose of the node, while “linker” connects the outcomes of current actions to the intents of subsequent nodes. Parsing the structured TSGs with LLMs yields this knowledge base that facilitates easy retrieval of relevant nodes for actionable plans and allows for dynamic planning by decomposing steps. Additionally, the node granularity enables discovery of new connections among TSGs, including cross-team mitigation flows not present in any raw TSGs.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     Microsoft maintains an incident management platform where OCEs can document and collaborate during incident mitigation. Beyond unstructured TSGs, incident mitigation discussions serve as an additional source of knowledge. To complement any outdated or missing steps in TSGs, we have designed an enhancer that captures the latest solutions from these discussions.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Muti-Agent System
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p1.1.1">
+      Intent Interpreter.
+     </span>
+     This module is crucial for understanding OCE’s intent and determining whether Nissist’s intervention is necessary during the conversation. It guides OCEs to incident troubleshooting topics and helps refine and clarify their input. If needed, it seeks confirmation from OCEs.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p2.1.1">
+      Node Retriever.
+     </span>
+     This module retrieves relevant nodes from the knowledge base concerning the clarified intent. Unlike traditional methods, which focus on documents or chunks, we compare the clarified intent with node “intent”. To enhance fault tolerance, this module initially retrieves multiple nodes using traditional methods and then selects the most relevant ones using LLMs. This is crucial as semantic discrepancies may exist despite specific keyword alignment. By sourcing information from multiple nodes, our system enriches the knowledge context for subsequent actions. If no relevant node is found, it indicates the current incident exceeds Nissist’s knowledge and informs OCEs.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p3.1.1">
+      Action Planner.
+     </span>
+     This module serves as the central and critical component within the Nissist architecture, recommending appropriate actions based on the knowledge context. Unlike SOTA LLM planners that automate reasoning, actions, and observations in an interleaved manner
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Yao
+      <span class="ltx_text ltx_font_italic">
+       et al.
+      </span>
+      (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , our domain finds this planning style unsuitable. Fully automated plugins or tools cannot handle all incidents due to their complexity, risking wrong plugin invocation or omission of execution steps by the planning module. Hence, a semi-automated mitigation process occasionally requiring human intervention is necessary.
+Nissist is adaptive and pragmatic, generating steps based on incident complexity and plugin availability. For straightforward incidents, exhaustive step-by-step planning may be unnecessary. Instead, the system suggests sequential steps automatable by available plugins, thereby bypassing the need for OCE input.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p4">
+    <p class="ltx_p" id="S2.SS2.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p4.1.1">
+      Post Processor.
+     </span>
+     In open-domain planning scenarios, self-reflection of planned strategies against actual observations with LLMs is practical and efficient. However, its utility is somewhat limited in incident mitigation due to the potential for hallucinations resulting from the lack of domain-specific knowledge in pre-trained LLMs, such as GPT-4
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openai.com/gpt-4" target="_blank" title="">
+         https://openai.com/gpt-4
+        </a>
+       </span>
+      </span>
+     </span>
+     To address this limitation, we integrate a pre-trained LLaMA2 7B model
+     <span class="ltx_note ltx_role_footnote" id="footnote3">
+      <sup class="ltx_note_mark">
+       3
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         3
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         3
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://ai.meta.com/llama/" target="_blank" title="">
+         https://ai.meta.com/llama/
+        </a>
+       </span>
+      </span>
+     </span>
+     as the expert model that has undergone supervised fine-tuning (SFT) on a corpus of Microsoft Cloud documentation. This corpus encompasses domain knowledge on cloud services and has undergone instruction-tuning through multi-tasks, including long-form question answering and hallucination mitigation. The expert model enhances the post-processing procedure by providing informed corrections rooted in cloud domain expertise.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Use Case
+  </h2>
+  <figure class="ltx_figure" id="S3.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="485" id="S3.F2.g1" src="/html/2402.17531/assets/x2.png" width="461"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    A user case demonstrates that Nissist mitigates the connection lost incident between
+    <span class="ltx_text ltx_font_italic" id="S3.F2.3.1">
+     Service A
+    </span>
+    and
+    <span class="ltx_text ltx_font_italic" id="S3.F2.4.2">
+     Service B
+    </span>
+    . 3a &amp; 3b indicate that Nissist can leverage knowledge within and cross TSGs.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    In Figure
+    <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3 Use Case ‣ Nissist: An Incident Mitigation Copilot based on Troubleshooting Guides">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    , we illustrate a real-world user case to demonstrate the practical application and effectiveness of Nissist. By examining OCEs’ process in addressing complex incidents, we showcase how Nissist integrates into the incident mitigation process, combining a well-designed TSG knowledge base with a multi-agent system to alleviate OCE burdens.
+   </p>
+  </div>
+  <div class="ltx_para" id="S3.p2">
+   <p class="ltx_p" id="S3.p2.1">
+    Nissist demonstrates superior ability in accurately determining subsequent steps based on OCE queries, especially in complex, multi-branched decision-making processes. Additionally, Nissist utilizes a post-reflection processor to cross-reference generated code blocks with domain expert models, ensuring adherence to professional knowledge. Furthermore, our system excels in managing cross-team incidents by identifying connections among different TSGs, enabling immediate alignment with relevant nodes and provision of steps. For example, action 3a in Figure
+    <a class="ltx_ref" href="#S3.F2" title="Figure 2 ‣ 3 Use Case ‣ Nissist: An Incident Mitigation Copilot based on Troubleshooting Guides">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    shows that
+    <span class="ltx_text ltx_font_italic" id="S3.p2.1.1">
+     the incident count one
+    </span>
+    requires transitioning to TSG of “Failover Cluster”.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S3.T1">
+   <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S3.T1.1">
+    <thead class="ltx_thead">
+     <tr class="ltx_tr" id="S3.T1.1.1.1">
+      <th class="ltx_td ltx_th ltx_th_row ltx_border_tt" id="S3.T1.1.1.1.1">
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.2">
+       <span class="ltx_text" id="S3.T1.1.1.1.2.1" style="font-size:90%;">
+        Inner-TSG
+       </span>
+      </th>
+      <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" id="S3.T1.1.1.1.3">
+       <span class="ltx_text" id="S3.T1.1.1.1.3.1" style="font-size:90%;">
+        Cross-TSG
+       </span>
+      </th>
+     </tr>
+    </thead>
+    <tbody class="ltx_tbody">
+     <tr class="ltx_tr" id="S3.T1.1.2.1">
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" id="S3.T1.1.2.1.1">
+       <span class="ltx_text" id="S3.T1.1.2.1.1.1" style="font-size:90%;">
+        Short Steps
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.2.1.2">
+       <span class="ltx_text" id="S3.T1.1.2.1.2.1" style="font-size:90%;">
+        98.7%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.2.1.3">
+       <span class="ltx_text" id="S3.T1.1.2.1.3.1" style="font-size:90%;">
+        -
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S3.T1.1.3.2">
+      <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" id="S3.T1.1.3.2.1">
+       <span class="ltx_text" id="S3.T1.1.3.2.1.1" style="font-size:90%;">
+        Long Steps
+       </span>
+      </th>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.3.2.2">
+       <span class="ltx_text" id="S3.T1.1.3.2.2.1" style="font-size:90%;">
+        95.4%
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.3.2.3">
+       <span class="ltx_text" id="S3.T1.1.3.2.3.1" style="font-size:90%;">
+        84.7%
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <figcaption class="ltx_caption ltx_centering" style="font-size:90%;">
+    <span class="ltx_tag ltx_tag_table">
+     Table 1:
+    </span>
+    Comparison of TTM reduction with Nissist versus TTM without Nissist (human intervention with unstructured TSGs). Note that cross-TSG incident mitigation requires long steps.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    To validate the advantages of Nissist, we analyze a subset of incidents consist of inner- and cross-TSGs types. An inner-TSG incident refers to the mitigation knowledge being contained within an individual TSG, whereas a cross-TSG incident requires involvement from multiple TSGs, which may belong to different service teams. Table
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3 Use Case ‣ Nissist: An Incident Mitigation Copilot based on Troubleshooting Guides">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    illustrates that Nissist significantly reduces TTM compared to relying solely on human intervention and unstructured TSGs.
+Specifically, for incidents of varying mitigation steps, those with inner-TSGs demonstrate a reduction in TTM ranging from 85% to 98%, shorter steps in mitigation process have a more pronounced effect on TTM reduction.
+Conversely, for incidents that cross-TSGs, the TTM is typically longer, with the help of Nissist, we are able to reduce the TTM by 84.7%. Note that we hide the absolute TTM values for confidentiality reasons.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    In this work, we address the challenges of incident mitigation in diverse enterprises by optimizing the utilization of TSGs and reducing human effort. To minimize human intervention, we introduce Nissist, leveraging LLMs to parse and enhance TSGs and historical incident mitigation discussions into a knowledge database. We establish a multi-agent system with domain expertise to facilitate precise detection of the OCE’s intent, retrieval of relevant nodes, and provision of consecutive step-by-step plans. Our experiments demonstrate not only a reduction in the TTM of incident resolution but also a significant alleviation of the workload of OCEs.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Yinfang Chen, Huaibing Xie, Minghua Ma, Yu Kang, Xin Gao, Liu Shi, Yunjie Cao, Xuedong Gao, Hao Fan, Ming Wen, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Empowering practical root cause analysis by large language models for cloud incidents.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib1.3.1">
+      arXiv preprint arXiv:2305.15778
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Jiang
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.2.2.1">
+      et al.
+     </span>
+     [2020]
+    </span>
+    <span class="ltx_bibblock">
+     Jiajun Jiang, Weihai Lu, Junjie Chen, Qingwei Lin, Pu Zhao, Yu Kang, Hongyu Zhang, Yingfei Xiong, Feng Gao, Zhangwei Xu, et al.
+    </span>
+    <span class="ltx_bibblock">
+     How to mitigate the incident? an effective troubleshooting guide recommendation technique for online service systems.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib2.3.1">
+      Proceedings of the 28th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering
+     </span>
+     , pages 1410–1420, 2020.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Jiang
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Yuxuan Jiang, Chaoyun Zhang, Shilin He, Zhihao Yang, Minghua Ma, Si Qin, Yu Kang, Yingnong Dang, Saravan Rajmohan, Qingwei Lin, et al.
+    </span>
+    <span class="ltx_bibblock">
+     Xpert: Empowering incident management with query recommendations via large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib3.3.1">
+      arXiv preprint arXiv:2312.11988
+     </span>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.2.2.1">
+      et al.
+     </span>
+     [2018]
+    </span>
+    <span class="ltx_bibblock">
+     Jing Li, Aixin Sun, and Zhenchang Xing.
+    </span>
+    <span class="ltx_bibblock">
+     Learning to answer programming questions with software documentation through social context embedding.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib4.3.1">
+      Information Sciences
+     </span>
+     , 448:36–52, 2018.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lotufo
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.2.2.1">
+      et al.
+     </span>
+     [2015]
+    </span>
+    <span class="ltx_bibblock">
+     Rafael Lotufo, Zeeshan Malik, and Krzysztof Czarnecki.
+    </span>
+    <span class="ltx_bibblock">
+     Modelling the ‘hurried’bug report reading process to summarize bug reports.
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.3.1">
+      Empirical Software Engineering
+     </span>
+     , 20:516–548, 2015.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     O’Donovan [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Caroline O’Donovan.
+    </span>
+    <span class="ltx_bibblock">
+     Amazon’s cloud computing service recovers from outage.
+    </span>
+    <span class="ltx_bibblock">
+     Accessed 23 June 2023.
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.washingtonpost.com/technology/2023/06/13/amazon-aws-down-outage/" target="_blank" title="">
+      https://www.washingtonpost.com/technology/2023/06/13/amazon-aws-down-outage/
+     </a>
+     , 2023.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shetty
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.2.2.1">
+      et al.
+     </span>
+     [2022]
+    </span>
+    <span class="ltx_bibblock">
+     Manish Shetty, Chetan Bansal, Sai Pramod Upadhyayula, Arjun Radhakrishna, and Anurag Gupta.
+    </span>
+    <span class="ltx_bibblock">
+     Autotsg: Learning and synthesis for incident troubleshooting.
+    </span>
+    <span class="ltx_bibblock">
+     ESEC/FSE 2022, New York, NY, USA, 2022. Association for Computing Machinery.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.2.2.1">
+      et al.
+     </span>
+     [2023]
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao.
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.3.1">
+      The Eleventh International Conference on Learning Representations
+     </span>
+     , 2023.
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>

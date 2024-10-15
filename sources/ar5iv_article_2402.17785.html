@@ -1,0 +1,2970 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  ByteComposer: a Human-like Melody Composition Method based on Language Model Agent
+ </h1>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id2.id1">
+   Large Language Models (LLM) have shown encouraging progress in multimodal understanding and generation tasks. However, how to design a human-aligned and interpretable melody composition system is still under-explored. To solve this problem, we propose ByteComposer, an agent framework emulating a human’s creative pipeline in four separate steps :
+"Conception Analysis - Draft Composition - Self-Evaluation and Modification - Aesthetic Selection". This framework seamlessly blends the interactive and knowledge-understanding features of LLMs with existing symbolic music generation models, thereby achieving a melody composition agent comparable to human creators. We conduct extensive experiments on GPT4 and several open-source large language models, which substantiate our framework’s effectiveness. Furthermore, professional music composers were engaged in multi-dimensional evaluations, the final results demonstrated that across various facets of music composition, ByteComposer agent attains the level of a novice melody composer.
+   <br class="ltx_break"/>
+   <br class="ltx_break"/>
+   <span class="ltx_text ltx_font_bold" id="id2.id1.1">
+    Keywords:
+   </span>
+   Symbolic Melody Generation, Large Language Model, Agent
+  </p>
+ </div>
+ <div class="ltx_para" id="p1">
+  <span class="ltx_ERROR undefined" id="p1.1">
+   \NAT@set@cites
+  </span>
+ </div>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <div class="ltx_para" id="p2">
+  <p class="ltx_p" id="p2.1">
+   <span class="ltx_text" id="p2.1.1">
+   </span>
+  </p>
+ </div>
+ <div class="ltx_logical-block" id="id1">
+  <div class="ltx_para" id="id1.p1">
+   <p class="ltx_p ltx_align_center" id="id1.p1.1">
+    <span class="ltx_text ltx_font_bold" id="id1.p1.1.1" style="font-size:144%;">
+     ByteComposer: a Human-like Melody Composition Method based on Language Model Agent
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <table class="ltx_tabular ltx_centering ltx_align_top" id="id1.p1.2">
+    <tr class="ltx_tr" id="id1.p1.2.1">
+     <td class="ltx_td ltx_align_center" id="id1.p1.2.1.1">
+      <span class="ltx_text ltx_font_bold" id="id1.p1.2.1.1.1" style="font-size:120%;">
+       Xia Liang, Jiaju Lin, Xinjian Du
+      </span>
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="id1.p1.2.2">
+     <td class="ltx_td ltx_align_center" id="id1.p1.2.2.1">
+      ByteDance AI Lab
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="id1.p1.2.3">
+     <td class="ltx_td ltx_align_center" id="id1.p1.2.3.1">
+      Shanghai, China
+     </td>
+    </tr>
+    <tr class="ltx_tr" id="id1.p1.2.4">
+     <td class="ltx_td ltx_align_center" id="id1.p1.2.4.1">
+      {liangxia.21}@bytedance.com
+     </td>
+    </tr>
+   </table>
+   <p class="ltx_p ltx_align_center" id="id1.p1.3">
+    <span class="ltx_text ltx_font_italic" id="id1.p1.3.1">
+     Abstract content
+    </span>
+   </p>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   1.   Introduction
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    With the development of Transformer architecture and language model, text-to-music generation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Schneider et al. (
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2023
+     </a>
+     ); Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023a
+     </a>
+     ); Zhu et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     ); Agostinelli et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ); Lam et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    attracts more researchers’ interests.
+Different from traditional unconditional music generation models, which are characterized by a lack of interactivity and controllability as well as limited utility, text-based music generation methods offer an enticting solution by providing an interface where input text serves as control conditions for generation.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Powered by its strong natural language understanding and sequence modeling ability, transformer-based language models have become an inevitable module in most existing text-to-music methods. Current methods can be broadly divided into two categories: text-to-audio generation and text-to-symbolic generation.
+Text-to-audio models generate music audio end-to-end based on input text, either trained with paired text-audio data
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Schneider et al. (
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2023
+     </a>
+     ); Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023a
+     </a>
+     ); Zhu et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     ); Li et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , or using a joint text-audio embedding space
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023a
+     </a>
+     ); Agostinelli et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ); Lam et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . However, output in audio form is difficult to modify according to specific user requirements. Text-to-symbolic methods render symbolic output to facilitate the post-process and further modification. Mainstream text-to-symbolic generation models follow a text-attribute-music paradigm, where textual inputs are translated into musically informed attributes for symbolic generation.
+Butter
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhang et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2020
+     </a>
+     )
+    </cite>
+    defines its text input with three musical attributes: key, meter and style, then applies a variational autoencoder for generation. FiGARO
+    <cite class="ltx_cite ltx_citemacro_cite">
+     von Rütte et al. (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2022
+     </a>
+     )
+    </cite>
+    utilizes a complex text input design that encompasses three types of musical attributes: instrumentation, harmony, and meta-information. This intricate design has been specifically tailored for music experts, ensuring that they can leverage their knowledge and expertise to create customized music compositions effectively.
+MuseCoco
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lu et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , an advanced text-to-symbolic model, expands the set of musical attributes to a comprehensive extent, covering a total of 12 musical attributes encompassing both subjective and objective aspects. Thus, MuseCoco grants users finer control over the music generated, allowing them to create more diverse and expressive compositions.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Despite the notable achievements in the current state of the art, several challenges persist within the field of text-to-music generation. Firstly, while these methodologies empower users to adjust the generated music by configuring corresponding attributes, they presuppose a certain level of musical proficiency to comprehend these chosen attributes fully. This prerequisite may, therefore, restrict the accessibility of these models for certain users. Secondly, due to the substantial cost associated with annotating symbolic data, text-to-symbolic methods face issues related to data scarcity, rendering it difficult to generalize to attributes that have not been previously encountered. Thirdly, the generation process remains black-box, lacking both explainability and fine-grained control.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    To address these problems, we propose ByteComposer, an LLM-driven melody composer with human-like composition procedures. Particularly, to enhance interactivity, we employ an LLM as a music expert to bridge the gap between common user queries and attributes for music generation. By seamlessly mapping users’ natural language queries to musical attributes, ByteComposr is capable of understanding common users’ intentions and further expanding its usage scenarios.
+Concurrently, through sophisticated prompt engineering, we can extract professional music knowledge from the LLM, thereby enabling adaptation to corner cases and the generation of previously unseen music attributes in a zero-shot setting.
+To enhance the transparency of the conventional black-box generation process, we have devised a novel pipeline that furnishes procedural explainability and empowers researchers to conduct quality control at each step. This involves the emulation of the composition process followed by human experts and the decomposition of the generation task into four distinct stages.
+(1) Conception Analysis: The Expert Module reconstructs the theme of the input text in terms of musical language. It identifies which elements of music composition are relevant to the text content and selects appropriate musical attributes.
+(2) Draft Composition: Utilizing the chosen musical attributes as seeds, the Expert model employs various Composition Generator Modules to create a preliminary version of the piece.
+(3) Self-Evaluation and Modification: The draft is subjected to the Voter Module where objective errors are identified based on music theory and subsequently corrected.
+(4) Aesthetic Selection: Among all the error-free pieces, a subjective evaluation is conducted to select the composition deemed most aesthetically pleasing.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Our contributions are manifold and intersect the domains of both music information retrieval and large language model applications:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       To our best knowledge, we are one of the first attempts to design an LLM agent as a melody composer. We develop a new agent architecture and melody composition pipeline including conceptual analysis, composition, self-evaluation, and aesthetic evaluation.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Our system provides a "white-box" record of the music composition/modification process. Similar to a portfolio, it explains the AI’s creative motivations and processes, thereby enriching the information space around symbolic compositions.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para ltx_noindent" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       We leverage the intent understanding and dialog capabilities of LLMs to provide interactive functionalities. We maintain a "State Memory Tree" and "Historical Dialogue Records" to preserve long-term memories of both the creative and dialogue processes. This enables the LLM to serve as an interactive "assistant" for human composers.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   2.   Related Work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p1.1.1">
+     Interactive Music Generation.
+    </span>
+    Current interactive music generation are mainly built on language interactive. Inspired by the diffusion-based text-to-image models, researchers have implemented text-to-audio music generation with diffusion models
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Schneider et al. (
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2023
+     </a>
+     ); Huang et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2023a
+     </a>
+     ); Zhu et al. (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      2023
+     </a>
+     )
+    </cite>
+    on in-house text-audio datasets. Mulan
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Huang et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2022
+     </a>
+     )
+    </cite>
+    train a joint embedding space linking text and music audio, making it possible to eliminate the need for labeled text-audio pairs, as demonstrated in MusicLM
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Agostinelli et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and MeLoDy
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lam et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    Text-to-symbol generation models, on the other hand, offer greater interpretability and flexibility as the symbolic output is easier to be analyzed and edited.
+The majority of existing approaches involve introducing specific attributes in music as an intermediate bridge and using algorithmically extracted attributes for self-supervised attribute-to-music training
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lu et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     ); von Rütte et al. (
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      2022
+     </a>
+     )
+    </cite>
+    or executing supervised training based on paired attribute-music data
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhang et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2020
+     </a>
+     ); Lu et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    to build attribute-to-music generation models.
+The advanced language model GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     OpenAI (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2023
+     </a>
+     )
+    </cite>
+    has shown to be capable of generating ABC notation music from natural language inputs, yet with limited success in terms of harmony and complexity
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bubeck et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p3.1.1">
+     Augmenting LM by Agent Design.
+    </span>
+    Language Models can be augmented with well-designed reasoning procedures and external tools. For strategies to improve reasoning skills, Chain-of-Thoughts(CoT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wei et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2022
+     </a>
+     )
+    </cite>
+    first demonstrates that a simple sentence can elicit LLM’s reasoning ability. Then
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Zhou et al. (
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      2023
+     </a>
+     )
+    </cite>
+    break down a complex problem into a series of simpler subproblems and then solve them in sequence.
+Besides forward reasoning,
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shinn et al. (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2023
+     </a>
+     ); Madaan et al. (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2023
+     </a>
+     ); Paul et al. (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2023
+     </a>
+     )
+    </cite>
+    introduced the “self-reflection” mechanism, where LMs provide feedback to their generation candidates to improve LMs’ performance on specific tasks.
+Tree-of-Thoughts (ToT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Yao et al. (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2023
+     </a>
+     )
+    </cite>
+    integrates searching and reflection, where LMs perform deliberate decision making by considering multiple different reasoning paths and self-evaluating choices to decide the next course of action.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Schick et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     ); Mialon et al. (
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2023
+     </a>
+     )
+    </cite>
+    proposed the ‘Tool-Augmented LM’, where a tool is an external module that is typically called using a rule or a special token. In this paradigm, LMs can access knowledge that is not necessarily stored in its weights, such as a piece of factual knowledge for AI4Science
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Bran et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Furthermore,
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Hao et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2022
+     </a>
+     ); Shen et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2023
+     </a>
+     )
+    </cite>
+    demonstrate that LMs can also be used as a general-purpose interface with models pre-trained on different modalities.
+Although these augmenting methods have achieved great success in many fields, how to build efficient LM agents for melody composition is still under-explored. ByteComposer integrates multistep-reasoning, self-reflection and multimodal-tool usage, enabling the LLM to compose music more accurately.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   3.   ByteComposer: an LLM-powered melody composition agent
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    Breaking away from the opaque nature of traditional text-to-music models, ByteComposer systematically dissects the music generation task into four deliberate stages, emulating human creative processes. The structured pipeline unfolds as follows:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p2">
+   <ol class="ltx_enumerate" id="S3.I1">
+    <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I1.i1.p1">
+      <p class="ltx_p" id="S3.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+        Conception Analysis
+       </span>
+       : The input textual theme is meticulously deconstructed and examined in musical terminology to ascertain the creative musical elements relevant to the text, and subsequently, appropriate musical attributes are selected.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I1.i2.p1">
+      <p class="ltx_p" id="S3.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+        Draft Composition
+       </span>
+       : With the derived musical attributes of the input text serving as a seed, compositional techniques are deployed to draft an initial musical piece.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I1.i3.p1">
+      <p class="ltx_p" id="S3.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+        Self-Evaluation and Modification
+       </span>
+       : The preliminary draft is subjected to a thorough self-assessment based on musical theory to identify and rectify any objective inaccuracies.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I1.i4.p1">
+      <p class="ltx_p" id="S3.I1.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I1.i4.p1.1.1">
+        Aesthetic Selection
+       </span>
+       : Among all error-free compositions, a subjective evaluation is undertaken to choose the composition that most resonate with individual aesthetic predilections.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_float">
+     <span class="ltx_text ltx_font_bold" id="alg1.2.1.1">
+      Algorithm 1
+     </span>
+    </span>
+    ByteComposer’s Creative Workflow
+   </figcaption>
+   <div class="ltx_listing ltx_listing" id="alg1.3">
+    <div class="ltx_listingline" id="alg1.l1">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l1.1.1.1" style="font-size:90%;">
+       1:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l1.2">
+      procedure
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg1.l1.3">
+      ByteComposer
+     </span>
+     (input_text)
+    </div>
+    <div class="ltx_listingline" id="alg1.l2">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l2.1.1.1" style="font-size:90%;">
+       2:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l2.2">
+      Conception Analysis:
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg1.l2.3">
+      AnalyzeTheme
+     </span>
+     (input_text)
+    </div>
+    <div class="ltx_listingline" id="alg1.l3">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l3.1.1.1" style="font-size:90%;">
+       3:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l3.2">
+      Compositional Drafting:
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg1.l3.3">
+      ComposeDraft
+     </span>
+     (MusicalAttributes)
+    </div>
+    <div class="ltx_listingline" id="alg1.l4">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l4.1.1.1" style="font-size:90%;">
+       4:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l4.2">
+      Self-Evaluation:
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg1.l4.3">
+      EvaluateDraft
+     </span>
+     (Draft)
+    </div>
+    <div class="ltx_listingline" id="alg1.l5">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l5.1.1.1" style="font-size:90%;">
+       5:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l5.2">
+      Aesthetic Selection:
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg1.l5.3">
+      SelectBest
+     </span>
+     (AllDrafts)
+    </div>
+    <div class="ltx_listingline" id="alg1.l6">
+     <span class="ltx_tag ltx_tag_listingline">
+      <span class="ltx_text" id="alg1.l6.1.1.1" style="font-size:90%;">
+       6:
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l6.2">
+      end
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg1.l6.3">
+      procedure
+     </span>
+    </div>
+   </div>
+  </figure>
+  <figure class="ltx_figure" id="S3.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="169" id="S3.F1.g1" src="/html/2402.17785/assets/x1.png" width="460"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Overview of the ByteComposer System. From raw textual input, the system’s Expert Module first analyzes emotional sentiment and thematic context, extracting primary features. This information is then passed to the Generator Module, which employs deep learning techniques to transform these textual features into initial musical motifs, leveraging knowledge from MIR. The Voter Module subsequently refines and evaluates the generated motifs, cross-referencing with historical compositions and utilizing real-time feedback loops. Conclusively, the Memory Module archives successful motifs, allowing the system to continuously learn and update its database, influencing future compositions. This seamless integration of modules ensures the creation of musically coherent and emotionally resonant pieces tailored to the input.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S3.p3">
+   <p class="ltx_p" id="S3.p3.1">
+    ByteComposer marshals three core modules—Expert, Generator, and Voter—to actualize its four-step composition process, as depicted in Figure 2. A cursory overview of these modules is proffered here.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p4">
+   <p class="ltx_p" id="S3.p4.1">
+    To maintain a coherent continuum of the creative process and capture interaction data with users, ByteComposer is endowed with a Memory module. This module is architected to diligently record and store both the evolutionary trajectory of generated compositions and the discourse exchanges with users. The preservation of this data not only offers a historical narrative that can be referenced in future creative iterations but also cultivates a substantial repository for analyzing user interaction and feedback, thereby potentially honing the system’s performance and user-centric adaptability over time. Core module is described as follows:
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S3.p5">
+   <ol class="ltx_enumerate" id="S3.I2">
+    <li class="ltx_item" id="S3.I2.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I2.i1.p1">
+      <p class="ltx_p" id="S3.I2.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I2.i1.p1.1.1">
+        Expert:
+       </span>
+       Anchored by a Large Language Model (LLM), the Expert module navigates conceptual analysis and self-evaluation. Harnessing the LLM’s general understanding, reasoning prowess, and music theory acumen, it translates users’ queries into music descriptions for the Generator and provides insightful feedback for self-reflection.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I2.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I2.i2.p1">
+      <p class="ltx_p" id="S3.I2.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I2.i2.p1.1.1">
+        Generator:
+       </span>
+       Entrusted with the composition task, the Generator module primarily concentrates on "attribute-to-music" generation and local problem rectification. Our empirical scrutiny juxtaposed LLM-based generation schemes against independent generation models, revealing a superior output quality in the latter.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I2.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I2.i3.p1">
+      <p class="ltx_p" id="S3.I2.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I2.i3.p1.1.1">
+        Voter:
+       </span>
+       Recognizing the subjective essence of musical compositions, ByteComposer assimilates a Voter module to evaluate multiple candidate compositions, eventually selecting the one most congruent with human aesthetic discernment.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S3.I2.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4.
+     </span>
+     <div class="ltx_para ltx_noindent" id="S3.I2.i4.p1">
+      <p class="ltx_p" id="S3.I2.i4.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S3.I2.i4.p1.1.1">
+        Memory:
+       </span>
+       Additionally, a Memory module is integrated to sift through and archive both intermediary texts and generated compositions throughout the entire creative journey.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    3.1.   Prompt Design
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     Although LLMs have been demonstrated to be powerful few-shot learners across various tasks, their capabilities can only be fully unleashed through carefully designed prompts tailored to the desired behavior. The quality of the generated output is often sensitive to design choices in the prompt, sometimes down to the selection of punctuation marks. To this end, we identify core components of the prompts and evaluate different design choices through cross-validation. We ultimately classify prompts into two categories: process-related prompts and music theory-related prompts.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <ol class="ltx_enumerate" id="S3.I3">
+     <li class="ltx_item" id="S3.I3.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       1.
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I3.i1.p1">
+       <p class="ltx_p" id="S3.I3.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I3.i1.p1.1.1">
+         Process-Related Prompts:
+        </span>
+        To ensure the smooth operation of the entire workflow, the first step involves the design of appropriate process prompts. Clear and logical context cues guide the LLM to understand its current state and complete tasks within the current workflow accordingly.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S3.I3.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       2.
+      </span>
+      <div class="ltx_para ltx_noindent" id="S3.I3.i2.p1">
+       <p class="ltx_p" id="S3.I3.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S3.I3.i2.p1.1.1">
+         Music Theory-Related Prompts:
+        </span>
+        To stimulate the LLM’s music theory knowledge and enhance the quality of generation, we design prompts specifically related to music theory:
+       </p>
+       <ol class="ltx_enumerate" id="S3.I3.i2.I1">
+        <li class="ltx_item" id="S3.I3.i2.I1.i1" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          (a)
+         </span>
+         <div class="ltx_para ltx_noindent" id="S3.I3.i2.I1.i1.p1">
+          <p class="ltx_p" id="S3.I3.i2.I1.i1.p1.1">
+           <span class="ltx_text ltx_font_bold" id="S3.I3.i2.I1.i1.p1.1.1">
+            Music Theory Explanation:
+           </span>
+           Explicit explanations of music theory attributes are included within the prompt.
+          </p>
+         </div>
+        </li>
+        <li class="ltx_item" id="S3.I3.i2.I1.i2" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          (b)
+         </span>
+         <div class="ltx_para ltx_noindent" id="S3.I3.i2.I1.i2.p1">
+          <p class="ltx_p" id="S3.I3.i2.I1.i2.p1.1">
+           <span class="ltx_text ltx_font_bold" id="S3.I3.i2.I1.i2.p1.1.1">
+            Music Attribute Guidance:
+           </span>
+           By listing musical attributes, the LLM is guided to select those most congruent with the theme of the generation.
+          </p>
+         </div>
+        </li>
+        <li class="ltx_item" id="S3.I3.i2.I1.i3" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          (c)
+         </span>
+         <div class="ltx_para ltx_noindent" id="S3.I3.i2.I1.i3.p1">
+          <p class="ltx_p" id="S3.I3.i2.I1.i3.p1.1">
+           <span class="ltx_text ltx_font_bold" id="S3.I3.i2.I1.i3.p1.1.1">
+            CoT and Few-Shot Learning:
+           </span>
+           Specific examples are provided for the LLM to reference.
+          </p>
+         </div>
+        </li>
+       </ol>
+      </div>
+     </li>
+    </ol>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    3.2.   Expert Module
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     The Expert module is an integral part of the ByteComposer system, assuming a critical role in guiding the music composition process. This module is adept at analyzing user inputs and determining appropriate musical attributes for composition. Moreover, it seamlessly integrates with various music generation models to produce compositions that meet the user’s specifications. A unique feature of this module is its ability to evaluate the quality and artistic merit of compositions, leveraging both objective criteria and subjective feedback. Additionally, it interacts closely with the Memory module, ensuring smooth transitions between system states and making decisions about progressing or revisiting steps based on the composition’s current status.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     The implementation of the Expert module is built upon Large Language Models (LLMs) and the strategic crafting of prompts to elicit desired musical outputs. Among the LLMs employed with Few-Shot Prompting, offering nuanced musical interpretations. We extensively evaluated versions underpinned by ChatGPT-3.5, ChatGPT-4, and LLama2. Recognizing the LLama2 model’s potential for adaptability, we employed Supervised Fine-Tuning (SFT) to better calibrate it to musical tasks. This was complemented by the generation of around 90,000 prompts tailored for training, ensuring that our LLMs were well-equipped to handle complex musical assignments. The additional application of SFT bolstered the LLMs’ ability to produce music that closely followed the set guidelines and user intentions.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    3.3.   Generator Module
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     The Generator Module is central to ByteComposer’s music creation capabilities, offering a tailored approach to musical composition. One of its standout features is the attribute-controlled generation, which allows ByteComposer to craft pieces according to specific musical attributes, be it a certain mood or rhythm. Additionally, ByteComposer is acutely aware of the intricacies in music; hence, it incorporates a bar-level score generation mechanism. This functionality not only brings a fine-tuned sense of detail but also ensures that minor corrections or rewritings can be implemented, preserving the coherence and beauty of the piece.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     At the technological core of the Generator Module lies the integration of state-of-the-art models and pioneering methodologies. By harnessing the ABC notation generation capabilities of GPT4, ByteComposer can access an extensive musical repertoire, translating into diverse and sophisticated compositions. Parallelly, the TunesFormer-Plus is another crucial asset. It extends the foundational dataset from TunesFormer
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wu and Sun (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2023
+      </a>
+      )
+     </cite>
+     by integrating additional musical attributes and utilizes GPT-2 as its backbone. The introduction of a specialized bar-level score generation module within TunesFormer Plus further boosts ByteComposer’s capacity for nuanced adjustments, ensuring each piece strikes the perfect melody.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="177" id="S3.F2.g1" src="/html/2402.17785/assets/x2.png" width="193"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     The interplay between the system’s components. Input text is processed leveraging music theory knowledge, common sense, and context. This data then informs the Expert and Voter modules, facilitated by their respective evaluation toolboxes. The Expert module focuses on understanding and providing feedback on the creation, while the Voter module sorts the potential musical candidates.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    3.4.   Voter And Memory Module
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     The Voter Module serves as a pivotal component in the ByteComposer pipeline, meticulously aligning generated compositions with human preferences. Its core objective is to sift through the compositions and select those that resonate most with human aesthetic sensibilities, especially when the generated outputs are devoid of any objective errors. The implementation strategy of the Voter Module employs the Llama2-QLoRA-SFT framework. In employing this framework, the Voter Module remains consistent with the RLHF training procedure, focusing its efforts on training solely the reward model and deliberately eschewing subsequent stages of PPO reinforcement learning
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Christiano et al. (
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       2017
+      </a>
+      )
+     </cite>
+     . For training, a rich dataset was constituted, featuring 4,000 samples procured through GPT4, which were further enriched by an expert-annotated dataset of 1,000 target samples. This amalgamated dataset was then subjected to a combined training strategy, employing the strengths of Llama2 and QLoRA
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Dettmers et al. (
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       2023
+      </a>
+      )
+     </cite>
+     to ensure the Voter Module’s optimal performance.
+To better model the composition reflection process, we learn from ToT
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Yao et al. (
+      <a class="ltx_ref" href="#bib.bib27" title="">
+       2023
+      </a>
+      )
+     </cite>
+     and develop the State Memory Tree. A tree structure memory system to record the composition procedure and provide a reflective method to return to a previous node when facing difficulties in the creative process, as shown in Fig
+     <a class="ltx_ref" href="#S3.F3" title="Figure 3 ‣ 3.4. Voter And Memory Module ‣ 3. ByteComposer: an LLM-powered melody composition agent ‣ ByteComposer: a Human-like Melody Composition Method based on Language Model Agent">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     .
+Particularly, each node in this tree, structured as a tuple, captures the generation stage, context, and current text data.
+Besides reflection, the memory system can also work as clues for future similar compositions. ByteComposer retrieves from this tree using either breadth-first or depth-first search by state data. Alongside the tree, a message queue named "Historical Dialog Records" logs all user interactions.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F3">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="393" id="S3.F3.g1" src="/html/2402.17785/assets/figures/memory_and_human_interaction.png" width="207"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 3:
+     </span>
+     The Memory Module of ByteComposer.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   4.   Datasets and Settings
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    4.1.   Dataset
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p1.1.1">
+      Music Generation Training Data.
+     </span>
+     The training dataset for our self-developed generator is identical to that used by TunesFormer
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wu and Sun (
+      <a class="ltx_ref" href="#bib.bib25" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , namely, the Irish Massive ABC Notation dataset, which consists of 216,284 Irish tunes in ABC notation. 214,122 tunes for training, and 2,162 tunes for validation.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     Custom attribute labels such as note density per measure, and average pitch fluctuation per measure were extracted using self-developed tools.
+     <br class="ltx_break"/>
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS1.p3.1.1">
+      Large Language Model Supervised Fine-Tuning Data.
+     </span>
+     We assembled a dataset encompassing 2,128 professionally annotated musical queries. Leveraging expert-annotated seed queries, we adopted a self-instruction methodology to yield an extensive music domain dataset, comprising 91,341 entries, generated using GPT-4. This dataset spans a diverse range of facets including music theory elucidations, conceptual deliberations, score appraisals, and interpretations of musical intent. This augmented dataset was subsequently employed to fine-tune open-source large language models.
+We curated a dataset containing 1,000 subjective evaluation entries through meticulous expert annotation. Each entry encapsulates a ranking of four ABC notation results. Through permutation and shuffling of these rankings, we engendered an expanded set of pairwise data, significantly bolstering the training and validation processes of our voter module.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T1">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:70%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Large Language Model Supervised Fine-Tuning Data
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T1.3">
+     <tr class="ltx_tr" id="S4.T1.3.1">
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.1.1.1" style="font-size:70%;">
+        Type of Data
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.1.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.1.2.1" style="font-size:70%;">
+        Application
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.1.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.1.3.1" style="font-size:70%;">
+        Source
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.1.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.1.4.1" style="font-size:70%;">
+        Number
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.3.2">
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.2.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.2.1.1" style="font-size:70%;">
+        Basic music theory QA questions
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.2.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.2.2.1" style="font-size:70%;">
+        Strengthen LLM music-related Q&amp;A skills
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T1.3.2.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.2.3.1" style="font-size:70%;">
+        Expert collection
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.3.2.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.2.4.1" style="font-size:70%;">
+        2,128
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.3.3">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.3.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.3.1.1" style="font-size:70%;">
+        Music theory conception
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.3.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.3.2.1" style="font-size:70%;">
+        Comprehension and conception of input text
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.3.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.3.3.1" style="font-size:70%;">
+        GPT4 generation
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T1.3.3.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.3.4.1" style="font-size:70%;">
+        30,000
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.3.4">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.4.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.4.1.1" style="font-size:70%;">
+        Control code generation
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.4.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.4.2.1" style="font-size:70%;">
+        Learn to use custom generative models
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.4.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.4.3.1" style="font-size:70%;">
+        GPT4 generation
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T1.3.4.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.4.4.1" style="font-size:70%;">
+        15,000
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.3.5">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.5.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.5.1.1" style="font-size:70%;">
+        Score evaluation opinions
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.5.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.5.2.1" style="font-size:70%;">
+        Learn to check and evaluate music scores using tool tools
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T1.3.5.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.5.3.1" style="font-size:70%;">
+        GPT4 generation
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center" id="S4.T1.3.5.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.5.4.1" style="font-size:70%;">
+        30,000
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T1.3.6">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.3.6.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.6.1.1" style="font-size:70%;">
+        Designated plan
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.3.6.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.6.2.1" style="font-size:70%;">
+        Analyze current status and plan next steps
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S4.T1.3.6.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.6.3.1" style="font-size:70%;">
+        GPT4 generation
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_b" id="S4.T1.3.6.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S4.T1.3.6.4.1" style="font-size:70%;">
+        6,131
+       </span>
+      </td>
+     </tr>
+    </table>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    4.2.   Implementation Details
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     For the experiments, we employed the OpenAI GPT4 (
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p1.1.1">
+      gpt-4-32k
+     </span>
+     ) API and GPT3.5 (
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p1.1.2">
+      gpt-3.5-turbo-16k
+     </span>
+     ) API models, utilizing Python 3.9 to execute the generated programs. Additionally, we explored the llama2-70B/13B/7B as potential base models for our open-source model, eventually settling on llama2-70B.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     We configured the model with LoRA rank parameter
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.1">
+      lora_r = 64
+     </span>
+     , scaling parameter
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.2">
+      lora_alpha = 16
+     </span>
+     , and dropout probability
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.3">
+      lora_dropout = 0.1
+     </span>
+     . 4-bit precision base model loading was activated (
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.4">
+      use_4bit = True
+     </span>
+     ) with compute data type
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.5">
+      bnb_4bit_compute_dtype = "float16"
+     </span>
+     and quantization type
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.6">
+      bnb_4bit_quant_type = "nf4"
+     </span>
+     . Nested quantization was not activated (
+     <span class="ltx_text ltx_font_typewriter" id="S4.SS2.p2.1.7">
+      use_nested_quant = False
+     </span>
+     ).
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     The model was trained on NVIDIA A100-SXM4-80GB x 8 for 4 epochs, completing within an approximate timeframe of 3 days.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p4">
+    <p class="ltx_p" id="S4.SS2.p4.1">
+     Our generation model drew inspiration from Tunesformer, adopting the GPT-2 architecture to align experimental standards with Tunesformer parameters. We extended the model by introducing two additional attributes – velocity, note density, and curvature – to control rhythm and melody fluctuations. The enhanced model, termed Tunesformer-Plus, partitioned the training set into 2-section units, generating analogous 2-measure segments to facilitate fragment-level modifications.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S4.F4">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="192" id="S4.F4.g1" src="/html/2402.17785/assets/x3.png" width="182"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 4:
+     </span>
+     Diverse agent configurations are enabled through the combination of different functional modules, further augmented by the support for custom model module components. This modularity not only facilitates a tailored approach to specific tasks but also enhances the system’s adaptability to evolving requirements and novel applications.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    4.3.   Agent System Configuration
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     We employed various combinations to implement the ByteComposer architecture, the details of which can be seen in Figure 4. Through ablation experiments, the optimal setup for ByteComposer was found, with the open-source LLM llama2 size set at 70B.
+The ABC generation quality of ChatGPT lagged significantly behind GPT4, while llama2-based models struggled with ABC notation generation. So GPT4 core-based ByteComposer schemes, two configurations were tested: one with Tunesformer-plus and another with GPT4. In open-source configurations, the Llama2 core with GPT4 abc generator combination was omitted to maintain opensource consistency.
+Notably, both the LLM and generator in our ByteComposer architecture are interchangeable. Other symbolic generation models could replace the generator, even those based on MIDI or audio. For non-ABC music mediums, corresponding perceptual components need to be developed for metric quantification and feedback to the LLM for further processing.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   5.   Experiments and Evaluation
+  </h2>
+  <section class="ltx_subsection" id="S5.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    5.1.   Metrics
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p1">
+    <p class="ltx_p" id="S5.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p1.1.1">
+      Time Signature Error Rate(TSER).
+     </span>
+     This metric evaluates whether the time signature in the ABC notation header corresponds to the beat count in each measure. An error is flagged if any measure has an incorrect beat count.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p1.1.2">
+      Instrument Range Error Rate(IRER).
+     </span>
+     Every instrument has a designated playable range. Using an expert-defined instrument range table, we check if the generated notes exceed this range, marking any note outside the range as an error.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p1.1.3">
+      Score Information Completeness Rate(SICR).
+     </span>
+     A complete ABC score should have title, tempo, etc. we have developed code to quantify the completeness of the ABC notation. A score is deemed incomplete if any of these attributes are missing.
+     <br class="ltx_break"/>
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p1.1.4">
+      Average Attribute Accuracy(AAA).
+     </span>
+     This metric evaluates if the attributes in the generated ABC notation align with those conceived during the designing phase. We calculate the accuracy for each musical attribute and then compute their average.
+     <span class="ltx_text ltx_font_bold" id="S5.SS1.p1.1.5">
+      Voting Accuracy(VA).
+     </span>
+     This metric evaluates the ability of the voting model to correctly choose the better ABC notation candidate, as labeled by humans, from two given options.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    5.2.   Objective Experiments
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p1">
+    <p class="ltx_p" id="S5.SS2.p1.1">
+     The objective experiment primarily examines agent-generated music scores, with a focus on objective metrics like score completeness and attribute control accuracy. To assess and quantify these metrics, we utilize a suite of tools we term as "Eval Tools-box", comprising the open-source music21 library and our custom ABC parsing tool, to extract pertinent labels from ABC notation instances.
+     <br class="ltx_break"/>
+     We draw comparisons with two of the most powerful chatbots currently available, and also benchmark against a state-of-the-art ABC notation music composition models in terms of score generation metrics. From Table 2, we can find that the symbol music generation capabilities of GPT4 and Chatgpt are relatively poor. The simple generation model TunesFormer has a better generation effect, but the completeness of the chart information is relatively poor. At the same time, because we expanded the attribute part, we did not calculate the attribute control indicators of Tunesformer. Finally, we utilized the ByteComposer framework to enhance the comprehensive capabilities of both models significantly.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S5.T2">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:70%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Objective Experiments Scores
+    </figcaption>
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S5.T2.5">
+     <tr class="ltx_tr" id="S5.T2.5.5">
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T2.5.5.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.5.6.1" style="font-size:70%;">
+        Model
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.1.1.1.1">
+        <span class="ltx_p" id="S5.T2.1.1.1.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.1.1.1.1.1.1" style="font-size:70%;">
+          TSER
+         </span>
+         <math alttext="\downarrow" class="ltx_Math" display="inline" id="S5.T2.1.1.1.1.1.m1.1">
+          <semantics id="S5.T2.1.1.1.1.1.m1.1a">
+           <mo id="S5.T2.1.1.1.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T2.1.1.1.1.1.m1.1.1.cmml">
+            ↓
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T2.1.1.1.1.1.m1.1b">
+            <ci id="S5.T2.1.1.1.1.1.m1.1.1.cmml" xref="S5.T2.1.1.1.1.1.m1.1.1">
+             ↓
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T2.1.1.1.1.1.m1.1c">
+            \downarrow
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.2.2.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.2.2.2.1">
+        <span class="ltx_p" id="S5.T2.2.2.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.2.2.2.1.1.1" style="font-size:70%;">
+          IRER
+         </span>
+         <math alttext="\downarrow" class="ltx_Math" display="inline" id="S5.T2.2.2.2.1.1.m1.1">
+          <semantics id="S5.T2.2.2.2.1.1.m1.1a">
+           <mo id="S5.T2.2.2.2.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T2.2.2.2.1.1.m1.1.1.cmml">
+            ↓
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T2.2.2.2.1.1.m1.1b">
+            <ci id="S5.T2.2.2.2.1.1.m1.1.1.cmml" xref="S5.T2.2.2.2.1.1.m1.1.1">
+             ↓
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T2.2.2.2.1.1.m1.1c">
+            \downarrow
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.3.3.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.3.3.3.1">
+        <span class="ltx_p" id="S5.T2.3.3.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.3.3.3.1.1.1" style="font-size:70%;">
+          SICR
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T2.3.3.3.1.1.m1.1">
+          <semantics id="S5.T2.3.3.3.1.1.m1.1a">
+           <mo id="S5.T2.3.3.3.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T2.3.3.3.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T2.3.3.3.1.1.m1.1b">
+            <ci id="S5.T2.3.3.3.1.1.m1.1.1.cmml" xref="S5.T2.3.3.3.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T2.3.3.3.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.4.4.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.4.4.4.1">
+        <span class="ltx_p" id="S5.T2.4.4.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.4.4.4.1.1.1" style="font-size:70%;">
+          AAA
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T2.4.4.4.1.1.m1.1">
+          <semantics id="S5.T2.4.4.4.1.1.m1.1a">
+           <mo id="S5.T2.4.4.4.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T2.4.4.4.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T2.4.4.4.1.1.m1.1b">
+            <ci id="S5.T2.4.4.4.1.1.m1.1.1.cmml" xref="S5.T2.4.4.4.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T2.4.4.4.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.5.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.5.5.1">
+        <span class="ltx_p" id="S5.T2.5.5.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.5.5.1.1.1" style="font-size:70%;">
+          VA
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T2.5.5.5.1.1.m1.1">
+          <semantics id="S5.T2.5.5.5.1.1.m1.1a">
+           <mo id="S5.T2.5.5.5.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T2.5.5.5.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T2.5.5.5.1.1.m1.1b">
+            <ci id="S5.T2.5.5.5.1.1.m1.1.1.cmml" xref="S5.T2.5.5.5.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T2.5.5.5.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T2.5.6">
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T2.5.6.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.6.1.1" style="font-size:70%;">
+        ChatGPT
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.6.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.6.2.1">
+        <span class="ltx_p" id="S5.T2.5.6.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.6.2.1.1.1" style="font-size:70%;">
+          89.8%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.6.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.6.3.1">
+        <span class="ltx_p" id="S5.T2.5.6.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.6.3.1.1.1" style="font-size:70%;">
+          67.7%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.6.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.6.4.1">
+        <span class="ltx_p" id="S5.T2.5.6.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.6.4.1.1.1" style="font-size:70%;">
+          40.3%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.6.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.6.5.1">
+        <span class="ltx_p" id="S5.T2.5.6.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.6.5.1.1.1" style="font-size:70%;">
+          37.5%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_t" id="S5.T2.5.6.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.6.6.1">
+        <span class="ltx_p" id="S5.T2.5.6.6.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.6.6.1.1.1" style="font-size:70%;">
+          52.8%
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T2.5.7">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T2.5.7.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.7.1.1" style="font-size:70%;">
+        GPT4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.7.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.7.2.1">
+        <span class="ltx_p" id="S5.T2.5.7.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.7.2.1.1.1" style="font-size:70%;">
+          68.8%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.7.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.7.3.1">
+        <span class="ltx_p" id="S5.T2.5.7.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.7.3.1.1.1" style="font-size:70%;">
+          48.8%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.7.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.7.4.1">
+        <span class="ltx_p" id="S5.T2.5.7.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.7.4.1.1.1" style="font-size:70%;">
+          56.3%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.7.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.7.5.1">
+        <span class="ltx_p" id="S5.T2.5.7.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.7.5.1.1.1" style="font-size:70%;">
+          56.3%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.7.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.7.6.1">
+        <span class="ltx_p" id="S5.T2.5.7.6.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.7.6.1.1.1" style="font-size:70%;">
+          60.3%
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T2.5.8">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T2.5.8.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.8.1.1" style="font-size:70%;">
+        TunesFormer
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.8.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.8.2.1">
+        <span class="ltx_p" id="S5.T2.5.8.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.8.2.1.1.1" style="font-size:70%;">
+          11.3%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.8.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.8.3.1">
+        <span class="ltx_p" id="S5.T2.5.8.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.8.3.1.1.1" style="font-size:70%;">
+          -
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.8.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.8.4.1">
+        <span class="ltx_p" id="S5.T2.5.8.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.8.4.1.1.1" style="font-size:70%;">
+          -
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.8.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.8.5.1">
+        <span class="ltx_p" id="S5.T2.5.8.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.8.5.1.1.1" style="font-size:70%;">
+          -
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.8.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.8.6.1">
+        <span class="ltx_p" id="S5.T2.5.8.6.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.8.6.1.1.1" style="font-size:70%;">
+          -
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T2.5.9">
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T2.5.9.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.9.1.1" style="font-size:70%;">
+        ByteComposer-GPT4
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.9.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.9.2.1">
+        <span class="ltx_p" id="S5.T2.5.9.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.5.9.2.1.1.1" style="font-size:70%;">
+          1.8
+         </span>
+         <span class="ltx_text" id="S5.T2.5.9.2.1.1.2" style="font-size:70%;">
+          %
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.9.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.9.3.1">
+        <span class="ltx_p" id="S5.T2.5.9.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.5.9.3.1.1.1" style="font-size:70%;">
+          19.8
+         </span>
+         <span class="ltx_text" id="S5.T2.5.9.3.1.1.2" style="font-size:70%;">
+          %
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.9.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.9.4.1">
+        <span class="ltx_p" id="S5.T2.5.9.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.5.9.4.1.1.1" style="font-size:70%;">
+          83.4
+         </span>
+         <span class="ltx_text" id="S5.T2.5.9.4.1.1.2" style="font-size:70%;">
+          %
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.9.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.9.5.1">
+        <span class="ltx_p" id="S5.T2.5.9.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.5.9.5.1.1.1" style="font-size:70%;">
+          81.3
+         </span>
+         <span class="ltx_text" id="S5.T2.5.9.5.1.1.2" style="font-size:70%;">
+          %
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top" id="S5.T2.5.9.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.9.6.1">
+        <span class="ltx_p" id="S5.T2.5.9.6.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.9.6.1.1.1" style="font-size:70%;">
+          64.3%
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S5.T2.5.10">
+      <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r" id="S5.T2.5.10.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_text" id="S5.T2.5.10.1.1" style="font-size:70%;">
+        ByteComposer-Llama2-SFT
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b" id="S5.T2.5.10.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.10.2.1">
+        <span class="ltx_p" id="S5.T2.5.10.2.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.10.2.1.1.1" style="font-size:70%;">
+          2.6%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b" id="S5.T2.5.10.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.10.3.1">
+        <span class="ltx_p" id="S5.T2.5.10.3.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.10.3.1.1.1" style="font-size:70%;">
+          21.6%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b" id="S5.T2.5.10.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.10.4.1">
+        <span class="ltx_p" id="S5.T2.5.10.4.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.10.4.1.1.1" style="font-size:70%;">
+          79.3%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b" id="S5.T2.5.10.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.10.5.1">
+        <span class="ltx_p" id="S5.T2.5.10.5.1.1" style="width:12.8pt;">
+         <span class="ltx_text" id="S5.T2.5.10.5.1.1.1" style="font-size:70%;">
+          80.4%
+         </span>
+        </span>
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b" id="S5.T2.5.10.6" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+       <span class="ltx_inline-block ltx_align_top" id="S5.T2.5.10.6.1">
+        <span class="ltx_p" id="S5.T2.5.10.6.1.1" style="width:12.8pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.5.10.6.1.1.1" style="font-size:70%;">
+          77.1
+         </span>
+         <span class="ltx_text" id="S5.T2.5.10.6.1.1.2" style="font-size:70%;">
+          %
+         </span>
+        </span>
+       </span>
+      </td>
+     </tr>
+    </table>
+   </figure>
+   <figure class="ltx_table" id="S5.T3">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:70%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Evaluations of the Competency of LLMs in Music Theory Interaction.
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T3.4" style="width:650.4pt;height:206.1pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(116.9pt,-37.1pt) scale(1.56138447564078,1.56138447564078) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T3.4.4">
+       <tr class="ltx_tr" id="S5.T3.4.4.4">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T3.4.4.4.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.4.5.1" style="font-size:70%;">
+          Model
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.1.1.1.1.1" style="font-size:70%;">
+          Accuracy
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T3.1.1.1.1.m1.1">
+          <semantics id="S5.T3.1.1.1.1.m1.1a">
+           <mo id="S5.T3.1.1.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T3.1.1.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T3.1.1.1.1.m1.1b">
+            <ci id="S5.T3.1.1.1.1.m1.1.1.cmml" xref="S5.T3.1.1.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T3.1.1.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.2.2.2.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.2.2.2.2.1" style="font-size:70%;">
+          Text Fluency Score
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T3.2.2.2.2.m1.1">
+          <semantics id="S5.T3.2.2.2.2.m1.1a">
+           <mo id="S5.T3.2.2.2.2.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T3.2.2.2.2.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T3.2.2.2.2.m1.1b">
+            <ci id="S5.T3.2.2.2.2.m1.1.1.cmml" xref="S5.T3.2.2.2.2.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T3.2.2.2.2.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.3.3.3.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.3.3.3.3.1" style="font-size:70%;">
+          Comprehension Score
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T3.3.3.3.3.m1.1">
+          <semantics id="S5.T3.3.3.3.3.m1.1a">
+           <mo id="S5.T3.3.3.3.3.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T3.3.3.3.3.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T3.3.3.3.3.m1.1b">
+            <ci id="S5.T3.3.3.3.3.m1.1.1.cmml" xref="S5.T3.3.3.3.3.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T3.3.3.3.3.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.4.4.4.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.4.4.1" style="font-size:70%;">
+          Problem Resolution Rate
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T3.4.4.4.4.m1.1">
+          <semantics id="S5.T3.4.4.4.4.m1.1a">
+           <mo id="S5.T3.4.4.4.4.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T3.4.4.4.4.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T3.4.4.4.4.m1.1b">
+            <ci id="S5.T3.4.4.4.4.m1.1.1.cmml" xref="S5.T3.4.4.4.4.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T3.4.4.4.4.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.5">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T3.4.4.5.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.5.1.1" style="font-size:70%;">
+          Llama2-70B-SFT(Our proposed)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.4.4.5.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.5.2.1" style="font-size:70%;">
+          88.06%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.4.4.5.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.5.3.1" style="font-size:70%;">
+          96.94%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.4.4.5.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.5.4.1" style="font-size:70%;">
+          96.73%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.4.4.5.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.5.5.1" style="font-size:70%;">
+          51.50%
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.6">
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T3.4.4.6.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.6.1.1" style="font-size:70%;">
+          Llama2-13B-chat
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.6.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.6.2.1" style="font-size:70%;">
+          85.82%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.6.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.6.3.1" style="font-size:70%;">
+          94.8%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.6.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.6.4.1" style="font-size:70%;">
+          89.8%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.6.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.6.5.1" style="font-size:70%;">
+          36.00%
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.7">
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T3.4.4.7.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.7.1.1" style="font-size:70%;">
+          Falcon-40B
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.7.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.7.2.1" style="font-size:70%;">
+          86.73%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.7.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.7.3.1" style="font-size:70%;">
+          93.78%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.7.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.7.4.1" style="font-size:70%;">
+          89.8%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.7.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.7.5.1" style="font-size:70%;">
+          -
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.8">
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T3.4.4.8.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.8.1.1" style="font-size:70%;">
+          Llama2-70B-chat
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.8.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.8.2.1" style="font-size:70%;">
+          87.96%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.8.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.8.3.1" style="font-size:70%;">
+          95.71%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.8.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.8.4.1" style="font-size:70%;">
+          90.82%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.8.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.8.5.1" style="font-size:70%;">
+          37.00%
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.9">
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T3.4.4.9.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.9.1.1" style="font-size:70%;">
+          WizardLM-70B-V1.0
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.9.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.9.2.1" style="font-size:70%;">
+          80.61%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.9.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.9.3.1" style="font-size:70%;">
+          96.12%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.9.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.9.4.1" style="font-size:70%;">
+          85%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.9.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.9.5.1" style="font-size:70%;">
+          35.50%
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.10">
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T3.4.4.10.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.10.1.1" style="font-size:70%;">
+          Platypus2-70B-instruct
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.10.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.10.2.1" style="font-size:70%;">
+          77.65%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.10.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.10.3.1" style="font-size:70%;">
+          82.55%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.10.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.10.4.1" style="font-size:70%;">
+          83.06%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T3.4.4.10.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.10.5.1" style="font-size:70%;">
+          -
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.4.11">
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S5.T3.4.4.11.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T3.4.4.11.1.1" style="font-size:70%;">
+          GPT-4
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T3.4.4.11.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.11.2.1" style="font-size:70%;">
+          93.16%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T3.4.4.11.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.11.3.1" style="font-size:70%;">
+          99.31%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T3.4.4.11.4" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.11.4.1" style="font-size:70%;">
+          99.83%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T3.4.4.11.5" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.4.11.5.1" style="font-size:70%;">
+          63.50%
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <figure class="ltx_table" id="S5.T4">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:50%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 4:
+     </span>
+     Generation Quality Evaluation
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T4.2" style="width:433.6pt;height:196pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(107.3pt,-48.5pt) scale(1.98006288771794,1.98006288771794) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T4.2.2">
+       <tr class="ltx_tr" id="S5.T4.2.2.2">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.2.2.2.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.2.3.1" style="font-size:50%;">
+          Model
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.1.1.1.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.1.1.1.1.1" style="font-size:50%;">
+          Music Generation Quality
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T4.1.1.1.1.m1.1">
+          <semantics id="S5.T4.1.1.1.1.m1.1a">
+           <mo id="S5.T4.1.1.1.1.m1.1.1" mathsize="50%" stretchy="false" xref="S5.T4.1.1.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.1.1.1.1.m1.1b">
+            <ci id="S5.T4.1.1.1.1.m1.1.1.cmml" xref="S5.T4.1.1.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.1.1.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.2.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.2.2.1" style="font-size:50%;">
+          Music Conception Ability
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T4.2.2.2.2.m1.1">
+          <semantics id="S5.T4.2.2.2.2.m1.1a">
+           <mo id="S5.T4.2.2.2.2.m1.1.1" mathsize="50%" stretchy="false" xref="S5.T4.2.2.2.2.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.2.2.2.2.m1.1b">
+            <ci id="S5.T4.2.2.2.2.m1.1.1.cmml" xref="S5.T4.2.2.2.2.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.2.2.2.2.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.2.2.3">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.2.2.3.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.3.1.1" style="font-size:50%;">
+          ChatGPT
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.3.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.3.2.1" style="font-size:50%;">
+          1.21
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.3.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.3.3.1" style="font-size:50%;">
+          3.42
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.2.2.4">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.2.2.4.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.4.1.1" style="font-size:50%;">
+          GPT4
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.4.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.4.2.1" style="font-size:50%;">
+          2.32
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.4.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.2.2.4.3.1" style="font-size:50%;">
+          4.06
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.2.2.5">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.2.2.5.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.5.1.1" style="font-size:50%;">
+          MuseCoco
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.5.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.5.2.1" style="font-size:50%;">
+          3.53
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.5.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.5.3.1" style="font-size:50%;">
+          -
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.2.2.6">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.2.2.6.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.6.1.1" style="font-size:50%;">
+          ByteComposer-GPT4
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.6.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.2.2.6.2.1" style="font-size:50%;">
+          4.42
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.6.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.2.2.6.3.1" style="font-size:50%;">
+          4.08
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.2.2.7">
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S5.T4.2.2.7.1" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.7.1.1" style="font-size:50%;">
+          ByteComposer-Llama2-SFT
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T4.2.2.7.2" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.2.2.7.2.1" style="font-size:50%;">
+          4.31
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T4.2.2.7.3" style="padding-top:1pt;padding-bottom:1pt;">
+         <span class="ltx_text" id="S5.T4.2.2.7.3.1" style="font-size:50%;">
+          3.82
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <figure class="ltx_table" id="S5.T5">
+    <figcaption class="ltx_caption ltx_centering" style="font-size:70%;">
+     <span class="ltx_tag ltx_tag_table">
+      Table 5:
+     </span>
+     Ablation Experiments
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T5.2" style="width:433.6pt;height:262.6pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(60.2pt,-36.4pt) scale(1.38395987460571,1.38395987460571) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T5.2.2">
+       <tr class="ltx_tr" id="S5.T5.2.2.2">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T5.2.2.2.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.2.3.1" style="font-size:70%;">
+          Model
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.1.1.1.1.1" style="font-size:70%;">
+          Music Generation Quality
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T5.1.1.1.1.m1.1">
+          <semantics id="S5.T5.1.1.1.1.m1.1a">
+           <mo id="S5.T5.1.1.1.1.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T5.1.1.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T5.1.1.1.1.m1.1b">
+            <ci id="S5.T5.1.1.1.1.m1.1.1.cmml" xref="S5.T5.1.1.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T5.1.1.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.2.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.2.2.1" style="font-size:70%;">
+          Music Conception Ability
+         </span>
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T5.2.2.2.2.m1.1">
+          <semantics id="S5.T5.2.2.2.2.m1.1a">
+           <mo id="S5.T5.2.2.2.2.m1.1.1" mathsize="70%" stretchy="false" xref="S5.T5.2.2.2.2.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T5.2.2.2.2.m1.1b">
+            <ci id="S5.T5.2.2.2.2.m1.1.1.cmml" xref="S5.T5.2.2.2.2.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T5.2.2.2.2.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.2.2.3">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T5.2.2.3.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.3.1.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.3.1.2" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_top" id="S5.T5.2.2.3.1.2.1">
+           <span class="ltx_tr" id="S5.T5.2.2.3.1.2.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.3.1.2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             GPT4
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.3.1.3">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.3.1.4" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.3.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.3.2.1" style="font-size:70%;">
+          2.32
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.3.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.3.3.1" style="font-size:70%;">
+          4.06
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.2.2.4">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T5.2.2.4.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.4.1.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.4.1.2" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_top" id="S5.T5.2.2.4.1.2.1">
+           <span class="ltx_tr" id="S5.T5.2.2.4.1.2.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.4.1.2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             GPT4 + CoT prompt
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.4.1.3">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.4.1.4" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.4.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.4.2.1" style="font-size:70%;">
+          2.85
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.4.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.4.3.1" style="font-size:70%;">
+          4.12
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.2.2.5">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T5.2.2.5.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.5.1.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.1.2" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_top" id="S5.T5.2.2.5.1.2.1">
+           <span class="ltx_tr" id="S5.T5.2.2.5.1.2.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.5.1.2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             GPT4 + CoT prompt
+            </span>
+           </span>
+           <span class="ltx_tr" id="S5.T5.2.2.5.1.2.1.2">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.5.1.2.1.2.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             + Tuensformer-Plus
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.1.3">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.1.4" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.5.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.5.2.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.2.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.2.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.5.2.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.5.2.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.5.2.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             3.87
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.2.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.2.5" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.5.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.5.3.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.3.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.3.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.5.3.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.5.3.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.5.3.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             4.12
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.3.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.5.3.5" style="font-size:70%;">
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.2.2.6">
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T5.2.2.6.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.6.1.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.1.2" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_top" id="S5.T5.2.2.6.1.2.1">
+           <span class="ltx_tr" id="S5.T5.2.2.6.1.2.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.6.1.2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             GPT4 + CoT prompt +
+            </span>
+           </span>
+           <span class="ltx_tr" id="S5.T5.2.2.6.1.2.1.2">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.6.1.2.1.2.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             Tuensformer-Plus + Self-Eval
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.1.3">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.1.4" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.6.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.6.2.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.2.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.2.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.6.2.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.6.2.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.6.2.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             4.21
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.2.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.2.5" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.2.2.6.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.6.3.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.3.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.3.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.6.3.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.6.3.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.6.3.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             4.08
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.3.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.6.3.5" style="font-size:70%;">
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.2.2.7">
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" id="S5.T5.2.2.7.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.7.1.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.1.2" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_top" id="S5.T5.2.2.7.1.2.1">
+           <span class="ltx_tr" id="S5.T5.2.2.7.1.2.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.7.1.2.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             GPT4 + CoT prompt +
+            </span>
+           </span>
+           <span class="ltx_tr" id="S5.T5.2.2.7.1.2.1.2">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.7.1.2.1.2.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             Tuensformer-Plus + Self-Eval +
+            </span>
+           </span>
+           <span class="ltx_tr" id="S5.T5.2.2.7.1.2.1.3">
+            <span class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T5.2.2.7.1.2.1.3.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             Voter (ByteComposer-GPT4)
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.1.3">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.1.4" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T5.2.2.7.2" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.7.2.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.2.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.2.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.7.2.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.7.2.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.7.2.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             <span class="ltx_text ltx_font_bold" id="S5.T5.2.2.7.2.3.1.1.1.1">
+              4.42
+             </span>
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.2.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.2.5" style="font-size:70%;">
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S5.T5.2.2.7.3" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+         <span class="ltx_text" id="S5.T5.2.2.7.3.1">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.3.2" style="font-size:70%;">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.3.3" style="font-size:70%;">
+          <span class="ltx_tabular ltx_align_middle" id="S5.T5.2.2.7.3.3.1">
+           <span class="ltx_tr" id="S5.T5.2.2.7.3.3.1.1">
+            <span class="ltx_td ltx_nopad_r ltx_align_center" id="S5.T5.2.2.7.3.3.1.1.1" style="padding-top:0.7pt;padding-bottom:0.7pt;">
+             <span class="ltx_text ltx_font_bold" id="S5.T5.2.2.7.3.3.1.1.1.1">
+              4.08
+             </span>
+            </span>
+           </span>
+          </span>
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.3.4">
+         </span>
+         <span class="ltx_text" id="S5.T5.2.2.7.3.5" style="font-size:70%;">
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S5.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    5.3.   Expert Subjective Experiments
+   </h3>
+   <section class="ltx_subsubsection" id="S5.SS3.SSS1">
+    <h4 class="ltx_title ltx_font_bold ltx_title_subsubsection">
+     5.3.1.   Participant Information
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S5.SS3.SSS1.p1">
+     <p class="ltx_p" id="S5.SS3.SSS1.p1.1">
+      To rigorously evaluate the musical capabilities of ByteComposer from a music expert’s perspective, we detailed the participant information and evaluation process as follows:
+Invited 15 volunteers, all interested in AI-based music production, and working in the field of music and audio technology or production, being professional musicians. Professionals evaluated the outputs under the same playback environment and model inference parameters, in a blind-review setup.
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S5.SS3.SSS1.p1.1.1">
+       Experience in Music Production.
+      </span>
+      40% had between 2 to 5 years of experience, while 60% possessed more than 5 years of experience.
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S5.SS3.SSS1.p1.1.2">
+       Experience in Music Performance.
+      </span>
+      All had more than 10 years of experience.
+      <br class="ltx_break"/>
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S5.SS3.SSS2">
+    <h4 class="ltx_title ltx_font_bold ltx_title_subsubsection">
+     5.3.2.   Competency of LLMs in Music Theory Interaction
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S5.SS3.SSS2.p1">
+     <p class="ltx_p" id="S5.SS3.SSS2.p1.1">
+      In this chapter, our objective is to thoroughly test the LLM’s musical and interactive capabilities, to ensure the assembled agent possesses the ability for music theory inquiries and normal interactions.
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S5.SS3.SSS2.p1.1.1">
+       Music Theory Comprehension.
+      </span>
+      In the first round, we evaluated several open-source LLMs, as well as GPT4 for music theory comprehension evaluation help us judge the capability of the open source models we trained. Human Experts created an 500 professional questions from various music professional latitudes, and scored each model result from three dimensions (Accuracy, Text Fluency, Comprehension of Questions).
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S5.SS3.SSS2.p1.1.2">
+       Music Composition Facilitation.
+      </span>
+      Through the first round of evaluation, we filtered out some models with lower scores, and the remaining ones were evaluated in the second round. Users engage in conversations related to music composition with LLM, and if the responses satisfied the users, it indicated problem resolution. We set up 500 user queries and scored the results of each model.
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S5.SS3.SSS2.p1.1.3">
+       Experiments Conclusion.
+      </span>
+      As can be seen from Table 3, The model we trained through fine-tuning, namely Llama2-70B-SFT, is stronger than other open source models in terms of professional capabilities. The main reason should be the results of fine-tuning on music field data and professional question and answer data. However, the comprehensive indicators are still behind GPT4.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S5.SS3.SSS3">
+    <h4 class="ltx_title ltx_font_bold ltx_title_subsubsection">
+     5.3.3.   Generation Quality Evaluation
+    </h4>
+    <div class="ltx_para ltx_noindent" id="S5.SS3.SSS3.p1">
+     <p class="ltx_p" id="S5.SS3.SSS3.p1.1">
+      Evaluation Metrics include Music Generation Quality examining Theme Fidelity, Music Quality, and Score Reasonability, along with Music Conception Ability examining Reasonability of Conception and Music Analysis Evaluation Ability. Comparative Schemes involve evaluating generation quality across different methods like ChatGPT, GPT4, ByteComposer variants, and MuseCoco
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Lu et al. (
+       <a class="ltx_ref" href="#bib.bib13" title="">
+        2023
+       </a>
+       )
+      </cite>
+      against 200 keywords, with experts scoring the results on a 0-5 scale. As shown in Table 4, the conclusion reveals that the generation quality of MuseCoco is pleasing, but the music symbol generation model has no ability to explain the conception of musical scores, whereas ChatGPT and GPT4 excel in process description but fall short in generation quality. ByteComposer-based solutions exhibit competitive scores in both generation quality and process description.
+      <br class="ltx_break"/>
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S5.SS4">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    5.4.   Professional Analysis and Summary
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS4.p1">
+    <p class="ltx_p" id="S5.SS4.p1.1">
+     From a musical creation conceptualization perspective, the agent demonstrates a relatively complete music design ability (Thought-Action-Observation-Result). Initially, it can capture the underlying content and emotions from keywords, abstracting corresponding musical features like instrument and mode selection reflecting respective musical characters, and rhythm and tempo choices depicting different musical emotions. Subsequently, these refined musical features are combined to form a relatively complete musical concept. While the information extracted from text is quite accurate, the creative methods employed are still limited and simplistic. On the other hand, the model possesses commendable music analysis ability, capable of describing the song structure, mode, rhythm, harmony, and melodic patterns. However, the depth and detail of analysis are yet to match top professional music analysis standards, and there is room for improvement. Noteworthy is the model’s capability to provide modification suggestions while evaluating music, with accurate directions, although lacking in diversity. Overall, the current AI composer has reached the level of a beginner composer.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS5">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:110%;">
+    5.5.   Ablation Experiments
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S5.SS5.p1">
+    <p class="ltx_p" id="S5.SS5.p1.1">
+     During the Generation Quality Evaluation experiments, we compared module ablation results longitudinally. The overall results are shown in Table 5. Baseline for these experiments is GPT4, which directly generates ABC notation music from user prompts. We introduced expert-designed CoT prompts, which improved generation quality and achieved the highest Music Conception Ability scores. However, experts clearly favor music generated by combining GPT4 with the music generation model Tunesformer-Plus. Additionally, we found that using the "self-eval" module, representing the self-modification phase (the third stage), enhances Music Generation Quality but results in a slight decrease in Music Conception Ability. Our observations suggest this decrease is because experts tend to assign higher scores when the model accurately evaluates low-quality music. Finally, the "voter" module enhances music quality by selecting more preferred music pieces. The system hyperparameters and Llama2-SFT hyperparameter experiments are provided in the appendix.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   6.   Conclusion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    In conclusion, we have demonstrated that music composition agents based on Large Language Models (LLMs) can serve as professional human composers by your side, capable of interactive engagement, with the generated symbolic works being more comprehensible and meaningful to individuals. Concurrently, we have implemented ByteComposer-Llama2-SFT using open-source solutions, proving its commendable effectiveness. Through the creative architecture of ByteComposer, the potential of large language models is effectively harnessed, amplifying the value of existing generation models.
+   </p>
+  </div>
+  <div class="ltx_pagination ltx_role_newpage">
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   7.   Bibliographical References
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <span class="ltx_ERROR undefined" id="S7.p1.1">
+    \c@NAT@ctr
+   </span>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Agostinelli et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Andrea Agostinelli, Timo I Denk, Zalán Borsos, Jesse Engel, Mauro Verzetti, Antoine Caillon, Qingqing Huang, Aren Jansen, Adam Roberts, Marco Tagliasacchi, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Musiclm: Generating music from text.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2301.11325
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Besta et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Lukas Gianinazzi, Joanna Gajda, Tomasz Lehmann, Michal Podstawski, Hubert Niewiadomski, Piotr Nyczyk, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Graph of thoughts: Solving elaborate problems with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2308.09687
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bran et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Andres M Bran, Sam Cox, Andrew D White, and Philippe Schwaller. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Chemcrow: Augmenting large-language models with chemistry tools.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2304.05376
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Bubeck et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Sébastien Bubeck, Varun Chandrasekaran, Ronen Eldan, Johannes Gehrke, Eric Horvitz, Ece Kamar, Peter Lee, Yin Tat Lee, Yuanzhi Li, Scott Lundberg, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Sparks of artificial general intelligence: Early experiments with gpt-4.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      arXiv preprint arXiv:2303.12712
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Christiano et al. (2017)
+    </span>
+    <span class="ltx_bibblock">
+     Paul F Christiano, Jan Leike, Tom Brown, Miljan Martic, Shane Legg, and Dario Amodei. 2017.
+    </span>
+    <span class="ltx_bibblock">
+     Deep reinforcement learning from human preferences.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      Advances in neural information processing systems
+     </em>
+     , 30.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dettmers et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Qlora: Efficient finetuning of quantized llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2305.14314
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hao et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Yaru Hao, Haoyu Song, Li Dong, Shaohan Huang, Zewen Chi, Wenhui Wang, Shuming Ma, and Furu Wei. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Language models are general-purpose interfaces.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2206.06336
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Qingqing Huang, Aren Jansen, Joonseok Lee, Ravi Ganti, Judith Yue Li, and Daniel PW Ellis. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Mulan: A joint embedding of music audio and natural language.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Ismir 2022 Hybrid Conference
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     Qingqing Huang, Daniel S Park, Tao Wang, Timo I Denk, Andy Ly, Nanxin Chen, Zhengdong Zhang, Zhishuai Zhang, Jiahui Yu, Christian Frank, et al. 2023a.
+    </span>
+    <span class="ltx_bibblock">
+     Noise2music: Text-conditioned music generation with diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      arXiv preprint arXiv:2302.03917
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Huang et al. (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     Rongjie Huang, Jiawei Huang, Dongchao Yang, Yi Ren, Luping Liu, Mingze Li, Zhenhui Ye, Jinglin Liu, Xiang Yin, and Zhou Zhao. 2023b.
+    </span>
+    <span class="ltx_bibblock">
+     Make-an-audio: Text-to-audio generation with prompt-enhanced diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      arXiv preprint arXiv:2301.12661
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lam et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Max WY Lam, Qiao Tian, Tang Li, Zongyu Yin, Siyuan Feng, Ming Tu, Yuliang Ji, Rui Xia, Mingbo Ma, Xuchen Song, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Efficient neural music generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv preprint arXiv:2305.15719
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Peike Li, Boyu Chen, Yao Yao, Yikai Wang, Allen Wang, and Alex Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Jen-1: Text-guided universal music generation with omnidirectional diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      arXiv preprint arXiv:2308.04729
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Peiling Lu, Xin Xu, Chenfei Kang, Botao Yu, Chengyi Xing, Xu Tan, and Jiang Bian. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Musecoco: Generating symbolic music from text.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      arXiv preprint arXiv:2306.00110
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Self-refine: Iterative refinement with self-feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv preprint arXiv:2303.17651
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mialon et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Grégoire Mialon, Roberto Dessì, Maria Lomeli, Christoforos Nalmpantis, Ram Pasunuru, Roberta Raileanu, Baptiste Rozière, Timo Schick, Jane Dwivedi-Yu, Asli Celikyilmaz, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Augmented language models: a survey.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      arXiv preprint arXiv:2302.07842
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:257532815" target="_blank" title="">
+      Gpt-4 technical report
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      ArXiv
+     </em>
+     , abs/2303.08774.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Paul et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Debjit Paul, Mete Ismayilzada, Maxime Peyrard, Beatriz Borges, Antoine Bosselut, Robert West, and Boi Faltings. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Refiner: Reasoning feedback on intermediate representations.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      arXiv preprint arXiv:2304.01904
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Schick et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Toolformer: Language models can teach themselves to use tools.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      arXiv preprint arXiv:2302.04761
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Schneider et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Flavio Schneider, Zhijing Jin, and Bernhard Schölkopf. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Mo
+     <math alttext="\backslash" class="ltx_Math" display="inline" id="bib.bib19.1.m1.1">
+      <semantics id="bib.bib19.1.m1.1a">
+       <mo id="bib.bib19.1.m1.1.1" xref="bib.bib19.1.m1.1.1.cmml">
+        \
+       </mo>
+       <annotation-xml encoding="MathML-Content" id="bib.bib19.1.m1.1b">
+        <ci id="bib.bib19.1.m1.1.1.cmml" xref="bib.bib19.1.m1.1.1">
+         \
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="bib.bib19.1.m1.1c">
+        \backslash
+       </annotation>
+      </semantics>
+     </math>
+     ^ usai: Text-to-music generation with long-context latent diffusion.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.2.1">
+      arXiv preprint arXiv:2301.11757
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting Zhuang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Hugginggpt: Solving ai tasks with chatgpt and its friends in huggingface.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2303.17580
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shinn et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Noah Shinn, Federico Cassano, Beck Labash, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Reflexion: Language agents with verbal reinforcement learning.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      arXiv preprint arXiv:2303.11366
+     </em>
+     , 14.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     von Rütte et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Dimitri von Rütte, Luca Biggio, Yannic Kilcher, and Thomas Hofmann. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Figaro: Controllable music generation using learned and expert features.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib22.1.1">
+      The Eleventh International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2203.11171" target="_blank" title="">
+      Self-consistency improves chain of thought reasoning in language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib24.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:24824–24837.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu and Sun (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shangda Wu and Maosong Sun. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Tunesformer: Forming tunes with control codes.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      arXiv preprint arXiv:2301.02884
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xie et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yuxi Xie, Kenji Kawaguchi, Yiran Zhao, Xu Zhao, Min-Yen Kan, Junxian He, and Qizhe Xie. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Decomposition enhances reasoning via self-evaluation guided decoding.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      arXiv preprint arXiv:2305.00633
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L Griffiths, Yuan Cao, and Karthik Narasimhan. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Tree of thoughts: Deliberate problem solving with large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      arXiv preprint arXiv:2305.10601
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yao et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     React: Synergizing reasoning and acting in language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2210.03629
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Yixiao Zhang, Ziyu Wang, Dingsu Wang, and Gus Xia. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     Butter: A representation learning framework for bi-directional music-sentence retrieval and generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      NLP4MusA 2020
+     </em>
+     , page 54.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Denny Zhou, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc Le, and Ed Chi. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2205.10625" target="_blank" title="">
+      Least-to-most prompting enables complex reasoning in large language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Pengfei Zhu, Chao Pang, Shuohuan Wang, Yekun Chai, Yu Sun, Hao Tian, and Hua Wu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Ernie-music: Text-to-waveform music generation with diffusion models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      arXiv preprint arXiv:2302.04456
+     </em>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_para ltx_noindent" id="p3">
+  <p class="ltx_p" id="p3.1">
+  </p>
+ </div>
+</article>

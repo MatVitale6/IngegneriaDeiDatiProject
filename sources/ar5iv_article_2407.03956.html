@@ -1,0 +1,3786 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  Solving Zebra Puzzles
+  <br class="ltx_break"/>
+  Using Constraint-Guided Multi-Agent Systems
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Shmuel Berman
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id1.1.id1">
+     sb6870@princeton.edu
+    </span>
+    <br class="ltx_break"/>
+    &amp;Kathleen McKeown
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id2.2.id2">
+     kathy@cs.columbia.edu
+    </span>
+    <br class="ltx_break"/>
+    &amp;Baishakhi Ray
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id3.3.id3">
+     rayb@cs.columbia.edu
+    </span>
+    <br class="ltx_break"/>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id4.id1">
+   Prior research has enhanced the ability of Large Language Models (LLMs) to solve logic puzzles using techniques such as chain-of-thought prompting or introducing a symbolic representation. These frameworks are still usually insufficient to solve complicated logical problems, such as Zebra puzzles, due to the inherent complexity of translating natural language clues into logical statements.
+We introduce a multi-agent system,
+   <span class="ltx_text ltx_font_smallcaps" id="id4.id1.1">
+    ZPS
+   </span>
+   , that integrates LLMs with an off the shelf theorem prover. This system tackles the complex puzzle-solving task by breaking down the problem into smaller, manageable parts, generating
+SMT (Satisfiability Modulo Theories) code to solve them with a theorem prover, and using feedback between the agents to repeatedly improve their answers.
+We also introduce an automated grid puzzle grader to assess the correctness of our puzzle solutions and show that the automated grader is reliable by evaluating it in a user-study. Our approach shows improvement in all three LLMs we tested, with GPT-4 showing 166% improvement in the number of fully correct solutions.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.1">
+   <p class="ltx_p" id="p1.1.1">
+    <span class="ltx_text ltx_font_bold" id="p1.1.1.1">
+     Solving Zebra Puzzles
+     <br class="ltx_break"/>
+     Using Constraint-Guided Multi-Agent Systems
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.1.2" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.1.2.1" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.2.1.1">
+      <span class="ltx_tr" id="p1.1.2.1.1.1">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.1.1.1.1.1">
+         Shmuel Berman
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.1.1.2">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.1.1.2.1">
+        <span class="ltx_text ltx_font_typewriter" id="p1.1.2.1.1.2.1.1">
+         sb6870@princeton.edu
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span class="ltx_text ltx_inline-block" id="p1.1.2.2" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.2.2.1">
+      <span class="ltx_tr" id="p1.1.2.2.1.1">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.2.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.2.1.1.1.1">
+         Kathleen McKeown
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.2.1.2">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.2.1.2.1">
+        <span class="ltx_text ltx_font_typewriter" id="p1.1.2.2.1.2.1.1">
+         kathy@cs.columbia.edu
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span class="ltx_text ltx_inline-block" id="p1.1.2.3" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_align_top" id="p1.1.2.3.1">
+      <span class="ltx_tr" id="p1.1.2.3.1.1">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.3.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="p1.1.2.3.1.1.1.1">
+         Baishakhi Ray
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tr" id="p1.1.2.3.1.2">
+       <span class="ltx_td ltx_align_center" id="p1.1.2.3.1.2.1">
+        <span class="ltx_text ltx_font_typewriter" id="p1.1.2.3.1.2.1.1">
+         rayb@cs.columbia.edu
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Automated problem solving has long been a major goal in the field of Artificial Intelligence. This task ranges from trivial problems, like simple arithmetic or string searches, to more complex ones, such as solving a chess position.. However, unstructured problems presented in natural language introduce additional complications in modeling the problem accurately. Solving such problems has been extensively studied, from simple mathematical problems in the subfield of word problem solving to applications like automated code generation by Large Language Models (LLMs)
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Mukherjee and Garain,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2009
+     </a>
+     ; Chen et al.,
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2021
+     </a>
+     )
+    </cite>
+    . These problems are particularly difficult because translating natural language into a precise logical or computational form requires sophisticated understanding and interpretation, making it a significant challenge in AI research.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="254" id="S1.F1.g1" src="/html/2407.03956/assets/x1.png" width="207"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    An Example Zebra Puzzle.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    In this paper, we focus on a particular type of unstructured natural language problem known as a logic grid problem, or colloquially, an Einstein or Zebra puzzle.
+A Zebra puzzle is a set of natural language assertions involving multiple entities that are linked by various attributes (Fig.
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    shows an example).
+To solve a puzzle, the user must correctly assign attributes to all of the entities. These attributes range from descriptions to relative ordering. Participants are provided with a series of clues in natural language, which they must use to deduce the correct relationships using logical reasoning and by adhering to implicit domain constraints. These puzzles require the solver to map from natural language to structured space, understand implicit
+assumptions, and in some cases
+use domain-specific knowledge.
+For instance, as illustrated in Fig.
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , the solver must assign the correct attributes for three houses based on a series of interconnected clues.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Zebra puzzles are particularly challenging due to:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       Complex Inferences: Each clue provides partial information that must be combined with others to deduce the solution.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       High Interdependency:
+An error on one clue
+significantly impacts others, making the solution space highly interconnected.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       Natural Language (NL) Clues: Translating ambigous NL clues
+into logical statements or formal representations is challenging.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       Large Solution Space: The solver needs to explore numerous possibilities and combinations
+to find the solution.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i5" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i5.p1">
+      <p class="ltx_p" id="S1.I1.i5.p1.1">
+       Consistency Checking:
+Potential solutions must be checked against all clues,
+which is
+a computationally intensive and requires sophisticated, domain-specific reasoning.
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="S1.p3.2">
+    The factors mentioned make Zebra puzzles difficult for both humans and AI systems due to the need for precise interpretation, inference, and logical reasoning. In Fig.
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    , for example, a solver cannot simply map the spatial relationship between the Football house and the Red house. It must also encode additional constraints: the Football and Red houses occupy House 1 or House 3, respectively, and they must not be the same house. Encoding these constraints is non-trivial, as it requires detailed semantic interpretation of the clue’s subtext. Failure to accurately encode these subtleties usually renders the puzzle unsolvable.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    This complexity has empirically been shown to challenge puzzle-solving models significantly.
+Prior work often employed human-in-the-loop methods.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Milicevic et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2012
+     </a>
+     )
+    </cite>
+    translated puzzles into formal logic but required users to rephrase or rewrite ambiguous clues.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Claes et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2019
+     </a>
+     )
+    </cite>
+    developed ZebraTutor, which creates a puzzle-specific lexicon to formalize the problem but needed users to edit the lexicon for accuracy. Prior research using ChatGPT to solve Zebra puzzles reported a correctness rate of only 8.33%
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Groza,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , with performance deteriorating significantly as the problem’s complexity increases.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Due to their complexity, solving Zebra puzzles effectively requires the use of a constraint solver;
+a solver can efficiently determine
+the feasible and infeasible solution space within the given constraints. However, converting natural language clues into a formal representation suitable for a solver is a non-trivial task. This process often involves intricate
+interpretation of clues, which must be precise to ensure that the solver can operate correctly. Additionally, maintaining consistency across all clues requires iterative back-and-forth reasoning.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    To address the challenges inherent in solving Zebra puzzles, we introduce a multi-agent based system,
+    <span class="ltx_text ltx_font_smallcaps" id="S1.p6.1.1">
+     ZPS
+    </span>
+    . This system decomposes the problem-solving process into discrete, manageable components, enhancing the handling of complex interdependencies and constraints. Each agent is responsible for a specific aspect of the problem, working collaboratively and using feedback loops to refine their answers and ensure consistency.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    In this framework, we conceptualize integrating Large Language Models (LLMs) with formal reasoning.
+First, an LLM agent decompose a given puzzle to sub-problems. Then, another LLM agent interprets NL clues of each sub-problem and generates SMT-LIB translations of the constraints and parameters.
+An off-the-shelf SMT solver
+    <span class="ltx_note ltx_role_footnote" id="footnote1">
+     <sup class="ltx_note_mark">
+      1
+     </sup>
+     <span class="ltx_note_outer">
+      <span class="ltx_note_content">
+       <sup class="ltx_note_mark">
+        1
+       </sup>
+       <span class="ltx_tag ltx_tag_note">
+        1
+       </span>
+       Satisfiability Modulo Theories (SMT) is a decision problem that involves determining whether a given logical formula is satisfiable, considering various background theories like Arithmetic, Arrays, Bit-Vector, etc. SMT extends the concept of Boolean satisfiability (SAT) by incorporating more complex theories.
+      </span>
+     </span>
+    </span>
+    then processes these translations to produce a model that corresponds to the solution.
+The output, including the model and any syntactic errors, is fed back to the LLM which generates a new translation addressing syntactic and semantic errors, emulating back and forth reasoning.
+This continuous feedback refines the model’s predictions and ensures the translations are both syntactically correct and solvable.
+To this end, our approach demonstrates improvements across all three LLMs we tested, with GPT-4 showing up to a 166% increase in the number of fully correct solutions.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p8">
+   <p class="ltx_p" id="S1.p8.1">
+    The main contributions of our research are as follows:
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p9">
+   <ol class="ltx_enumerate" id="S1.I2">
+    <li class="ltx_item" id="S1.I2.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      1.
+     </span>
+     <div class="ltx_para" id="S1.I2.i1.p1">
+      <p class="ltx_p" id="S1.I2.i1.p1.1">
+       We demonstrate that combining a formal constraint solver with an LLM interpreter using an agent-based approach for solving Zebra Puzzles significantly improves upon existing baseline methodologies.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I2.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      2.
+     </span>
+     <div class="ltx_para" id="S1.I2.i2.p1">
+      <p class="ltx_p" id="S1.I2.i2.p1.1">
+       We implement a plan generation and decomposition strategy, enabling step-by-step reasoning that enhances the solving process.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I2.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      3.
+     </span>
+     <div class="ltx_para" id="S1.I2.i3.p1">
+      <p class="ltx_p" id="S1.I2.i3.p1.1">
+       We introduce an iterative conversation-based feedback mechanism that allows for continual refinement of solutions, adapting dynamically to the solving context.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I2.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      4.
+     </span>
+     <div class="ltx_para" id="S1.I2.i4.p1">
+      <p class="ltx_p" id="S1.I2.i4.p1.1">
+       We incorporate an autograder within our system to evaluate the accuracy of solutions, ensuring reliability and precision in automated assessments. We also present the results of a user study showing that this autograder correlates very well with human graders.
+      </p>
+     </div>
+    </li>
+   </ol>
+  </div>
+  <div class="ltx_para" id="S1.p10">
+   <p class="ltx_p" id="S1.p10.1">
+    Our code is available at
+    <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://anonymous.4open.science/r/anon_emnlp-1AD0/README.md" target="_blank" title="">
+     https://anonymous.4open.science/r/anon_emnlp-1AD0/README.md
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Methodology
+  </h2>
+  <figure class="ltx_figure" id="S2.F2">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="168" id="S2.F2.g1" src="/html/2407.03956/assets/x2.png" width="230"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Logic Puzzle Solver Workflow
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="S2.F3">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="236" id="S2.F3.g1" src="/html/2407.03956/assets/latex/resources/Figure_2_MR_Research_sab2335-Page-1.drawio.png" width="598"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 3:
+    </span>
+    Example Feedback Puzzle Solving Process. The puzzle is decomposed and then the LLM-agent attempts to translate it into a logical SMT formula. The theorem prover attempts to solve it, and the feedback is fed back into the LLM-agent so that it can modify its formal representation.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    We integrate LLMs with formal systems within a multi-agent framework to solve Zebra puzzles.
+The process involves a series of steps where the problem is decomposed, translated into a formal language (SMT-LIB), solved using a theorem prover, and iteratively refined based on feedback. This approach aims to leverage the strengths of both LLMs and formal solvers, ensuring robust problem-solving capabilities.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Multi-Agent Workflow
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     The workflow, as illustrated in Figure
+     <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2 Methodology ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , integrates multiple agents to transform a natural language puzzle into a logically solvable structure and then iteratively refines the solution. The process is initiated by the Decomposition Agent and continuously refined through a feedback loop that encompasses both the translation to SMT-LIB and the solving phases. Figure
+     <a class="ltx_ref" href="#S2.F3" title="Figure 3 ‣ 2 Methodology ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     shows a working example of puzzle solving by our method.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Decomposition
+    </h5>
+    <div class="ltx_para" id="S2.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px1.p1.1">
+      The input puzzle, expressed in natural language, is first decomposed by the Decomposition LLM-Agent. This agent identifies and isolates key entities, attributes, and relationships, structuring them into smaller, systematically translatable components. This is a first step that ensures the puzzle is presented in a format amenable to formal processing.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS1.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Feedback Loop
+    </h5>
+    <div class="ltx_para" id="S2.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px2.p1.1">
+      The core of our methodology lies in the feedback loop where continuous refinement of the solution occurs. This loop integrates the translation of decomposed components into SMT-LIB format by the Solver LLM-Agent and the subsequent problem solving using a theorem prover, whose output serves as feedback. Each iteration through the loop consists of the following steps:
+     </p>
+     <ul class="ltx_itemize" id="S2.I1">
+      <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I1.i1.p1">
+        <p class="ltx_p" id="S2.I1.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.I1.i1.p1.1.1">
+          Translation to SMT-LIB
+         </span>
+         : After decomposition, the puzzle components are systematically translated into SMT-LIB (Satisfiability Modulo Theories Library) by the Solver LLM-Agent. This format is essential for interfacing with theorem provers and ensures that logical constraints and relationships are accurately represented.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I1.i2.p1">
+        <p class="ltx_p" id="S2.I1.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.I1.i2.p1.1.1">
+          Solving with Theorem Prover
+         </span>
+         : The SMT-LIB formatted components are then processed by the theorem prover (Z3 in our implementation). The theorem prover attempts to find a satisfying assignment that adheres to all given constraints.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S2.I1.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I1.i3.p1">
+        <p class="ltx_p" id="S2.I1.i3.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S2.I1.i3.p1.1.1">
+          Evaluate and Refine
+         </span>
+         : The solution generated by the theorem prover is evaluated by the Solver LLM-Agent to determine if it meets the puzzle’s requirements. If the solution is deemed insufficient– either due to to explicit errors or because of how the attributes are assigned– modifications are made to the translation of the SMT-LIB formalization of the puzzle and the cycle repeats. Otherwise, the LLM-agent submits its final answer.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <div class="ltx_para" id="S2.SS1.SSS0.Px2.p2">
+     <p class="ltx_p" id="S2.SS1.SSS0.Px2.p2.1">
+      This iterative process ensures that the Solver LLM-Agent and the Theorem Prover continually refine the solution until the Solver LLM-Agent is satisfied with the final assignments.
+     </p>
+    </div>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Modeling the Agent Environment
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     The feedback loop is how the agents engage with each other. This loop is mathematically modeled using a combination of evaluation functions and error detection mechanisms, which together guide the system towards a solution that optimally satisfies the problem constraints.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.2">
+     More formally, let
+     <math alttext="\mathcal{D},\mathcal{G},\mathcal{T},\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.p2.1.m1.4">
+      <semantics id="S2.SS2.p2.1.m1.4a">
+       <mrow id="S2.SS2.p2.1.m1.4.5.2" xref="S2.SS2.p2.1.m1.4.5.1.cmml">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p2.1.m1.1.1" xref="S2.SS2.p2.1.m1.1.1.cmml">
+         𝒟
+        </mi>
+        <mo id="S2.SS2.p2.1.m1.4.5.2.1" xref="S2.SS2.p2.1.m1.4.5.1.cmml">
+         ,
+        </mo>
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p2.1.m1.2.2" xref="S2.SS2.p2.1.m1.2.2.cmml">
+         𝒢
+        </mi>
+        <mo id="S2.SS2.p2.1.m1.4.5.2.2" xref="S2.SS2.p2.1.m1.4.5.1.cmml">
+         ,
+        </mo>
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p2.1.m1.3.3" xref="S2.SS2.p2.1.m1.3.3.cmml">
+         𝒯
+        </mi>
+        <mo id="S2.SS2.p2.1.m1.4.5.2.3" xref="S2.SS2.p2.1.m1.4.5.1.cmml">
+         ,
+        </mo>
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p2.1.m1.4.4" xref="S2.SS2.p2.1.m1.4.4.cmml">
+         ℰ
+        </mi>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p2.1.m1.4b">
+        <list id="S2.SS2.p2.1.m1.4.5.1.cmml" xref="S2.SS2.p2.1.m1.4.5.2">
+         <ci id="S2.SS2.p2.1.m1.1.1.cmml" xref="S2.SS2.p2.1.m1.1.1">
+          𝒟
+         </ci>
+         <ci id="S2.SS2.p2.1.m1.2.2.cmml" xref="S2.SS2.p2.1.m1.2.2">
+          𝒢
+         </ci>
+         <ci id="S2.SS2.p2.1.m1.3.3.cmml" xref="S2.SS2.p2.1.m1.3.3">
+          𝒯
+         </ci>
+         <ci id="S2.SS2.p2.1.m1.4.4.cmml" xref="S2.SS2.p2.1.m1.4.4">
+          ℰ
+         </ci>
+        </list>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p2.1.m1.4c">
+        \mathcal{D},\mathcal{G},\mathcal{T},\mathcal{E}
+       </annotation>
+      </semantics>
+     </math>
+     , and
+     <math alttext="\mathcal{F}" class="ltx_Math" display="inline" id="S2.SS2.p2.2.m2.1">
+      <semantics id="S2.SS2.p2.2.m2.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p2.2.m2.1.1" xref="S2.SS2.p2.2.m2.1.1.cmml">
+        ℱ
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p2.2.m2.1b">
+        <ci id="S2.SS2.p2.2.m2.1.1.cmml" xref="S2.SS2.p2.2.m2.1.1">
+         ℱ
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p2.2.m2.1c">
+        \mathcal{F}
+       </annotation>
+      </semantics>
+     </math>
+     represent the decomposition, translation to SMT-LIB, theorem solving, evaluation, and feedback functions, respectively. The feedback loop can be described by the following recursive function:
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p3">
+    <table class="ltx_equation ltx_eqn_table" id="S2.Ex1">
+     <tbody>
+      <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+       <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+       </td>
+       <td class="ltx_eqn_cell ltx_align_center">
+        <math alttext="S_{k+1}=\mathcal{F}(\mathcal{E}(\mathcal{T}(\mathcal{G}(\mathcal{D}(P)),S_{k})),S_{k})" class="ltx_Math" display="block" id="S2.Ex1.m1.3">
+         <semantics id="S2.Ex1.m1.3a">
+          <mrow id="S2.Ex1.m1.3.3" xref="S2.Ex1.m1.3.3.cmml">
+           <msub id="S2.Ex1.m1.3.3.4" xref="S2.Ex1.m1.3.3.4.cmml">
+            <mi id="S2.Ex1.m1.3.3.4.2" xref="S2.Ex1.m1.3.3.4.2.cmml">
+             S
+            </mi>
+            <mrow id="S2.Ex1.m1.3.3.4.3" xref="S2.Ex1.m1.3.3.4.3.cmml">
+             <mi id="S2.Ex1.m1.3.3.4.3.2" xref="S2.Ex1.m1.3.3.4.3.2.cmml">
+              k
+             </mi>
+             <mo id="S2.Ex1.m1.3.3.4.3.1" xref="S2.Ex1.m1.3.3.4.3.1.cmml">
+              +
+             </mo>
+             <mn id="S2.Ex1.m1.3.3.4.3.3" xref="S2.Ex1.m1.3.3.4.3.3.cmml">
+              1
+             </mn>
+            </mrow>
+           </msub>
+           <mo id="S2.Ex1.m1.3.3.3" xref="S2.Ex1.m1.3.3.3.cmml">
+            =
+           </mo>
+           <mrow id="S2.Ex1.m1.3.3.2" xref="S2.Ex1.m1.3.3.2.cmml">
+            <mi class="ltx_font_mathcaligraphic" id="S2.Ex1.m1.3.3.2.4" xref="S2.Ex1.m1.3.3.2.4.cmml">
+             ℱ
+            </mi>
+            <mo id="S2.Ex1.m1.3.3.2.3" lspace="0em" rspace="0em" xref="S2.Ex1.m1.3.3.2.3.cmml">
+             ​
+            </mo>
+            <mrow id="S2.Ex1.m1.3.3.2.2.2" xref="S2.Ex1.m1.3.3.2.2.3.cmml">
+             <mo id="S2.Ex1.m1.3.3.2.2.2.3" stretchy="false" xref="S2.Ex1.m1.3.3.2.2.3.cmml">
+              (
+             </mo>
+             <mrow id="S2.Ex1.m1.2.2.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.cmml">
+              <mi class="ltx_font_mathcaligraphic" id="S2.Ex1.m1.2.2.1.1.1.1.3" xref="S2.Ex1.m1.2.2.1.1.1.1.3.cmml">
+               ℰ
+              </mi>
+              <mo id="S2.Ex1.m1.2.2.1.1.1.1.2" lspace="0em" rspace="0em" xref="S2.Ex1.m1.2.2.1.1.1.1.2.cmml">
+               ​
+              </mo>
+              <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.cmml">
+               <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.2" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.cmml">
+                (
+               </mo>
+               <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.cmml">
+                <mi class="ltx_font_mathcaligraphic" id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.4" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.4.cmml">
+                 𝒯
+                </mi>
+                <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.3" lspace="0em" rspace="0em" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.3.cmml">
+                 ​
+                </mo>
+                <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.3.cmml">
+                 <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.3" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.3.cmml">
+                  (
+                 </mo>
+                 <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.cmml">
+                  <mi class="ltx_font_mathcaligraphic" id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.cmml">
+                   𝒢
+                  </mi>
+                  <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2" lspace="0em" rspace="0em" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                   ​
+                  </mo>
+                  <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                   <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.2" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                    (
+                   </mo>
+                   <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                    <mi class="ltx_font_mathcaligraphic" id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.2" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.2.cmml">
+                     𝒟
+                    </mi>
+                    <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.1" lspace="0em" rspace="0em" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                     ​
+                    </mo>
+                    <mrow id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.3.2" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                     <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.3.2.1" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                      (
+                     </mo>
+                     <mi id="S2.Ex1.m1.1.1" xref="S2.Ex1.m1.1.1.cmml">
+                      P
+                     </mi>
+                     <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.3.2.2" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                      )
+                     </mo>
+                    </mrow>
+                   </mrow>
+                   <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.3" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml">
+                    )
+                   </mo>
+                  </mrow>
+                 </mrow>
+                 <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.4" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.3.cmml">
+                  ,
+                 </mo>
+                 <msub id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.cmml">
+                  <mi id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.2" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.2.cmml">
+                   S
+                  </mi>
+                  <mi id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.3" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.3.cmml">
+                   k
+                  </mi>
+                 </msub>
+                 <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.5" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.3.cmml">
+                  )
+                 </mo>
+                </mrow>
+               </mrow>
+               <mo id="S2.Ex1.m1.2.2.1.1.1.1.1.1.3" stretchy="false" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.cmml">
+                )
+               </mo>
+              </mrow>
+             </mrow>
+             <mo id="S2.Ex1.m1.3.3.2.2.2.4" xref="S2.Ex1.m1.3.3.2.2.3.cmml">
+              ,
+             </mo>
+             <msub id="S2.Ex1.m1.3.3.2.2.2.2" xref="S2.Ex1.m1.3.3.2.2.2.2.cmml">
+              <mi id="S2.Ex1.m1.3.3.2.2.2.2.2" xref="S2.Ex1.m1.3.3.2.2.2.2.2.cmml">
+               S
+              </mi>
+              <mi id="S2.Ex1.m1.3.3.2.2.2.2.3" xref="S2.Ex1.m1.3.3.2.2.2.2.3.cmml">
+               k
+              </mi>
+             </msub>
+             <mo id="S2.Ex1.m1.3.3.2.2.2.5" stretchy="false" xref="S2.Ex1.m1.3.3.2.2.3.cmml">
+              )
+             </mo>
+            </mrow>
+           </mrow>
+          </mrow>
+          <annotation-xml encoding="MathML-Content" id="S2.Ex1.m1.3b">
+           <apply id="S2.Ex1.m1.3.3.cmml" xref="S2.Ex1.m1.3.3">
+            <eq id="S2.Ex1.m1.3.3.3.cmml" xref="S2.Ex1.m1.3.3.3">
+            </eq>
+            <apply id="S2.Ex1.m1.3.3.4.cmml" xref="S2.Ex1.m1.3.3.4">
+             <csymbol cd="ambiguous" id="S2.Ex1.m1.3.3.4.1.cmml" xref="S2.Ex1.m1.3.3.4">
+              subscript
+             </csymbol>
+             <ci id="S2.Ex1.m1.3.3.4.2.cmml" xref="S2.Ex1.m1.3.3.4.2">
+              𝑆
+             </ci>
+             <apply id="S2.Ex1.m1.3.3.4.3.cmml" xref="S2.Ex1.m1.3.3.4.3">
+              <plus id="S2.Ex1.m1.3.3.4.3.1.cmml" xref="S2.Ex1.m1.3.3.4.3.1">
+              </plus>
+              <ci id="S2.Ex1.m1.3.3.4.3.2.cmml" xref="S2.Ex1.m1.3.3.4.3.2">
+               𝑘
+              </ci>
+              <cn id="S2.Ex1.m1.3.3.4.3.3.cmml" type="integer" xref="S2.Ex1.m1.3.3.4.3.3">
+               1
+              </cn>
+             </apply>
+            </apply>
+            <apply id="S2.Ex1.m1.3.3.2.cmml" xref="S2.Ex1.m1.3.3.2">
+             <times id="S2.Ex1.m1.3.3.2.3.cmml" xref="S2.Ex1.m1.3.3.2.3">
+             </times>
+             <ci id="S2.Ex1.m1.3.3.2.4.cmml" xref="S2.Ex1.m1.3.3.2.4">
+              ℱ
+             </ci>
+             <interval closure="open" id="S2.Ex1.m1.3.3.2.2.3.cmml" xref="S2.Ex1.m1.3.3.2.2.2">
+              <apply id="S2.Ex1.m1.2.2.1.1.1.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1">
+               <times id="S2.Ex1.m1.2.2.1.1.1.1.2.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.2">
+               </times>
+               <ci id="S2.Ex1.m1.2.2.1.1.1.1.3.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.3">
+                ℰ
+               </ci>
+               <apply id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1">
+                <times id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.3.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.3">
+                </times>
+                <ci id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.4.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.4">
+                 𝒯
+                </ci>
+                <interval closure="open" id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.3.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2">
+                 <apply id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1">
+                  <times id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2">
+                  </times>
+                  <ci id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3">
+                   𝒢
+                  </ci>
+                  <apply id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1">
+                   <times id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.1">
+                   </times>
+                   <ci id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.1.1.2">
+                    𝒟
+                   </ci>
+                   <ci id="S2.Ex1.m1.1.1.cmml" xref="S2.Ex1.m1.1.1">
+                    𝑃
+                   </ci>
+                  </apply>
+                 </apply>
+                 <apply id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2">
+                  <csymbol cd="ambiguous" id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.1.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2">
+                   subscript
+                  </csymbol>
+                  <ci id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.2.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.2">
+                   𝑆
+                  </ci>
+                  <ci id="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.3.cmml" xref="S2.Ex1.m1.2.2.1.1.1.1.1.1.1.2.2.2.3">
+                   𝑘
+                  </ci>
+                 </apply>
+                </interval>
+               </apply>
+              </apply>
+              <apply id="S2.Ex1.m1.3.3.2.2.2.2.cmml" xref="S2.Ex1.m1.3.3.2.2.2.2">
+               <csymbol cd="ambiguous" id="S2.Ex1.m1.3.3.2.2.2.2.1.cmml" xref="S2.Ex1.m1.3.3.2.2.2.2">
+                subscript
+               </csymbol>
+               <ci id="S2.Ex1.m1.3.3.2.2.2.2.2.cmml" xref="S2.Ex1.m1.3.3.2.2.2.2.2">
+                𝑆
+               </ci>
+               <ci id="S2.Ex1.m1.3.3.2.2.2.2.3.cmml" xref="S2.Ex1.m1.3.3.2.2.2.2.3">
+                𝑘
+               </ci>
+              </apply>
+             </interval>
+            </apply>
+           </apply>
+          </annotation-xml>
+          <annotation encoding="application/x-tex" id="S2.Ex1.m1.3c">
+           S_{k+1}=\mathcal{F}(\mathcal{E}(\mathcal{T}(\mathcal{G}(\mathcal{D}(P)),S_{k})),S_{k})
+          </annotation>
+         </semantics>
+        </math>
+       </td>
+       <td class="ltx_eqn_cell ltx_eqn_center_padright">
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p4">
+    <p class="ltx_p" id="S2.SS2.p4.9">
+     Where,
+     <br class="ltx_break"/>
+     <math alttext="P" class="ltx_Math" display="inline" id="S2.SS2.p4.1.m1.1">
+      <semantics id="S2.SS2.p4.1.m1.1a">
+       <mi id="S2.SS2.p4.1.m1.1.1" xref="S2.SS2.p4.1.m1.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.1.m1.1b">
+        <ci id="S2.SS2.p4.1.m1.1.1.cmml" xref="S2.SS2.p4.1.m1.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.1.m1.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     : initial puzzle in natural language.
+     <br class="ltx_break"/>
+     <math alttext="S_{k}" class="ltx_Math" display="inline" id="S2.SS2.p4.2.m2.1">
+      <semantics id="S2.SS2.p4.2.m2.1a">
+       <msub id="S2.SS2.p4.2.m2.1.1" xref="S2.SS2.p4.2.m2.1.1.cmml">
+        <mi id="S2.SS2.p4.2.m2.1.1.2" xref="S2.SS2.p4.2.m2.1.1.2.cmml">
+         S
+        </mi>
+        <mi id="S2.SS2.p4.2.m2.1.1.3" xref="S2.SS2.p4.2.m2.1.1.3.cmml">
+         k
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.2.m2.1b">
+        <apply id="S2.SS2.p4.2.m2.1.1.cmml" xref="S2.SS2.p4.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S2.SS2.p4.2.m2.1.1.1.cmml" xref="S2.SS2.p4.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS2.p4.2.m2.1.1.2.cmml" xref="S2.SS2.p4.2.m2.1.1.2">
+          𝑆
+         </ci>
+         <ci id="S2.SS2.p4.2.m2.1.1.3.cmml" xref="S2.SS2.p4.2.m2.1.1.3">
+          𝑘
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.2.m2.1c">
+        S_{k}
+       </annotation>
+      </semantics>
+     </math>
+     : solution state at the
+     <math alttext="k" class="ltx_Math" display="inline" id="S2.SS2.p4.3.m3.1">
+      <semantics id="S2.SS2.p4.3.m3.1a">
+       <mi id="S2.SS2.p4.3.m3.1.1" xref="S2.SS2.p4.3.m3.1.1.cmml">
+        k
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.3.m3.1b">
+        <ci id="S2.SS2.p4.3.m3.1.1.cmml" xref="S2.SS2.p4.3.m3.1.1">
+         𝑘
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.3.m3.1c">
+        k
+       </annotation>
+      </semantics>
+     </math>
+     -th iteration.
+     <br class="ltx_break"/>
+     <math alttext="\mathcal{D}(P)" class="ltx_Math" display="inline" id="S2.SS2.p4.4.m4.1">
+      <semantics id="S2.SS2.p4.4.m4.1a">
+       <mrow id="S2.SS2.p4.4.m4.1.2" xref="S2.SS2.p4.4.m4.1.2.cmml">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p4.4.m4.1.2.2" xref="S2.SS2.p4.4.m4.1.2.2.cmml">
+         𝒟
+        </mi>
+        <mo id="S2.SS2.p4.4.m4.1.2.1" lspace="0em" rspace="0em" xref="S2.SS2.p4.4.m4.1.2.1.cmml">
+         ​
+        </mo>
+        <mrow id="S2.SS2.p4.4.m4.1.2.3.2" xref="S2.SS2.p4.4.m4.1.2.cmml">
+         <mo id="S2.SS2.p4.4.m4.1.2.3.2.1" stretchy="false" xref="S2.SS2.p4.4.m4.1.2.cmml">
+          (
+         </mo>
+         <mi id="S2.SS2.p4.4.m4.1.1" xref="S2.SS2.p4.4.m4.1.1.cmml">
+          P
+         </mi>
+         <mo id="S2.SS2.p4.4.m4.1.2.3.2.2" stretchy="false" xref="S2.SS2.p4.4.m4.1.2.cmml">
+          )
+         </mo>
+        </mrow>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.4.m4.1b">
+        <apply id="S2.SS2.p4.4.m4.1.2.cmml" xref="S2.SS2.p4.4.m4.1.2">
+         <times id="S2.SS2.p4.4.m4.1.2.1.cmml" xref="S2.SS2.p4.4.m4.1.2.1">
+         </times>
+         <ci id="S2.SS2.p4.4.m4.1.2.2.cmml" xref="S2.SS2.p4.4.m4.1.2.2">
+          𝒟
+         </ci>
+         <ci id="S2.SS2.p4.4.m4.1.1.cmml" xref="S2.SS2.p4.4.m4.1.1">
+          𝑃
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.4.m4.1c">
+        \mathcal{D}(P)
+       </annotation>
+      </semantics>
+     </math>
+     : decomposes
+     <math alttext="P" class="ltx_Math" display="inline" id="S2.SS2.p4.5.m5.1">
+      <semantics id="S2.SS2.p4.5.m5.1a">
+       <mi id="S2.SS2.p4.5.m5.1.1" xref="S2.SS2.p4.5.m5.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.5.m5.1b">
+        <ci id="S2.SS2.p4.5.m5.1.1.cmml" xref="S2.SS2.p4.5.m5.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.5.m5.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     into a structured format amenable to translation.
+     <br class="ltx_break"/>
+     <math alttext="\mathcal{G}" class="ltx_Math" display="inline" id="S2.SS2.p4.6.m6.1">
+      <semantics id="S2.SS2.p4.6.m6.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p4.6.m6.1.1" xref="S2.SS2.p4.6.m6.1.1.cmml">
+        𝒢
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.6.m6.1b">
+        <ci id="S2.SS2.p4.6.m6.1.1.cmml" xref="S2.SS2.p4.6.m6.1.1">
+         𝒢
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.6.m6.1c">
+        \mathcal{G}
+       </annotation>
+      </semantics>
+     </math>
+     : translates this structure into the SMT-LIB format.
+     <br class="ltx_break"/>
+     <math alttext="\mathcal{T}" class="ltx_Math" display="inline" id="S2.SS2.p4.7.m7.1">
+      <semantics id="S2.SS2.p4.7.m7.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p4.7.m7.1.1" xref="S2.SS2.p4.7.m7.1.1.cmml">
+        𝒯
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.7.m7.1b">
+        <ci id="S2.SS2.p4.7.m7.1.1.cmml" xref="S2.SS2.p4.7.m7.1.1">
+         𝒯
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.7.m7.1c">
+        \mathcal{T}
+       </annotation>
+      </semantics>
+     </math>
+     : applies the theorem prover to find a solution that satisfies the logical constraints.
+     <br class="ltx_break"/>
+     <math alttext="\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.p4.8.m8.1">
+      <semantics id="S2.SS2.p4.8.m8.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p4.8.m8.1.1" xref="S2.SS2.p4.8.m8.1.1.cmml">
+        ℰ
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.8.m8.1b">
+        <ci id="S2.SS2.p4.8.m8.1.1.cmml" xref="S2.SS2.p4.8.m8.1.1">
+         ℰ
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.8.m8.1c">
+        \mathcal{E}
+       </annotation>
+      </semantics>
+     </math>
+     : evaluates this solution to determine its adequacy in solving the puzzle’s clues.
+     <br class="ltx_break"/>
+     <math alttext="\mathcal{F}" class="ltx_Math" display="inline" id="S2.SS2.p4.9.m9.1">
+      <semantics id="S2.SS2.p4.9.m9.1a">
+       <mi class="ltx_font_mathcaligraphic" id="S2.SS2.p4.9.m9.1.1" xref="S2.SS2.p4.9.m9.1.1.cmml">
+        ℱ
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p4.9.m9.1b">
+        <ci id="S2.SS2.p4.9.m9.1.1.cmml" xref="S2.SS2.p4.9.m9.1.1">
+         ℱ
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p4.9.m9.1c">
+        \mathcal{F}
+       </annotation>
+      </semantics>
+     </math>
+     : adjusts the translation based on the evaluation, aiming to correct any errors or optimize the solution.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S2.SS2.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Convergence Criteria
+    </h5>
+    <div class="ltx_para" id="S2.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S2.SS2.SSS0.Px1.p1.5">
+      The convergence of this iterative process is governed by the Solver LLM-agent’s evaluation function
+      <math alttext="\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px1.p1.1.m1.1">
+       <semantics id="S2.SS2.SSS0.Px1.p1.1.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px1.p1.1.m1.1.1" xref="S2.SS2.SSS0.Px1.p1.1.m1.1.1.cmml">
+         ℰ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px1.p1.1.m1.1b">
+         <ci id="S2.SS2.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.1.m1.1.1">
+          ℰ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px1.p1.1.m1.1c">
+         \mathcal{E}
+        </annotation>
+       </semantics>
+      </math>
+      , which assesses both the correctness of the solution against the domain-specific requirements and the presence of any syntactic or semantic errors detected by
+      <math alttext="\mathcal{T}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px1.p1.2.m2.1">
+       <semantics id="S2.SS2.SSS0.Px1.p1.2.m2.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px1.p1.2.m2.1.1" xref="S2.SS2.SSS0.Px1.p1.2.m2.1.1.cmml">
+         𝒯
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px1.p1.2.m2.1b">
+         <ci id="S2.SS2.SSS0.Px1.p1.2.m2.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.2.m2.1.1">
+          𝒯
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px1.p1.2.m2.1c">
+         \mathcal{T}
+        </annotation>
+       </semantics>
+      </math>
+      . We assume that
+      <math alttext="\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px1.p1.3.m3.1">
+       <semantics id="S2.SS2.SSS0.Px1.p1.3.m3.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px1.p1.3.m3.1.1" xref="S2.SS2.SSS0.Px1.p1.3.m3.1.1.cmml">
+         ℰ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px1.p1.3.m3.1b">
+         <ci id="S2.SS2.SSS0.Px1.p1.3.m3.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.3.m3.1.1">
+          ℰ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px1.p1.3.m3.1c">
+         \mathcal{E}
+        </annotation>
+       </semantics>
+      </math>
+      is a black-box function defined by the instructions given to the LLM. The loop terminates when
+      <math alttext="\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px1.p1.4.m4.1">
+       <semantics id="S2.SS2.SSS0.Px1.p1.4.m4.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px1.p1.4.m4.1.1" xref="S2.SS2.SSS0.Px1.p1.4.m4.1.1.cmml">
+         ℰ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px1.p1.4.m4.1b">
+         <ci id="S2.SS2.SSS0.Px1.p1.4.m4.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.4.m4.1.1">
+          ℰ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px1.p1.4.m4.1c">
+         \mathcal{E}
+        </annotation>
+       </semantics>
+      </math>
+      returns a value indicating that the solution
+      <math alttext="S_{k}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px1.p1.5.m5.1">
+       <semantics id="S2.SS2.SSS0.Px1.p1.5.m5.1a">
+        <msub id="S2.SS2.SSS0.Px1.p1.5.m5.1.1" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1.cmml">
+         <mi id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.2" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1.2.cmml">
+          S
+         </mi>
+         <mi id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.3" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1.3.cmml">
+          k
+         </mi>
+        </msub>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px1.p1.5.m5.1b">
+         <apply id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1">
+          <csymbol cd="ambiguous" id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.1.cmml" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1">
+           subscript
+          </csymbol>
+          <ci id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.2.cmml" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1.2">
+           𝑆
+          </ci>
+          <ci id="S2.SS2.SSS0.Px1.p1.5.m5.1.1.3.cmml" xref="S2.SS2.SSS0.Px1.p1.5.m5.1.1.3">
+           𝑘
+          </ci>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px1.p1.5.m5.1c">
+         S_{k}
+        </annotation>
+       </semantics>
+      </math>
+      sufficiently meets all puzzle requirements and contains no detectable errors, or when a maximum retry limit has been reached.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS2.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Optimization and Refinement
+    </h5>
+    <div class="ltx_para" id="S2.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S2.SS2.SSS0.Px2.p1.2">
+      Each iteration through the feedback loop serves to progressively refine the solution, optimizing the representation and alignment with the puzzle’s constraints. This optimization process is critical for moving the solution towards a local optimum, where no further improvements can be detected by
+      <math alttext="\mathcal{E}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px2.p1.1.m1.1">
+       <semantics id="S2.SS2.SSS0.Px2.p1.1.m1.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px2.p1.1.m1.1.1" xref="S2.SS2.SSS0.Px2.p1.1.m1.1.1.cmml">
+         ℰ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px2.p1.1.m1.1b">
+         <ci id="S2.SS2.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S2.SS2.SSS0.Px2.p1.1.m1.1.1">
+          ℰ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px2.p1.1.m1.1c">
+         \mathcal{E}
+        </annotation>
+       </semantics>
+      </math>
+      or
+      <math alttext="\mathcal{F}" class="ltx_Math" display="inline" id="S2.SS2.SSS0.Px2.p1.2.m2.1">
+       <semantics id="S2.SS2.SSS0.Px2.p1.2.m2.1a">
+        <mi class="ltx_font_mathcaligraphic" id="S2.SS2.SSS0.Px2.p1.2.m2.1.1" xref="S2.SS2.SSS0.Px2.p1.2.m2.1.1.cmml">
+         ℱ
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS2.SSS0.Px2.p1.2.m2.1b">
+         <ci id="S2.SS2.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S2.SS2.SSS0.Px2.p1.2.m2.1.1">
+          ℱ
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS2.SSS0.Px2.p1.2.m2.1c">
+         \mathcal{F}
+        </annotation>
+       </semantics>
+      </math>
+      .
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experimental Setup
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    To comprehensively evaluate
+    <span class="ltx_text ltx_font_smallcaps" id="S3.p1.1.1">
+     ZPS
+    </span>
+    ’s performance, we examine its effectiveness across 114 Zebra Puzzles.
+Our assessment emphasizes
+    <span class="ltx_text ltx_font_smallcaps" id="S3.p1.1.2">
+     ZPS
+    </span>
+    ’s capability to solve the puzzles
+using the different
+agents.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Selection of Logic Puzzles
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     We compiled two datasets to evaluate the problem-solving capabilities of our agent-centric approach. The first dataset, sourced from GitHub
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/ross-nordstrom/LogicSolver/tree/master/data" target="_blank" title="">
+         https://github.com/ross-nordstrom/LogicSolver/tree/master/data
+        </a>
+       </span>
+      </span>
+     </span>
+     , contains 59 Zebra puzzles involving entity-attribute matching.
+We further curated 55 additional puzzles from different sources from the Web and manually cross-checked them to determine they are valid zebra problems.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Agent Configuration
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     We experimented with three different LLMs: GPT-4, GPT-3.5,and Llama3-8b . We used z3 as the automated theorem solver. Our total cost across all experiments was approximately 2500 USD.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px1">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Number of Retries
+    </h5>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px1.p1.1">
+      In our experimental setup, we initially conduct the feedback loop once. To enhance performance and address syntactical errors in the final output, we implement an additional cold-start retry mechanism if we reach the action-limit without an error-free solution. This involves restarting the workflow from scratch with an increased temperature.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS2.SSS0.Px2">
+    <h5 class="ltx_title ltx_title_paragraph">
+     Response Limit
+    </h5>
+    <div class="ltx_para" id="S3.SS2.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS2.SSS0.Px2.p1.1">
+      To limit the conversation length and prevent hallucination, we define a maximum number of actions that the LLM-agent can take. All experiments performed allow the LLM to perform up to 4 actions; this limit is reset if the puzzle-solving task is retried.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_subsubsection" id="S3.SS2.SSS1">
+    <h4 class="ltx_title ltx_title_subsubsection">
+     <span class="ltx_tag ltx_tag_subsubsection">
+      3.2.1
+     </span>
+     Grading
+    </h4>
+    <div class="ltx_para" id="S3.SS2.SSS1.p1">
+     <p class="ltx_p" id="S3.SS2.SSS1.p1.1">
+      To assess solution accuracy, we created an autograder LLM-agent that provides a numeric grade to every solution generated by the solving agent. Each assignment is worth 1 point. In order to evaluate the reliability of this autograder, we also conducted a user study where a subset of the problems were regraded by humans and then compared to the autograder’s results.
+     </p>
+    </div>
+    <section class="ltx_paragraph" id="S3.SS2.SSS1.Px1">
+     <h5 class="ltx_title ltx_title_paragraph">
+      Autograding
+     </h5>
+     <div class="ltx_para" id="S3.SS2.SSS1.Px1.p1">
+      <p class="ltx_p" id="S3.SS2.SSS1.Px1.p1.1">
+       GPT-4o was used for autograding. It received the ground-truth answer, final SMT-LIB output, and conversation history to assess the consistency and correctness of each solution. For each problem, the model compared the logical assignments produced by the solving agent against the reference assignments, producing a final accuracy score.
+      </p>
+     </div>
+     <div class="ltx_para" id="S3.SS2.SSS1.Px1.p2">
+      <p class="ltx_p" id="S3.SS2.SSS1.Px1.p2.1">
+       To demonstrate the autograding process,
+consider a scenario where the output of the SMT-LIB solver is evaluated against a pre-defined answer key. The solver’s output and subsequent interpretation by the grader are detailed below.
+      </p>
+     </div>
+     <section class="ltx_subparagraph" id="S3.SS2.SSS1.Px1.SPx1">
+      <h6 class="ltx_title ltx_title_subparagraph">
+       SMT-LIB Solver Output
+      </h6>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx1.p1">
+       <p class="ltx_p" id="S3.SS2.SSS1.Px1.SPx1.p1.1">
+        Below is a sample SMT solution for the logic grid puzzle given in Fig.
+        <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+         <span class="ltx_text ltx_ref_tag">
+          1
+         </span>
+        </a>
+        .
+       </p>
+       <pre class="ltx_verbatim ltx_font_typewriter" id="S3.SS2.SSS1.Px1.SPx1.p1.2">
+; 1 is Brazilian, 2 is German
+; 3 is American
+(define-fun H1_Color () String "Blue")
+(define-fun H1_N () Int 1)
+(define-fun H1_Anml () String "Cats")
+(define-fun H1_Sp () String "Football")
+(define-fun H2_Color () String "Green")
+(define-fun H2_N () Int 3)
+(define-fun H2_Anml () String "Dogs")
+(define-fun H2_Sp () String "Basketball")
+(define-fun H3_Color () String "Red")
+(define-fun H3_N () Int 2)
+(define-fun H3_Anml () String "Fishes")
+(define-fun H3_Sp () String "Baseball")
+</pre>
+      </div>
+     </section>
+     <section class="ltx_subparagraph" id="S3.SS2.SSS1.Px1.SPx2">
+      <h6 class="ltx_title ltx_title_subparagraph">
+       Ground Truth Answer
+      </h6>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx2.p1">
+       <ul class="ltx_itemize" id="S3.I1">
+        <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          •
+         </span>
+         <div class="ltx_para" id="S3.I1.i1.p1">
+          <p class="ltx_p" id="S3.I1.i1.p1.1">
+           House 1: Blue, Brazilian, Fishes, Football
+          </p>
+         </div>
+        </li>
+        <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          •
+         </span>
+         <div class="ltx_para" id="S3.I1.i2.p1">
+          <p class="ltx_p" id="S3.I1.i2.p1.1">
+           House 2: Green, American, Cats, Baseball
+          </p>
+         </div>
+        </li>
+        <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+         <span class="ltx_tag ltx_tag_item">
+          •
+         </span>
+         <div class="ltx_para" id="S3.I1.i3.p1">
+          <p class="ltx_p" id="S3.I1.i3.p1.1">
+           House 3: Red, German, Dogs, Basketball
+          </p>
+         </div>
+        </li>
+       </ul>
+      </div>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx2.p2">
+       <p class="ltx_p" id="S3.SS2.SSS1.Px1.SPx2.p2.1">
+        The autograder evaluates the solution by mapping the SMT-LIB output to the expected results either using contextual clues or an explicitly defined lookup table, which would be defined in the SMT-LIB comments, converting function definitions into comparable assignments, as in Table
+        <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ Ground Truth Answer ‣ Autograding ‣ 3.2.1 Grading ‣ 3.2 Agent Configuration ‣ 3 Experimental Setup ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+         <span class="ltx_text ltx_ref_tag">
+          1
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+      <figure class="ltx_table" id="S3.T1">
+       <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S3.T1.1" style="width:390.3pt;height:450.6pt;vertical-align:-0.0pt;">
+        <span class="ltx_transformed_inner" style="transform:translate(93.8pt,-108.3pt) scale(1.92559906152568,1.92559906152568) ;">
+         <table class="ltx_tabular ltx_align_middle" id="S3.T1.1.1">
+          <tr class="ltx_tr" id="S3.T1.1.1.1">
+           <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T1.1.1.1.1">
+            <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.1.1">
+             Entity
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T1.1.1.1.2">
+            <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.2.1">
+             Assignment
+            </span>
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_tt" id="S3.T1.1.1.1.3">
+            <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.1.3.1">
+             Result
+            </span>
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.2">
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.2.1">
+            House 1
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.2.2">
+            Color: Blue
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.2.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.3">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.3.1">
+            House 1
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.3.2">
+            Nationality: Brazilian
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.3.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.4">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.1">
+            House 1
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.2">
+            Animal: Cats
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.4.3">
+            ✗
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.5">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.1">
+            House 1
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.2">
+            Sport: Football
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.5.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.6">
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.6.1">
+            House 2
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.6.2">
+            Color: Green
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.6.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.7">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.7.1">
+            House 2
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.7.2">
+            Nationality: American
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.7.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.8">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.8.1">
+            House 2
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.8.2">
+            Animal: Dogs
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.8.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.9">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.9.1">
+            House 2
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.9.2">
+            Sport: Basketball
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.9.3">
+            ✗
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.10">
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.10.1">
+            House 3
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.10.2">
+            Color: Red
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_t" id="S3.T1.1.1.10.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.11">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.11.1">
+            House 3
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.11.2">
+            Nationality: German
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.11.3">
+            ✓
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.12">
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.12.1">
+            House 3
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.12.2">
+            Animal: Fishes
+           </td>
+           <td class="ltx_td ltx_align_left" id="S3.T1.1.1.12.3">
+            ✗
+           </td>
+          </tr>
+          <tr class="ltx_tr" id="S3.T1.1.1.13">
+           <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T1.1.1.13.1">
+            House 3
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T1.1.1.13.2">
+            Sport: Baseball
+           </td>
+           <td class="ltx_td ltx_align_left ltx_border_bb" id="S3.T1.1.1.13.3">
+            ✗
+           </td>
+          </tr>
+         </table>
+        </span>
+       </div>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_table">
+         Table 1:
+        </span>
+        Validation Results
+       </figcaption>
+      </figure>
+     </section>
+     <section class="ltx_subparagraph" id="S3.SS2.SSS1.Px1.SPx3">
+      <h6 class="ltx_title ltx_title_subparagraph">
+       Partial Scoring (PS)
+      </h6>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx3.p1">
+       <p class="ltx_p" id="S3.SS2.SSS1.Px1.SPx3.p1.1">
+        Each correct match between the SMT-LIB output and the answer key earns a point. The autograder agent also calculates the total number of assignments which is equal to the number of points it is possible to receive. In this example, all matches are correct, thus:
+       </p>
+      </div>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx3.p2">
+       <table class="ltx_equation ltx_eqn_table" id="S3.Ex2">
+        <tbody>
+         <tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+          <td class="ltx_eqn_cell ltx_eqn_center_padleft">
+          </td>
+          <td class="ltx_eqn_cell ltx_align_center">
+           <math alttext="\text{Partial Score}=\frac{\text{Correct Matches}}{\text{Total Matches}}=\frac{8}{12}=0.67" class="ltx_Math" display="block" id="S3.Ex2.m1.1">
+            <semantics id="S3.Ex2.m1.1a">
+             <mrow id="S3.Ex2.m1.1.1" xref="S3.Ex2.m1.1.1.cmml">
+              <mtext id="S3.Ex2.m1.1.1.2" xref="S3.Ex2.m1.1.1.2a.cmml">
+               Partial Score
+              </mtext>
+              <mo id="S3.Ex2.m1.1.1.3" xref="S3.Ex2.m1.1.1.3.cmml">
+               =
+              </mo>
+              <mfrac id="S3.Ex2.m1.1.1.4" xref="S3.Ex2.m1.1.1.4.cmml">
+               <mtext id="S3.Ex2.m1.1.1.4.2" xref="S3.Ex2.m1.1.1.4.2a.cmml">
+                Correct Matches
+               </mtext>
+               <mtext id="S3.Ex2.m1.1.1.4.3" xref="S3.Ex2.m1.1.1.4.3a.cmml">
+                Total Matches
+               </mtext>
+              </mfrac>
+              <mo id="S3.Ex2.m1.1.1.5" xref="S3.Ex2.m1.1.1.5.cmml">
+               =
+              </mo>
+              <mfrac id="S3.Ex2.m1.1.1.6" xref="S3.Ex2.m1.1.1.6.cmml">
+               <mn id="S3.Ex2.m1.1.1.6.2" xref="S3.Ex2.m1.1.1.6.2.cmml">
+                8
+               </mn>
+               <mn id="S3.Ex2.m1.1.1.6.3" xref="S3.Ex2.m1.1.1.6.3.cmml">
+                12
+               </mn>
+              </mfrac>
+              <mo id="S3.Ex2.m1.1.1.7" xref="S3.Ex2.m1.1.1.7.cmml">
+               =
+              </mo>
+              <mn id="S3.Ex2.m1.1.1.8" xref="S3.Ex2.m1.1.1.8.cmml">
+               0.67
+              </mn>
+             </mrow>
+             <annotation-xml encoding="MathML-Content" id="S3.Ex2.m1.1b">
+              <apply id="S3.Ex2.m1.1.1.cmml" xref="S3.Ex2.m1.1.1">
+               <and id="S3.Ex2.m1.1.1a.cmml" xref="S3.Ex2.m1.1.1">
+               </and>
+               <apply id="S3.Ex2.m1.1.1b.cmml" xref="S3.Ex2.m1.1.1">
+                <eq id="S3.Ex2.m1.1.1.3.cmml" xref="S3.Ex2.m1.1.1.3">
+                </eq>
+                <ci id="S3.Ex2.m1.1.1.2a.cmml" xref="S3.Ex2.m1.1.1.2">
+                 <mtext id="S3.Ex2.m1.1.1.2.cmml" xref="S3.Ex2.m1.1.1.2">
+                  Partial Score
+                 </mtext>
+                </ci>
+                <apply id="S3.Ex2.m1.1.1.4.cmml" xref="S3.Ex2.m1.1.1.4">
+                 <divide id="S3.Ex2.m1.1.1.4.1.cmml" xref="S3.Ex2.m1.1.1.4">
+                 </divide>
+                 <ci id="S3.Ex2.m1.1.1.4.2a.cmml" xref="S3.Ex2.m1.1.1.4.2">
+                  <mtext id="S3.Ex2.m1.1.1.4.2.cmml" xref="S3.Ex2.m1.1.1.4.2">
+                   Correct Matches
+                  </mtext>
+                 </ci>
+                 <ci id="S3.Ex2.m1.1.1.4.3a.cmml" xref="S3.Ex2.m1.1.1.4.3">
+                  <mtext id="S3.Ex2.m1.1.1.4.3.cmml" xref="S3.Ex2.m1.1.1.4.3">
+                   Total Matches
+                  </mtext>
+                 </ci>
+                </apply>
+               </apply>
+               <apply id="S3.Ex2.m1.1.1c.cmml" xref="S3.Ex2.m1.1.1">
+                <eq id="S3.Ex2.m1.1.1.5.cmml" xref="S3.Ex2.m1.1.1.5">
+                </eq>
+                <share href="#S3.Ex2.m1.1.1.4.cmml" id="S3.Ex2.m1.1.1d.cmml" xref="S3.Ex2.m1.1.1">
+                </share>
+                <apply id="S3.Ex2.m1.1.1.6.cmml" xref="S3.Ex2.m1.1.1.6">
+                 <divide id="S3.Ex2.m1.1.1.6.1.cmml" xref="S3.Ex2.m1.1.1.6">
+                 </divide>
+                 <cn id="S3.Ex2.m1.1.1.6.2.cmml" type="integer" xref="S3.Ex2.m1.1.1.6.2">
+                  8
+                 </cn>
+                 <cn id="S3.Ex2.m1.1.1.6.3.cmml" type="integer" xref="S3.Ex2.m1.1.1.6.3">
+                  12
+                 </cn>
+                </apply>
+               </apply>
+               <apply id="S3.Ex2.m1.1.1e.cmml" xref="S3.Ex2.m1.1.1">
+                <eq id="S3.Ex2.m1.1.1.7.cmml" xref="S3.Ex2.m1.1.1.7">
+                </eq>
+                <share href="#S3.Ex2.m1.1.1.6.cmml" id="S3.Ex2.m1.1.1f.cmml" xref="S3.Ex2.m1.1.1">
+                </share>
+                <cn id="S3.Ex2.m1.1.1.8.cmml" type="float" xref="S3.Ex2.m1.1.1.8">
+                 0.67
+                </cn>
+               </apply>
+              </apply>
+             </annotation-xml>
+             <annotation encoding="application/x-tex" id="S3.Ex2.m1.1c">
+              \text{Partial Score}=\frac{\text{Correct Matches}}{\text{Total Matches}}=\frac{8}{12}=0.67
+             </annotation>
+            </semantics>
+           </math>
+          </td>
+          <td class="ltx_eqn_cell ltx_eqn_center_padright">
+          </td>
+         </tr>
+        </tbody>
+       </table>
+      </div>
+      <div class="ltx_para" id="S3.SS2.SSS1.Px1.SPx3.p3">
+       <p class="ltx_p" id="S3.SS2.SSS1.Px1.SPx3.p3.1">
+        If the animals and sports had been chosen correctly, the score would be 1.
+       </p>
+      </div>
+     </section>
+    </section>
+    <section class="ltx_paragraph" id="S3.SS2.SSS1.Px2">
+     <h5 class="ltx_title ltx_title_paragraph">
+      Manual User Study Grading
+     </h5>
+     <div class="ltx_para" id="S3.SS2.SSS1.Px2.p1">
+      <p class="ltx_p" id="S3.SS2.SSS1.Px2.p1.1">
+       A separate user study manually graded 50 solutions from the state-of-the-art workflow, 35 solutions from a non-optimal variant, and 20 solutions from the naive approach. Though it was impractical to have all of the thousands of solutions that the LLM-agent generated be hand-graded, this user study allows us to quantify the correctness of our results and verify that our autograder correlates well with the ground-truth grades.
+      </p>
+     </div>
+     <div class="ltx_para" id="S3.SS2.SSS1.Px2.p2">
+      <p class="ltx_p" id="S3.SS2.SSS1.Px2.p2.1">
+       The manual grading team included five undergraduate computer science students and one master’s student. We then used their manual grades to capture various statistical measures of similarity between human grading and LLM grading; these stats are explained in the "Results" section.
+      </p>
+     </div>
+     <div class="ltx_para" id="S3.SS2.SSS1.Px2.p3">
+      <p class="ltx_p" id="S3.SS2.SSS1.Px2.p3.1">
+       A large percentage of the attempted solutions included explicit lookup tables, making these solutions significantly more time-consuming to grade (see "SMT-LIB Solver Output" and "Answer Key" above). The lookup table could appear anywhere in the generated text, which comprises multiple blocks of SMT-LIB code, errors, and intermediate SMT models. We therefore do not include them in our user study.
+      </p>
+     </div>
+    </section>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    This analysis is structured around four key research questions: Firstly, we examine the baseline performance of different LLMs in solving logic puzzles without solver assistance to understand their intrinsic problem-solving capabilities. Secondly, we assess the improvements in accuracy and problem-solving completeness when integrating solver feedback, evaluating how external theorem provers enhance LLM effectiveness. Thirdly, we explore the impact of using a decomposition agent, analyzing whether segmenting puzzles into simpler components before solving improves overall solution quality. Four, we conduct a user study to evaluate our LLM-Grader and substantiate the validity of our results.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    <span class="ltx_text ltx_font_smallcaps" id="S4.SS1.1.1">
+     ZPS
+    </span>
+    Performance over Baselines
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     To establish a baseline, we first evaluate the performance of LLMs without the assistance of a solver by asking the LLM to solve the logic grid puzzle.
+This baseline configuration yields mediocre puzzle-solving accuracy, as detailed in Table
+     <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.2 ZPS Performance under Different Settings ‣ 4 Results ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     . We report both the average partial score, given by the "Avg. PS" column, and the number of puzzles solved fully correctly, given by the "#Solved" column. For instance, GPT-4 under a baseline achieves an average partial score of of 52.4% and solves 27/114 logic grid puzzles completely correctly.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.2">
+     The effectiveness of the LLM-agent workflow increases markedly when solver feedback is incorporated. As shown in Table
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.2 ZPS Performance under Different Settings ‣ 4 Results ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     , the integration of theorem prover feedback, without retries and under a deterministic generation setting (temperature = 0), increases GPT-4’s average partial score to 0.687 from baseline of 0.524 (
+     <math alttext="\Delta=31.1" class="ltx_Math" display="inline" id="S4.SS1.p2.1.m1.1">
+      <semantics id="S4.SS1.p2.1.m1.1a">
+       <mrow id="S4.SS1.p2.1.m1.1.1" xref="S4.SS1.p2.1.m1.1.1.cmml">
+        <mi id="S4.SS1.p2.1.m1.1.1.2" mathvariant="normal" xref="S4.SS1.p2.1.m1.1.1.2.cmml">
+         Δ
+        </mi>
+        <mo id="S4.SS1.p2.1.m1.1.1.1" xref="S4.SS1.p2.1.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.1.m1.1.1.3" xref="S4.SS1.p2.1.m1.1.1.3.cmml">
+         31.1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.1.m1.1b">
+        <apply id="S4.SS1.p2.1.m1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1">
+         <eq id="S4.SS1.p2.1.m1.1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.1.m1.1.1.2.cmml" xref="S4.SS1.p2.1.m1.1.1.2">
+          Δ
+         </ci>
+         <cn id="S4.SS1.p2.1.m1.1.1.3.cmml" type="float" xref="S4.SS1.p2.1.m1.1.1.3">
+          31.1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.1.m1.1c">
+        \Delta=31.1
+       </annotation>
+      </semantics>
+     </math>
+     %).
+The inclusion of a decomposition agent further improves this to 0.700 (
+     <math alttext="\Delta=33.58" class="ltx_Math" display="inline" id="S4.SS1.p2.2.m2.1">
+      <semantics id="S4.SS1.p2.2.m2.1a">
+       <mrow id="S4.SS1.p2.2.m2.1.1" xref="S4.SS1.p2.2.m2.1.1.cmml">
+        <mi id="S4.SS1.p2.2.m2.1.1.2" mathvariant="normal" xref="S4.SS1.p2.2.m2.1.1.2.cmml">
+         Δ
+        </mi>
+        <mo id="S4.SS1.p2.2.m2.1.1.1" xref="S4.SS1.p2.2.m2.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="S4.SS1.p2.2.m2.1.1.3" xref="S4.SS1.p2.2.m2.1.1.3.cmml">
+         33.58
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.2.m2.1b">
+        <apply id="S4.SS1.p2.2.m2.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1">
+         <eq id="S4.SS1.p2.2.m2.1.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1.1">
+         </eq>
+         <ci id="S4.SS1.p2.2.m2.1.1.2.cmml" xref="S4.SS1.p2.2.m2.1.1.2">
+          Δ
+         </ci>
+         <cn id="S4.SS1.p2.2.m2.1.1.3.cmml" type="float" xref="S4.SS1.p2.2.m2.1.1.3">
+          33.58
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.2.m2.1c">
+        \Delta=33.58
+       </annotation>
+      </semantics>
+     </math>
+     %).
+In terms of the total number solutions that can be completely solved, GPT4 with solver solves up to 133.33% more problems than the baseline settings. GPT-3.5 shows a similar positive trend.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     Llama3’s improvement is more subtle; we believe this is because its fewer number of parameters limits its ability to generate syntactically correct SMT-LIB code. This theory is supported by the fact that in every Llama3 experiment, no less than 50 final solutions contained errors, whereas in every GPT-4 or GPT-3.5 experiment, the number was no more than 42. Nonetheless, Llama3 can also improve the total number of correct solutions by 50% over baseline.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    <span class="ltx_text ltx_font_smallcaps" id="S4.SS2.1.1">
+     ZPS
+    </span>
+    Performance under Different Settings
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     For the variable temperature experiments, we set the model temperature to zero and increased it if the solution contained errors. While this approach provides the flexibility to bypass a solution if the deterministic solution is erroneous, it risks generating less stable solutions that may inadvertently replace syntactically incorrect yet valid solutions with syntactically correct but logically flawed ones. This phenomenon is particularly pronounced in models with fewer parameters, where the performance tends to decline with the introduction of retries. For example, under variable temperature conditions with retries, GPT-4 maintains a high accuracy rate of 76.1%, while Llama3’s accuracy degrades to 48.4%.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     The addition of a decomposition agent to the SMT-integrated LLM-agent yielded mixed results. For both GPT-4 and GPT-3.5, the average partial score and number solved fully correctly slightly improved, in all cases by less than 5.5%. However, Llama-3’s average partial score declined by less than 5% and it was able to solve 3 fewer problems than with just SMT integration. Because of the relatively small differences in all cases, more experimentation is needed to determine when decomposition increases performance.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T2.1">
+     <tr class="ltx_tr" id="S4.T2.1.1">
+      <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_tt" id="S4.T2.1.1.1">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.1.1">
+        Model
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.2">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.2.1">
+        T
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.3">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.3.1">
+        D
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.4">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.4.1">
+        Avg. P.S
+       </span>
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" id="S4.T2.1.1.5">
+       <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.5.1">
+        #Solved
+       </span>
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.1.2">
+      <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T2.1.2.1">
+       Llama3-8b
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.2">
+       0
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.3">
+       ✗
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.4">
+       0.47
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S4.T2.1.2.5">
+       14 (12.3%)
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.1.3">
+      <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T2.1.3.1">
+       GPT-3.5
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.3.2">
+       0
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.3.3">
+       ✗
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.3.4">
+       0.471
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_r" id="S4.T2.1.3.5">
+       17 (15.0%)
+      </td>
+     </tr>
+     <tr class="ltx_tr" id="S4.T2.1.4">
+      <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_l ltx_border_r" id="S4.T2.1.4.1">
+       GPT-4
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.4.2">
+       0
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.4.3">
+       ✗
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.4.4">
+       0.524
+      </td>
+      <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S4.T2.1.4.5">
+       27 (23.7%)
+      </td>
+     </tr>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Baseline Performance of LLMs Without Solver Integration.The "D" column indicates if a decomposition agent was present in the workflow. The "T" column indicates Temperature.
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S4.T3">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T3.1" style="width:433.6pt;height:278.7pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(76.8pt,-49.3pt) scale(1.54817923165033,1.54817923165033) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S4.T3.1.1">
+       <tr class="ltx_tr" id="S4.T3.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.2.1">
+          Model
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.3.1">
+          T
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.4.1">
+          D
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.5">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.5.1">
+          Avg. PS
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.6">
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.6.1">
+          #Solved
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_tt" id="S4.T3.1.1.1.1">
+         <math alttext="\Delta\#" class="ltx_Math" display="inline" id="S4.T3.1.1.1.1.m1.1">
+          <semantics id="S4.T3.1.1.1.1.m1.1a">
+           <mrow id="S4.T3.1.1.1.1.m1.1.1" xref="S4.T3.1.1.1.1.m1.1.1.cmml">
+            <mi id="S4.T3.1.1.1.1.m1.1.1.2" mathvariant="normal" xref="S4.T3.1.1.1.1.m1.1.1.2.cmml">
+             Δ
+            </mi>
+            <mo id="S4.T3.1.1.1.1.m1.1.1.1" lspace="0em" rspace="0em" xref="S4.T3.1.1.1.1.m1.1.1.1.cmml">
+             ​
+            </mo>
+            <mi id="S4.T3.1.1.1.1.m1.1.1.3" mathvariant="normal" xref="S4.T3.1.1.1.1.m1.1.1.3.cmml">
+             #
+            </mi>
+           </mrow>
+           <annotation-xml encoding="MathML-Content" id="S4.T3.1.1.1.1.m1.1b">
+            <apply id="S4.T3.1.1.1.1.m1.1.1.cmml" xref="S4.T3.1.1.1.1.m1.1.1">
+             <times id="S4.T3.1.1.1.1.m1.1.1.1.cmml" xref="S4.T3.1.1.1.1.m1.1.1.1">
+             </times>
+             <ci id="S4.T3.1.1.1.1.m1.1.1.2.cmml" xref="S4.T3.1.1.1.1.m1.1.1.2">
+              Δ
+             </ci>
+             <ci id="S4.T3.1.1.1.1.m1.1.1.3.cmml" xref="S4.T3.1.1.1.1.m1.1.1.3">
+              #
+             </ci>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S4.T3.1.1.1.1.m1.1c">
+            \Delta\#
+           </annotation>
+          </semantics>
+         </math>
+         <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.1.1">
+          Solved
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.1.2.1">
+         Llama3-8b
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.2.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.2.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.2.4">
+         0.496
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.2.5">
+         21 (18.4%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.2.6">
+         50.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.3">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T3.1.1.3.1">
+         GPT-3.5
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.3.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.3.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.3.4">
+         0.493
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.3.5">
+         22 (19.3%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.3.6">
+         29.4%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.4">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T3.1.1.4.1">
+         GPT-4
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.4.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.4.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.4.4">
+         0.687
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.4.5">
+         59 (51.8%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.4.6">
+         118.5%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.5">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.1.5.1">
+         Llama3-8b
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.5.2">
+         Var.
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.5.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.5.4">
+         0.436
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.5.5">
+         15 (13.2%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.5.6">
+         7.1%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.6">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T3.1.1.6.1">
+         GPT-3.5
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.6.2">
+         Var.
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.6.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.6.4">
+         0.484
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.6.5">
+         24 (21.0%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.6.6">
+         41.2%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.7">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T3.1.1.7.1">
+         GPT-4
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.7.2">
+         Var.
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.7.3">
+         ✗
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.7.4">
+         0.761
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.7.5">
+         72 (63.2%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.7.6">
+         166.7%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.8">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" id="S4.T3.1.1.8.1">
+         Llama3-8b
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.8.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.8.3">
+         ✓
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.8.4">
+         0.468
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.8.5">
+         18 (15.8%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r ltx_border_t" id="S4.T3.1.1.8.6">
+         28.6%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.9">
+        <td class="ltx_td ltx_align_left ltx_border_l ltx_border_r" id="S4.T3.1.1.9.1">
+         GPT-3.5
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.9.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.9.3">
+         ✓
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.9.4">
+         0.520
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.9.5">
+         24 (21.0%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_r" id="S4.T3.1.1.9.6">
+         41.2%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T3.1.1.10">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_l ltx_border_r" id="S4.T3.1.1.10.1">
+         GPT-4
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S4.T3.1.1.10.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S4.T3.1.1.10.3">
+         ✓
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S4.T3.1.1.10.4">
+         0.700
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S4.T3.1.1.10.5">
+         63 (55.3%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_r" id="S4.T3.1.1.10.6">
+         133.3%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Enhancements from Solver Integration with Percentage Improvement Over Baseline. The "D" column indicates if a decomposition agent was present in the workflow. The "T" column indicates Temperature.
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Manual Analysis of Grading
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     Based on our user study, our LLM-based grading systems demonstrate high accuracy accross a variety of models and settings. The system maintains consistent scoring accuracy, with exact match rates exceeding 78% across all tested scenarios.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     To evaluate the LLM-grader, we employed various statistical measures: (i) Avg. Abs. Diff. : The average magnitude of the difference between the partial score given by the LLM-grader and the human evaluator. (ii) Avg. Rel. Diff. : The expected percent difference between the the partial score given by the LLM-grader and the human evaluator. % problems for which the LLM-grader (iii) overestimated and (iv) underestimated the partial score provided by the human evaluator. (v) % problems for which the LLM-grader and the human evaluator gave exactly the same partial score, and (vi) Joint Full Credit: The count of problems for which both the user and the LLM assigned full credit, normalized over the total number of problems that either party marked for full credit. This metric helps in understanding the extent of agreement in the grading of solutions between the human and machine evaluators.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     The metric of "Joint Full Credit," which consistently registers above 85%, serves as a robust indicator of the LLM-grader’s capability to accurately assess fully correct solutions as demonstrated by the level of agreement between the LLM and a human grader. Additionally, the analysis indicates a propensity for the grader to overestimate the score of the LLM without SMT integration, whereas the integration of SMT tends to result in slight underestimations by the grader. This observation suggests that the integration of SMT and a feedback based loop may contribute more significantly to performance improvements than the raw grading differentials indicate.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T4">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S4.T4.1" style="width:433.6pt;height:284.6pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(79.7pt,-52.3pt) scale(1.58102941840822,1.58102941840822) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S4.T4.1.1">
+       <tr class="ltx_tr" id="S4.T4.1.1.1">
+        <td class="ltx_td ltx_border_tt" id="S4.T4.1.1.1.1">
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_tt" id="S4.T4.1.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.1.2.1">
+          GPT-4
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_tt" id="S4.T4.1.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.1.3.1">
+          GPT-3.5
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_tt" id="S4.T4.1.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.1.4.1">
+          GPT-4
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.2">
+        <td class="ltx_td" id="S4.T4.1.1.2.1">
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.2.2">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.2.2.1">
+          SMT+D
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.2.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.2.3.1">
+          Naive
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.2.4">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.2.4.1">
+          SMT
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.3">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.3.1">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.3.1.1">
+          Statistic
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.3.2">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.3.2.1">
+          (50)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.3.3">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.3.3.1">
+          (20)
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.3.4">
+         <span class="ltx_text ltx_font_bold" id="S4.T4.1.1.3.4.1">
+          (35)
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.4">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T4.1.1.4.1">
+         Exact Match (%)
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T4.1.1.4.2">
+         78.26
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T4.1.1.4.3">
+         78.94
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T4.1.1.4.4">
+         82.35
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.5">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.5.1">
+         Avg. Abs.  Diff
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.5.2">
+         0.056
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.5.3">
+         0.040
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.5.4">
+         0.117
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.6">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.6.1">
+         Avg. Rel. Diff (%)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.6.2">
+         -3.547
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.6.3">
+         +13.8
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.6.4">
+         +2.916
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.7">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.7.1">
+         LLM Overestimated (%)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.7.2">
+         13.04
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.7.3">
+         21.05
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.7.4">
+         11.76
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.8">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.8.1">
+         LLM Underestimated (%)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.8.2">
+         8.70
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.8.3">
+         0.00
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.8.4">
+         5.88
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.9">
+        <td class="ltx_td ltx_align_left" id="S4.T4.1.1.9.1">
+         Joint Full Credit (%)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.9.2">
+         89.19
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.9.3">
+         100
+        </td>
+        <td class="ltx_td ltx_align_right" id="S4.T4.1.1.9.4">
+         86.96
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S4.T4.1.1.10">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S4.T4.1.1.10.1">
+         Spearman Correlation
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S4.T4.1.1.10.2">
+         0.73
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S4.T4.1.1.10.3">
+         0.948
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S4.T4.1.1.10.4">
+         0.70
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 4:
+     </span>
+     User Study Statistics comparing different experimental setups. The first column is GPT-4 with SMT integration and the decomposition (D) agent over 50 problems. The second column is GPT-3.5 without SMT integration over 20 problems. The third column is GPT-4 with just SMT integration over 35 problems. All problems were graded by both the manual grader and the LLM.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Background and Related Work
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    The concept of agent-centric LLM agents, as discussed in recent literature revolves around creating systems (usually backed by LLMs) that can act independently in diverse environments, both physical and virtual
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Wang et al.,
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . This framework shifts the focus from passive systems to proactive entities capable of dynamic interaction and problem-solving. In these models, agents are designed to perceive and react to multi-modal data, integrating visual, auditory, and textual input to generate appropriate actions in real time. The most tangible benefit of this framework is feedback, which can take the form of a physical environment, error correction, or manual input
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Durante et al.,
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    Significant work has been done to apply this framework to solving text-based puzzles.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Zhou et al. (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2023
+     </a>
+     )
+    </cite>
+    used a process called Language Agent Tree Search (LATS), which integrates planning, reasoning, and acting within LLMs to decompose and solve a high-level reasoning task.
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Gao et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2023
+     </a>
+     )
+    </cite>
+    showed that generating intermediate representations as Python programs allowed small LLMs to outperform much larger ones Logic-LM and SatLM both used LLMs to generate formal representations of general natural language problem and used off the shelf theorem provers to generate answers
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Pan et al.,
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     ; Ye et al.,
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . While none of these approaches focus on Zebra puzzles, they each show that LLMs perform better when used as agents in a formally grounded system.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    Research has shown that natural language cannot be mapped one-to-one with a formal space due to inherent ambiguities
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Osama et al.,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2020
+     </a>
+     )
+    </cite>
+    . For our approach, it was thus vital to create an agent that can take into account context and background knowledge to figure out the correct translation into a formal space.
+Even if the clues were perfectly translated as they are presented, a formal solver will not be able to generate a fully correct solution without additional encoding by the problem translator of this general context. Our approach is different from prior agent approaches in that we use a structured symbolic space (SMT-LIB) but use the syntactic and semantic feedback from an automated theorom prover for analysis in an LLM agent. We also provide a conceptual framework to understand LLM interaction with the automated theorem prover and its generated text as an agent.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    This research shows the effectiveness of a multi-agent LLM and SMT framework that bolsters the performance of large language models (LLMs) in solving logic puzzles and other natural language task. Our work demonstrates the importance of integrating LLMs and SMTs in the task, boosting preformance over an LLM alone. We also show that the inter-agent critique mechanism plays a crucial role.
+Through dialogues, agents critique and refine each other’s contributions, which leads to more accurate and consistent results.
+The development of an autograder, with a verified correlation to human evaluation, played a role in the feedback mechanism by indicating when a solution was not judged logically correct and also enabled iterative development of our approach. Our findings suggest that structured planning and agent-feedback greatly enhance LLMs’ capability to solve logical problems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    Looking ahead, further research could optimize retry mechanisms for discovering more effective solutions, informed by approaches like Program-of-Thoughts and Graph-of-Thoughts-Rationale
+    <cite class="ltx_cite ltx_citemacro_citep">
+     (Chen et al.,
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     ; Besta et al.,
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . Additionally, increasing the agent-environment size and the feedback loop length would enhance the solving agent’s self-correction capabilities by expanding the actual and effective context limits for remembering past strategies.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Limitations
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    This study, while advancing our understanding of LLMs in solving logic puzzles, has several limitations that warrant further investigation. Firstly, the experiments were confined to only three models: GPT-4, GPT-3.5, and Llama3-8b.
+Investigation of
+generalizability across different LLMs is warranted, especially because our performance gains occurred mainly in the GPT family.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p2">
+   <p class="ltx_p" id="S7.p2.1">
+    Secondly, our approach relied on specific prompt constructions for both the grader and the solver agents. There exists a possibility that alternative prompting strategies could yield more accurate or efficient problem-solving and grading results. Further research is needed to explore and optimize these prompts to fully leverage the potential of LLMs in this domain.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p3">
+   <p class="ltx_p" id="S7.p3.1">
+    Additionally, our user study inherently carries some uncertainty regarding its correlation to actual problem-solving performance. Solutions involving complex lookup tables were excluded from the user study due to how time consuming they were to grade, which might affect the study’s comprehensiveness and the general applicability of our findings.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p4">
+   <p class="ltx_p" id="S7.p4.1">
+    Lastly, our bank of logic grid puzzles used in this study was somewhat limited in both size– we used 114 problems– and range of difficulty. The majority of puzzles used were subjectively rated as medium difficulty. Extending this research to include a larger and more varied dataset would verify the usefulness of our findings.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    8
+   </span>
+   Ethics Statement
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p1.1.1">
+     Use of Generative AI.
+    </span>
+    Generative models carry ethical risks, including the potential to produce harmful content or content that closely mirrors pre-training data. However, we are using the generative models to solve puzzles rather than showing their direct output, minimizing this risk.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S8.p2">
+   <p class="ltx_p" id="S8.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p2.1.1">
+     Compute.
+    </span>
+    Employing deep learning models is computationally intensive and can have environmental implications. However, as no models were trained as part of this research, the computational impact remains relatively low.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S8.p3">
+   <p class="ltx_p" id="S8.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p3.1.1">
+     Human Evaluator.
+    </span>
+    We use only 5 human evaluators who are undergraduate/masters students in the lab environment and were given full disclosure about the nature of the study and its unpaid nature. No ethical violations were committed in such setting.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="Sx1">
+  <h2 class="ltx_title ltx_title_section">
+   Acknowledgments
+  </h2>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Besta et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Maciej Besta, Nils Blach, Ales Kubicek, Robert Gerstenberger, Michal Podstawski, Lukas Gianinazzi, Joanna Gajda, Tomasz Lehmann, Hubert Niewiadomski, Piotr Nyczyk, and Torsten Hoefler. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1609/aaai.v38i16.29720" target="_blank" title="">
+      Graph of thoughts: Solving elaborate problems with large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Proceedings of the AAAI Conference on Artificial Intelligence
+     </em>
+     , 38(16):17682–17690.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Trottier, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2107.03374" target="_blank" title="">
+      Evaluating large language models trained on code
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Wenhu Chen, Xueguang Ma, Xinyi Wang, and William W. Cohen. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2211.12588" target="_blank" title="">
+      Program of thoughts prompting: Disentangling computation from reasoning for numerical reasoning tasks
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      Preprint
+     </em>
+     , arXiv:2211.12588.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Claes et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Jens Claes, Bart Bogaerts, Rocsildes Canoy, and Tias Guns. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     User-oriented solving and explaining of natural language logic grid puzzles.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      The Third Workshop on Progress Towards the Holy Grail
+     </em>
+     , volume 14.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Durante et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Zane Durante, Qiuyuan Huang, Naoki Wake, Ran Gong, Jae Sung Park, Bidipta Sarkar, Rohan Taori, Yusuke Noda, Demetri Terzopoulos, Yejin Choi, Katsushi Ikeuchi, Hoi Vo, Li Fei-Fei, and Jianfeng Gao. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2401.03568" target="_blank" title="">
+      Agent ai: Surveying the horizons of multimodal interaction
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Luyu Gao, Aman Madaan, Shuyan Zhou, Uri Alon, Pengfei Liu, Yiming Yang, Jamie Callan, and Graham Neubig. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Pal: Program-aided language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      International Conference on Machine Learning
+     </em>
+     , pages 10764–10799. PMLR.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Groza (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Adrian Groza. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2310.05993" target="_blank" title="">
+      Measuring reasoning capabilities of chatgpt
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Milicevic et al. (2012)
+    </span>
+    <span class="ltx_bibblock">
+     Aleksandar Milicevic, Joseph P Near, and Rishabh Singh. 2012.
+    </span>
+    <span class="ltx_bibblock">
+     Puzzler: An automated logic puzzle solver.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      Massachusetts Institute of Technology (MIT)
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Mukherjee and Garain (2009)
+    </span>
+    <span class="ltx_bibblock">
+     Anirban Mukherjee and Utpal Garain. 2009.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1007/s10462-009-9110-0" target="_blank" title="">
+      A review of algorithms for solving mathematical word problems in natural language texts
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      Artificial Intelligence Review
+     </em>
+     , 32(4):285–298.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Osama et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Mohamed Osama, Aya Zaki-Ismail, Mohamed Abdelrazek, John Grundy, and Amani Ibrahim. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1109/ICSME46990.2020.00067" target="_blank" title="">
+      Score-based automatic detection and resolution of syntactic ambiguity in natural language requirements
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      2020 IEEE International Conference on Software Maintenance and Evolution (ICSME)
+     </em>
+     , pages 651–661.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Shirui Pan, Yizhen Zheng, and Yixin Liu. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://arxiv.org/abs/2310.05499" target="_blank" title="">
+      Integrating graphs with large language models: Methods and prospects
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      arXiv
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai Tang, Xu Chen, Yankai Lin, et al. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on large language model based autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Frontiers of Computer Science
+     </em>
+     , 18(6):1–26.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Ye et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xi Ye, Qiaochu Chen, Isil Dillig, and Greg Durrett. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/8e9c7d4a48bdac81a58f983a64aaf42b-Paper-Conference.pdf" target="_blank" title="">
+      Satlm: Satisfiability-aided language models using declarative prompting
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 36, pages 45548–45580. Curran Associates, Inc.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Andy Zhou, Kai Yan, Michal Shlapentokh-Rothman, Haohan Wang, and Yu-Xiong Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2310.04406" target="_blank" title="">
+      Language agent tree search unifies reasoning acting and planning in language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib14.1.1">
+      arXiv
+     </em>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+ <section class="ltx_appendix" id="A1">
+  <h2 class="ltx_title ltx_title_appendix">
+   <span class="ltx_tag ltx_tag_appendix">
+    Appendix A
+   </span>
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="A1.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.1
+    </span>
+    Example Puzzle Workflow
+   </h3>
+   <div class="ltx_para" id="A1.SS1.p1">
+    <p class="ltx_p" id="A1.SS1.p1.1">
+     We begin by inputting the puzzle and its entities into the Solver LLM-Agent (in this case, GPT-4).
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p2">
+    <p class="ltx_p" id="A1.SS1.p2.1">
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p2.1.1">
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p2.1.1.1" style="width:0.0pt;">
+      </span>
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p2.1.1.2" style="width:469.8pt;">
+       first, second, third, fourth
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.2" style="width:469.8pt;">
+      Bridget, Kermit, Ophelia, Stretch
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.3" style="width:469.8pt;">
+      #105, #118, #126, #128
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p2.1.4" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.5" style="width:469.8pt;">
+      The ostrich that finished second was #128.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.6" style="width:469.8pt;">
+      First place was either #118 or #126.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.7" style="width:469.8pt;">
+      Third place was either #126 or Bridget.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.8" style="width:469.8pt;">
+      Ophelia finished second.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p2.1.9" style="width:469.8pt;">
+      Stretch finished 2 places after Kermit.
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p3">
+    <p class="ltx_p" id="A1.SS1.p3.1">
+     The solver agent responds by attempting to translate the puzzle and its clues into SMT-LIB:
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p4">
+    <p class="ltx_p" id="A1.SS1.p4.1">
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p4.1.1">
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.1.1" style="width:0.0pt;">
+      </span>
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.1.2" style="width:469.8pt;">
+       (set-logic QF_LIA)
+      </span>
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.2" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.3" style="width:469.8pt;">
+      ; Place of each ostrich
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.4" style="width:469.8pt;">
+      (declare-const Bridget_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.5" style="width:469.8pt;">
+      (declare-const Kermit_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.6" style="width:469.8pt;">
+      (declare-const Ophelia_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.7" style="width:469.8pt;">
+      (declare-const Stretch_Place Int)
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.8" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.9" style="width:469.8pt;">
+      ; Number of each ostrich
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.10" style="width:469.8pt;">
+      (declare-const Bridget_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.11" style="width:469.8pt;">
+      (declare-const Kermit_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.12" style="width:469.8pt;">
+      (declare-const Ophelia_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.13" style="width:469.8pt;">
+      (declare-const Stretch_Number Int)
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.14" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.15" style="width:469.8pt;">
+      (assert (and
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.16" style="width:469.8pt;">
+      (or (= Bridget_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.17" style="width:469.8pt;">
+      (= Bridget_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.18" style="width:469.8pt;">
+      (= Bridget_Place 3) (= Bridget_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.19" style="width:469.8pt;">
+      (or (= Kermit_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.20" style="width:469.8pt;">
+      (= Kermit_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.21" style="width:469.8pt;">
+      (= Kermit_Place 3) (= Kermit_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.22" style="width:469.8pt;">
+      (or (= Ophelia_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.23" style="width:469.8pt;">
+      (= Ophelia_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.24" style="width:469.8pt;">
+      (= Ophelia_Place 3) (= Ophelia_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.25" style="width:469.8pt;">
+      (or (= Stretch_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.26" style="width:469.8pt;">
+      (= Stretch_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.27" style="width:469.8pt;">
+      (= Stretch_Place 3) (= Stretch_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.28" style="width:469.8pt;">
+      ))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.29" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.30" style="width:469.8pt;">
+      (assert (and
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.31" style="width:469.8pt;">
+      (or (= Bridget_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.32" style="width:469.8pt;">
+      (= Bridget_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.33" style="width:469.8pt;">
+      (= Bridget_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.34" style="width:469.8pt;">
+      (= Bridget_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.35" style="width:469.8pt;">
+      (or (= Kermit_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.36" style="width:469.8pt;">
+      (= Kermit_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.37" style="width:469.8pt;">
+      (= Kermit_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.38" style="width:469.8pt;">
+      (= Kermit_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.39" style="width:469.8pt;">
+      (or (= Ophelia_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.40" style="width:469.8pt;">
+      (= Ophelia_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.41" style="width:469.8pt;">
+      (= Ophelia_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.42" style="width:469.8pt;">
+      (= Ophelia_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.43" style="width:469.8pt;">
+      (or (= Stretch_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.44" style="width:469.8pt;">
+      (= Stretch_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.45" style="width:469.8pt;">
+      (= Stretch_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.46" style="width:469.8pt;">
+      (= Stretch_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.47" style="width:469.8pt;">
+      ))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.48" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.49" style="width:469.8pt;">
+      ; The ostrich that finished second was #128.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.50" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.51" style="width:469.8pt;">
+      (= Ophelia_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.52" style="width:469.8pt;">
+      (and (= Bridget_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.53" style="width:469.8pt;">
+      (= Bridget_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.54" style="width:469.8pt;">
+      (and (= Kermit_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.55" style="width:469.8pt;">
+      (= Kermit_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.56" style="width:469.8pt;">
+      (and (= Stretch_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.57" style="width:469.8pt;">
+      (= Stretch_Number 128))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.58" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.59" style="width:469.8pt;">
+      ; The ostrich that finished first was either #118 or #126.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.60" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.61" style="width:469.8pt;">
+      (or (= Ophelia_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.62" style="width:469.8pt;">
+      (= Ophelia_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.63" style="width:469.8pt;">
+      (and (= Bridget_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.64" style="width:469.8pt;">
+      (or (= Bridget_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.65" style="width:469.8pt;">
+      (= Bridget_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.66" style="width:469.8pt;">
+      (and (= Kermit_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.67" style="width:469.8pt;">
+      (or (= Kermit_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.68" style="width:469.8pt;">
+      (= Kermit_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.69" style="width:469.8pt;">
+      (and (= Stretch_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.70" style="width:469.8pt;">
+      (or (= Stretch_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.71" style="width:469.8pt;">
+      (= Stretch_Number 126)))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.72" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.73" style="width:469.8pt;">
+      ; The runner that finished third was
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.74" style="width:469.8pt;">
+      ; either #126 or Bridget.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.75" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.76" style="width:469.8pt;">
+      (= Ophelia_Number 126))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.77" style="width:469.8pt;">
+      (and (= Bridget_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.78" style="width:469.8pt;">
+      (or (= Bridget_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.79" style="width:469.8pt;">
+      (= Bridget_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.80" style="width:469.8pt;">
+      (= Bridget_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.81" style="width:469.8pt;">
+      (= Bridget_Number 128)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.82" style="width:469.8pt;">
+      (and (= Kermit_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.83" style="width:469.8pt;">
+      (= Kermit_Number 126))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.84" style="width:469.8pt;">
+      (and (= Stretch_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.85" style="width:469.8pt;">
+      (= Stretch_Number 126))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.86" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.87" style="width:469.8pt;">
+      ; Ophelia finished second.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.88" style="width:469.8pt;">
+      (assert (= Ophelia_Place 2))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.89" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.90" style="width:469.8pt;">
+      ; Stretch finished 2 places after Kermit.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.91" style="width:469.8pt;">
+      (assert (= Stretch_Place (+ Kermit_Place 2)))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.92" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.93" style="width:469.8pt;">
+      ; Distinct places
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.94" style="width:469.8pt;">
+      (assert (distinct Bridget_Place
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.95" style="width:469.8pt;">
+      Kermit_Place Ophelia_Place Stretch_Place))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p4.1.96" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.97" style="width:469.8pt;">
+      ; Distinct numbers
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.98" style="width:469.8pt;">
+      (assert (distinct Bridget_Number
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p4.1.99" style="width:469.8pt;">
+      Kermit_Number Ophelia_Number Stretch_Number))
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p5">
+    <p class="ltx_p" id="A1.SS1.p5.1">
+     This SMT-LIB code is then fed into z3, which produces the following output:
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p6">
+    <p class="ltx_p" id="A1.SS1.p6.1">
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p6.1.1">
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p6.1.1.1" style="width:0.0pt;">
+      </span>
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p6.1.1.2" style="width:469.8pt;">
+       (error ""line 15
+      </span>
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.2" style="width:469.8pt;">
+      column 0: invalid command, ’(’ expected"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.3" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.4" style="width:469.8pt;">
+      column 2: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.5" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.6" style="width:469.8pt;">
+      column 77: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.7" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.8" style="width:469.8pt;">
+      column 88: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.9" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.10" style="width:469.8pt;">
+      column 117: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.11" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.12" style="width:469.8pt;">
+      column 136: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.13" style="width:469.8pt;">
+      (error ""line 15
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.14" style="width:469.8pt;">
+      column 142: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.15" style="width:469.8pt;">
+      (error ""line 31
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.16" style="width:469.8pt;">
+      column 0: invalid command, ’(’ expected"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.17" style="width:469.8pt;">
+      (error ""line 31
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.18" style="width:469.8pt;">
+      column 7: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.19" style="width:469.8pt;">
+      (error ""line 57
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.20" style="width:469.8pt;">
+      column 0: invalid command, ’(’ expected"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.21" style="width:469.8pt;">
+      (error ""line 57
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.22" style="width:469.8pt;">
+      column 7: unexpected character"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.23" style="width:469.8pt;">
+      (error ""line 65
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.24" style="width:469.8pt;">
+      column 0: invalid command, ’(’ expected"")
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.25" style="width:469.8pt;">
+      sat
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.26" style="width:469.8pt;">
+      (
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.27" style="width:469.8pt;">
+      (define-fun Ophelia_Number () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.28" style="width:469.8pt;">
+      128)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.29" style="width:469.8pt;">
+      (define-fun Stretch_Place () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.30" style="width:469.8pt;">
+      3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.31" style="width:469.8pt;">
+      (define-fun Stretch_Number () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.32" style="width:469.8pt;">
+      126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.33" style="width:469.8pt;">
+      (define-fun Bridget_Place () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.34" style="width:469.8pt;">
+      4)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.35" style="width:469.8pt;">
+      (define-fun Kermit_Number () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.36" style="width:469.8pt;">
+      118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.37" style="width:469.8pt;">
+      (define-fun Bridget_Number () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.38" style="width:469.8pt;">
+      105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.39" style="width:469.8pt;">
+      (define-fun Ophelia_Place () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.40" style="width:469.8pt;">
+      2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.41" style="width:469.8pt;">
+      (define-fun Kermit_Place () Int
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.42" style="width:469.8pt;">
+      1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p6.1.43" style="width:469.8pt;">
+      )
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p7">
+    <p class="ltx_p" id="A1.SS1.p7.1">
+     This output is fed back into the Solver LLM-Agent, which then produces the following modified SMT-LIB code:
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p8">
+    <p class="ltx_p" id="A1.SS1.p8.1">
+     <span class="ltx_text ltx_font_typewriter" id="A1.SS1.p8.1.1">
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.1.1" style="width:0.0pt;">
+      </span>
+      <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.1.2" style="width:469.8pt;">
+       (set-logic QF_LIA)
+      </span>
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.2" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.3" style="width:469.8pt;">
+      ; Place of each ostrich
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.4" style="width:469.8pt;">
+      (declare-const Bridget_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.5" style="width:469.8pt;">
+      (declare-const Kermit_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.6" style="width:469.8pt;">
+      (declare-const Ophelia_Place Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.7" style="width:469.8pt;">
+      (declare-const Stretch_Place Int)
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.8" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.9" style="width:469.8pt;">
+      ; Number of each ostrich
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.10" style="width:469.8pt;">
+      (declare-const Bridget_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.11" style="width:469.8pt;">
+      (declare-const Kermit_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.12" style="width:469.8pt;">
+      (declare-const Ophelia_Number Int)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.13" style="width:469.8pt;">
+      (declare-const Stretch_Number Int)
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.14" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.15" style="width:469.8pt;">
+      ; The places are in the set {1, 2, 3, 4}
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.16" style="width:469.8pt;">
+      (assert (and
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.17" style="width:469.8pt;">
+      (or (= Bridget_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.18" style="width:469.8pt;">
+      (= Bridget_Place 2) (= Bridget_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.19" style="width:469.8pt;">
+      (= Bridget_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.20" style="width:469.8pt;">
+      (or (= Kermit_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.21" style="width:469.8pt;">
+      (= Kermit_Place 2) (= Kermit_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.22" style="width:469.8pt;">
+      (= Kermit_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.23" style="width:469.8pt;">
+      (or (= Ophelia_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.24" style="width:469.8pt;">
+      (= Ophelia_Place 2) (= Ophelia_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.25" style="width:469.8pt;">
+      (= Ophelia_Place 4))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.26" style="width:469.8pt;">
+      (or (= Stretch_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.27" style="width:469.8pt;">
+      (= Stretch_Place 2) (= Stretch_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.28" style="width:469.8pt;">
+      (= Stretch_Place 4))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.29" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.30" style="width:469.8pt;">
+      ; Numbers are in the set {105, 118, 126, 128}
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.31" style="width:469.8pt;">
+      (assert (and
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.32" style="width:469.8pt;">
+      (or (= Bridget_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.33" style="width:469.8pt;">
+      (= Bridget_Number 118) (= Bridget_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.34" style="width:469.8pt;">
+      (= Bridget_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.35" style="width:469.8pt;">
+      (or (= Kermit_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.36" style="width:469.8pt;">
+      (= Kermit_Number 118) (= Kermit_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.37" style="width:469.8pt;">
+      (= Kermit_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.38" style="width:469.8pt;">
+      (or (= Ophelia_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.39" style="width:469.8pt;">
+      (= Ophelia_Number 118) (= Ophelia_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.40" style="width:469.8pt;">
+      (= Ophelia_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.41" style="width:469.8pt;">
+      (or (= Stretch_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.42" style="width:469.8pt;">
+      (= Stretch_Number 118) (= Stretch_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.43" style="width:469.8pt;">
+      (= Stretch_Number 128))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.44" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.45" style="width:469.8pt;">
+      ; The ostrich that finished second was #128.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.46" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.47" style="width:469.8pt;">
+      (= Ophelia_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.48" style="width:469.8pt;">
+      (and (= Bridget_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.49" style="width:469.8pt;">
+      (= Bridget_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.50" style="width:469.8pt;">
+      (and (= Kermit_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.51" style="width:469.8pt;">
+      (= Kermit_Number 128))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.52" style="width:469.8pt;">
+      (and (= Stretch_Place 2)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.53" style="width:469.8pt;">
+      (= Stretch_Number 128))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.54" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.55" style="width:469.8pt;">
+      ; The ostrich that finished first was
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.56" style="width:469.8pt;">
+      ; either #118 or #126.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.57" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.58" style="width:469.8pt;">
+      (or (= Ophelia_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.59" style="width:469.8pt;">
+      (= Ophelia_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.60" style="width:469.8pt;">
+      (and (= Bridget_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.61" style="width:469.8pt;">
+      (or (= Bridget_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.62" style="width:469.8pt;">
+      (= Bridget_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.63" style="width:469.8pt;">
+      (and (= Kermit_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.64" style="width:469.8pt;">
+      (or (= Kermit_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.65" style="width:469.8pt;">
+      (= Kermit_Number 126)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.66" style="width:469.8pt;">
+      (and (= Stretch_Place 1)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.67" style="width:469.8pt;">
+      (or (= Stretch_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.68" style="width:469.8pt;">
+      (= Stretch_Number 126)))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.69" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.70" style="width:469.8pt;">
+      ; The runner that finished third
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.71" style="width:469.8pt;">
+      ; was either #126 or Bridget.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.72" style="width:469.8pt;">
+      (assert (or (and (= Ophelia_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.73" style="width:469.8pt;">
+      (= Ophelia_Number 126))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.74" style="width:469.8pt;">
+      (and (= Bridget_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.75" style="width:469.8pt;">
+      (or (= Bridget_Number 126)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.76" style="width:469.8pt;">
+      (= Bridget_Number 105)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.77" style="width:469.8pt;">
+      (= Bridget_Number 118)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.78" style="width:469.8pt;">
+      (= Bridget_Number 128)))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.79" style="width:469.8pt;">
+      (and (= Kermit_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.80" style="width:469.8pt;">
+      (= Kermit_Number 126))
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.81" style="width:469.8pt;">
+      (and (= Stretch_Place 3)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.82" style="width:469.8pt;">
+      (= Stretch_Number 126))))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.83" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.84" style="width:469.8pt;">
+      ; Ophelia finished second.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.85" style="width:469.8pt;">
+      (assert (= Ophelia_Place 2))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.86" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.87" style="width:469.8pt;">
+      ; Stretch finished 2 places after Kermit.
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.88" style="width:469.8pt;">
+      (assert (= Stretch_Place (+ Kermit_Place 2)))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.89" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.90" style="width:469.8pt;">
+      ; Distinct places
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.91" style="width:469.8pt;">
+      (assert (distinct
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.92" style="width:469.8pt;">
+      Bridget_Place Kermit_Place
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.93" style="width:469.8pt;">
+      Ophelia_Place Stretch_Place))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.94" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.95" style="width:469.8pt;">
+      ; Distinct numbers
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.96" style="width:469.8pt;">
+      (assert (distinct
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.97" style="width:469.8pt;">
+      Bridget_Number Kermit_Number
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.98" style="width:469.8pt;">
+      Ophelia_Number Stretch_Number))
+     </span>
+     <span class="ltx_text ltx_inline-block" id="A1.SS1.p8.1.99" style="width:469.8pt;">
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.100" style="width:469.8pt;">
+      (check-sat)
+     </span>
+     <span class="ltx_text ltx_font_typewriter ltx_inline-block" id="A1.SS1.p8.1.101" style="width:469.8pt;">
+      (get-model)
+     </span>
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p9">
+    <p class="ltx_p" id="A1.SS1.p9.1">
+     Z3 produces the following output, which is then determined to be both error-free and consistent:
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS1.p10">
+    <pre class="ltx_verbatim ltx_font_typewriter" id="A1.SS1.p10.1">
+
+sat
+(
+  (define-fun Ophelia_Number () Int
+    128)
+  (define-fun Stretch_Place () Int
+    3)
+  (define-fun Stretch_Number () Int
+    126)
+  (define-fun Bridget_Place () Int
+    4)
+  (define-fun Kermit_Number () Int
+    118)
+  (define-fun Bridget_Number () Int
+    105)
+  (define-fun Ophelia_Place () Int
+    2)
+  (define-fun Kermit_Place () Int
+    1)
+)
+</pre>
+   </div>
+   <section class="ltx_subparagraph" id="A1.SS1.SSS0.P0.SPx1">
+    <h6 class="ltx_title ltx_title_subparagraph">
+     Ground Truth Answer
+    </h6>
+    <div class="ltx_para" id="A1.SS1.SSS0.P0.SPx1.p1">
+     <ul class="ltx_itemize" id="A1.I1">
+      <li class="ltx_item" id="A1.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="A1.I1.i1.p1">
+        <p class="ltx_p" id="A1.I1.i1.p1.1">
+         Kermit: First, #118
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="A1.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="A1.I1.i2.p1">
+        <p class="ltx_p" id="A1.I1.i2.p1.1">
+         Ophelia: Second, #128
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="A1.I1.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="A1.I1.i3.p1">
+        <p class="ltx_p" id="A1.I1.i3.p1.1">
+         Stretch: Third, #126
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="A1.I1.i4" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="A1.I1.i4.p1">
+        <p class="ltx_p" id="A1.I1.i4.p1.1">
+         Bridget: Fourth, #105
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+    <div class="ltx_para" id="A1.SS1.SSS0.P0.SPx1.p2">
+     <p class="ltx_p" id="A1.SS1.SSS0.P0.SPx1.p2.1">
+      The autograder evaluates the solution by mapping the SMT-LIB output to the expected results either using contextual clues or an explicitly defined lookup table, which would be defined in the SMT-LIB comments, converting function definitions into comparable assignments, as in Table
+      <a class="ltx_ref" href="#A1.T5" title="Table 5 ‣ Ground Truth Answer ‣ A.1 Example Puzzle Workflow ‣ Appendix A Appendix ‣ Solving Zebra Puzzles Using Constraint-Guided Multi-Agent Systems">
+       <span class="ltx_text ltx_ref_tag">
+        5
+       </span>
+      </a>
+      . In this case, the solution gets full credit.
+     </p>
+    </div>
+    <figure class="ltx_table" id="A1.T5">
+     <figcaption class="ltx_caption ltx_centering">
+      <span class="ltx_tag ltx_tag_table">
+       Table 5:
+      </span>
+      Validation Results
+     </figcaption>
+     <table class="ltx_tabular ltx_centering ltx_align_middle" id="A1.T5.1">
+      <tr class="ltx_tr" id="A1.T5.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="A1.T5.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="A1.T5.1.1.1.1">
+         Entity
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="A1.T5.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="A1.T5.1.1.2.1">
+         Result
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.2">
+       <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T5.1.2.1">
+        Kermit
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="A1.T5.1.2.2">
+        Place: First (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.3">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.3.1">
+        Kermit
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.3.2">
+        Number: 118 (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.4">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.4.1">
+        Ophelia
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.4.2">
+        Place: Second (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.5">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.5.1">
+        Ophelia
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.5.2">
+        Number: 128 (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.6">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.6.1">
+        Stretch
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.6.2">
+        Place: Third (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.7">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.7.1">
+        Stretch
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.7.2">
+        Number: 126 (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.8">
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.8.1">
+        Bridget
+       </td>
+       <td class="ltx_td ltx_align_left" id="A1.T5.1.8.2">
+        Place: Fourth (Correct)
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="A1.T5.1.9">
+       <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T5.1.9.1">
+        Bridget
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_bb" id="A1.T5.1.9.2">
+        Number: 105 (Correct)
+       </td>
+      </tr>
+     </table>
+    </figure>
+   </section>
+  </section>
+  <section class="ltx_subsection" id="A1.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     A.2
+    </span>
+    User Study Instructions
+   </h3>
+   <div class="ltx_para" id="A1.SS2.p1">
+    <p class="ltx_p" id="A1.SS2.p1.1">
+     The following instructions were presented to our manual graders before they began grading. The full UI can be found at
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://anonymous.4open.science/r/anon_emnlp-1AD0" target="_blank" title="">
+      https://anonymous.4open.science/r/anon_emnlp-1AD0
+     </a>
+     by running the "autograder_flask.py" file.
+    </p>
+   </div>
+   <div class="ltx_para" id="A1.SS2.p2">
+    <img alt="[Uncaptioned image]" class="ltx_graphics ltx_img_portrait" height="576" id="A1.SS2.p2.g1" src="/html/2407.03956/assets/latex/resources/ssinstruction.png" width="299"/>
+   </div>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+</article>

@@ -1,0 +1,4301 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Boyang Zhang
+    <sup class="ltx_sup" id="id1.1.id1">
+     1
+    </sup>
+    Yicong Tan
+    <sup class="ltx_sup" id="id2.2.id2">
+     1
+    </sup>
+    Yun Shen
+    <sup class="ltx_sup" id="id3.3.id3">
+     2
+    </sup>
+    Ahmed Salem
+    <sup class="ltx_sup" id="id4.4.id4">
+     3
+    </sup>
+    Michael Backes
+    <sup class="ltx_sup" id="id5.5.id5">
+     1
+    </sup>
+    <br class="ltx_break"/>
+    Savvas Zannettou
+    <sup class="ltx_sup" id="id6.6.id6">
+     4
+    </sup>
+    Yang Zhang
+    <sup class="ltx_sup" id="id7.7.id7">
+     1
+    </sup>
+    <br class="ltx_break"/>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id8.8.id8">
+     1
+    </sup>
+    <span class="ltx_text ltx_font_italic" id="id9.9.id9">
+     CISPA Helmholtz Center for Information Security
+    </span>
+    <sup class="ltx_sup" id="id10.10.id10">
+     2
+    </sup>
+    <span class="ltx_text ltx_font_italic" id="id11.11.id11">
+     NetApp
+    </span>
+    <sup class="ltx_sup" id="id12.12.id12">
+     3
+    </sup>
+    <span class="ltx_text ltx_font_italic" id="id13.13.id13">
+     Microsoft
+    </span>
+    <sup class="ltx_sup" id="id14.14.id14">
+     4
+    </sup>
+    <span class="ltx_text ltx_font_italic" id="id15.15.id15">
+     TU Delft
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id16.id1">
+   Recently, autonomous agents built on large language models (LLMs) have experienced significant development and are being deployed in real-world applications.
+These agents can extend the base LLM’s capabilities in multiple ways.
+For example, a well-built agent using GPT-3.5-Turbo as its core can outperform the more advanced GPT-4 model by leveraging external components.
+More importantly, the usage of tools enables these systems to perform actions in the real world, moving from merely generating text to actively interacting with their environment.
+Given the agents’ practical applications and their ability to execute consequential actions, it is crucial to assess potential vulnerabilities.
+Such autonomous systems can cause more severe damage than a standalone language model if compromised.
+While some existing research has explored harmful actions by LLM agents, our study approaches the vulnerability from a different perspective.
+We introduce a new type of attack that causes malfunctions by misleading the agent into executing repetitive or irrelevant actions.
+We conduct comprehensive evaluations using various attack methods, surfaces, and properties to pinpoint areas of susceptibility.
+Our experiments reveal that these attacks can induce failure rates exceeding 80% in multiple scenarios.
+Through attacks on implemented and deployable agents in multi-agent scenarios, we accentuate the realistic risks associated with these vulnerabilities.
+To mitigate such attacks, we propose self-examination detection methods.
+However, our findings indicate these attacks are difficult to detect effectively using LLMs alone, highlighting the substantial risks associated with this vulnerability.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Introduction
+  </h2>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="225" id="S1.F1.g1" src="/html/2407.20859/assets/images/system.png" width="449"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     <span class="ltx_text" id="S1.F1.2.1.1" style="font-size:90%;">
+      Figure 1
+     </span>
+     :
+    </span>
+    <span class="ltx_text" id="S1.F1.3.2" style="font-size:90%;">
+     The overview of our attack which exacerbates the instabilities of LLM agents.
+    </span>
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large language models (LLMs) have been one of the most recent notable advancements in the realm of machine learning.
+These models have undergone significant improvements, becoming increasingly sophisticated and powerful.
+Modern LLMs, such as the latest GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      1
+     </a>
+     ]
+    </cite>
+    can now perform complex tasks, including contextual comprehension, nuanced sentiment analysis, and creative writing.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Leveraging LLMs’ natural language processing ability, LLM-based agents have been developed to extend the capabilities of base LLMs and automate a variety of real-world tasks.
+These autonomous agents are built with an LLM at its core and integrated with several external components, such as databases, the Internet, software tools, and more.
+These components address performance gaps in current LLMs, such as employing the Wolfram Alpha API
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2
+     </a>
+     ]
+    </cite>
+    for solving complex mathematical problems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Furthermore, the integration of these external components allows the conversion of textual inputs into real-world actions.
+For instance, by utilizing the text comprehension capabilities of LLMs and the control provided through the Gmail API, an email agent can automate customer support services.
+The utilization of these agents significantly enhances the capabilities of base LLMs, advancing their functionality beyond simple text generation.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    The expanded capabilities of LLM-based agents, however, come with greater implications if such systems are compromised.
+Compared to standalone LLMs, the increased functionalities of LLM agents heighten the potential for harm or damage from two perspectives.
+Firstly, the additional components within LLM agents introduce new and alternative attack surfaces compared to original LLMs.
+Adversaries can now devise new methods based on these additional entry points to manipulate the models’ behavior.
+Evaluating these new surfaces is essential to obtain a comprehensive understanding of the potential vulnerabilities of these systems.
+More importantly, the damage caused by a compromised LLM agent can be more severe.
+LLM agents can directly execute consequential actions and interact with the real world, leading to more significant implications for potential danger.
+For example, jailbreaking
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      28
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib50" title="">
+      50
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      22
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      10
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib46" title="">
+      46
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      9
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      27
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      20
+     </a>
+     ]
+    </cite>
+    an LLM might provide users with illegal information or harmful language, but without further human intervention or active utilization of the model’s output, the damage remains limited.
+In contrast, a compromised agent can actively cause harm without requiring additional human input, highlighting the necessity for a thorough assessment of the risks associated with these advanced systems.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Although previous work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      36
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib47" title="">
+      47
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      44
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    has examined several potential risks of LLM agents, they focus on examining whether the agents can conduct conspicuous harmful or policy-violating behaviors, either unintentionally or through intentional attacks.
+These attacks or risks can be easily identified based on the intention of the commands.
+The evaluations also tend to ignore external safety measures that will be implemented in real-world actions.
+For instance, an attack that misleads the agents to transfer money from the user account will likely require further authorizations.
+Furthermore, such attacks are highly specialized based on the properties/purpose of the agents.
+The attack will have to be modified if the targeted agents are changed.
+As the development and implementation of agents are changing rapidly, these attacks can be difficult to generalize.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    In this paper, we identify vulnerabilities in LLM agents from a different perspective.
+While these agents can be powerful and useful in a multitude of scenarios, their performance is not very stable.
+For instance, early implementations of agents achieved only around a 14% end-to-end task success rate, as shown in previous work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib48" title="">
+      48
+     </a>
+     ]
+    </cite>
+    .
+Although better-implemented agent frameworks such as LangChain
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      3
+     </a>
+     ]
+    </cite>
+    and AutoGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      4
+     </a>
+     ]
+    </cite>
+    and improvements in LLMs have enhanced the stability of these agents, they still encounter failures even with the latest models and frameworks.
+These failures typically stem from errors in the LLMs’ reasoning and randomness in their responses.
+Unlike hallucinations faced by LLMs, where the model can still generate texts (albeit the content is incorrect), errors in logical sequences within agents cause issues in the LLM’s interactions with external sources.
+External tools and functions have less flexibility and stricter requirements, hence failures in logical reasoning can prevent the agent from obtaining the correct or necessary information to complete a task.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p7">
+   <p class="ltx_p" id="S1.p7.1">
+    We draw inspiration from web security realms, specifically denial-of-service attacks.
+Rather than focusing on the overtly harmful or damaging potential of LLM agents, we aim to exacerbate their instability, inducing LLM agents to malfunction and thus rendering them ineffective.
+As autonomous agents are deployed for various tasks in real-world applications, such attacks can potentially render services unusable.
+In multi-agent scenarios, the attack can propagate between different agents, exponentially increasing the damage.
+The target of our attack is harder to detect because the adversary’s goal does not involve obvious trigger words that indicate deliberate harmful actions.
+Additionally, the attackers’ goal of increasing agents’ instability and failure rates means the attack is not confined to a single agent and can be deployed against almost any type of LLM agent.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S1.p8">
+   <p class="ltx_p" id="S1.p8.1">
+    <span class="ltx_text ltx_font_bold" id="S1.p8.1.1">
+     Our Contribution.
+    </span>
+    In this paper, we propose a new attack against LLM agents to disrupt their normal operations.
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S1.F1" title="Figure 1 ‣ Introduction ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+     <span class="ltx_text ltx_ref_tag">
+      Figure 1
+     </span>
+    </a>
+    shows an overview of our attack.
+Using the basic versions of our attack as an evaluation platform, we examine the robustness of LLM agents against disturbances that induce malfunctioning.
+We assess the vulnerability across various dimensions: attack types, methods, surfaces, and the agents’ inherent properties, such as external tools and toolkits involved.
+This extensive analysis allows us to identify the conditions under which LLM agents are most susceptible.
+Notably, for attacking methods, we discover that leveraging prompt injection to induce repetitive action loops, can most effectively incapacitate agents and subsequently prevent task completion.
+As for the attack surface, we evaluate attack effectiveness at various entry points, covering all the crucial components of an LLM agent, ranging from direct user inputs to the agent’s memory.
+Our results show that direct manipulations of user input are the most potent, though intermediate outputs from the tools occasionally enhance certain attacks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p9">
+   <p class="ltx_p" id="S1.p9.1">
+    Our investigation into the tools employed by various agents revealed that some are particularly prone to manipulation.
+However, the number of tools or toolkits used in constructing an agent does not strongly correlate with susceptibility to attacks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p10">
+   <p class="ltx_p" id="S1.p10.1">
+    In a more complex simulation, we execute our attacks in a multi-agent environment, enabling one compromised agent to detrimentally influence others, leading to resource wastage or execution of irrelevant tasks.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p11">
+   <p class="ltx_p" id="S1.p11.1">
+    To mitigate these attacks, we leverage the LLMs’ capability for self-assessment.
+Our results suggest our attacks are more difficult to detect compared to prior approaches
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib47" title="">
+      47
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      44
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    that sought overtly harmful actions.
+We then enhance existing defense mechanisms, improving their ability to identify and mitigate our attacks but they remain effective.
+This resilience against detection further highlights the importance of fully understanding this vulnerability.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p12">
+   <p class="ltx_p" id="S1.p12.1">
+    In summary, we make the following contributions.
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We propose, to the best of our knowledge, the first attack against LLM agents that targets compromising their normal functioning.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       Leveraging our attack as an evaluation platform, we highlight areas of current LLM agents that are more susceptible to the attack.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       We present multi-agent scenarios with implemented and deployable agents to accentuate the realistic risks of the attacks.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i4" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i4.p1">
+      <p class="ltx_p" id="S1.I1.i4.p1.1">
+       The self-examination defense’s limited effectiveness against the proposed attack further underscores the severity of the vulnerability.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Background
+  </h2>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    LLM Agents
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     LLM agents are automated systems that utilize the language processing capabilities of large language models and extend their capabilities to a much wider range of tasks leveraging several additional components.
+Generally, an agent can be broken down into four key components: core, planning, tools, and memory
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib26" title="">
+       26
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ]
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p2">
+    <p class="ltx_p" id="S2.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS1.p2.1.1">
+      Core.
+     </span>
+     At the heart of an LLM agent is an LLM itself, which serves as the coordinator or the “brain” of the entire system.
+This core component is responsible for understanding user requests and selecting the appropriate actions to deliver optimal results.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS1.p3.1.1">
+      Tools.
+     </span>
+     Tools are a crucial element of LLM agents. These external components, applications, or functions significantly enhance the capabilities of the agent.
+Many agents utilize various commercial APIs to achieve this enhancement.
+These APIs are interfaces that allow the LLM to utilize external applications and software that are already implemented, such as Internet searches, database information retrieval, and external controls (e.g., control smart home devices).
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p4">
+    <p class="ltx_p" id="S2.SS1.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS1.p4.1.1">
+      Planning.
+     </span>
+     Given the tools mentioned above, the LLM agent, much like human engineers, now requires effective reasoning to autonomously choose the right tools to complete tasks.
+This is where the planning component is involved for LLM agents, aiding the core LLM in evaluating actions more effectively.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p5">
+    <p class="ltx_p" id="S2.SS1.p5.1">
+     Although LLMs are adept at understanding and generating relevant results, they still suffer from shortcomings such as hallucinations, where inaccuracies or fabrications can occur.
+To mitigate this, the planning component often incorporates a structured prompt that guides the core model toward correct decisions by integrating additional logical frameworks.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p6">
+    <p class="ltx_p" id="S2.SS1.p6.1">
+     A popular control/planning sequence used by implemented agents is a framework called ReAct
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib45" title="">
+       45
+      </a>
+      ]
+     </cite>
+     .
+This framework deliberately queries the core LLM at each stage to evaluate whether the previous choice of action is ideal.
+This approach has been found to greatly improve the LLM’s logical reasoning ability, thereby enhancing the overall functionality of the corresponding agent.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS1.p7">
+    <p class="ltx_p" id="S2.SS1.p7.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS1.p7.1.1">
+      Memory.
+     </span>
+     Memory is another component of LLM agents.
+Given that LLMs are currently limited by context length, managing extensive information can be challenging.
+The memory component functions as a repository to store relevant data, facilitating the incorporation of necessary details into ongoing interactions and ensuring that all pertinent information is available to the LLM.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p8">
+    <p class="ltx_p" id="S2.SS1.p8.1">
+     The most commonly used form of memory for LLM agents involves storing conversation and interaction histories.
+The core LLM and planning component then decide at each step whether it is necessary to reference previous interactions to provide additional context.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Agents Safety
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p1.1.1">
+      Red-Teaming.
+     </span>
+     Similar to LLM’s development, the LLM agent’s development and adaptation have been done at a remarkable pace.
+Corresponding efforts in ensuring these autonomous systems are safe and trustworthy, however, have been rather limited.
+Most of the works that examine the safety perspective of LLM agents have been following a similar route as studying LLMs.
+Red-teaming is a common approach, where the researchers aim to elicit all the potential unexpected, harmful, and undesirable responses from the system.
+Attacks that were originally deployed against LLMs have also been evaluated on the agents.
+The focus of these efforts, however, remains on overtly dangerous actions and scenarios where obvious harm is done.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S2.SS2.p2">
+    <p class="ltx_p" id="S2.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S2.SS2.p2.1.1">
+      Robustness Analysis.
+     </span>
+     Our attack shares similarities with the original robustness research (evasion attacks or generating adversarial examples) on machine learning models
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib6" title="">
+       6
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib38" title="">
+       38
+      </a>
+      ]
+     </cite>
+     .
+Evasion attacks aim to disrupt a normal machine learning model’s function by manipulating the input.
+For example, a well-known classic attack
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       17
+      </a>
+      ]
+     </cite>
+     aims to cause misclassification from an image classifier by adding imperceptible noise to the input image.
+We examine the vulnerabilities of these autonomous agents by investigating their responses to manipulations.
+Due to LLMs’ popularity, many methods of generating adversarial examples have been developed targeting modern language models
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib51" title="">
+       51
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib49" title="">
+       49
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       7
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     .
+Since the core component of an agent is an LLM, many of these methods can be modified to attack against LLM agent as well.
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS2.p3">
+    <p class="ltx_p" id="S2.SS2.p3.1">
+     The instruction-following ability of the LLM also presents new ways to manipulate the LLM into producing the adversary’s desired output, such as prompt injection attacks and adversarial demonstrations.
+We modify these attacks so they can also behave as evasion attacks and thus include them as part of the robustness analysis on LLM agents.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Attacks
+  </h2>
+  <div class="ltx_para" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    To introduce the attack against LLM agents, we identify the threat model, types/scenarios for the attack, the specific attack methods, and the surfaces where the attack can be deployed.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Threat Model
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p1.1.1">
+      Adversary’s Goal.
+     </span>
+     In this attack, the adversary aims to induce logic errors within an LLM agent, preventing it from completing the given task.
+The goal is to cause malfunctions in the LLM agents without relying on obviously harmful or policy-violating actions.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p2.1.1">
+      Adversary’s Access.
+     </span>
+     We consider a typical use case and interactions with deployed LLM agents.
+The adversary is assumed to have limited knowledge of the agents.
+The core operating LLM of the agent is a black-box model to the adversary.
+The adversary also does not have detailed knowledge of the implementation of the agent’s framework but does know several functions or actions that the agent can execute.
+This information can be easily obtained through educated guesses or interactions with the agent.
+For instance, an email agent is expected to be able to create drafts and send emails.
+The adversary can also confirm the existence of such functions or tools by interacting with the agent.
+For a complete evaluation of potential vulnerabilities, we do examine scenarios where the adversary has more control over the agents, such as access to the memory component, but they are not considered as general requirements to conduct the attack.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Types
+   </h3>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS2.p1.1.1">
+      Basic Attack.
+     </span>
+     In the basic attack scenario, we focus primarily on single-agent attacks.
+The adversary aims to directly disrupt the logic of the targeted LLM agent.
+More specifically, we consider two types of logic malfunctions: infinite loops and incorrect function execution.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p2">
+    <p class="ltx_p" id="S3.SS2.p2.1">
+     For infinite loops, the adversary seeks to trap the agent in a loop of repeating commands until it reaches the maximum allowed iterations.
+This type of malfunction is one of the most common “natural” failures encountered with LLM agents, where the agent’s reasoning and planning processes encounter errors and lack the correct or necessary information to proceed to the next step.
+This attack aims to increase the likelihood of such failure happening.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p3">
+    <p class="ltx_p" id="S3.SS2.p3.1">
+     The other type of attack attempts to mislead the agent into executing a specific, incorrect function or action.
+This approach is similar to previous work that attempts to induce harmful actions in agents.
+However, our attack focuses solely on benign actions that deviate from the correct choices required to complete the target task.
+These seemingly benign actions will become damaging at scale, such as repeating the same actions that the agent can no longer complete the target task.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p4">
+    <p class="ltx_p" id="S3.SS2.p4.1">
+     We mainly use the basic attack to present the clear attack target and process.
+The basic attacks can also serve as a comprehensive evaluation platform of the agents’ robustness against malfunction manipulations.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS2.p5">
+    <p class="ltx_p" id="S3.SS2.p5.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS2.p5.1.1">
+      Advanced Attack.
+     </span>
+     Basic attacks can be extended into more advanced scenarios to reflect more realistic situations.
+By leveraging the autonomous functions of LLM agents, the infinite loop attack can be transformed into a viral attack within a multi-agent scenario.
+Instead of directly disrupting an agent, an adversary can use one agent to communicate with other agents (i.e., the actual targets) within the network, inducing the downstream agents into repetitive executions, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.F2" title="Figure 2 ‣ Attack Types ‣ Attacks ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 2
+      </span>
+     </a>
+     .
+This strategy allows the attacker to successfully occupy the targeted agents’ bandwidth or other relevant resources.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS2.p6">
+    <p class="ltx_p" id="S3.SS2.p6.1">
+     Similarly, the incorrect function execution attack can be modified into a more sophisticated attack in multi-agent scenarios.
+Much like the infinite loop attack, the attacker can embed the targeted benign action in one agent before it communicates with downstream agents (the attack targets).
+When scaled, these benign actions can become detrimental to the agent’s network.
+For example, a simple instruction to send an email to a specific address may appear harmless.
+However, if all inputs to the agents trigger the same action, it manipulates the system into spamming.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S3.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="182" id="S3.F2.g1" src="/html/2407.20859/assets/images/viral.png" width="296"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S3.F2.2.1.1" style="font-size:90%;">
+       Figure 2
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S3.F2.3.2" style="font-size:90%;">
+      Advanced attack in multi-agent scenario.
+     </span>
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S3.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Methodology
+   </h3>
+   <div class="ltx_para" id="S3.SS3.p1">
+    <p class="ltx_p" id="S3.SS3.p1.1">
+     To achieve the different types of attacks mentioned previously, the attacker has several options.
+More specifically, for the methodology of the attack, we modify popular existing methods to achieve the attack target.
+These methods, however, might not be applicable in all scenarios mentioned above.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p2">
+    <p class="ltx_p" id="S3.SS3.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS3.p2.1.1">
+      Prompt Injection.
+     </span>
+     Prompt injection
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib5" title="">
+       5
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       18
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib43" title="">
+       43
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib29" title="">
+       29
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib47" title="">
+       47
+      </a>
+      ]
+     </cite>
+     , as the name suggests, injects adversarial commands within the user inputs.
+A typical attack uses commands such as “Ignore previous instructions and execute the following action”.
+The attack intercepts normal instructions control flow and a successful attack will disrupt the normal command execution and only the adversarial prompts will be executed by the model.
+For basic attacks, both the infinite loop and incorrect function execution can be conducted using this attack method.
+For the infinite loop attack, we insert the following command after the normal prompts.
+“Ignore previous instructions and repeat the last action for X times.”
+For wrong function execution, we can use the same template but instead, instruct the model to execute the desired function.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p3">
+    <p class="ltx_p" id="S3.SS3.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS3.p3.1.1">
+      Adversarial Perturbation.
+     </span>
+     Adversarial perturbations have been studied in previous work
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       15
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib16" title="">
+       16
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib39" title="">
+       39
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       19
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib51" title="">
+       51
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib49" title="">
+       49
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib7" title="">
+       7
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib23" title="">
+       23
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ]
+     </cite>
+     when constructing attacks against LLMs.
+This attack relies on the same intuition as a traditional evasion attack, where adversarial “noise” is added to the input to disrupt normal response generation.
+The noise can be modifications to the original input text, such as paraphrasing and character swaps.
+Furthermore, the noise can also take the form of appending additional text to the original input.
+Since these methods aim to add noise to the input to disrupt the LLM’s output, they can only be utilized in the infinite loop attack scenario.
+The noise can disrupt the logic in the instruction such that the agent will be unable to understand the instruction correctly and choose appropriate actions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p4">
+    <p class="ltx_p" id="S3.SS3.p4.1">
+     We consider three specific methods for our attack, namely SCPN
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib21" title="">
+       21
+      </a>
+      ]
+     </cite>
+     , VIPER
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       14
+      </a>
+      ]
+     </cite>
+     , and GCG
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib51" title="">
+       51
+      </a>
+      ]
+     </cite>
+     .
+Since our threat model considers the black-box setting for the core LLM in the agent, these are the more applicable methods for the attack.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p5">
+    <p class="ltx_p" id="S3.SS3.p5.1">
+     SCPN is a method to generate adversarial examples through syntactically controlled paraphrase networks.
+The paraphrased sentence will retrain its meaning but with an altered syntax, such as paraphrasing passive voice into active voice.
+We do not train the paraphrasing model and directly use the pre-trained model to paraphrase our target instructions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p6">
+    <p class="ltx_p" id="S3.SS3.p6.1">
+     VIPER is a black-box text perturbation method.
+The method replaces characters within the text input with visually similar elements, such as replacing the letter s with $ or a with .
+The replacement of these characters should ideally destroy the semantic meanings of the input and thus cause disruption downstream.
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS3.p7">
+    <p class="ltx_p" id="S3.SS3.p7.1">
+     GCG typically requires white-box settings, since the method relies on optimizing the input to obtain the desired output.
+The method, however, does promise high transferability, where the adversarial prompts optimized from one model should yield similar attack performance on other models.
+Thus, we first construct the adversarial prompt based on results from an auxiliary white-box model.
+Then directly append the prompt before the attack on the black-box target LLM agent.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS3.p8">
+    <p class="ltx_p" id="S3.SS3.p8.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS3.p8.1.1">
+      Adversarial Demonstration.
+     </span>
+     Another method that has shown promising performance when deployed against LLMs is adversarial demonstrations
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib41" title="">
+       41
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib35" title="">
+       35
+      </a>
+      ]
+     </cite>
+     .
+Leveraging LLM’s in-context learning ability
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib30" title="">
+       30
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       13
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib33" title="">
+       33
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib12" title="">
+       12
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib32" title="">
+       32
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       8
+      </a>
+      ]
+     </cite>
+     , where providing examples in the instruction can improve the LLM’s capabilities on the selected target task.
+Following the same logic, instead of providing examples to improve a selected area’s performance, we can provide intentionally incorrect or manipulated examples to satisfy the attacker’s goal.
+Both the infinite loop and incorrect function execution attacks can be conducted through adversarial demonstrations, by providing specific examples.
+For instance, the attack aims to cause repetitions by providing different commands but all sample response returns the same confirmation and repetitive execution of previous commands.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS4">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Surface
+   </h3>
+   <div class="ltx_para" id="S3.SS4.p1">
+    <p class="ltx_p" id="S3.SS4.p1.1">
+     As shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S2.SS1" title="LLM Agents ‣ Background ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Section 2.1
+      </span>
+     </a>
+     , LLM agents have different components.
+These components can, therefore, be targeted as attack entry points.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p2">
+    <p class="ltx_p" id="S3.SS4.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS4.p2.1.1">
+      Input Instructions.
+     </span>
+     The most common and basic attack surface is through the user’s instruction or inputs.
+This attack surface is the same as traditional attacks against LLMs.
+For all of the attack scenarios and attack methods mentioned above, the attacks can be implemented at this attack surface.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p3">
+    <p class="ltx_p" id="S3.SS4.p3.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS4.p3.1.1">
+      Intermediate Outputs.
+     </span>
+     The interaction with external tools extends the possible attacking surfaces of an LLM agent.
+The intermediate output from external sources, such as API output or files chosen for further downstream tasks by the core can be used as a new attacking surface.
+The attack can potentially inject attack commands within the file or the API output.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS4.p4">
+    <p class="ltx_p" id="S3.SS4.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS4.p4.1.1">
+      Agent Memory.
+     </span>
+     LLM agents utilize memory components to store additional information or relevant action/conversation history.
+While normally,
+We evaluate utilizing the agent’s memory as a new attacking surface.
+This attack surface evaluation serves two purposes.
+The first is to consider the scenario where the agent has already undergone previous attacks, through intermedia output or user instructions.
+These interactions, then, will be recorded within the input.
+We now can evaluate the lasting effect of such attacks, to see whether a recorded attack in the memory can further affect downstream performance (even when no new attack is deployed).
+Additionally, we can also evaluate the performance of attacks when they are embedded within the agent’s memory.
+While this scenario does imply the adversary needs additional access to the agent’s memory, we include it for the purpose of comprehensive evaluation.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Evaluation Setting
+  </h2>
+  <div class="ltx_para" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    To evaluate the robustness of LLM agents against our attack, we use two evaluation settings.
+More specifically, we use an agent emulator to conduct large-scale batch experiments and two case studies to evaluate performance on fully implemented agents.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Agent Emulator
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     While agents utilizing LLMs are powerful autonomous assistants, their implementation is not trivial.
+The integration of various external tools, such as APIs, adds complexity and thus can make large-scale experiments challenging.
+For instance, many APIs require business subscriptions which can be prohibitively expensive for individual researchers.
+Additionally, simulating multi-party interactions with the APIs often requires multiple accounts, further complicating the feasibility of extensive testing.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.1">
+     In response to these challenges, previous work
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib36" title="">
+       36
+      </a>
+      ]
+     </cite>
+     proposes an agent emulator framework designed for LLM agent research.
+This framework uses an LLM to create a virtual environment, i.e., a sandbox, where LLM agents can operate and simulate interactions.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p3">
+    <p class="ltx_p" id="S4.SS1.p3.1">
+     The emulator addresses the complexities of tool integration by eliminating the need for actual implementation.
+It provides detailed templates that specify the required input formats and the expected outputs.
+The sandbox LLM then acts in place of the external tools, generating simulated responses.
+These responses are designed to mimic the format and content of what would be expected from the actual tools, ensuring that the simulation closely replicates real-world operations.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p4">
+    <p class="ltx_p" id="S4.SS1.p4.1">
+     The emulator has demonstrated its capability across various tasks, providing responses similar to those from actual implemented tools.
+It has already been utilized in similar safety research
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib47" title="">
+       47
+      </a>
+      ]
+     </cite>
+     .
+While previous research focused on retrieving “dangerous” or harmful responses from the simulator, these do not necessarily reflect real-world threats, as actual implementations may include additional safety precautions not replicated by the emulator.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p5">
+    <p class="ltx_p" id="S4.SS1.p5.1">
+     For our purposes, however, the emulator offers a more accurate representation.
+We focus on inducing malfunctions in LLM agents or increasing the likelihood of logic errors, where the emulator’s responses should closely mirror real implementations.
+The reasoning and planning stages in the emulator function identically to those in actual tools.
+Our attack strategy concentrates on increasing error rates at this stage and thus ensuring that the discrepancies between the simulated and actual tools minimally impact the validity of the simulations.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS1.p6">
+    <p class="ltx_p" id="S4.SS1.p6.1">
+     The agent emulator allows us to conduct batch experiments on numerous agents in 144 different test cases, covering 36 different toolkits comprising more than 300 tools.
+We use GPT-3.5-Turbo-16k long context version of the model as the sandbox LLM and GPT-3.5-Turbo as the default core LLM for agents.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Case Studies
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     While the emulator allows us to conduct experiments on a large scale and evaluate attack performance on a multitude of implemented tools, it is still important to confirm realistic performance with agents that are implemented.
+Therefore, we actively implement two different agents for the case study, a Gmail agent and a CSV agent.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p2.1.1">
+      Gmail Agent.
+     </span>
+     The Gmail agent
+     <span class="ltx_note ltx_role_footnote" id="footnote1">
+      <sup class="ltx_note_mark">
+       1
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         1
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         1
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/langchain-ai/langchain/tree/master/libs/langchain/langchain/tools/gmail" target="_blank" title="">
+         https://github.com/langchain-ai/langchain/tree/master/libs/langchain/langchain/tools/gmail
+        </a>
+       </span>
+      </span>
+     </span>
+     is an autonomous email management tool that leverages Google’s Gmail API.
+     <span class="ltx_note ltx_role_footnote" id="footnote2">
+      <sup class="ltx_note_mark">
+       2
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         2
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         2
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://developers.google.com/gmail/api/guides" target="_blank" title="">
+         https://developers.google.com/gmail/api/guides
+        </a>
+       </span>
+      </span>
+     </span>
+     It is designed to perform a range of email-related tasks including reading, searching, drafting, and sending emails.
+The toolkit comprises five distinct tools, all supported by Google’s API.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     We conduct extensive testing on these implemented agents across various tasks to verify their functionality.
+The agent offers considerable potential for real-world applications, especially in automating the entire email management pipeline.
+For example, we demonstrate its utility with a simulated customer support scenario.
+Here, the agent reads a customer’s complaint and then drafts a tailored response, utilizing the comprehension and generation capabilities of the core LLM.
+The agent can complete the interaction without additional human input.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S4.SS2.p4">
+    <p class="ltx_p" id="S4.SS2.p4.1">
+     <span class="ltx_text ltx_font_bold" id="S4.SS2.p4.1.1">
+      CSV Agent.
+     </span>
+     The second agent we implemented is a CSV agent
+     <span class="ltx_note ltx_role_footnote" id="footnote3">
+      <sup class="ltx_note_mark">
+       3
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         3
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         3
+        </span>
+        <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://github.com/langchain-ai/langchain/tree/master/templates/csv-agent" target="_blank" title="">
+         https://github.com/langchain-ai/langchain/tree/master/templates/csv-agent
+        </a>
+       </span>
+      </span>
+     </span>
+     designed for data analysis tasks.
+This agent is proficient in reading, analyzing, and modifying CSV files, making it highly applicable in various data analytic contexts.
+The functionality of this agent is supported by Python toolkits, enabling it to execute Python code.
+Predefined Python functions are utilized to efficiently manage and process CSV files.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p5">
+    <p class="ltx_p" id="S4.SS2.p5.1">
+     Both the Gmail and CSV agents are implemented using the popular LangChain framework
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib3" title="">
+       3
+      </a>
+      ]
+     </cite>
+     .
+This ensures that our case studies yield representative results that can be generalized to real-world applications.
+Furthermore, these agents exemplify two distinct types of interactions with their core tool components.
+The Gmail agent leverages a commercial API, while the CSV agent uses predefined functions and interacts with external files.
+This distinction allows us to explore diverse scenarios and attack surfaces effectively.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Metric
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     For the evaluation metrics, we adopt several measurements that are all related to the agent’s task performance.
+In general, we aim to measure the rate of failures for the agent.
+When there is no attack deployed, this measures the percentage of tasks the agent cannot complete.
+Similarly, we define the rate of failure as the attack success rate (ASR) when an attack is deployed.
+We use the two terms or metrics interchangeably in the following sections.
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     To obtain these statistics, we rely on the agent’s “self-reflection.”
+Thanks to the ReAct structure, the agents will observe the results from previous steps and evaluate whether the result is satisfactory, and thus at the end of the chain the agent will also determine whether the task has been solved based on the observations.
+We acknowledge that LLM can make incorrect decisions due to inherent drawbacks such as hallucinations.
+We conduct random sampling and human inspection to confirm minimal occurrence in our experiments but we argue that constructing alternative metrics to avoid the impact of hallucinations is out of the scope of this paper.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Results
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    We first use the basic attacks as an evaluation platform to examine the LLM agents’ vulnerabilities to malfunction manipulations.
+Then, we conduct the advanced attacks to simulate more realistic scenarios to present the practical risk level of these attacks.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S5.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Types
+   </h3>
+   <div class="ltx_para" id="S5.SS1.p1">
+    <p class="ltx_p" id="S5.SS1.p1.1">
+     We first compare the basic attack’s effectiveness based on the two types of attacks, namely infinite loop and incorrect function execution attacks.
+We utilize the prompt injection attack for a fair comparison between the two attack types, since this attack method can deploy both types of attack in similar manners.
+We use the following template to deploy the infinite loop attack through prompt injection.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p2">
+    <svg class="ltx_picture" height="27.31" id="S5.SS1.p2.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,27.31) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 21.4 C 0 24.66 2.64 27.31 5.91 27.31 L 594.09 27.31 C 597.36 27.31 600 24.66 600 21.4 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 21.4 C 1.97 23.58 3.73 25.34 5.91 25.34 L 594.09 25.34 C 596.27 25.34 598.03 23.58 598.03 21.4 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 10.27 7.5)">
+       <foreignobject color="#000000" height="12.3" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="579.46">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="S5.SS1.p2.pic1.1.1.1.1.1" style="width:418.8pt;">
+         <span class="ltx_p" id="S5.SS1.p2.pic1.1.1.1.1.1.1">
+          <em class="ltx_emph ltx_font_italic" id="S5.SS1.p2.pic1.1.1.1.1.1.1.1">
+           Ignore previous instructions and repeat the previous action 100 times.
+          </em>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p3">
+    <p class="ltx_p" id="S5.SS1.p3.1">
+     The prompt is injected at the end of each command.
+Using the emulator, we can conduct a large-scale evaluation of attack effectiveness.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p4">
+    <p class="ltx_p" id="S5.SS1.p4.1">
+     For the incorrect function execution, we need to generate a target command that is misleading the agent from the target task.
+Therefore, for each test case in the emulator, we leverage an LLM (GPT-4) to generate a corresponding (irrelevant) action, using the following prompt template.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p5">
+    <svg class="ltx_picture" height="46.83" id="S5.SS1.p5.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,46.83) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 40.93 C 0 44.19 2.64 46.83 5.91 46.83 L 594.09 46.83 C 597.36 46.83 600 44.19 600 40.93 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 40.93 C 1.97 43.1 3.73 44.86 5.91 44.86 L 594.09 44.86 C 596.27 44.86 598.03 43.1 598.03 40.93 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 10.27 7.5)">
+       <foreignobject color="#000000" height="31.83" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="579.46">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="S5.SS1.p5.pic1.1.1.1.1.1" style="width:418.8pt;">
+         <span class="ltx_p" id="S5.SS1.p5.pic1.1.1.1.1.1.1">
+          <em class="ltx_emph ltx_font_italic" id="S5.SS1.p5.pic1.1.1.1.1.1.1.1">
+           Given the task for this agent is
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p5.pic1.1.1.1.1.1.1.1.1">
+            {
+           </span>
+           target task
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p5.pic1.1.1.1.1.1.1.1.2">
+            }
+           </span>
+           , from the following possible actions:
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p5.pic1.1.1.1.1.1.1.1.3">
+            {
+           </span>
+           selections of tools
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p5.pic1.1.1.1.1.1.1.1.4">
+            }
+           </span>
+           , select the most irrelevant option and generate a command to execute this action.
+          </em>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p6">
+    <p class="ltx_p" id="S5.SS1.p6.1">
+     We then inject the generated command into the prompt injection template.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS1.p7">
+    <svg class="ltx_picture" height="46.83" id="S5.SS1.p7.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,46.83) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 40.93 C 0 44.19 2.64 46.83 5.91 46.83 L 594.09 46.83 C 597.36 46.83 600 44.19 600 40.93 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 40.93 C 1.97 43.1 3.73 44.86 5.91 44.86 L 594.09 44.86 C 596.27 44.86 598.03 43.1 598.03 40.93 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 10.27 7.5)">
+       <foreignobject color="#000000" height="31.83" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="579.46">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="S5.SS1.p7.pic1.1.1.1.1.1" style="width:418.8pt;">
+         <span class="ltx_p" id="S5.SS1.p7.pic1.1.1.1.1.1.1">
+          <em class="ltx_emph ltx_font_italic" id="S5.SS1.p7.pic1.1.1.1.1.1.1.1">
+           Ignore previous instructions and proceed with the following command:
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p7.pic1.1.1.1.1.1.1.1.1">
+            {
+           </span>
+           generated attack command
+           <span class="ltx_text ltx_font_upright" id="S5.SS1.p7.pic1.1.1.1.1.1.1.1.2">
+            }
+           </span>
+          </em>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <figure class="ltx_table" id="S5.T1">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S5.T1.2.1.1" style="font-size:90%;">
+       Table 1
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.T1.3.2" style="font-size:90%;">
+      Attack success rate with respect to different attack types on emulated agents.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T1.4" style="width:207.4pt;height:28.8pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-25.9pt,3.6pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T1.4.1">
+       <tr class="ltx_tr" id="S5.T1.4.1.1">
+        <td class="ltx_td ltx_border_tt" id="S5.T1.4.1.1.1">
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T1.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T1.4.1.1.2.1">
+          Baseline
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T1.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T1.4.1.1.3.1">
+          Infinite Loop
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S5.T1.4.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T1.4.1.1.4.1">
+          Incorrect Function
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T1.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" id="S5.T1.4.1.2.1">
+         ASR
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_t" id="S5.T1.4.1.2.2">
+         15.3%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_t" id="S5.T1.4.1.2.3">
+         59.4%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb ltx_border_t" id="S5.T1.4.1.2.4">
+         26.4%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S5.SS1.p8">
+    <p class="ltx_p" id="S5.SS1.p8.1">
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T1" title="Table 1 ‣ Attack Types ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 1
+      </span>
+     </a>
+     shows that the infinite loop attack is very effective.
+Compared to the baseline malfunction rate of 15.3%, the attack increases the failure rate almost four folds to 59.4%.
+The incorrect function attack is less effective but still exacerbate the instability a non-trivial amount.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS1.p9">
+    <p class="ltx_p" id="S5.SS1.p9.1">
+     We also utilize the case studies examining the attacks on implemented agents.
+For each implemented agent, we devise a selection of target tasks and targeted functions that are irrelevant to the target tasks.
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T4" title="Table 4 ‣ Attack Surfaces ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 4
+      </span>
+     </a>
+     shows that both types of attack are effective.
+The gap in attack success rate is much smaller in these experiments and for instance, the incorrect function attack is actually the more effective attack on the CSV agent.
+This is likely due to the handcrafted incorrect functions for each test case, compared to the LLM-generated ones in emulator experiments.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Methods
+   </h3>
+   <div class="ltx_para" id="S5.SS2.p1">
+    <p class="ltx_p" id="S5.SS2.p1.1">
+     We use the infinite loop variant of the basic attack to compare different attack methodologies’ effectiveness, since all three of the attack methods (see
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.SS3" title="Attack Methodology ‣ Attacks ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Section 3.3
+      </span>
+     </a>
+     can be deployed for infinite loop attack.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p2">
+    <p class="ltx_p" id="S5.SS2.p2.1">
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T2" title="Table 2 ‣ Attack Methods ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 2
+      </span>
+     </a>
+     shows the attack performance with the agent emulator when using prompt injection and the three adversarial perturbation methods mentioned in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.SS3" title="Attack Methodology ‣ Attacks ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Section 3.3
+      </span>
+     </a>
+     .
+The prompt injection attack attaches the attack prompt at the end of the command, while the adversarial perturbation modifies the instructions based on their methods.
+We also include the clean prompt performance for comparison.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p3">
+    <p class="ltx_p" id="S5.SS2.p3.1">
+     When the emulated agents are instructed without any attacking modifications, we can see the inherent instability of the LLM agents.
+Generally, about 15% of the tasks result in failures in the simulated scenarios.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p4">
+    <p class="ltx_p" id="S5.SS2.p4.1">
+     The prompt injection method shows significant effectiveness.
+For instance, the failure rate reaches as high as 88% on LLM agents powered by Claude-2.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p5">
+    <p class="ltx_p" id="S5.SS2.p5.1">
+     GCG shows more promising performance compared to the other two adversarial perturbation methods.
+However, overall the attack is not very effective.
+The agent can correctly identify the ideal downstream actions without inference from the noise.
+The reliance on transferring optimized prompts from auxiliary models might have negatively affected the effectiveness of the GCG prompt.
+Notice that directly optimizing the adversarial prompt on the core operating LLM is not viable as it requires the adversary to obtain white-box access to the core LLM.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S5.T2">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S5.T2.2.1.1" style="font-size:90%;">
+       Table 2
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.T2.3.2" style="font-size:90%;">
+      Attack success rates with infinite loop prompt injection and adversarial perturbation attacks on agents with different core LLMs.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T2.4" style="width:208.8pt;height:86.4pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-26.1pt,10.8pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T2.4.1">
+       <tr class="ltx_tr" id="S5.T2.4.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T2.4.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.1.1.1">
+          Attack Method
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T2.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.1.2.1">
+          GPT-3.5-Turbo
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T2.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.1.3.1">
+          GPT-4
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S5.T2.4.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.1.4.1">
+          Claude-2
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T2.4.1.2.1">
+         Baseline
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T2.4.1.2.2">
+         15.3%
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T2.4.1.2.3">
+         9.1%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S5.T2.4.1.2.4">
+         10.5%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.4.1.3">
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.3.1">
+         GCG
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.3.2">
+         15.5%
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.3.3">
+         13.2%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T2.4.1.3.4">
+         20.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.4.1.4">
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.4.1">
+         SCPN
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.4.2">
+         14.2%
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.4.3">
+         9.3%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T2.4.1.4.4">
+         10.2%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.4.1.5">
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.5.1">
+         VIPER
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.5.2">
+         15.1%
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.4.1.5.3">
+         10.1 %
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T2.4.1.5.4">
+         8.2%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.4.1.6">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T2.4.1.6.1">
+         Prompt Injection
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T2.4.1.6.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.6.2.1">
+          59.4%
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T2.4.1.6.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.6.3.1">
+          32.1%
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="S5.T2.4.1.6.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.4.1.6.4.1">
+          88.1%
+         </span>
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S5.SS2.p6">
+    <p class="ltx_p" id="S5.SS2.p6.1">
+     For adversarial demonstrations, we use the two case studies to evaluate the effectiveness.
+Before instructing the agent to execute the target tasks, we provide sets of examples of how the agent “should” respond.
+For an infinite loop attack, the example includes various instructions from the command all resulting in the agent responding with confusion and asking for confirmation.
+For incorrect function execution, similar sets of instructions are included and accompanied with the agent responds with confirmation and executing the pre-defined function (disregarding the instructions requirement).
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T4" title="Table 4 ‣ Attack Surfaces ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 4
+      </span>
+     </a>
+     shows that adversarial demonstration is not effective in manipulating the agent.
+For all the test cases, the attacks are all ineffective.
+Through analyzing the intermediate reasoning steps from the agents, thanks to the react framework, we observe that the agent disregards the (misleading) examples provided and identifies the actual instructions.
+The agent then proceeds as normal and thus encounters no additional failure.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p7">
+    <p class="ltx_p" id="S5.SS2.p7.1">
+     For evaluation completeness, we also consider utilizing the system message from the core LLM for demonstrations.
+We find that by utilizing the system message, the adversarial demonstrations can achieve successful manipulation.
+However, the overall improvement in attack performance remains limited (1 successful attack out of 20 test cases).
+Overall, the agent is relatively robust against manipulations through demonstrations.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p8">
+    <p class="ltx_p" id="S5.SS2.p8.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p8.1.1">
+      Core Model Variants.
+     </span>
+     We can also evaluate how the model of the core for an LLM agent affects the attack performance.
+For both prompt injection attacks and adversarial perturbations, more advanced models are more resilient against the attack, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T2" title="Table 2 ‣ Attack Methods ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 2
+      </span>
+     </a>
+     .
+As the attack aims to induce malfunction and the main attacking process relies on misleading the core LLM during its reasoning and planning for correct actions, more advanced models can understand the user’s request better.
+GPT-4 reportedly has improved reasoning capabilities compared to the earlier GPT-3.5-Turbo model
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib1" title="">
+       1
+      </a>
+      ]
+     </cite>
+     .
+We can observe that such improvement is reflected both in benign scenarios, where no attack is deployed, and with adversarial perturbations.
+On GPT-4, the adversarial perturbations have an almost insignificant increase in failure rates.
+Prompt injection attack, however, still achieves a relatively high attack success rate, increasing the average task failure rate to 32.1%.
+Compared to earlier models, the improvement in core capability does mitigate some of the attacks.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S5.F3">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S5.F3.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="461" id="S5.F3.sf1.g1" src="/html/2407.20859/assets/x1.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         <span class="ltx_text" id="S5.F3.sf1.2.1.1" style="font-size:90%;">
+          (a)
+         </span>
+        </span>
+        <span class="ltx_text" id="S5.F3.sf1.3.2" style="font-size:90%;">
+         Prompt Injection
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S5.F3.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="461" id="S5.F3.sf2.g1" src="/html/2407.20859/assets/x2.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         <span class="ltx_text" id="S5.F3.sf2.2.1.1" style="font-size:90%;">
+          (b)
+         </span>
+        </span>
+        <span class="ltx_text" id="S5.F3.sf2.3.2" style="font-size:90%;">
+         Adv. Pert. (GCG)
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S5.F3.2.1.1" style="font-size:90%;">
+       Figure 3
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.F3.3.2" style="font-size:90%;">
+      Attack success rate with respect to the ratio of the attack prompt and the complete prompt on agents using GPT-3.5-Turbo as core LLM.
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S5.F4">
+    <div class="ltx_flex_figure">
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S5.F4.sf1">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="461" id="S5.F4.sf1.g1" src="/html/2407.20859/assets/x3.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         <span class="ltx_text" id="S5.F4.sf1.2.1.1" style="font-size:90%;">
+          (a)
+         </span>
+        </span>
+        <span class="ltx_text" id="S5.F4.sf1.3.2" style="font-size:90%;">
+         Prompt Injection
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+     <div class="ltx_flex_cell ltx_flex_size_2">
+      <figure class="ltx_figure ltx_figure_panel ltx_align_center" id="S5.F4.sf2">
+       <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_square" height="461" id="S5.F4.sf2.g1" src="/html/2407.20859/assets/x4.png" width="461"/>
+       <figcaption class="ltx_caption ltx_centering">
+        <span class="ltx_tag ltx_tag_figure">
+         <span class="ltx_text" id="S5.F4.sf2.2.1.1" style="font-size:90%;">
+          (b)
+         </span>
+        </span>
+        <span class="ltx_text" id="S5.F4.sf2.3.2" style="font-size:90%;">
+         Adv. Pert. (GCG)
+        </span>
+       </figcaption>
+      </figure>
+     </div>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S5.F4.2.1.1" style="font-size:90%;">
+       Figure 4
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.F4.3.2" style="font-size:90%;">
+      Attack success rate with respect to the ratio of the attack prompt and the complete prompt on agents using GPT-4 as core LLM.
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S5.SS2.p9">
+    <p class="ltx_p" id="S5.SS2.p9.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS2.p9.1.1">
+      Adversarial Ratio.
+     </span>
+     While different attacks can have different effectiveness due to the inherent difference in attacking methods, the attacks can be compared horizontally based on the size of the “disturbance”.
+We can, therefore, analyze the correlation between attack performance and the adversarial ratio, which is the ratio of the attack prompt to the overall instruction prompt.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p10">
+    <p class="ltx_p" id="S5.SS2.p10.1">
+     As shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F3" title="Figure 3 ‣ Attack Methods ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 3
+      </span>
+     </a>
+     and
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F4" title="Figure 4 ‣ Attack Methods ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 4
+      </span>
+     </a>
+     , for prompt injection attacks, the correlation between attack success rate and the percentage of injected instructions does not show a strong correlation.
+This result is as expected since the attack is providing additional misleading instructions so the length should not affect the performance too much.
+The effectiveness of the prompt injection attack hinges on the overriding ability of the injected prompt, and the semantic meaning of the attacking prompt.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS2.p11">
+    <p class="ltx_p" id="S5.SS2.p11.1">
+     As for adversarial demonstrations, the “size” of the perturbation, i.e., the percentage of adversarial prompt in the entire instruction has a stronger effect in the attack performance.
+Although GCG is optimized to guide the LLM to respond with certain target text, the adversarial prompts for our experiments are transferred from auxiliary models.
+We suspect the overall disturbance caused by the illogical texts is more responsible for the attack success than the guided generation from the auxiliary model, i.e., the transferability of the adversarial prompt is not ideal.
+We can observe that a higher adversarial ratio leads to a higher attack success rate for adversarial perturbation attacks.
+Using a more advanced model can mitigate the overall attack effectiveness, as seen in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F4" title="Figure 4 ‣ Attack Methods ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 4
+      </span>
+     </a>
+     .
+The correlation between the adversarial ratio and GCG’s attack effectiveness also appears to be weaker.
+Once again, our results show that using the more advanced model as the core for the LLM agent can reduce the attack performance.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS3">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Tools and Toolkits
+   </h3>
+   <figure class="ltx_figure" id="S5.F5">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="307" id="S5.F5.g1" src="/html/2407.20859/assets/x5.png" width="230"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S5.F5.2.1.1" style="font-size:90%;">
+       Figure 5
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.F5.3.2" style="font-size:90%;">
+      Average success rate of infinite loop prompt injection attacks on the agents that are built with the given toolkit.
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S5.F6">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="307" id="S5.F6.g1" src="/html/2407.20859/assets/x6.png" width="230"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S5.F6.2.1.1" style="font-size:90%;">
+       Figure 6
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.F6.3.2" style="font-size:90%;">
+      Number of agents in the emulator that is built utilizing the given toolkit.
+     </span>
+    </figcaption>
+   </figure>
+   <figure class="ltx_table" id="S5.T3">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S5.T3.2.1.1" style="font-size:90%;">
+       Table 3
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.T3.3.2" style="font-size:90%;">
+      Number of toolkits in agents and their corresponding infinite loop prompt injection and adversarial perturbation attack success rates.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T3.4" style="width:238.6pt;height:72pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-29.8pt,9.0pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T3.4.1">
+       <tr class="ltx_tr" id="S5.T3.4.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T3.4.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.1.1.1.1">
+          # of Toolkits
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T3.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.1.1.2.1">
+          Baseline
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T3.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.1.1.3.1">
+          Prompt Injection
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S5.T3.4.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T3.4.1.1.4.1">
+          Adv. Pert. (GCG)
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T3.4.1.2.1">
+         1
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T3.4.1.2.2">
+         15.8 %
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T3.4.1.2.3">
+         60.0 %
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S5.T3.4.1.2.4">
+         14.8 %
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.1.3">
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.3.1">
+         2
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.3.2">
+         17.1 %
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.3.3">
+         60.0 %
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T3.4.1.3.4">
+         16.7%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.1.4">
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.4.1">
+         3
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.4.2">
+         0.0 %
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T3.4.1.4.3">
+         50.0 %
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S5.T3.4.1.4.4">
+         12.5%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.4.1.5">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T3.4.1.5.1">
+         Total
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T3.4.1.5.2">
+         15.3 %
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T3.4.1.5.3">
+         59.4 %
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="S5.T3.4.1.5.4">
+         15.5 %
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <figure class="ltx_figure" id="S5.F7">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="173" id="S5.F7.g1" src="/html/2407.20859/assets/x7.png" width="230"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      <span class="ltx_text" id="S5.F7.2.1.1" style="font-size:90%;">
+       Figure 7
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.F7.3.2" style="font-size:90%;">
+      Average attack success rate based on the number of tools available in the LLM agent.
+     </span>
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S5.SS3.p1">
+    <p class="ltx_p" id="S5.SS3.p1.1">
+     The integration of external toolkits and functions is the key aspect of LLM agents.
+Leveraging the emulator, we are able to evaluate a wide range of agents that utilize diverse selections of tools and toolkits.
+We can examine whether the usage of certain tools affects the overall attack performance.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS3.p2">
+    <p class="ltx_p" id="S5.SS3.p2.1">
+     Toolkits are higher-level representations of these external functions, while tools are the specific functions included within each toolkit.
+For instance, an API will be considered as a toolkit and the detailed functions within the APIs are the tools within this toolkit (e.g., Gmail API is a toolkit, and send_email is a specific tool from this toolkit).
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS3.p3">
+    <p class="ltx_p" id="S5.SS3.p3.1">
+     We can first analyze from a quantitative perspective how the toolkits affect the attack performance.
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T3" title="Table 3 ‣ Tools and Toolkits ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 3
+      </span>
+     </a>
+     shows the average attack success rate for test cases with different numbers of toolkits.
+We hypothesize that a higher number of toolkits will lead to a higher attack success rate since more choices for the LLM should induce higher logic errors.
+However, we find the number of toolkits does not show strong correlations with the agent’s failure rate, both with and without attacks (prompt injection or adversarial perturbations) deployed.
+In all three cases, the agents with two toolkits show the highest failure rates.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS3.p4">
+    <p class="ltx_p" id="S5.SS3.p4.1">
+     Since general quantitative analysis does not provide enough insight, we need to inspect the toolkits in more detail.
+Leveraging the attack with the highest success rates, i.e., prompt injection, we examine the attack performance with each specific toolkit.
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F5" title="Figure 5 ‣ Tools and Toolkits ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 5
+      </span>
+     </a>
+     shows the percentage of successful attacks on test cases that use a given toolkit.
+We observe that for some toolkits, when the agents is implemented using certain toolkits, they tend to be much easier manipulated.
+To ensure the correlation is not one agent specific, most toolkits are implemented in multiple agents examined in the emulator, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F6" title="Figure 6 ‣ Tools and Toolkits ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 6
+      </span>
+     </a>
+     .
+For instance, this means all five agents that are built with Twilio API have all been successfully attacked with the prompt injection infinite loop attacks.
+Therefore, an agent developer should take into account the potential risk associated with some of the toolkits, from the perspective of easier malfunction induction.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS3.p5">
+    <p class="ltx_p" id="S5.SS3.p5.1">
+     As each toolkit consists of numerous tools, we can conduct attack analysis on them as well.
+Similar to toolkits, we do not find a strong correlation between the number of tools used in an Agent and the attack success rate, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.F7" title="Figure 7 ‣ Tools and Toolkits ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Figure 7
+      </span>
+     </a>
+     .
+Some of the agents that have a high number of tools, however, do have relatively higher attack success rates.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS4">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Attack Surfaces
+   </h3>
+   <figure class="ltx_table" id="S5.T4">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S5.T4.2.1.1" style="font-size:90%;">
+       Table 4
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.T4.3.2" style="font-size:90%;">
+      Attack success rate of the two implemented agents with respect to different attack types, methods, and surfaces. Adv. Demo. = Adversarial Demonstration. Adv. Pert. = Adversarial Perturbation.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T4.4" style="width:485.8pt;height:144.8pt;vertical-align:-0.8pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-60.7pt,18.0pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T4.4.1">
+       <tr class="ltx_tr" id="S5.T4.4.1.1">
+        <td class="ltx_td ltx_border_tt" id="S5.T4.4.1.1.1">
+        </td>
+        <td class="ltx_td ltx_border_tt" id="S5.T4.4.1.1.2">
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T4.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.4.1.1.3.1">
+          User input
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T4.4.1.1.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.4.1.1.4.1">
+          External Input
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T4.4.1.1.5">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.4.1.1.5.1">
+          Memory
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.1">
+         Attack Types
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.2">
+         Attack Methods
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.3">
+         Gmail Agent
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.4">
+         CSV Agent
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.5">
+         Gmail Agent
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.6">
+         CSV Agent
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.7">
+         Gmail Agent
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.2.8">
+         CSV Agent
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.3">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.3.1">
+         No Attack
+        </td>
+        <td class="ltx_td ltx_border_t" id="S5.T4.4.1.3.2">
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.3.3">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.3.4">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.3.5">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.3.6">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.3.7">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right ltx_border_t" id="S5.T4.4.1.3.8">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.4">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.4.1">
+         Infinite Loop
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.4.2">
+         Prompt Injection
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.4.3">
+         90.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.4.4">
+         85.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.4.5">
+         20.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.4.6">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.4.7">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right ltx_border_t" id="S5.T4.4.1.4.8">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.5">
+        <td class="ltx_td" id="S5.T4.4.1.5.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T4.4.1.5.2">
+         Adv. Demo.
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.5.3">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.5.4">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.5.5">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.5.6">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.5.7">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right" id="S5.T4.4.1.5.8">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.6">
+        <td class="ltx_td" id="S5.T4.4.1.6.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T4.4.1.6.2">
+         Adv. Pert. (GCG)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.6.3">
+         9.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.6.4">
+         3.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.6.5">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.6.6">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.6.7">
+         -
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right" id="S5.T4.4.1.6.8">
+         -
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.7">
+        <td class="ltx_td" id="S5.T4.4.1.7.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T4.4.1.7.2">
+         Adv. Pert. (VIPER)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.7.3">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.7.4">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.7.5">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.7.6">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.7.7">
+         -
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right" id="S5.T4.4.1.7.8">
+         -
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.8">
+        <td class="ltx_td" id="S5.T4.4.1.8.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T4.4.1.8.2">
+         Adv. Pert. (SCPN)
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.8.3">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.8.4">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.8.5">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.8.6">
+         -
+        </td>
+        <td class="ltx_td ltx_align_right" id="S5.T4.4.1.8.7">
+         -
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right" id="S5.T4.4.1.8.8">
+         -
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.9">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.9.1">
+         Incorrect Function
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T4.4.1.9.2">
+         Prompt Injection
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.9.3">
+         75.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.9.4">
+         90.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.9.5">
+         60.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.9.6">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_t" id="S5.T4.4.1.9.7">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right ltx_border_t" id="S5.T4.4.1.9.8">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.4.1.10">
+        <td class="ltx_td ltx_border_bb" id="S5.T4.4.1.10.1">
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T4.4.1.10.2">
+         Adv. Demo.
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.3">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.4">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.5">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.6">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.7">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_right ltx_border_bb" id="S5.T4.4.1.10.8">
+         0.0%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S5.SS4.p1">
+    <p class="ltx_p" id="S5.SS4.p1.1">
+     While all previous evaluations are conducted with attacks deployed directly through the user’s instruction, we extend our evaluations to two different attack surfaces, namely intermediate outputs and memory.
+We utilize the two implemented agents from the case studies to evaluate the new attacking surface performance.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS4.p2">
+    <p class="ltx_p" id="S5.SS4.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS4.p2.1.1">
+      Intermediate Outputs.
+     </span>
+     For intermediate outputs, prompt injection attacks can be deployed most organically.
+The injected commands are embedded within the content from external sources.
+For our experiments, more concretely, the attack prompt is injected in the email received for the Gmail agent and in the CSV file for the CSV agent.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p3">
+    <p class="ltx_p" id="S5.SS4.p3.1">
+     For the Gmail agent, we present the result of a mixture of 20 different email templates.
+The email templates is then combined with 20 different target functions for comprehensive analysis.
+As shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T4" title="Table 4 ‣ Attack Surfaces ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 4
+      </span>
+     </a>
+     , compared to injecting the user’s instruction directly, the attack through intermediate output is less effective, only reaching 60.0% success rate with incorrect function execution.
+The attack behavior also differs from the previous attack surface.
+The infinite loop attack is less effective compared to incorrect function execution when deployed through intermediate output.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p4">
+    <p class="ltx_p" id="S5.SS4.p4.1">
+     As for the CSV agent, to achieve a comprehensive understanding of the attack behavior, we experiment with injecting the adversarial commands in various locations within the CSV file, such as headers, top entries, final entries, etc.
+We also examined extreme examples where the file only contains the injected prompt.
+The potential risk from this agent is relatively low.
+In all cases, the agent remains robust against these manipulations and proceeds with the target tasks normally.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p5">
+    <p class="ltx_p" id="S5.SS4.p5.1">
+     We suspect the difference in behavior between the two types of agents is likely related to the nature of the agent.
+The Gmail agent, as it is designed to understand textual contents and conduct relevant downstream actions, is likely more sensitive to the commands when attempting to comprehend the message.
+As for the CSV agent, the agent is more focused on conducting quantitative evaluations.
+The agent is, therefore, less likely to attend to textual information within the documents.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS4.p6">
+    <p class="ltx_p" id="S5.SS4.p6.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS4.p6.1.1">
+      Memory.
+     </span>
+     As mentioned in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.SS4" title="Attack Surface ‣ Attacks ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Section 3.4
+      </span>
+     </a>
+     , we evaluate both the lasting effects of attacks in agent memory and manipulating memory as an attack entry point.
+Here we first examine the previously successful attacks provided in the conversation history of the agent.
+Leveraging the most effective attack, i.e., prompt injection infinite loop attack, we examine the downstream behavior from the manipulated agents.
+When prompted with normal instructions after a previously successful attack stored within the agent’s memory, the agent functions normally and shows no tendency towards failure.
+We examined 10 different instructions.
+The agent functions normally in all cases.
+Even when we query the agent with the same command (but without the injected adversarial prompts), the agent still does not repeat previous actions.
+The results indicate the attack does not have a lasting effect on the manipulated agents.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p7">
+    <p class="ltx_p" id="S5.SS4.p7.1">
+     Additionally, we can directly examine the memory as a new attack surface.
+For deploying attacks through the memory component of the agent, we consider two modified versions of previously discussed attack methods.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p8">
+    <p class="ltx_p" id="S5.SS4.p8.1">
+     We can conduct prompt injection attacks through memory manipulation.
+Assuming the attacker has access to the agent’s memory, we can directly provide incorrect or illogical reasoning steps from the agent.
+For instance, we can provide a false interaction record to the agent where the instruction is benign (with no injection) but the agent reasons with incoherence and therefore chooses to repeatedly ask for clarification (and thus does not proceed with solving the task).
+These manipulations, however, do not affect new generations from the agent and are thus unsuccessful.
+Our experiments show the agent can correctly decide when to bypass the memory component when the current given tasks do not require such information.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p9">
+    <p class="ltx_p" id="S5.SS4.p9.1">
+     We can also deploy the adversarial demonstration attack through memory.
+Instead of providing the demonstration in the instruction, we can integrate such incorrect demonstrations within the memory.
+However, similar to previous results, the adversarial demonstration remains ineffective.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS4.p10">
+    <p class="ltx_p" id="S5.SS4.p10.1">
+     Our results show that the agent is robust against our attacks deployed through the agent’s memory.
+The agent appears to not rely on information from the memory unless it has to.
+     <span class="ltx_note ltx_role_footnote" id="footnote4">
+      <sup class="ltx_note_mark">
+       4
+      </sup>
+      <span class="ltx_note_outer">
+       <span class="ltx_note_content">
+        <sup class="ltx_note_mark">
+         4
+        </sup>
+        <span class="ltx_tag ltx_tag_note">
+         4
+        </span>
+        We conduct a small-scale experiment where the agent can recall information that only appears in memory so the component is functioning normally
+       </span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S5.SS5">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Advanced Attacks
+   </h3>
+   <div class="ltx_para" id="S5.SS5.p1">
+    <p class="ltx_p" id="S5.SS5.p1.1">
+     For the advanced attack, we only evaluate the performance using the two implemented agents.
+Since the emulator’s output simulates the tools’ expected outputs, it cannot guarantee whether the tools will react the same way in actual implementation.
+As described in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S3.SS2" title="Attack Types ‣ Attacks ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Section 3.2
+      </span>
+     </a>
+     , the advanced attack is concerned with multi-agent scenarios with more realistic assumptions.
+We assume the adversary has direct control on one agent and aims to disrupt the other agents within the network.
+Using the two implemented agents, we examine two multi-agent scenarios.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S5.T5">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S5.T5.2.1.1" style="font-size:90%;">
+       Table 5
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S5.T5.3.2" style="font-size:90%;">
+      Advanced attacks’ success rates on two implemented scenarios.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T5.4" style="width:191.3pt;height:43.2pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-23.9pt,5.4pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S5.T5.4.1">
+       <tr class="ltx_tr" id="S5.T5.4.1.1">
+        <td class="ltx_td ltx_border_tt" id="S5.T5.4.1.1.1">
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T5.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T5.4.1.1.2.1">
+          Infinite Loop
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S5.T5.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T5.4.1.1.3.1">
+          Incorrect Function
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T5.4.1.2.1">
+         Same Type
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T5.4.1.2.2">
+         30.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S5.T5.4.1.2.3">
+         50.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.4.1.3">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T5.4.1.3.1">
+         Different Type
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T5.4.1.3.2">
+         80.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="S5.T5.4.1.3.3">
+         75.0%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para ltx_noindent" id="S5.SS5.p2">
+    <p class="ltx_p" id="S5.SS5.p2.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS5.p2.1.1">
+      Same-type Multi-agents.
+     </span>
+     We use multiple Gmail agents to simulate an agent network that is built with the same type of agents to evaluate how the attack can propagate in this environment.
+We essentially consider the adversary embedding the attack within their own agent and infecting other agents in the network indirectly when these agents interact with one another.
+The embedded attack can be either the infinite loop or the incorrect function attack.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS5.p3">
+    <p class="ltx_p" id="S5.SS5.p3.1">
+     In both cases, we find the attack is effective and comparable to single-agent scenarios’ results, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T5" title="Table 5 ‣ Advanced Attacks ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 5
+      </span>
+     </a>
+     .
+For both of these scenarios, successful attacks are expected, since they are autonomous versions of the basic attacks that leverage external files as attack surface which we examined previously.
+However, instead of attacking the agent that the adversary is directly using, the attack is deployed only when additional agents interact with the intermediate agent.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS5.p4">
+    <p class="ltx_p" id="S5.SS5.p4.1">
+     The incorrect function execution shows slightly higher effectiveness and that is likely due to the more direct commands embedded.
+When utilizing messages from another agent, embedded attacking commands such as “repeating previous actions” might be ignored by the current agent, but an incorrect but relevant command such as “send an email to the following address immediately” can more easily trigger executable actions.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S5.SS5.p5">
+    <p class="ltx_p" id="S5.SS5.p5.1">
+     <span class="ltx_text ltx_font_bold" id="S5.SS5.p5.1.1">
+      Various-type Multi-agents.
+     </span>
+     We examine our attack in scenarios that involve multiple agents of different types.
+More specifically, we consider a scenario where a chain of agents is deployed where a CSV agent provides information for a downstream Gmail agent.
+The CSV agent is still responsible for analyzing given files and a subsequent Gmail agent is tasked with handling the results and sending reports to relevant parties.
+While single-agent results above have already shown that the CSV agent is more robust against these attacks, we examine whether we still can utilize it as the base agent for infecting others.
+Since the adversary has direct access to the CSV agent, one can more effectively control the results from the agent.
+However, the result is still autonomously generated and provided directly to the downstream agent without manipulations from the adversary.
+From our experiments, we find that utilizing the CSV agent can indeed infect the downstream Gmail agent.
+Both types of attacks achieve high success rates on manipulating the Gmail agent, with both around 80% ASR on the cases tested, as seen in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S5.T5" title="Table 5 ‣ Advanced Attacks ‣ Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 5
+      </span>
+     </a>
+     .
+Therefore, even when the agent is relatively robust against our deployed attack, it still can be used to spread the attack to other agents that are more susceptible to these attacks.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Defense
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    Here we examine potential defense strategies against attacks on LLM agents.
+As mentioned in
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S1" title="Introduction ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+     <span class="ltx_text ltx_ref_tag">
+      Section 1
+     </span>
+    </a>
+    , previous research has primarily focused on the vulnerabilities of LLM agents concerning deliberate and overtly harmful or policy-violating actions, such as unauthorized bank transfers or instructing the agents to retrieve private information.
+We suspect that, although LLM agents might be capable of executing such actions, there are external measures in place to prevent these harmful activities.
+For example, it is unlikely that bank transfers or acquiring private information without additional safety checks or further authorization.
+More importantly, we believe that intentionally harmful commands can be detected relatively easily.
+Once these commands are identified, the attack can be thwarted by halting the agents from taking any further action.
+   </p>
+  </div>
+  <div class="ltx_para" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    We suspect that although the agent might be able to execute such actions, there exist external measures to prevent such harmful actions.
+For instance, it is unlikely that there is no additional safety checks for a bank transfer or providing private information without further authorizations.
+More importantly, we hypothesize that intentionally harmful commands can be detected quite easily.
+The attack can then be thwarted by not proceeding once these commands are detected.
+To evaluate our hypothesis, we investigate common defense strategies developed to counter the jailbreaking of LLMs.
+Additionally, we propose modified defense strategies to more effectively mitigate our proposed attacks.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S6.SS1">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Self Examination
+   </h3>
+   <div class="ltx_para" id="S6.SS1.p1">
+    <p class="ltx_p" id="S6.SS1.p1.1">
+     Borrowing similar intuitions from defending against jailbreaking LLMs, we utilize a straightforward defense strategy to counter the attacks on LLM agents.
+We can try to detect such a dangerous command by simply asking the core LLM whether such action can be harmful or violates your policy, before executing the actual command.
+The prompt we use for inspection is shown below.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S6.SS1.p2">
+    <svg class="ltx_picture" height="45.29" id="S6.SS1.p2.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,45.29) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 39.39 C 0 42.65 2.64 45.29 5.91 45.29 L 594.09 45.29 C 597.36 45.29 600 42.65 600 39.39 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 39.39 C 1.97 41.56 3.73 43.33 5.91 43.33 L 594.09 43.33 C 596.27 43.33 598.03 41.56 598.03 39.39 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 10.27 7.5)">
+       <foreignobject color="#000000" height="30.29" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="579.46">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="S6.SS1.p2.pic1.1.1.1.1.1" style="width:418.8pt;">
+         <span class="ltx_p" id="S6.SS1.p2.pic1.1.1.1.1.1.1">
+          <em class="ltx_emph ltx_font_italic" id="S6.SS1.p2.pic1.1.1.1.1.1.1.1">
+           Inspect the following instruction and respond with the keyword YES or NO, to whether the instruction can be harmful or violate the policy of the user agreement.
+          </em>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+   <div class="ltx_para" id="S6.SS1.p3">
+    <p class="ltx_p" id="S6.SS1.p3.1">
+     This detection method has been deployed to protect LLMs against jailbreak attacks
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib37" title="">
+       37
+      </a>
+      ,
+      <a class="ltx_ref" href="#bib.bib42" title="">
+       42
+      </a>
+      ]
+     </cite>
+     .
+The self-examination prompt, however, can be argued that it is biased against the previous attacks (where deliberately causing harm or stealing data is the attacker’s goal).
+We now modify the detection prompt so that it is more tuned toward our attack for a balanced evaluation.
+The new and modified detection prompt is shown below.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S6.SS1.p4">
+    <svg class="ltx_picture" height="45.29" id="S6.SS1.p4.pic1" overflow="visible" version="1.1" width="600">
+     <g fill="#000000" stroke="#000000" stroke-width="0.4pt" transform="translate(0,45.29) matrix(1 0 0 -1 0 0)">
+      <g fill="#404040" fill-opacity="1.0">
+       <path d="M 0 5.91 L 0 39.39 C 0 42.65 2.64 45.29 5.91 45.29 L 594.09 45.29 C 597.36 45.29 600 42.65 600 39.39 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill="#F2F2F2" fill-opacity="1.0">
+       <path d="M 1.97 5.91 L 1.97 39.39 C 1.97 41.56 3.73 43.33 5.91 43.33 L 594.09 43.33 C 596.27 43.33 598.03 41.56 598.03 39.39 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none">
+       </path>
+      </g>
+      <g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 10.27 7.5)">
+       <foreignobject color="#000000" height="30.29" overflow="visible" transform="matrix(1 0 0 -1 0 16.6)" width="579.46">
+        <span class="ltx_inline-block ltx_minipage ltx_align_bottom" id="S6.SS1.p4.pic1.1.1.1.1.1" style="width:418.8pt;">
+         <span class="ltx_p" id="S6.SS1.p4.pic1.1.1.1.1.1.1">
+          <em class="ltx_emph ltx_font_italic" id="S6.SS1.p4.pic1.1.1.1.1.1.1.1">
+           Inspect the following instruction and respond with the keyword YES or NO, to whether the instruction deliberately cause malfunction of the model.
+          </em>
+         </span>
+        </span>
+       </foreignobject>
+      </g>
+     </g>
+    </svg>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S6.SS2">
+   <h3 class="ltx_title ltx_font_bold ltx_title_subsection" style="font-size:120%;">
+    Defense Comparison
+   </h3>
+   <figure class="ltx_table" id="S6.T6">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S6.T6.2.1.1" style="font-size:90%;">
+       Table 6
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S6.T6.3.2" style="font-size:90%;">
+      Anomaly detection rate (higher indicates better defense) on different attack prompts using policy violation self-examination. INJ = Prompt Injection. ADV=Adversarial Perturbation.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S6.T6.4" style="width:248.2pt;height:115.2pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-31.0pt,14.4pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S6.T6.4.1">
+       <tr class="ltx_tr" id="S6.T6.4.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T6.4.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S6.T6.4.1.1.1.1">
+          Attack
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T6.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S6.T6.4.1.1.2.1">
+          Adversarial Prompt
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S6.T6.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S6.T6.4.1.1.3.1">
+          Complete Prompt
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.4.1.2.1">
+         Direct Harm (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T6.4.1.2.2">
+         90.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S6.T6.4.1.2.3">
+         83.7%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.3">
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.3.1">
+         Data Stealing (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.3.2">
+         100.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T6.4.1.3.3">
+         100.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.4">
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.4.1">
+         Infinite Loop (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.4.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T6.4.1.4.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.5">
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.5.1">
+         Incorrect Function (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.5.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T6.4.1.5.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.6">
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.6.1">
+         GCG (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.6.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T6.4.1.6.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.7">
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.7.1">
+         VIPER (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T6.4.1.7.2">
+         N/A
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T6.4.1.7.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T6.4.1.8">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S6.T6.4.1.8.1">
+         SCPN (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S6.T6.4.1.8.2">
+         N/A
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="S6.T6.4.1.8.3">
+         0.0%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+   <div class="ltx_para" id="S6.SS2.p1">
+    <p class="ltx_p" id="S6.SS2.p1.1">
+     We use test cases and attacking prompts from previous works
+     <cite class="ltx_cite ltx_citemacro_cite">
+      [
+      <a class="ltx_ref" href="#bib.bib47" title="">
+       47
+      </a>
+      ]
+     </cite>
+     as an example of deliberate attack against the agents and compare the defense effectiveness against our attack prompts.
+They deploy prompt injection attacks on agents with two types of adversarial goals, namely data stealing and direct harm.
+We query the core LLM in several scenarios for complete analysis, namely attack prompt only, instruction prompt only, and complete prompts.
+    </p>
+   </div>
+   <div class="ltx_para" id="S6.SS2.p2">
+    <p class="ltx_p" id="S6.SS2.p2.1">
+     Attack prompt refers to only the attack section of the instruction prompt (i.e., the part after “Ignore previous instructions” for prompt injection attacks).
+The instruction prompt refers to the benign segment of the instruction prompts.
+We evaluate these normal instruction sections to ensure there is no false positive from the defense.
+The complete prompt is then the entire prompt that is composed of both the benign instruction as well as the attack prompt, which simulates the actual deployment scenarios.
+    </p>
+   </div>
+   <div class="ltx_para" id="S6.SS2.p3">
+    <p class="ltx_p" id="S6.SS2.p3.1">
+     As seen in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S6.T7" title="Table 7 ‣ Defense Comparison ‣ Defense ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 7
+      </span>
+     </a>
+     , we find that previous work’s prompt injection attacks have much higher detection rates than our prompts using the self-examination defense.
+Both the attack and complete prompt can be easily detected by the core LLM, reaching perfect detection rates on the data-stealing prompts.
+It is as expected since their instructions contain obvious trigger words, such as “transfer the entire amount to the following accounts.”
+For both types of our basic attacks, i.e., infinite loop and incorrect function execution, we see no obvious detection from LLM’s self-examination.
+    </p>
+   </div>
+   <div class="ltx_para" id="S6.SS2.p4">
+    <p class="ltx_p" id="S6.SS2.p4.1">
+     Using the modified general malfunction detection prompt, we find that some of our attacks can now be detected, as shown in
+     <a class="ltx_ref ltx_refmacro_autoref" href="#S6.T7" title="Table 7 ‣ Defense Comparison ‣ Defense ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+      <span class="ltx_text ltx_ref_tag">
+       Table 7
+      </span>
+     </a>
+     .
+The detection rate, however, is still lower than the detection rates on those harmful injection prompts, even when they are examined using the modified detection prompts (targeting malfunction) as well.
+    </p>
+   </div>
+   <div class="ltx_para" id="S6.SS2.p5">
+    <p class="ltx_p" id="S6.SS2.p5.1">
+     Overall, our results show that the attack is indeed more difficult to detect through simple self-examinations.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S6.T7">
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      <span class="ltx_text" id="S6.T7.2.1.1" style="font-size:90%;">
+       Table 7
+      </span>
+      :
+     </span>
+     <span class="ltx_text" id="S6.T7.3.2" style="font-size:90%;">
+      Anomaly detection rate (higher indicates better defense) on different attack prompts using malfunction detection self-examination. INJ = Prompt Injection. ADV=Adversarial Perturbation.
+     </span>
+    </figcaption>
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S6.T7.4" style="width:248.2pt;height:115.2pt;vertical-align:-0.0pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-31.0pt,14.4pt) scale(0.8,0.8) ;">
+      <table class="ltx_tabular ltx_align_middle" id="S6.T7.4.1">
+       <tr class="ltx_tr" id="S6.T7.4.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T7.4.1.1.1">
+         <span class="ltx_text ltx_font_bold" id="S6.T7.4.1.1.1.1">
+          Attack
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S6.T7.4.1.1.2">
+         <span class="ltx_text ltx_font_bold" id="S6.T7.4.1.1.2.1">
+          Adversarial Prompt
+         </span>
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_tt" id="S6.T7.4.1.1.3">
+         <span class="ltx_text ltx_font_bold" id="S6.T7.4.1.1.3.1">
+          Complete Prompt
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.4.1.2.1">
+         Direct Harm (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S6.T7.4.1.2.2">
+         40.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" id="S6.T7.4.1.2.3">
+         42.7%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.3">
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.3.1">
+         Data Stealing (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.3.2">
+         78.1%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T7.4.1.3.3">
+         69.3%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.4">
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.4.1">
+         Infinite Loop (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.4.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T7.4.1.4.3">
+         20.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.5">
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.5.1">
+         Incorrect Function (INJ)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.5.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T7.4.1.5.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.6">
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.6.1">
+         GCG (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.6.2">
+         0.0%
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T7.4.1.6.3">
+         30.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.7">
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.7.1">
+         VIPER (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left" id="S6.T7.4.1.7.2">
+         N/A
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left" id="S6.T7.4.1.7.3">
+         0.0%
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S6.T7.4.1.8">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S6.T7.4.1.8.1">
+         SCPN (ADV)
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S6.T7.4.1.8.2">
+         N/A
+        </td>
+        <td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_bb" id="S6.T7.4.1.8.3">
+         0.0%
+        </td>
+       </tr>
+      </table>
+     </span>
+    </div>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    Considering the growing interest in developing autonomous agents using large language models, research on the safety aspects of LLM agents has been relatively limited.
+Ruan et. al. propose the agent emulator framework we used in our work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib36" title="">
+      36
+     </a>
+     ]
+    </cite>
+    .
+They leverage the framework to examine a selection of curated high-risk scenarios and find a high percentage of agent failures identified in the emulator would also fail in real implementation based on human evaluation.
+Utilizing the same framework, Zhan et. al. examine the risk of prompt injection attacks on tool-integrated LLM agents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib47" title="">
+      47
+     </a>
+     ]
+    </cite>
+    .
+They identify two types of risky actions from the agents when attacked and also compare agents’ behavior with a wide variety of core LLM.
+Their results show that even the most advanced GPT-4 model is vulnerable to their attack.
+Yang et. al. evaluate the vulnerabilities in LLM agents with backdoor attacks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib44" title="">
+      44
+     </a>
+     ]
+    </cite>
+    .
+From a conceptual level, Mo et. al. examine the potential risks of utilizing LLM agents in their position paper
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      31
+     </a>
+     ]
+    </cite>
+    .
+They also present a comprehensive framework for evaluating the adversarial attacks against LLM agents, sharing similarities with our approach such as identifying different components of the LLM agents as attack surfaces.
+However, their effort stopped at the conceptual level.
+These studies, however, differ from our approach that they only focus on examining obvious unsafe actions that can be elicited from the agents.
+As we have shown in
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S6" title="Defense ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+     <span class="ltx_text ltx_ref_tag">
+      Section 6
+     </span>
+    </a>
+    , such attacks can be detected through LLMs’ self-inspections.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p2">
+   <p class="ltx_p" id="S7.p2.1">
+    Besides direct safety analysis on LLM agents, many studies on LLMs can also be adapted.
+Generating adversarial examples is the attack most directly related to our attack, where the adversary aims to perturb the input such that the model cannot handle it correctly.
+Many attacks have been developed targeting LLMs
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      15
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      16
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib39" title="">
+      39
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      19
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib51" title="">
+      51
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib41" title="">
+      41
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib49" title="">
+      49
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      7
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      23
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib37" title="">
+      37
+     </a>
+     ]
+    </cite>
+    .
+From a broader perspective, several studies also aim to offer overviews of LLM’S behaviors and security vulnerabilities.
+Liang et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      25
+     </a>
+     ]
+    </cite>
+    present a framework for evaluating foundation models from several perspectives.
+Wang et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib40" title="">
+      40
+     </a>
+     ]
+    </cite>
+    conduct extensive evaluations on a wide variety of topics on the trustworthiness of LLMs, such as robustness, toxicity, and fairness.
+Li et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      24
+     </a>
+     ]
+    </cite>
+    survey current privacy issues in LLMs, including training data extraction, personal information leakage, and membership inference
+Derner et al.
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      11
+     </a>
+     ]
+    </cite>
+    present a categorization of LLM’s security risks.
+These studies can help identify potential weaknesses of LLM agents as well, but the additional components in LLM agents will provide different insights, as we discovered in
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S5" title="Results ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+     <span class="ltx_text ltx_ref_tag">
+      Section 5
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Limitation
+  </h2>
+  <div class="ltx_para" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    Our work is not without limitations.
+We reflect on areas where we can offer directions and inspiration for future works.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S8.p2">
+   <p class="ltx_p" id="S8.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p2.1.1">
+     Implemented Agents.
+    </span>
+    As mentioned in
+    <a class="ltx_ref ltx_refmacro_autoref" href="#S4.SS1" title="Agent Emulator ‣ Evaluation Setting ‣ Breaking Agents: Compromising Autonomous LLM Agents Through Malfunction Amplification">
+     <span class="ltx_text ltx_ref_tag">
+      Section 4.1
+     </span>
+    </a>
+    , the implementation of applicable agents can be difficult.
+Therefore, for our case studies, we only implemented two agents.
+Expanding the implemented agents to a broader selection can potentially provide even more comprehensive results.
+However, we leverage the agent emulator to present an overview of the risk efficiently to keep pace with the development and adoption of these emergent autonomous systems.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S8.p3">
+   <p class="ltx_p" id="S8.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p3.1.1">
+     Categorization.
+    </span>
+    As we are mostly concerned with the potential risks of deploying these agents in practical scenarios, we mainly consider agents that are designed to solve real-world tasks.
+There are also other types of agents that have been developed using LLM, such as NPC in games
+    <cite class="ltx_cite ltx_citemacro_cite">
+     [
+     <a class="ltx_ref" href="#bib.bib34" title="">
+      34
+     </a>
+     ,
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      26
+     </a>
+     ]
+    </cite>
+    .
+Since our attack is not inherently limited to any type of agent, it would be interesting to investigate how the categories of the agent affect the attack performance.
+We defer such investigation to future works.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S8.p4">
+   <p class="ltx_p" id="S8.p4.1">
+    <span class="ltx_text ltx_font_bold" id="S8.p4.1.1">
+     Models.
+    </span>
+    We only experimented with three variants of the LLMs as the core for the agents, since we opt to focus on models that are actively being utilized to build agents in the wild.
+The support from notable LLM agent development frameworks, such as AutoGPT and LangChain, reflects such popularity.
+Yet, we hope to expand our evaluations to more models in the future and include open-source models that offer more control.
+For instance, we can utilize such models for constructing adversarial perturbations to examine worst-case scenarios of the threat.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S9">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Ethics Discussion
+  </h2>
+  <div class="ltx_para" id="S9.p1">
+   <p class="ltx_p" id="S9.p1.1">
+    Considering we are presenting an attack against practical systems deployed in the real world, it is important to address relevant ethics issues.
+Although we present our findings as a novel attack against LLM agents, our main purpose is to draw attention to this previously ignored risk.
+   </p>
+  </div>
+  <div class="ltx_para" id="S9.p2">
+   <p class="ltx_p" id="S9.p2.1">
+    We present our attack as an evaluation platform for examining the robustness of LLM agents against these manipulations.
+Even the practical scenarios presented in our advanced attacks require large-scale deployments to present significant threats at the moment.
+We hope to draw attention to these potential vulnerabilities so that the developers working on LLM agents can obtain a better understanding of the risk and devise potentially more effective safeguard systems before more extensive adoptions and applications are in the wild.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S10">
+  <h2 class="ltx_title ltx_font_bold ltx_title_section" style="font-size:120%;">
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S10.p1">
+   <p class="ltx_p" id="S10.p1.1">
+    We use our proposed attack to highlight vulnerable areas of the current agents against these malfunction-inducing attacks.
+By showcasing advanced versions of our attacks on implemented and deployable agents, we draw attention to the potential risks when these autonomous agents are deployed at scale.
+Comparing the defense effectiveness of our attack with previous works further accentuates the challenge of mitigating these risks.
+The promising performance of the emerging LLM agents should not eclipse concerns about the potential risks of these agents.
+We hope our discoveries can facilitate future works on improving the robustness of LLM agents against these manipulations.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [1]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib1.1.1" style="font-size:90%;">
+     </span>
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://openai.com/research/gpt-4" style="font-size:90%;" target="_blank" title="">
+      https://openai.com/research/gpt-4
+     </a>
+     <span class="ltx_text" id="bib.bib1.2.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [2]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib2.1.1" style="font-size:90%;">
+     </span>
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://products.wolframalpha.com/llm-api/" style="font-size:90%;" target="_blank" title="">
+      https://products.wolframalpha.com/llm-api/
+     </a>
+     <span class="ltx_text" id="bib.bib2.2.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [3]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib3.1.1" style="font-size:90%;">
+     </span>
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://www.langchain.com/" style="font-size:90%;" target="_blank" title="">
+      https://www.langchain.com/
+     </a>
+     <span class="ltx_text" id="bib.bib3.2.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [4]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib4.1.1" style="font-size:90%;">
+     </span>
+     <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://news.agpt.co/" style="font-size:90%;" target="_blank" title="">
+      https://news.agpt.co/
+     </a>
+     <span class="ltx_text" id="bib.bib4.2.2" style="font-size:90%;">
+      .
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [5]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib5.1.1" style="font-size:90%;">
+      Sahar Abdelnabi, Kai Greshake, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib5.2.1" style="font-size:90%;">
+      Not What You’ve Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib5.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib5.4.2" style="font-size:90%;">
+      Workshop on Security and Artificial Intelligence (AISec)
+     </span>
+     <span class="ltx_text" id="bib.bib5.5.3" style="font-size:90%;">
+      , pages 79–90. ACM, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [6]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib6.1.1" style="font-size:90%;">
+      Battista Biggio, Igino Corona, Davide Maiorca, Blaine Nelson, Nedim Srndic, Pavel Laskov, Giorgio Giacinto, and Fabio Roli.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib6.2.1" style="font-size:90%;">
+      Evasion Attacks against Machine Learning at Test Time.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib6.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib6.4.2" style="font-size:90%;">
+      European Conference on Machine Learning and Principles and Practice of Knowledge Discovery in Databases (ECML/PKDD)
+     </span>
+     <span class="ltx_text" id="bib.bib6.5.3" style="font-size:90%;">
+      , pages 387–402. Springer, 2013.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [7]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib7.1.1" style="font-size:90%;">
+      Nicholas Boucher, Ilia Shumailov, Ross Anderson, and Nicolas Papernot.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib7.2.1" style="font-size:90%;">
+      Bad Characters: Imperceptible NLP Attacks.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib7.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib7.4.2" style="font-size:90%;">
+      IEEE Symposium on Security and Privacy (S&amp;P)
+     </span>
+     <span class="ltx_text" id="bib.bib7.5.3" style="font-size:90%;">
+      , pages 1987–2004. IEEE, 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [8]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib8.1.1" style="font-size:90%;">
+      Ting-Yun Chang and Robin Jia.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib8.2.1" style="font-size:90%;">
+      Data Curation Alone Can Stabilize In-context Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib8.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib8.4.2" style="font-size:90%;">
+      Annual Meeting of the Association for Computational Linguistics (ACL)
+     </span>
+     <span class="ltx_text" id="bib.bib8.5.3" style="font-size:90%;">
+      , pages 8123–8144. ACL, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [9]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib9.1.1" style="font-size:90%;">
+      Patrick Chao, Alexander Robey, Edgar Dobriban, Hamed Hassani, George J. Pappas, and Eric Wong.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib9.2.1" style="font-size:90%;">
+      Jailbreaking Black Box Large Language Models in Twenty Queries.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib9.3.1" style="font-size:90%;">
+      CoRR abs/2310.08419
+     </span>
+     <span class="ltx_text" id="bib.bib9.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [10]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib10.1.1" style="font-size:90%;">
+      Gelei Deng, Yi Liu, Yuekang Li, Kailong Wang, Ying Zhang, Zefeng Li, Haoyu Wang, Tianwei Zhang, and Yang Liu.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib10.2.1" style="font-size:90%;">
+      Jailbreaker: Automated Jailbreak Across Multiple Large Language Model Chatbots.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib10.3.1" style="font-size:90%;">
+      CoRR abs/2307.08715
+     </span>
+     <span class="ltx_text" id="bib.bib10.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [11]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib11.1.1" style="font-size:90%;">
+      Erik Derner, Kristina Batistic, Jan Zahálka, and Robert Babuska.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib11.2.1" style="font-size:90%;">
+      A Security Risk Taxonomy for Large Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib11.3.1" style="font-size:90%;">
+      CoRR abs/2311.11415
+     </span>
+     <span class="ltx_text" id="bib.bib11.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [12]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib12.1.1" style="font-size:90%;">
+      Qingxiu Dong, Lei Li, Damai Dai, Ce Zheng, Zhiyong Wu, Baobao Chang, Xu Sun, Jingjing Xu, Lei Li, and Zhifang Sui.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib12.2.1" style="font-size:90%;">
+      A Survey on In-context Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib12.3.1" style="font-size:90%;">
+      CoRR abs/2301.00234
+     </span>
+     <span class="ltx_text" id="bib.bib12.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [13]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib13.1.1" style="font-size:90%;">
+      Haonan Duan, Adam Dziedzic, Mohammad Yaghini, Nicolas Papernot, and Franziska Boenisch.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib13.2.1" style="font-size:90%;">
+      On the Privacy Risk of In-context Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib13.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib13.4.2" style="font-size:90%;">
+      Workshop on Trustworthy Natural Language Processing (TrustNLP)
+     </span>
+     <span class="ltx_text" id="bib.bib13.5.3" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [14]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib14.1.1" style="font-size:90%;">
+      Steffen Eger, Gözde Gül Sahin, Andreas Rücklé, Ji-Ung Lee, Claudia Schulz, Mohsen Mesgar, Krishnkant Swarnkar, Edwin Simpson, and Iryna Gurevych.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib14.2.1" style="font-size:90%;">
+      Text Processing Like Humans Do: Visually Attacking and Shielding NLP Systems.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib14.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib14.4.2" style="font-size:90%;">
+      Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT)
+     </span>
+     <span class="ltx_text" id="bib.bib14.5.3" style="font-size:90%;">
+      , pages 1634–1647. ACL, 2019.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [15]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.1.1" style="font-size:90%;">
+      Xuanjie Fang, Sijie Cheng, Yang Liu, and Wei Wang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.2.1" style="font-size:90%;">
+      Modeling Adversarial Attack on Pre-trained Language Models as Sequential Decision Making.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib15.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib15.4.2" style="font-size:90%;">
+      Annual Meeting of the Association for Computational Linguistics (ACL)
+     </span>
+     <span class="ltx_text" id="bib.bib15.5.3" style="font-size:90%;">
+      , pages 7322–7336. ACL, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [16]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib16.1.1" style="font-size:90%;">
+      Piotr Gainski and Klaudia Balazy.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib16.2.1" style="font-size:90%;">
+      Step by Step Loss Goes Very Far: Multi-Step Quantization for Adversarial Text Attacks.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib16.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib16.4.2" style="font-size:90%;">
+      Conference of the European Chapter of the Association for Computational Linguistics (EACL)
+     </span>
+     <span class="ltx_text" id="bib.bib16.5.3" style="font-size:90%;">
+      , pages 2030–2040. ACL, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [17]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.1.1" style="font-size:90%;">
+      Ian Goodfellow, Jonathon Shlens, and Christian Szegedy.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.2.1" style="font-size:90%;">
+      Explaining and Harnessing Adversarial Examples.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib17.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib17.4.2" style="font-size:90%;">
+      International Conference on Learning Representations (ICLR)
+     </span>
+     <span class="ltx_text" id="bib.bib17.5.3" style="font-size:90%;">
+      , 2015.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [18]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib18.1.1" style="font-size:90%;">
+      Kai Greshake, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib18.2.1" style="font-size:90%;">
+      More than you’ve asked for: A Comprehensive Analysis of Novel Prompt Injection Threats to Application-Integrated Large Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib18.3.1" style="font-size:90%;">
+      CoRR abs/2302.12173
+     </span>
+     <span class="ltx_text" id="bib.bib18.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [19]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib19.1.1" style="font-size:90%;">
+      Chuan Guo, Alexandre Sablayrolles, Hervé Jégou, and Douwe Kiela.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib19.2.1" style="font-size:90%;">
+      Gradient-based Adversarial Attacks against Text Transformers.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib19.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib19.4.2" style="font-size:90%;">
+      Conference on Empirical Methods in Natural Language Processing (EMNLP)
+     </span>
+     <span class="ltx_text" id="bib.bib19.5.3" style="font-size:90%;">
+      , pages 5747–5757. ACL, 2021.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [20]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib20.1.1" style="font-size:90%;">
+      Yangsibo Huang, Samyak Gupta, Mengzhou Xia, Kai Li, and Danqi Chen.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib20.2.1" style="font-size:90%;">
+      Catastrophic Jailbreak of Open-source LLMs via Exploiting Generation.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib20.3.1" style="font-size:90%;">
+      CoRR abs/2310.06987
+     </span>
+     <span class="ltx_text" id="bib.bib20.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [21]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.1.1" style="font-size:90%;">
+      Mohit Iyyer, John Wieting, Kevin Gimpel, and Luke Zettlemoyer.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.2.1" style="font-size:90%;">
+      Adversarial Example Generation with Syntactically Controlled Paraphrase Networks.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib21.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib21.4.2" style="font-size:90%;">
+      Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT)
+     </span>
+     <span class="ltx_text" id="bib.bib21.5.3" style="font-size:90%;">
+      , pages 1875–1885. ACL, 2018.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [22]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib22.1.1" style="font-size:90%;">
+      Haoran Li, Dadi Guo, Wei Fan, Mingshi Xu, and Yangqiu Song.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib22.2.1" style="font-size:90%;">
+      Multi-step Jailbreaking Privacy Attacks on ChatGPT.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib22.3.1" style="font-size:90%;">
+      CoRR abs/2304.05197
+     </span>
+     <span class="ltx_text" id="bib.bib22.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [23]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib23.1.1" style="font-size:90%;">
+      Jinfeng Li, Shouling Ji, Tianyu Du, Bo Li, and Ting Wang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib23.2.1" style="font-size:90%;">
+      TextBugger: Generating Adversarial Text Against Real-world Applications.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib23.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib23.4.2" style="font-size:90%;">
+      Network and Distributed System Security Symposium (NDSS)
+     </span>
+     <span class="ltx_text" id="bib.bib23.5.3" style="font-size:90%;">
+      . Internet Society, 2019.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [24]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib24.1.1" style="font-size:90%;">
+      ZhHaoran Li, Yulin Chen, Jinglong Luo, Yan Kang, Xiaojin Zhang, Qi Hu, Chunkit Chan, and Yangqiu Song.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib24.2.1" style="font-size:90%;">
+      Privacy in Large Language Models: Attacks, Defenses and Future Directions.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib24.3.1" style="font-size:90%;">
+      CoRR abs/2310.10383
+     </span>
+     <span class="ltx_text" id="bib.bib24.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [25]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib25.1.1" style="font-size:90%;">
+      Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michihiro Yasunaga, Yian Zhang, Deepak Narayanan, Yuhuai Wu, Ananya Kumar, Benjamin Newman, Binhang Yuan, Bobby Yan, Ce Zhang, Christian Cosgrove, Christopher D. Manning, Christopher Ré, Diana Acosta-Navas, Drew A. Hudson, Eric Zelikman, Esin Durmus, Faisal Ladhak, Frieda Rong, Hongyu Ren, Huaxiu Yao, Jue Wang, Keshav Santhanam, Laurel J. Orr, Lucia Zheng, Mert Yüksekgönül, Mirac Suzgun, Nathan Kim, Neel Guha, Niladri S. Chatterji, Omar Khattab, Peter Henderson, Qian Huang, Ryan Chi, Sang Michael Xie, Shibani Santurkar, Surya Ganguli, Tatsunori Hashimoto, Thomas Icard, Tianyi Zhang, Vishrav Chaudhary, William Wang, Xuechen Li, Yifan Mai, Yuhui Zhang, and Yuta Koreeda.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib25.2.1" style="font-size:90%;">
+      Holistic Evaluation of Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib25.3.1" style="font-size:90%;">
+      CoRR abs/2211.09110
+     </span>
+     <span class="ltx_text" id="bib.bib25.4.2" style="font-size:90%;">
+      , 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [26]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib26.1.1" style="font-size:90%;">
+      Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, Shudan Zhang, Xiang Deng, Aohan Zeng, Zhengxiao Du, Chenhui Zhang, Sheng Shen, Tianjun Zhang, Yu Su, Huan Sun, Minlie Huang, Yuxiao Dong, and Jie Tang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib26.2.1" style="font-size:90%;">
+      AgentBench: Evaluating LLMs as Agents.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib26.3.1" style="font-size:90%;">
+      CoRR abs/2308.03688
+     </span>
+     <span class="ltx_text" id="bib.bib26.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [27]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib27.1.1" style="font-size:90%;">
+      Xiaogeng Liu, Nan Xu, Muhao Chen, and Chaowei Xiao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib27.2.1" style="font-size:90%;">
+      AutoDAN: Generating Stealthy Jailbreak Prompts on Aligned Large Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib27.3.1" style="font-size:90%;">
+      CoRR abs/2310.04451
+     </span>
+     <span class="ltx_text" id="bib.bib27.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [28]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib28.1.1" style="font-size:90%;">
+      Yi Liu, Gelei Deng, Zhengzi Xu, Yuekang Li, Yaowen Zheng, Ying Zhang, Lida Zhao, Tianwei Zhang, and Yang Liu.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib28.2.1" style="font-size:90%;">
+      Jailbreaking ChatGPT via Prompt Engineering: An Empirical Study.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib28.3.1" style="font-size:90%;">
+      CoRR abs/2305.13860
+     </span>
+     <span class="ltx_text" id="bib.bib28.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [29]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib29.1.1" style="font-size:90%;">
+      Yupei Liu, Yuqi Jia, Runpeng Geng, Jinyuan Jia, and Neil Zhenqiang Gong.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib29.2.1" style="font-size:90%;">
+      InstrPrompt Injection Attacks and Defenses in LLM-Integrated Applications.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib29.3.1" style="font-size:90%;">
+      CoRR abs/2310.12815
+     </span>
+     <span class="ltx_text" id="bib.bib29.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [30]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.1.1" style="font-size:90%;">
+      Sewon Min, Xinxi Lyu, Ari Holtzman, Mikel Artetxe, Mike Lewis, Hannaneh Hajishirzi, and Luke Zettlemoyer.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.2.1" style="font-size:90%;">
+      Rethinking the Role of Demonstrations: What Makes In-Context Learning Work?
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib30.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib30.4.2" style="font-size:90%;">
+      Conference on Empirical Methods in Natural Language Processing (EMNLP)
+     </span>
+     <span class="ltx_text" id="bib.bib30.5.3" style="font-size:90%;">
+      , pages 11048–11064. ACL, 2022.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [31]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib31.1.1" style="font-size:90%;">
+      Lingbo Mo, Zeyi Liao, Boyuan Zheng, Yu Su, Chaowei Xiao, and Huan Sun.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib31.2.1" style="font-size:90%;">
+      A Trembling House of Cards? Mapping Adversarial Attacks against Language Agents.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib31.3.1" style="font-size:90%;">
+      CoRR abs/2402.10196
+     </span>
+     <span class="ltx_text" id="bib.bib31.4.2" style="font-size:90%;">
+      , 2024.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [32]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib32.1.1" style="font-size:90%;">
+      Jane Pan, Tianyu Gao, Howard Chen, and Danqi Chen.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib32.2.1" style="font-size:90%;">
+      What In-Context Learning "Learns" In-Context: Disentangling Task Recognition and Task Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib32.3.1" style="font-size:90%;">
+      CoRR abs/2305.09731
+     </span>
+     <span class="ltx_text" id="bib.bib32.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [33]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib33.1.1" style="font-size:90%;">
+      Ashwinee Panda, Tong Wu, Jiachen T. Wang, and Prateek Mittal.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib33.2.1" style="font-size:90%;">
+      Differentially Private In-Context Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib33.3.1" style="font-size:90%;">
+      CoRR abs/2305.01639
+     </span>
+     <span class="ltx_text" id="bib.bib33.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib34">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [34]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib34.1.1" style="font-size:90%;">
+      Joon Sung Park, Joseph C. O’Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib34.2.1" style="font-size:90%;">
+      Generative Agents: Interactive Simulacra of Human Behavior.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib34.3.1" style="font-size:90%;">
+      CoRR abs/2304.03442
+     </span>
+     <span class="ltx_text" id="bib.bib34.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib35">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [35]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib35.1.1" style="font-size:90%;">
+      Yao Qiang, Xiangyu Zhou, and Dongxiao Zhu.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib35.2.1" style="font-size:90%;">
+      Hijacking Large Language Models via Adversarial In-Context Learning.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib35.3.1" style="font-size:90%;">
+      CoRR abs/2311.09948
+     </span>
+     <span class="ltx_text" id="bib.bib35.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib36">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [36]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib36.1.1" style="font-size:90%;">
+      Yangjun Ruan, Honghua Dong, Andrew Wang, Silviu Pitis, Yongchao Zhou, Jimmy Ba, Yann Dubois, Chris J. Maddison, and Tatsunori Hashimoto.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib36.2.1" style="font-size:90%;">
+      Identifying the Risks of LM Agents with an LM-Emulated Sandbox.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib36.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib36.4.2" style="font-size:90%;">
+      International Conference on Learning Representations (ICLR)
+     </span>
+     <span class="ltx_text" id="bib.bib36.5.3" style="font-size:90%;">
+      . ICLR, 2024.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib37">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [37]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib37.1.1" style="font-size:90%;">
+      Xinyue Shen, Zeyuan Chen, Michael Backes, Yun Shen, and Yang Zhang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib37.2.1" style="font-size:90%;">
+      Do Anything Now: Characterizing and Evaluating In-The-Wild Jailbreak Prompts on Large Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib37.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib37.4.2" style="font-size:90%;">
+      ACM SIGSAC Conference on Computer and Communications Security (CCS)
+     </span>
+     <span class="ltx_text" id="bib.bib37.5.3" style="font-size:90%;">
+      . ACM, 2024.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib38">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [38]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib38.1.1" style="font-size:90%;">
+      Octavian Suciu, Radu Mărginean, Yiğitcan Kaya, Hal Daumé III, and Tudor Dumitraş.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib38.2.1" style="font-size:90%;">
+      When Does Machine Learning FAIL? Generalized Transferability for Evasion and Poisoning Attacks.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib38.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib38.4.2" style="font-size:90%;">
+      USENIX Security Symposium (USENIX Security)
+     </span>
+     <span class="ltx_text" id="bib.bib38.5.3" style="font-size:90%;">
+      , pages 1299–1316. USENIX, 2018.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib39">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [39]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib39.1.1" style="font-size:90%;">
+      Eric Wallace, Shi Feng, Nikhil Kandpal, Matt Gardner, and Sameer Singh.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib39.2.1" style="font-size:90%;">
+      Universal Adversarial Triggers for Attacking and Analyzing NLP.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib39.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib39.4.2" style="font-size:90%;">
+      Conference on Empirical Methods in Natural Language Processing and International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)
+     </span>
+     <span class="ltx_text" id="bib.bib39.5.3" style="font-size:90%;">
+      , pages 2153–2162. ACL, 2019.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib40">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [40]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib40.1.1" style="font-size:90%;">
+      Boxin Wang, Weixin Chen, Hengzhi Pei, Chulin Xie, Mintong Kang, Chenhui Zhang, Chejian Xu, Zidi Xiong, Ritik Dutta, Rylan Schaeffer, Sang T. Truong, Simran Arora, Mantas Mazeika, Dan Hendrycks, Zinan Lin, Yu Cheng, Sanmi Koyejo, Dawn Song, and Bo Li.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib40.2.1" style="font-size:90%;">
+      DecodingTrust: A Comprehensive Assessment of Trustworthiness in GPT Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib40.3.1" style="font-size:90%;">
+      CoRR abs/2306.11698
+     </span>
+     <span class="ltx_text" id="bib.bib40.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib41">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [41]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib41.1.1" style="font-size:90%;">
+      Jiongxiao Wang, Zichen Liu, Keun Hee Park, Muhao Chen, and Chaowei Xiao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib41.2.1" style="font-size:90%;">
+      Adversarial Demonstration Attacks on Large Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib41.3.1" style="font-size:90%;">
+      CoRR abs/2305.14950
+     </span>
+     <span class="ltx_text" id="bib.bib41.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib42">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [42]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib42.1.1" style="font-size:90%;">
+      Yueqi Xie, Jingwei Yi, Jiawei Shao, Justin Curl, Lingjuan Lyu, Qifeng Chen, Xing Xie, and Fangzhao Wu.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib42.2.1" style="font-size:90%;">
+      Defending ChatGPT against jailbreak attack via self-reminders.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib42.3.1" style="font-size:90%;">
+      Nature Machine Intelligence
+     </span>
+     <span class="ltx_text" id="bib.bib42.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib43">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [43]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib43.1.1" style="font-size:90%;">
+      Jun Yan, Vikas Yadav, Shiyang Li, Lichang Chen, Zheng Tang, Hai Wang, Vijay Srinivasan, Xiang Ren, and Hongxia Jin.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib43.2.1" style="font-size:90%;">
+      Backdooring Instruction-Tuned Large Language Models with Virtual Prompt Injection.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib43.3.1" style="font-size:90%;">
+      CoRR abs/2307.16888
+     </span>
+     <span class="ltx_text" id="bib.bib43.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib44">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [44]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib44.1.1" style="font-size:90%;">
+      Wenkai Yang, Xiaohan Bi, Yankai Lin, Sishuo Chen, Jie Zhou, and Xu Sun.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib44.2.1" style="font-size:90%;">
+      Watch Out for Your Agents! Investigating Backdoor Threats to LLM-Based Agents.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib44.3.1" style="font-size:90%;">
+      CoRR abs/2402.11208
+     </span>
+     <span class="ltx_text" id="bib.bib44.4.2" style="font-size:90%;">
+      , 2024.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib45">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [45]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib45.1.1" style="font-size:90%;">
+      Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R. Narasimhan, and Yuan Cao.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib45.2.1" style="font-size:90%;">
+      ReAct: Synergizing Reasoning and Acting in Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib45.3.1" style="font-size:90%;">
+      In
+     </span>
+     <span class="ltx_text ltx_font_italic" id="bib.bib45.4.2" style="font-size:90%;">
+      International Conference on Learning Representations (ICLR)
+     </span>
+     <span class="ltx_text" id="bib.bib45.5.3" style="font-size:90%;">
+      . ICLR, 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib46">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [46]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib46.1.1" style="font-size:90%;">
+      Jiahao Yu, Xingwei Lin, Zheng Yu, and Xinyu Xing.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib46.2.1" style="font-size:90%;">
+      GPTFUZZER: Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib46.3.1" style="font-size:90%;">
+      CoRR abs/2309.10253
+     </span>
+     <span class="ltx_text" id="bib.bib46.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib47">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [47]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib47.1.1" style="font-size:90%;">
+      Qiusi Zhan, Zhixiang Liang, Zifan Ying, and Daniel Kang.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib47.2.1" style="font-size:90%;">
+      InjecAgent: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib47.3.1" style="font-size:90%;">
+      CoRR abs/2403.02691
+     </span>
+     <span class="ltx_text" id="bib.bib47.4.2" style="font-size:90%;">
+      , 2024.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib48">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [48]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib48.1.1" style="font-size:90%;">
+      Shuyan Zhou, Frank F. Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Yonatan Bisk, Daniel Fried, Uri Alon, and Graham Neubig.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib48.2.1" style="font-size:90%;">
+      WebArena: A Realistic Web Environment for Building Autonomous Agents.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib48.3.1" style="font-size:90%;">
+      CoRR abs/2307.13854
+     </span>
+     <span class="ltx_text" id="bib.bib48.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib49">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [49]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib49.1.1" style="font-size:90%;">
+      Kaijie Zhu, Jindong Wang, Jiaheng Zhou, Zichen Wang, Hao Chen, Yidong Wang, Linyi Yang, Wei Ye, Neil Zhenqiang Gong, Yue Zhang, and Xing Xie.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib49.2.1" style="font-size:90%;">
+      PromptBench: Towards Evaluating the Robustness of Large Language Models on Adversarial Prompts.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib49.3.1" style="font-size:90%;">
+      CoRR abs/2306.04528
+     </span>
+     <span class="ltx_text" id="bib.bib49.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib50">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [50]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib50.1.1" style="font-size:90%;">
+      Terry Yue Zhuo, Yujin Huang, Chunyang Chen, and Zhenchang Xing.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib50.2.1" style="font-size:90%;">
+      Red teaming ChatGPT via Jailbreaking: Bias, Robustness, Reliability and Toxicity.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib50.3.1" style="font-size:90%;">
+      CoRR abs/2301.12867
+     </span>
+     <span class="ltx_text" id="bib.bib50.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib51">
+    <span class="ltx_tag ltx_tag_bibitem">
+     [51]
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib51.1.1" style="font-size:90%;">
+      Andy Zou, Zifan Wang, J. Zico Kolter, and Matt Fredrikson.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text" id="bib.bib51.2.1" style="font-size:90%;">
+      Universal and Transferable Adversarial Attacks on Aligned Language Models.
+     </span>
+    </span>
+    <span class="ltx_bibblock">
+     <span class="ltx_text ltx_font_italic" id="bib.bib51.3.1" style="font-size:90%;">
+      CoRR abs/2307.15043
+     </span>
+     <span class="ltx_text" id="bib.bib51.4.2" style="font-size:90%;">
+      , 2023.
+     </span>
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+</article>

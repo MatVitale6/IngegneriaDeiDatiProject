@@ -1,0 +1,4059 @@
+<article class="ltx_document ltx_authors_1line">
+ <h1 class="ltx_title ltx_title_document">
+  MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    <span class="ltx_text ltx_font_bold" id="id1.1.id1">
+     Arian Askari
+     <sup class="ltx_sup" id="id1.1.id1.1">
+      1
+     </sup>
+    </span>
+    ,
+    <span class="ltx_text ltx_font_bold" id="id2.2.id2">
+     Christian Poelitz
+     <sup class="ltx_sup" id="id2.2.id2.1">
+      2
+     </sup>
+    </span>
+    ,
+    <span class="ltx_text ltx_font_bold" id="id3.3.id3">
+     Xinye Tang
+     <sup class="ltx_sup" id="id3.3.id3.1">
+      2
+     </sup>
+    </span>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id4.4.id4">
+     1
+    </sup>
+    Leiden University
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id5.5.id5">
+     2
+    </sup>
+    Microsoft
+    <br class="ltx_break"/>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id6.6.id6">
+     1
+    </sup>
+    Leiden University a.askari@liacs.leidenuniv.nl
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id7.7.id7">
+     2
+    </sup>
+    Microsoft {cpoelitz, xinye.tang}@microsoft.com
+    <br class="ltx_break"/>
+   </span>
+   <span class="ltx_author_notes">
+    <span class="ltx_text ltx_font_bold" id="id8.8.id1">
+     Work done during an internship at Microsoft.
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id9.id1">
+   Self-correction in text-to-SQL is the process of prompting large language model (LLM) to revise its previously incorrectly generated SQL, and commonly relies on manually crafted self-correction guidelines by human experts that are not only labor-intensive to produce but also limited by the human ability in identifying all potential error patterns in LLM responses. We introduce MAGIC, a novel
+   <span class="ltx_text ltx_font_bold" id="id9.id1.1">
+    m
+   </span>
+   ulti-
+   <span class="ltx_text ltx_font_bold" id="id9.id1.2">
+    ag
+   </span>
+   ent method that automates the creat
+   <span class="ltx_text ltx_font_bold" id="id9.id1.3">
+    i
+   </span>
+   on of the self-
+   <span class="ltx_text ltx_font_bold" id="id9.id1.4">
+    c
+   </span>
+   orrection guideline. MAGIC uses three specialized agents: a manager, a correction, and a feedback agent. These agents collaborate on the failures of an LLM-based method on the training set to iteratively generate and refine a self-correction guideline tailored to LLM mistakes, mirroring human processes but without human involvement. Our extensive experiments show that MAGIC’s guideline outperforms expert human’s created ones. We empirically find out that the guideline produced by MAGIC enhance the interpretability of the corrections made, providing insights in analyzing the reason behind the failures and successes of LLMs in self-correction.
+We make all agent interactions publicly available to the research community, to foster further research in this area, offering a synthetic dataset for future explorations into automatic self-correction guideline generation.
+  </p>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Converting natural language questions to SQL database queries, known as text-to-SQL, serves as a pivotal component for empowering non-expert data analysts in extracting desired information from relational databases using natural language
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Qu et al. (
+     <a class="ltx_ref" href="#bib.bib19" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+While large language models have shown a significant improvement in text-to-SQL and serve as state-of-the methods according to the leaderboards
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2024b
+     </a>
+     )
+    </cite>
+    , they are prone to mistakes and even GPT4 has a notable accuracy gap of 30% within human
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    A solution for resolving the mistakes of LLM is the emerging concept of ‘self-correction’
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Madaan et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    that defines as the ability of LLMs in revising their previous mistakes under the hypothesis that recognizing errors is easier than avoiding them
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Gou et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2024
+     </a>
+     ); Madaan et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+Self-correction in context of text-to-SQL is the process of prompting an LLM to revise its previously incorrectly generated SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhang et al. (
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      2024
+     </a>
+     ); Chen et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_missing ltx_missing_image" id="S1.F1.g1" src=""/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Example of self-correction using automatically generated guidelines by MAGIC
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    While self-correction for LLMs has been widely studied in variety of tasks including code generation with GPT4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Shypula et al. (
+     <a class="ltx_ref" href="#bib.bib21" title="">
+      2024
+     </a>
+     ); Pan et al. (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2023
+     </a>
+     ); Kamoi et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2024
+     </a>
+     )
+    </cite>
+    , it has been relatively unexplored in text-to-SQL.
+The common method for self-correcting in existing few-shot LLM based methods that achieve state-of-the-art effectiveness is designing a self-correction guideline by human and prompting it to GPT-4 together with its initial generated SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+This self-correction guideline commonly engineered based on the train set where an expert human analyzes common mistakes of the LLM on the training data and design a guideline to prevent common mistakes.
+This process is a time-consuming and challenging task that is limited to the ability of humans in identifying all the mistake patterns that exist in the LLM responses
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     ); Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     ); Talaei et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    We propose MAGIC, a novel multi-agent self-correction guideline generation for text-to-SQL, that generates an effective self-correction guideline that outperforms human-written guidelines and yields to improving effectiveness of strong few-shot LLM based text-to-SQL methods.
+Similar to humans who engineer the self-correction guideline and apply it to LLMs during inference, with MAGIC, we first tackle guideline generation and then utilize the generated guideline during inference.
+By iterating over the incorrect generated SQLs by the initial text-to-SQL method, MAGIC automatically generates the self-correction guideline that is tailored to the mistakes of the initial system.
+Next, in inference, the self-correction guideline of MAGIC will be integrated to the initial text-to-SQL method, assisting it in preventing its common mistakes.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Unlike previous studies that analyze self-correction on a simple method that uses GPT4 as its backbone or a low-effective open-source language model
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhang et al. (
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      2024
+     </a>
+     )
+    </cite>
+    , we employ a strong and effective open-source method based on GPT4, DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , as our initial text-to-SQL system aiming to compare our automatically generated guideline with an effective expert human-written guideline.
+Our experiments demonstrate that the generated guideline by MAGIC leads to self-explanatory self-correction, where the LLM asks itself questions before self-correcting.
+Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    illustrates an example of where the MAGIC guideline assisted GPT4 to self-correct its previously incorrectly generated SQL. The process is interpretable as the LLM first starts with asking itself and then perform self-correction.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F2">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S1.F2.1" style="width:331.3pt;height:123.5pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-61.3pt,22.8pt) scale(0.73,0.73) ;">
+     <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="180" id="S1.F2.1.g1" src="/html/2406.12692/assets/x2.png" width="484"/>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 2:
+    </span>
+    Illustration of our proposed method, MAGIC.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our contributions are as follows:
+   </p>
+   <ul class="ltx_itemize" id="S1.I1">
+    <li class="ltx_item" id="S1.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i1.p1">
+      <p class="ltx_p" id="S1.I1.i1.p1.1">
+       We establish the task of self-correction guideline generation for text-to-SQL, and introduce MAGIC, a novel multi-agent method, that automates the generation of self-correction guideline and outperforms human-written guideline; yielding to improve effectiveness of a strong few-shot LLM based text-to-SQL method.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i2.p1">
+      <p class="ltx_p" id="S1.I1.i2.p1.1">
+       We systematically analyze the impact of ours and existing self-correction methods to perform self-correction across different scenarios: Correcting incorrect queries; non-executable queries; and all queries.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S1.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S1.I1.i3.p1">
+      <p class="ltx_p" id="S1.I1.i3.p1.1">
+       We reproduce all the baselines utilizing the same version of GPT-4 across all the experiments, and provide a comprehensive comparable insight on self-correction in text-to-SQL.
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="S1.p6.2">
+    We found that there can be a significant gap in terms of effectiveness when utilizing different versions of GPT-4. For instance, our replication of DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    on development set of BIRD
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    achieves 56.52 compared to the original report of 50.72 in the paper, which is about 6 points higher than the reported number. This is our motivation for replicating and reproducing all the reported baselines using same GPT-4 and and avoid copying numbers from previous papers.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   Related work
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p1.1.1">
+     LLMs for Text-to-SQL
+    </span>
+    .
+Converting natural language questions into SQL queries, known as text-to-SQL, has been an active area of research within both the natural language processing (NLP) and database communities for many years
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zelle and Mooney (
+     <a class="ltx_ref" href="#bib.bib31" title="">
+      1996
+     </a>
+     ); Guo et al. (
+     <a class="ltx_ref" href="#bib.bib5" title="">
+      2019
+     </a>
+     )
+    </cite>
+    . Recently, text-to-SQL has benefited from the promising effectiveness of Large Language Models (LLMs)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Talaei et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2024
+     </a>
+     ); Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . Early methods utilized the zero-shot in-context learning capabilities of LLMs for SQL generation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Rajkumar et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2022
+     </a>
+     )
+    </cite>
+    . Building on this, subsequent models have improved LLM performance through task decomposition and techniques such as Chain-of-Thought (CoT)
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wei et al. (
+     <a class="ltx_ref" href="#bib.bib27" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , including but not limited to models like DAIL-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Gao et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , MAC-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    , C3
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Dong et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , self-consistency
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2022
+     </a>
+     )
+    </cite>
+    , and least-to-most prompting
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Zhou et al. (
+     <a class="ltx_ref" href="#bib.bib33" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . In addition, there are studies focusing on fine-tuning LLMs for text-to-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2024c
+     </a>
+     ); Gao et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     ); Li et al. (
+     <a class="ltx_ref" href="#bib.bib8" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    . We choose DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    as the initial text-to-SQL system due to two reasons: (i) high effectiveness and available open-source code; (ii) its self-correction component is a human expert written guideline based on prior mistakes of the LLM making it a suitable baseline for comparing the automatically self-correction guideline generated by MAGIC with expert human-written guideline. However, we would emphasize that our method is independent of how the in-context learning method is designed and is adaptable to the output of any method, as we only require the predicted SQL of the initial text-to-SQL system for tackling self-correction in MAGIC.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p2">
+   <p class="ltx_p" id="S2.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p2.1.1">
+     Self-correction in text-to-SQL
+    </span>
+    .
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Pan et al. (
+     <a class="ltx_ref" href="#bib.bib17" title="">
+      2024
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Kamoi et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2024
+     </a>
+     )
+    </cite>
+    provide an extensive overview of research on self-correction in a variety of domains up to 2024. Here, we focus on self-correction in Text-to-SQL, where there has been relatively limited study. Self-debugging
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    generates additional explanations on the question and initial predicted SQL, which are then provided to an LLM for self-correction. DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    designs a human-written self-correction guideline and revises all the initially generated SQLs according to this guideline. Self-consistency is based on generating several candidates and employing a voting process, which has been integrated into Text-to-SQL by DAIL-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Gao et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . The refiner component of MAC-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    uses execution errors as signals for revising the SQL. To the best of our knowledge, we are the first study to address self-correction in Text-to-SQL by generating a self-correction guideline.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S2.p3">
+   <p class="ltx_p" id="S2.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S2.p3.1.1">
+     LLM-based Agents
+    </span>
+    .
+LLM-based agents have been a promising area of study in both academic and industry communities for an extended period
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib25" title="">
+      2024b
+     </a>
+     )
+    </cite>
+    , leading to extensive research exploring autonomous agents based on LLMs such as AutoGPT
+    <cite class="ltx_cite ltx_citemacro_cite">
+     <a class="ltx_ref" href="#bib.bib22" title="">
+      Significant Gravitas
+     </a>
+    </cite>
+    , OpenAgents
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Xie et al. (
+     <a class="ltx_ref" href="#bib.bib29" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , and AutoGen
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wu et al. (
+     <a class="ltx_ref" href="#bib.bib28" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . However, there are limited studies leveraging this concept for text-to-SQL, with MAC-SQL being the only multi-agent method focusing on addressing the Text-to-SQL task through a new multi-agent collaborative framework
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    .
+Inspired by the literature on multi-agent LLMs, in MAGIC, we employ a multi-agent collaborative framework that iteratively analyzes the failures of predicted SQLs by a text-to-SQL method’s and automatically generates a self-correction guideline tailored to the method’s mistakes. To the best of our knowledge, there is no prior work in the literature that employs multi-agent methods for designing a self-correction guideline in text-to-SQL or other domains.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Self-correction Guideline Generation
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S3.p1">
+   <p class="ltx_p" id="S3.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S3.p1.1.1">
+     Tasks definition
+    </span>
+    .
+Given a set of questions in natural language alongside the corresponding database schema and the initially generated incorrect SQL queries by a text-to-SQL system, the task of self-correction guideline generation is to generate a self-correction guideline that is tailored to the LLM’s mistakes and prevents it from repeating them. This can be done by a human expert, an LLM, or a collaboration between a human expert and an LLM. The typical approach for self-correction involves writing a guideline for the Large Language Model manually by humans based on the LLM’s common mistakes
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     ); Talaei et al. (
+     <a class="ltx_ref" href="#bib.bib23" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . The data used for guideline generation must not be shared with the evaluation data to prevent overfitting the guidelines on the test errors.
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    MAGIC
+   </h3>
+   <div class="ltx_para" id="S3.SS1.p1">
+    <p class="ltx_p" id="S3.SS1.p1.4">
+     We tackle the task of generating self-correction guideline for text-to-SQL systems, focusing on the failures of an initial method, denoted as
+     <math alttext="M" class="ltx_Math" display="inline" id="S3.SS1.p1.1.m1.1">
+      <semantics id="S3.SS1.p1.1.m1.1a">
+       <mi id="S3.SS1.p1.1.m1.1.1" xref="S3.SS1.p1.1.m1.1.1.cmml">
+        M
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.1.m1.1b">
+        <ci id="S3.SS1.p1.1.m1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1">
+         𝑀
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.1.m1.1c">
+        M
+       </annotation>
+      </semantics>
+     </math>
+     , using the training dataset. A failure for
+     <math alttext="M" class="ltx_Math" display="inline" id="S3.SS1.p1.2.m2.1">
+      <semantics id="S3.SS1.p1.2.m2.1a">
+       <mi id="S3.SS1.p1.2.m2.1.1" xref="S3.SS1.p1.2.m2.1.1.cmml">
+        M
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.2.m2.1b">
+        <ci id="S3.SS1.p1.2.m2.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1">
+         𝑀
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.2.m2.1c">
+        M
+       </annotation>
+      </semantics>
+     </math>
+     occurs when the predicted SQL is either not executable or its execution result differs from that of the ground truth SQL, denoted as
+     <math alttext="s^{gt}" class="ltx_Math" display="inline" id="S3.SS1.p1.3.m3.1">
+      <semantics id="S3.SS1.p1.3.m3.1a">
+       <msup id="S3.SS1.p1.3.m3.1.1" xref="S3.SS1.p1.3.m3.1.1.cmml">
+        <mi id="S3.SS1.p1.3.m3.1.1.2" xref="S3.SS1.p1.3.m3.1.1.2.cmml">
+         s
+        </mi>
+        <mrow id="S3.SS1.p1.3.m3.1.1.3" xref="S3.SS1.p1.3.m3.1.1.3.cmml">
+         <mi id="S3.SS1.p1.3.m3.1.1.3.2" xref="S3.SS1.p1.3.m3.1.1.3.2.cmml">
+          g
+         </mi>
+         <mo id="S3.SS1.p1.3.m3.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS1.p1.3.m3.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S3.SS1.p1.3.m3.1.1.3.3" xref="S3.SS1.p1.3.m3.1.1.3.3.cmml">
+          t
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.3.m3.1b">
+        <apply id="S3.SS1.p1.3.m3.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p1.3.m3.1.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p1.3.m3.1.1.2.cmml" xref="S3.SS1.p1.3.m3.1.1.2">
+          𝑠
+         </ci>
+         <apply id="S3.SS1.p1.3.m3.1.1.3.cmml" xref="S3.SS1.p1.3.m3.1.1.3">
+          <times id="S3.SS1.p1.3.m3.1.1.3.1.cmml" xref="S3.SS1.p1.3.m3.1.1.3.1">
+          </times>
+          <ci id="S3.SS1.p1.3.m3.1.1.3.2.cmml" xref="S3.SS1.p1.3.m3.1.1.3.2">
+           𝑔
+          </ci>
+          <ci id="S3.SS1.p1.3.m3.1.1.3.3.cmml" xref="S3.SS1.p1.3.m3.1.1.3.3">
+           𝑡
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.3.m3.1c">
+        s^{gt}
+       </annotation>
+      </semantics>
+     </math>
+     . In this context, the predicted SQL that is either not executable or has a differing execution result is called an incorrect SQL, denoted as
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p1.4.m4.1">
+      <semantics id="S3.SS1.p1.4.m4.1a">
+       <msup id="S3.SS1.p1.4.m4.1.1" xref="S3.SS1.p1.4.m4.1.1.cmml">
+        <mi id="S3.SS1.p1.4.m4.1.1.2" xref="S3.SS1.p1.4.m4.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p1.4.m4.1.1.3" xref="S3.SS1.p1.4.m4.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p1.4.m4.1b">
+        <apply id="S3.SS1.p1.4.m4.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p1.4.m4.1.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p1.4.m4.1.1.2.cmml" xref="S3.SS1.p1.4.m4.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p1.4.m4.1.1.3.cmml" xref="S3.SS1.p1.4.m4.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p1.4.m4.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S3.SS1.p2">
+    <p class="ltx_p" id="S3.SS1.p2.1">
+     Our method, MAGIC, consists of three agents illustrated in Figure
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     : the manager, feedback, and correction agents. These agents interact iteratively over the failures to generate the self-correction guideline. We describe this process in detail in the following.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p3">
+    <p class="ltx_p" id="S3.SS1.p3.8">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p3.8.1">
+      Feedback-correction cycle
+     </span>
+     .
+Given each question,
+     <math alttext="s^{gt}" class="ltx_Math" display="inline" id="S3.SS1.p3.1.m1.1">
+      <semantics id="S3.SS1.p3.1.m1.1a">
+       <msup id="S3.SS1.p3.1.m1.1.1" xref="S3.SS1.p3.1.m1.1.1.cmml">
+        <mi id="S3.SS1.p3.1.m1.1.1.2" xref="S3.SS1.p3.1.m1.1.1.2.cmml">
+         s
+        </mi>
+        <mrow id="S3.SS1.p3.1.m1.1.1.3" xref="S3.SS1.p3.1.m1.1.1.3.cmml">
+         <mi id="S3.SS1.p3.1.m1.1.1.3.2" xref="S3.SS1.p3.1.m1.1.1.3.2.cmml">
+          g
+         </mi>
+         <mo id="S3.SS1.p3.1.m1.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS1.p3.1.m1.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S3.SS1.p3.1.m1.1.1.3.3" xref="S3.SS1.p3.1.m1.1.1.3.3.cmml">
+          t
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.1.m1.1b">
+        <apply id="S3.SS1.p3.1.m1.1.1.cmml" xref="S3.SS1.p3.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.1.m1.1.1.1.cmml" xref="S3.SS1.p3.1.m1.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.1.m1.1.1.2.cmml" xref="S3.SS1.p3.1.m1.1.1.2">
+          𝑠
+         </ci>
+         <apply id="S3.SS1.p3.1.m1.1.1.3.cmml" xref="S3.SS1.p3.1.m1.1.1.3">
+          <times id="S3.SS1.p3.1.m1.1.1.3.1.cmml" xref="S3.SS1.p3.1.m1.1.1.3.1">
+          </times>
+          <ci id="S3.SS1.p3.1.m1.1.1.3.2.cmml" xref="S3.SS1.p3.1.m1.1.1.3.2">
+           𝑔
+          </ci>
+          <ci id="S3.SS1.p3.1.m1.1.1.3.3.cmml" xref="S3.SS1.p3.1.m1.1.1.3.3">
+           𝑡
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.1.m1.1c">
+        s^{gt}
+       </annotation>
+      </semantics>
+     </math>
+     , and
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p3.2.m2.1">
+      <semantics id="S3.SS1.p3.2.m2.1a">
+       <msup id="S3.SS1.p3.2.m2.1.1" xref="S3.SS1.p3.2.m2.1.1.cmml">
+        <mi id="S3.SS1.p3.2.m2.1.1.2" xref="S3.SS1.p3.2.m2.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p3.2.m2.1.1.3" xref="S3.SS1.p3.2.m2.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.2.m2.1b">
+        <apply id="S3.SS1.p3.2.m2.1.1.cmml" xref="S3.SS1.p3.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.2.m2.1.1.1.cmml" xref="S3.SS1.p3.2.m2.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.2.m2.1.1.2.cmml" xref="S3.SS1.p3.2.m2.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p3.2.m2.1.1.3.cmml" xref="S3.SS1.p3.2.m2.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.2.m2.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     , the manager agent starts a feedback-correction iteration cycle. At each iteration of this cycle, the manager requests the feedback agent for an explanation of the mistakes in
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p3.3.m3.1">
+      <semantics id="S3.SS1.p3.3.m3.1a">
+       <msup id="S3.SS1.p3.3.m3.1.1" xref="S3.SS1.p3.3.m3.1.1.cmml">
+        <mi id="S3.SS1.p3.3.m3.1.1.2" xref="S3.SS1.p3.3.m3.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p3.3.m3.1.1.3" xref="S3.SS1.p3.3.m3.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.3.m3.1b">
+        <apply id="S3.SS1.p3.3.m3.1.1.cmml" xref="S3.SS1.p3.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.3.m3.1.1.1.cmml" xref="S3.SS1.p3.3.m3.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.3.m3.1.1.2.cmml" xref="S3.SS1.p3.3.m3.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p3.3.m3.1.1.3.cmml" xref="S3.SS1.p3.3.m3.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.3.m3.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     by comparing it to
+     <math alttext="s^{gt}" class="ltx_Math" display="inline" id="S3.SS1.p3.4.m4.1">
+      <semantics id="S3.SS1.p3.4.m4.1a">
+       <msup id="S3.SS1.p3.4.m4.1.1" xref="S3.SS1.p3.4.m4.1.1.cmml">
+        <mi id="S3.SS1.p3.4.m4.1.1.2" xref="S3.SS1.p3.4.m4.1.1.2.cmml">
+         s
+        </mi>
+        <mrow id="S3.SS1.p3.4.m4.1.1.3" xref="S3.SS1.p3.4.m4.1.1.3.cmml">
+         <mi id="S3.SS1.p3.4.m4.1.1.3.2" xref="S3.SS1.p3.4.m4.1.1.3.2.cmml">
+          g
+         </mi>
+         <mo id="S3.SS1.p3.4.m4.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS1.p3.4.m4.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S3.SS1.p3.4.m4.1.1.3.3" xref="S3.SS1.p3.4.m4.1.1.3.3.cmml">
+          t
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.4.m4.1b">
+        <apply id="S3.SS1.p3.4.m4.1.1.cmml" xref="S3.SS1.p3.4.m4.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.4.m4.1.1.1.cmml" xref="S3.SS1.p3.4.m4.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.4.m4.1.1.2.cmml" xref="S3.SS1.p3.4.m4.1.1.2">
+          𝑠
+         </ci>
+         <apply id="S3.SS1.p3.4.m4.1.1.3.cmml" xref="S3.SS1.p3.4.m4.1.1.3">
+          <times id="S3.SS1.p3.4.m4.1.1.3.1.cmml" xref="S3.SS1.p3.4.m4.1.1.3.1">
+          </times>
+          <ci id="S3.SS1.p3.4.m4.1.1.3.2.cmml" xref="S3.SS1.p3.4.m4.1.1.3.2">
+           𝑔
+          </ci>
+          <ci id="S3.SS1.p3.4.m4.1.1.3.3.cmml" xref="S3.SS1.p3.4.m4.1.1.3.3">
+           𝑡
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.4.m4.1c">
+        s^{gt}
+       </annotation>
+      </semantics>
+     </math>
+     (steps 2 to 3 in Figure
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ).
+Next, the manager agent integrates the feedback received from the feedback agent to interact with the correction agent. The manager requests the correction agent to revise
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p3.5.m5.1">
+      <semantics id="S3.SS1.p3.5.m5.1a">
+       <msup id="S3.SS1.p3.5.m5.1.1" xref="S3.SS1.p3.5.m5.1.1.cmml">
+        <mi id="S3.SS1.p3.5.m5.1.1.2" xref="S3.SS1.p3.5.m5.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p3.5.m5.1.1.3" xref="S3.SS1.p3.5.m5.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.5.m5.1b">
+        <apply id="S3.SS1.p3.5.m5.1.1.cmml" xref="S3.SS1.p3.5.m5.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.5.m5.1.1.1.cmml" xref="S3.SS1.p3.5.m5.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.5.m5.1.1.2.cmml" xref="S3.SS1.p3.5.m5.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p3.5.m5.1.1.3.cmml" xref="S3.SS1.p3.5.m5.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.5.m5.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     according to the provided feedback (step 3 to 4 in Figure
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ). Subsequently, the correction agent generates a new revised SQL. At this stage, the manager identifies whether the revised SQL by the correction agent successfully leads to identical results with
+     <math alttext="s^{gt}" class="ltx_Math" display="inline" id="S3.SS1.p3.6.m6.1">
+      <semantics id="S3.SS1.p3.6.m6.1a">
+       <msup id="S3.SS1.p3.6.m6.1.1" xref="S3.SS1.p3.6.m6.1.1.cmml">
+        <mi id="S3.SS1.p3.6.m6.1.1.2" xref="S3.SS1.p3.6.m6.1.1.2.cmml">
+         s
+        </mi>
+        <mrow id="S3.SS1.p3.6.m6.1.1.3" xref="S3.SS1.p3.6.m6.1.1.3.cmml">
+         <mi id="S3.SS1.p3.6.m6.1.1.3.2" xref="S3.SS1.p3.6.m6.1.1.3.2.cmml">
+          g
+         </mi>
+         <mo id="S3.SS1.p3.6.m6.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS1.p3.6.m6.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S3.SS1.p3.6.m6.1.1.3.3" xref="S3.SS1.p3.6.m6.1.1.3.3.cmml">
+          t
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.6.m6.1b">
+        <apply id="S3.SS1.p3.6.m6.1.1.cmml" xref="S3.SS1.p3.6.m6.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.6.m6.1.1.1.cmml" xref="S3.SS1.p3.6.m6.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.6.m6.1.1.2.cmml" xref="S3.SS1.p3.6.m6.1.1.2">
+          𝑠
+         </ci>
+         <apply id="S3.SS1.p3.6.m6.1.1.3.cmml" xref="S3.SS1.p3.6.m6.1.1.3">
+          <times id="S3.SS1.p3.6.m6.1.1.3.1.cmml" xref="S3.SS1.p3.6.m6.1.1.3.1">
+          </times>
+          <ci id="S3.SS1.p3.6.m6.1.1.3.2.cmml" xref="S3.SS1.p3.6.m6.1.1.3.2">
+           𝑔
+          </ci>
+          <ci id="S3.SS1.p3.6.m6.1.1.3.3.cmml" xref="S3.SS1.p3.6.m6.1.1.3.3">
+           𝑡
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.6.m6.1c">
+        s^{gt}
+       </annotation>
+      </semantics>
+     </math>
+     . To do so, the manager uses its SQL executor tool to execute the correction agent’s revised SQL (step 5 in Figure
+     <a class="ltx_ref" href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     ).
+The manager ends this cycle if the stopping criteria are met. The stopping criteria are either revising
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p3.7.m7.1">
+      <semantics id="S3.SS1.p3.7.m7.1a">
+       <msup id="S3.SS1.p3.7.m7.1.1" xref="S3.SS1.p3.7.m7.1.1.cmml">
+        <mi id="S3.SS1.p3.7.m7.1.1.2" xref="S3.SS1.p3.7.m7.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p3.7.m7.1.1.3" xref="S3.SS1.p3.7.m7.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.7.m7.1b">
+        <apply id="S3.SS1.p3.7.m7.1.1.cmml" xref="S3.SS1.p3.7.m7.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p3.7.m7.1.1.1.cmml" xref="S3.SS1.p3.7.m7.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p3.7.m7.1.1.2.cmml" xref="S3.SS1.p3.7.m7.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p3.7.m7.1.1.3.cmml" xref="S3.SS1.p3.7.m7.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.7.m7.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     successfully by the correction agent or reaching the maximum number of iterations. We set
+     <math alttext="5" class="ltx_Math" display="inline" id="S3.SS1.p3.8.m8.1">
+      <semantics id="S3.SS1.p3.8.m8.1a">
+       <mn id="S3.SS1.p3.8.m8.1.1" xref="S3.SS1.p3.8.m8.1.1.cmml">
+        5
+       </mn>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p3.8.m8.1b">
+        <cn id="S3.SS1.p3.8.m8.1.1.cmml" type="integer" xref="S3.SS1.p3.8.m8.1.1">
+         5
+        </cn>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p3.8.m8.1c">
+        5
+       </annotation>
+      </semantics>
+     </math>
+     as maximum number of iteration in our experiments.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p4">
+    <p class="ltx_p" id="S3.SS1.p4.3">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p4.3.1">
+      Revising agents’ instruction
+     </span>
+     .
+In the first iteration of the feedback-correction cycle, the manager uses two predefined prompts designed for its interactions with the feedback and correction agents, as illustrated in Figures
+     <a class="ltx_ref" href="#S9.F5" title="Figure 5 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       5
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S9.F6" title="Figure 6 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       6
+      </span>
+     </a>
+     respectively. If the correction agent cannot successfully revise
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p4.1.m1.1">
+      <semantics id="S3.SS1.p4.1.m1.1a">
+       <msup id="S3.SS1.p4.1.m1.1.1" xref="S3.SS1.p4.1.m1.1.1.cmml">
+        <mi id="S3.SS1.p4.1.m1.1.1.2" xref="S3.SS1.p4.1.m1.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p4.1.m1.1.1.3" xref="S3.SS1.p4.1.m1.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p4.1.m1.1b">
+        <apply id="S3.SS1.p4.1.m1.1.1.cmml" xref="S3.SS1.p4.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.1.1.1.cmml" xref="S3.SS1.p4.1.m1.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p4.1.m1.1.1.2.cmml" xref="S3.SS1.p4.1.m1.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p4.1.m1.1.1.3.cmml" xref="S3.SS1.p4.1.m1.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p4.1.m1.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     in the first iteration, the manager begins revising these predefined prompts.
+The prompt template of manager for revising the predefined prompts of feedback and correction agents are illustrated in Figures
+     <a class="ltx_ref" href="#S9.F7" title="Figure 7 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       7
+      </span>
+     </a>
+     and
+     <a class="ltx_ref" href="#S9.F8" title="Figure 8 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       8
+      </span>
+     </a>
+     .
+We found empirically that this step plays an important role for the manager to adapt its interaction with agents. Manager revise the agent’s instruction based on the previous response of the agent, previous prompt that is used for interacting with the agent, question,
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS1.p4.2.m2.1">
+      <semantics id="S3.SS1.p4.2.m2.1a">
+       <msup id="S3.SS1.p4.2.m2.1.1" xref="S3.SS1.p4.2.m2.1.1.cmml">
+        <mi id="S3.SS1.p4.2.m2.1.1.2" xref="S3.SS1.p4.2.m2.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS1.p4.2.m2.1.1.3" xref="S3.SS1.p4.2.m2.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p4.2.m2.1b">
+        <apply id="S3.SS1.p4.2.m2.1.1.cmml" xref="S3.SS1.p4.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p4.2.m2.1.1.1.cmml" xref="S3.SS1.p4.2.m2.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p4.2.m2.1.1.2.cmml" xref="S3.SS1.p4.2.m2.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS1.p4.2.m2.1.1.3.cmml" xref="S3.SS1.p4.2.m2.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p4.2.m2.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     , and
+     <math alttext="s^{gt}" class="ltx_Math" display="inline" id="S3.SS1.p4.3.m3.1">
+      <semantics id="S3.SS1.p4.3.m3.1a">
+       <msup id="S3.SS1.p4.3.m3.1.1" xref="S3.SS1.p4.3.m3.1.1.cmml">
+        <mi id="S3.SS1.p4.3.m3.1.1.2" xref="S3.SS1.p4.3.m3.1.1.2.cmml">
+         s
+        </mi>
+        <mrow id="S3.SS1.p4.3.m3.1.1.3" xref="S3.SS1.p4.3.m3.1.1.3.cmml">
+         <mi id="S3.SS1.p4.3.m3.1.1.3.2" xref="S3.SS1.p4.3.m3.1.1.3.2.cmml">
+          g
+         </mi>
+         <mo id="S3.SS1.p4.3.m3.1.1.3.1" lspace="0em" rspace="0em" xref="S3.SS1.p4.3.m3.1.1.3.1.cmml">
+          ​
+         </mo>
+         <mi id="S3.SS1.p4.3.m3.1.1.3.3" xref="S3.SS1.p4.3.m3.1.1.3.3.cmml">
+          t
+         </mi>
+        </mrow>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p4.3.m3.1b">
+        <apply id="S3.SS1.p4.3.m3.1.1.cmml" xref="S3.SS1.p4.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S3.SS1.p4.3.m3.1.1.1.cmml" xref="S3.SS1.p4.3.m3.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS1.p4.3.m3.1.1.2.cmml" xref="S3.SS1.p4.3.m3.1.1.2">
+          𝑠
+         </ci>
+         <apply id="S3.SS1.p4.3.m3.1.1.3.cmml" xref="S3.SS1.p4.3.m3.1.1.3">
+          <times id="S3.SS1.p4.3.m3.1.1.3.1.cmml" xref="S3.SS1.p4.3.m3.1.1.3.1">
+          </times>
+          <ci id="S3.SS1.p4.3.m3.1.1.3.2.cmml" xref="S3.SS1.p4.3.m3.1.1.3.2">
+           𝑔
+          </ci>
+          <ci id="S3.SS1.p4.3.m3.1.1.3.3.cmml" xref="S3.SS1.p4.3.m3.1.1.3.3">
+           𝑡
+          </ci>
+         </apply>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p4.3.m3.1c">
+        s^{gt}
+       </annotation>
+      </semantics>
+     </math>
+     .
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p5">
+    <p class="ltx_p" id="S3.SS1.p5.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p5.1.1">
+      Guideline generation
+     </span>
+     .
+Given each successful revision by the correction agent, the manager stores the corresponding successful feedback that led to this in its memory. The manager then aggregates these stored feedbacks to generate the self-correction guideline batch-by-batch using a predefined prompt for guideline generation (Figure
+     <a class="ltx_ref" href="#S9.F9" title="Figure 9 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       9
+      </span>
+     </a>
+     ). Each batch consist of
+     <math alttext="k" class="ltx_Math" display="inline" id="S3.SS1.p5.1.m1.1">
+      <semantics id="S3.SS1.p5.1.m1.1a">
+       <mi id="S3.SS1.p5.1.m1.1.1" xref="S3.SS1.p5.1.m1.1.1.cmml">
+        k
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S3.SS1.p5.1.m1.1b">
+        <ci id="S3.SS1.p5.1.m1.1.1.cmml" xref="S3.SS1.p5.1.m1.1.1">
+         𝑘
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS1.p5.1.m1.1c">
+        k
+       </annotation>
+      </semantics>
+     </math>
+     feedbacks. In our preliminary experiments, we determined that a feedback batch size of 10 is optimal. In the first batch, the manager begins without any pre-existing guideline and generate an initial guideline. For subsequent batches, the manager updates the already generated guideline.
+This guideline generation process is triggered at the end of a feedback-correction cycle if the manager has accumulated a new batch of successful feedbacks that has not yet been utilized for guideline generation. The self-correction guideline generated by our proposed method, MAGIC, automatically and from scratch, is presented in Figures
+     <a class="ltx_ref" href="#S9.F11" title="Figure 11 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       11
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S9.F12" title="Figure 12 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       12
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S9.F13" title="Figure 13 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       13
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S9.F14" title="Figure 14 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       14
+      </span>
+     </a>
+     ,
+     <a class="ltx_ref" href="#S9.F15" title="Figure 15 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       15
+      </span>
+     </a>
+     , and
+     <a class="ltx_ref" href="#S9.F16" title="Figure 16 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       16
+      </span>
+     </a>
+     in appendix section.
+    </p>
+   </div>
+   <div class="ltx_para ltx_noindent" id="S3.SS1.p6">
+    <p class="ltx_p" id="S3.SS1.p6.1">
+     <span class="ltx_text ltx_font_bold" id="S3.SS1.p6.1.1">
+      Efficiency
+     </span>
+     .
+Previous approaches to craft self-correction guidelines needed extensive expert human work. With MAGIC, we can efficiently generate, empirically shown better guideline, in less than 2 hour.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S3.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.2
+    </span>
+    Agents access to information
+   </h3>
+   <div class="ltx_para" id="S3.SS2.p1">
+    <p class="ltx_p" id="S3.SS2.p1.2">
+     Although the manager agent has access to all the available information during generation of self-correction guideline, the agents has limited access to the information about the task.
+During the iterations, the correction agent consistently receives only
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p1.1.m1.1">
+      <semantics id="S3.SS2.p1.1.m1.1a">
+       <msup id="S3.SS2.p1.1.m1.1.1" xref="S3.SS2.p1.1.m1.1.1.cmml">
+        <mi id="S3.SS2.p1.1.m1.1.1.2" xref="S3.SS2.p1.1.m1.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS2.p1.1.m1.1.1.3" xref="S3.SS2.p1.1.m1.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.1.m1.1b">
+        <apply id="S3.SS2.p1.1.m1.1.1.cmml" xref="S3.SS2.p1.1.m1.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p1.1.m1.1.1.1.cmml" xref="S3.SS2.p1.1.m1.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p1.1.m1.1.1.2.cmml" xref="S3.SS2.p1.1.m1.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS2.p1.1.m1.1.1.3.cmml" xref="S3.SS2.p1.1.m1.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.1.m1.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     .
+This ensures that a successful self-correction can indicate that the feedback could effectively cover the mistakes that exist in the
+     <math alttext="s^{\prime}" class="ltx_Math" display="inline" id="S3.SS2.p1.2.m2.1">
+      <semantics id="S3.SS2.p1.2.m2.1a">
+       <msup id="S3.SS2.p1.2.m2.1.1" xref="S3.SS2.p1.2.m2.1.1.cmml">
+        <mi id="S3.SS2.p1.2.m2.1.1.2" xref="S3.SS2.p1.2.m2.1.1.2.cmml">
+         s
+        </mi>
+        <mo id="S3.SS2.p1.2.m2.1.1.3" xref="S3.SS2.p1.2.m2.1.1.3.cmml">
+         ′
+        </mo>
+       </msup>
+       <annotation-xml encoding="MathML-Content" id="S3.SS2.p1.2.m2.1b">
+        <apply id="S3.SS2.p1.2.m2.1.1.cmml" xref="S3.SS2.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S3.SS2.p1.2.m2.1.1.1.cmml" xref="S3.SS2.p1.2.m2.1.1">
+          superscript
+         </csymbol>
+         <ci id="S3.SS2.p1.2.m2.1.1.2.cmml" xref="S3.SS2.p1.2.m2.1.1.2">
+          𝑠
+         </ci>
+         <ci id="S3.SS2.p1.2.m2.1.1.3.cmml" xref="S3.SS2.p1.2.m2.1.1.3">
+          ′
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S3.SS2.p1.2.m2.1c">
+        s^{\prime}
+       </annotation>
+      </semantics>
+     </math>
+     . This is important since the goal is generating a guideline that can prevent from initial text-to-SQL system errors. As the result, the self-correction agent should focus on correcting the initial system prediction.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S3.T1">
+    <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S3.T1.1" style="width:415.1pt;height:163.9pt;vertical-align:-0.8pt;">
+     <span class="ltx_transformed_inner" style="transform:translate(-67.4pt,26.5pt) scale(0.755,0.755) ;">
+      <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S3.T1.1.1">
+       <tbody class="ltx_tbody">
+        <tr class="ltx_tr" id="S3.T1.1.1.1.1">
+         <th class="ltx_td ltx_align_top ltx_th ltx_th_row ltx_border_r ltx_border_tt" id="S3.T1.1.1.1.1.1">
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_l ltx_border_tt" colspan="12" id="S3.T1.1.1.1.1.2">
+          Scenario of Self-Correction Application
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.2.2">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.1.1.2.2.1" rowspan="2">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.2.2.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.2.2.1.1.1" style="width:113.8pt;">
+            <span class="ltx_text" id="S3.T1.1.1.2.2.1.1.1.1">
+             DIN-SQL
+            </span>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="4" id="S3.T1.1.1.2.2.2">
+          Correcting incorrect SQLs
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="4" id="S3.T1.1.1.2.2.3">
+          SQLs with Exec error
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" colspan="4" id="S3.T1.1.1.2.2.4">
+          All SQLs
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.3.3">
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.1">
+          S
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.2">
+          M
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.3">
+          C
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.3.3.4">
+          T
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.5">
+          S
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.6">
+          M
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.7">
+          C
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.3.3.8">
+          T
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.9">
+          S
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.10">
+          M
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.11">
+          C
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.3.3.12">
+          T
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.4.4">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.1.1.4.4.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.4.4.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.4.4.1.1.1" style="width:113.8pt;">
+            W/o self-correction
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.2">
+          63.14
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.3">
+          49.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.4">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.4.4.5">
+          56.52
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.6">
+          63.14
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.4.4.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.8">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.4.4.9">
+          56.52
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.10">
+          63.14
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.11">
+          49.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.12">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.4.4.13">
+          56.52
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.5.5">
+         <th class="ltx_td ltx_align_center ltx_align_top ltx_th ltx_th_row ltx_border_t" colspan="13" id="S3.T1.1.1.5.5.1">
+          Self-correction w/o guideline
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.6.6">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.1.1.6.6.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.6.6.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.6.6.1.1.1" style="width:113.8pt;">
+            Self-Debugging
+            <cite class="ltx_cite ltx_citemacro_cite">
+             Chen et al. (
+             <a class="ltx_ref" href="#bib.bib1" title="">
+              2023
+             </a>
+             )
+            </cite>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.2">
+          63.57
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.3">
+          50.11
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.4">
+          39.67
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.6.6.5">
+          57.24
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.6">
+          63.35
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.6.6.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.8">
+          39.58
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.6.6.9">
+          56.78
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.10">
+          63.03
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.11">
+          49.25
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.12">
+          38.89
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.6.6.13">
+          56.58
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.7.7">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r" id="S3.T1.1.1.7.7.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.7.7.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.7.7.1.1.1" style="width:113.8pt;">
+            Self-Consistency
+            <cite class="ltx_cite ltx_citemacro_cite">
+             Wang et al. (
+             <a class="ltx_ref" href="#bib.bib26" title="">
+              2022
+             </a>
+             )
+            </cite>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.2">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.2.1">
+           64.56
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.3">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.3.1">
+           50.79
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.4">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.4.1">
+           40.09
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.7.7.5">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.5.1">
+           58.08
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.6">
+          63.24
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.8">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.7.7.9">
+          56.58
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.10">
+          64.00
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.11">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.7.7.11.1">
+           49.68
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.12">
+          37.50
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.7.7.13">
+          57.17
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.8.8">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r" id="S3.T1.1.1.8.8.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.8.8.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.8.8.1.1.1" style="width:113.8pt;">
+            Multiple-Prompt
+            <cite class="ltx_cite ltx_citemacro_cite">
+             Lee et al. (
+             <a class="ltx_ref" href="#bib.bib7" title="">
+              2024
+             </a>
+             )
+            </cite>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.2">
+          64.22
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.3">
+          50.75
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.4">
+          40.02
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.8.8.5">
+          57.86
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.6">
+          63.35
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.8.8.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.8">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.8.8.9">
+          56.65
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.10">
+          63.68
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.11">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.8.8.11.1">
+           50.11
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.12">
+          39.58
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.8.8.13">
+          57.30
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.9.9">
+         <th class="ltx_td ltx_align_center ltx_align_top ltx_th ltx_th_row ltx_border_t" colspan="13" id="S3.T1.1.1.9.9.1">
+          Self-correction w/ guideline
+         </th>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.10.10">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S3.T1.1.1.10.10.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.10.10.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.10.10.1.1.1" style="width:113.8pt;">
+            Human Expert G
+            <cite class="ltx_cite ltx_citemacro_cite">
+             Wang et al. (
+             <a class="ltx_ref" href="#bib.bib24" title="">
+              2024a
+             </a>
+             )
+            </cite>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.2">
+          63.18
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.3">
+          49.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.4">
+          38.30
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.10.10.5">
+          56.60
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.6">
+          63.20
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.10.10.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.8">
+          38.19
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S3.T1.1.1.10.10.9">
+          56.58
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.10">
+          47.80
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.11">
+          46.22
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.12">
+          35.30
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_t" id="S3.T1.1.1.10.10.13">
+          46.14
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.11.11">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_r" id="S3.T1.1.1.11.11.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.11.11.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.11.11.1.1.1" style="width:113.8pt;">
+            Human Expert G
+            <cite class="ltx_cite ltx_citemacro_cite">
+             Pourreza et al. (
+             <a class="ltx_ref" href="#bib.bib18" title="">
+              2023
+             </a>
+             )
+            </cite>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.2">
+          64.32
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.3">
+          50.32
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.4">
+          39.58
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.11.11.5">
+          57.76
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.6">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.11.11.6.1">
+           63.58
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.7">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.11.11.7.1">
+           49.03
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.8">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.11.11.8.1">
+           38.89
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_r" id="S3.T1.1.1.11.11.9">
+          <span class="ltx_text ltx_framed ltx_framed_underline" id="S3.T1.1.1.11.11.9.1">
+           56.98
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.10">
+          62.49
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.11">
+          48.17
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.12">
+          37.50
+         </td>
+         <td class="ltx_td ltx_align_center" id="S3.T1.1.1.11.11.13">
+          55.80
+         </td>
+        </tr>
+        <tr class="ltx_tr" id="S3.T1.1.1.12.12">
+         <th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_row ltx_border_bb ltx_border_r" id="S3.T1.1.1.12.12.1">
+          <span class="ltx_inline-block ltx_align_top" id="S3.T1.1.1.12.12.1.1">
+           <span class="ltx_p" id="S3.T1.1.1.12.12.1.1.1" style="width:113.8pt;">
+            MAGIC G
+            <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.1.1.1.1">
+             (ours)
+            </span>
+           </span>
+          </span>
+         </th>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.2">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.2.1">
+           65.84
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.3">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.3.1">
+           51.61
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.4">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.4.1">
+           40.28
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S3.T1.1.1.12.12.5">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.5.1">
+           59.13
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.6">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.6.1">
+           63.69
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.7">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.7.1">
+           50.15
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.8">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.8.1">
+           39.59
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S3.T1.1.1.12.12.9">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.9.1">
+           57.32
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.10">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.10.1">
+           65.75
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.11">
+          49.46
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.12">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.12.1">
+           41.67
+          </span>
+         </td>
+         <td class="ltx_td ltx_align_center ltx_border_bb" id="S3.T1.1.1.12.12.13">
+          <span class="ltx_text ltx_font_bold" id="S3.T1.1.1.12.12.13.1">
+           58.55
+          </span>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </span>
+    </div>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Effectiveness results in terms of Execution Accuracy (EX) on the DEV set of the BIRD dataset. All the experiments have been reproduced by us. ‘S’, ‘M’, ‘C’, and ‘T’ refer to different levels of difficulty: Simple, Medium, Challenging, and Total, respectively. The baseline for Natural Language to SQL conversion is DIN-SQL and ‘Human Expert G’ refers to self-correction guideline (prompt) by
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Pourreza et al. (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2023
+      </a>
+      )
+     </cite>
+     and
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wang et al. (
+      <a class="ltx_ref" href="#bib.bib24" title="">
+       2024a
+      </a>
+      )
+     </cite>
+     . ‘MAGIC refers to the guideline that is automatically generated by our proposed method, MAGIC, using the train set of BIRD dataset.
+    </figcaption>
+   </figure>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Experimental setup
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S4.p1">
+   <p class="ltx_p" id="S4.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p1.1.1">
+     Datasets
+    </span>
+    .
+The Spider
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Yu et al. (
+     <a class="ltx_ref" href="#bib.bib30" title="">
+      2018
+     </a>
+     )
+    </cite>
+    dataset is a collection of 10,181 questions and 5,693 unique complex SQL queries across 200 databases in 138 domains, with each domain featuring multiple tables. It is divided into training, development, and test sets with 8,659, 1,034, and 2,147 examples, respectively, across 146, 20, and 34 distinct databases, ensuring no overlap between sets. Queries are classified into four difficulty levels based on complexity factors such as SQL keywords, nested subqueries, and use of column selections and aggregations.
+The BIRD dataset
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    comprises 12,751 unique question-SQL pairings across 95 relative large databases (33.4 GB) in 37 professional domains like blockchain and healthcare. BIRD introduces external knowledge as an additional resource for generating accurate SQL queries to bring more complexity into the task.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S4.p2">
+   <p class="ltx_p" id="S4.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p2.1.1">
+     Metrics
+    </span>
+    .
+We employ two key metrics from existing literature: Execution Accuracy (EX) and Valid Efficiency Score (VES). Execution Accuracy measures the correctness of a predicted SQL query by comparing its execution output with that of the ground truth SQL query. A SQL query is deemed correct if its execution results match those of the ground truth, allowing for a precise assessment of the model’s performance given the possibility of multiple valid SQL queries for a single question. The Valid Efficiency Score evaluates the efficiency of executing the generated SQL queries, focusing on both their accuracy and execution time, but only considers queries that produce correct results, i.e., those whose execution outcomes are consistent with the reference query. This dual-metric approach provides a comprehensive evaluation of the model’s ability to generate both accurate and efficient SQL queries.
+   </p>
+  </div>
+  <div class="ltx_para" id="S4.p3">
+   <p class="ltx_p" id="S4.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S4.p3.1.1">
+     Baselines.
+    </span>
+    We reproduce DIN-SQL using the publicly available original implementation
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    . For self-correction, we employ an extensive set of baselines categorized into guideline-dependent and guideline-independent methods. For guideline-independent methods, we reproduce self-debugging
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    based on the written prompts in the paper. For self-consistency
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2022
+     </a>
+     ); Gao et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , we generate 20 SQL queries given the SQL generation prompt of DIN-SQL instead of generating only one SQL and select the final SQL based on voting. In voting, we execute all SQL queries and select the most frequently returned result’s SQL. If one result is produced by various SQL queries, we select the most efficient one by comparing them against each other. For the Multiple-Prompt baseline, we follow the approach in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lee et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2024
+     </a>
+     )
+    </cite>
+    by re-ordering candidate tables in the prompt and generating up to 20 different combinations, employing a voting mechanism similar to our self-consistency implementation. For human-expert baselines, we utilize the self-correction guideline from DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    , written by human experts, and the revision guideline from MAC-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    , that is also written by human experts and are designed specifically for correcting SQL queries with execution errors. However, we also adopt their approach for correcting incorrect SQL queries and for correcting all initially predicted SQL queries, regardless of whether they are correct, similar to the scenarios analyzed in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    respectively.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Results
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    This section addresses the following research questions (RQs):
+   </p>
+   <ul class="ltx_itemize" id="S5.I1">
+    <li class="ltx_item" id="S5.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S5.I1.i1.p1">
+      <p class="ltx_p" id="S5.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S5.I1.i1.p1.1.1">
+        RQ1:
+       </span>
+       What is the effectiveness of MAGIC’s self-correction guideline compared to the existing state-of-the-art baselines for self-correction in text-to-SQL, particularly across different error scenarios and datasets?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S5.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S5.I1.i2.p1">
+      <p class="ltx_p" id="S5.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S5.I1.i2.p1.1.1">
+        RQ2:
+       </span>
+       How is the effectiveness of generated guidelines influenced by the quantity of feedback - is more feedback always better?
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S5.I1.i3" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S5.I1.i3.p1">
+      <p class="ltx_p" id="S5.I1.i3.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S5.I1.i3.p1.1.1">
+        RQ3:
+       </span>
+       What is the impact of manager agent intervention on reducing the number of iterations and increasing the number of corrected SQLs?
+      </p>
+     </div>
+    </li>
+   </ul>
+   <p class="ltx_p" id="S5.p1.2">
+    <span class="ltx_text ltx_font_bold" id="S5.p1.2.1">
+     Main results (RQ1)
+    </span>
+    .
+Table
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.2 Agents access to information ‣ 3 Self-correction Guideline Generation ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    and
+    <a class="ltx_ref" href="#S5.T2" title="Table 2 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      2
+     </span>
+    </a>
+    present the results of self-correction with the guidelines generated by MAGIC on the development set of BIRD and SPIDER, respectively.
+Overall, the guidelines generated by our proposed method, MAGIC, outperform all the baselines in terms of total effectiveness measured by execution accuracy and demonstrate significant improvements in self-correction performance across the BIRD and SPIDER datasets, outperforming self-correction guidelines written by expert humans. For example, MAGIC’s guidelines improve the DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    baseline from 56.52 to 59.13 in terms of execution accuracy and outperform the self-correction guideline of
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    as well, as presented in Tables
+    <a class="ltx_ref" href="#S5.T5" title="Table 5 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    and
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.2 Agents access to information ‣ 3 Self-correction Guideline Generation ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    respectively.
+   </p>
+  </div>
+  <div class="ltx_para" id="S5.p2">
+   <p class="ltx_p" id="S5.p2.1">
+    We experiment with self-correction in three scenarios, as shown in Table
+    <a class="ltx_ref" href="#S3.T1" title="Table 1 ‣ 3.2 Agents access to information ‣ 3 Self-correction Guideline Generation ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    : (i) correcting incorrect SQLs, assuming the availability of a correctness oracle. This setup is common in recent studies focusing on self-correction in text-to-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Chen et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2023
+     </a>
+     ); Zhang et al. (
+     <a class="ltx_ref" href="#bib.bib32" title="">
+      2024
+     </a>
+     )
+    </cite>
+    . (ii) SQLs with execution errors: this scenario is common in self-correction where there is no available correctness oracle, but the goal is to avoid generating incorrect and non-executable SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    . (iii) All SQLs: this setup is common in methods where self-correction is part of a multi-step model, employing a self-correction guideline on all predictions
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <figure class="ltx_table" id="S5.T2">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T2.1" style="width:295.9pt;height:137.7pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-26.1pt,12.1pt) scale(0.85,0.85) ;">
+     <table class="ltx_tabular ltx_align_middle" id="S5.T2.1.1">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S5.T2.1.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" colspan="2" id="S5.T2.1.1.1.1.1">
+         Correction Method
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T2.1.1.1.1.2">
+         EX
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.2.2">
+        <td class="ltx_td ltx_border_t" id="S5.T2.1.1.2.2.1">
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T2.1.1.2.2.2">
+         w/o self-correction
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T2.1.1.2.2.3">
+         78.62
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.3.3">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="3" id="S5.T2.1.1.3.3.1">
+         Self-correction w/o guideline
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.4.4">
+        <td class="ltx_td" id="S5.T2.1.1.4.4.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.1.1.4.4.2">
+         Self-Consistency
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Wang et al. (
+          <a class="ltx_ref" href="#bib.bib26" title="">
+           2022
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T2.1.1.4.4.3">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T2.1.1.4.4.3.1">
+          81.64
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.5.5">
+        <td class="ltx_td" id="S5.T2.1.1.5.5.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.1.1.5.5.2">
+         Multiple-Prompt
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Lee et al. (
+          <a class="ltx_ref" href="#bib.bib7" title="">
+           2024
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T2.1.1.5.5.3">
+         80.22
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.6.6">
+        <td class="ltx_td ltx_align_left ltx_border_t" colspan="3" id="S5.T2.1.1.6.6.1">
+         Self-correction w/ guideline
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.7.7">
+        <td class="ltx_td" id="S5.T2.1.1.7.7.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.1.1.7.7.2">
+         Human’s G
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Wang et al. (
+          <a class="ltx_ref" href="#bib.bib24" title="">
+           2024a
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T2.1.1.7.7.3">
+         81.15
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.8.8">
+        <td class="ltx_td" id="S5.T2.1.1.8.8.1">
+        </td>
+        <td class="ltx_td ltx_align_left" id="S5.T2.1.1.8.8.2">
+         Human’s G
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Pourreza et al. (
+          <a class="ltx_ref" href="#bib.bib18" title="">
+           2023
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T2.1.1.8.8.3">
+         80.35
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T2.1.1.9.9">
+        <td class="ltx_td ltx_border_bb" id="S5.T2.1.1.9.9.1">
+        </td>
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T2.1.1.9.9.2">
+         MAGIC’s G (Ours)
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T2.1.1.9.9.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T2.1.1.9.9.3.1">
+          85.66
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 2:
+    </span>
+    Effectiveness results for self-correcting incorrect SQL queries on the SPIDER development set. We compared MAGIC’s generated guideline (MAGIC’s G) against two top self-correction baselines: self-consistency and multiple-prompt, as well as two expert human self-correction guidelines.
+   </figcaption>
+  </figure>
+  <figure class="ltx_table" id="S5.T3">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T3.1" style="width:187.4pt;height:48.6pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-10.4pt,2.7pt) scale(0.9,0.9) ;">
+     <table class="ltx_tabular ltx_guessed_headers ltx_align_middle" id="S5.T3.1.1">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S5.T3.1.1.1.1">
+        <th class="ltx_td ltx_th ltx_th_row ltx_border_r ltx_border_tt" id="S5.T3.1.1.1.1.1">
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="5" id="S5.T3.1.1.1.1.2">
+         # of aggregated batch of feedbacks
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.1.1.2.2">
+        <th class="ltx_td ltx_th ltx_th_row ltx_border_r" id="S5.T3.1.1.2.2.1">
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.2.2.2">
+         0
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.2.2.3">
+         1
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.2.2.4">
+         5
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.2.2.5">
+         10
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T3.1.1.2.2.6">
+         39 (All)
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T3.1.1.3.3">
+        <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r ltx_border_t" id="S5.T3.1.1.3.3.1">
+         EX
+        </th>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T3.1.1.3.3.2">
+         56.52
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T3.1.1.3.3.3">
+         57.4
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T3.1.1.3.3.4">
+         58.8
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T3.1.1.3.3.5">
+         59.13
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t" id="S5.T3.1.1.3.3.6">
+         59.13
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 3:
+    </span>
+    Impact of number of aggregation levels of feedbacks on the effectiveness of generated self-correction guideline on the development set of BIRD dataset.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S5.p3">
+   <p class="ltx_p" id="S5.p3.1">
+    We find that applying self-correction to all predicted SQLs, as in the human-expert written guideline for self-correction in
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib24" title="">
+      2024a
+     </a>
+     )
+    </cite>
+    , reduces effectiveness. Intuitively, when self-correction is applied for all predicted SQLs, there is a risk that the LLM changes its previously correct prediction to an incorrect one, as suggested by previous work
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib12" title="">
+      2024d
+     </a>
+     )
+    </cite>
+    . Therefore, designing a proper self-correction guideline is crucial, or it is safer to apply self-correction where a correctness oracle can identify whether the initial response is correct or not. This oracle can be a human user who minimally interacts with the system and only determines whether the executed query results meet their expectations. Regarding the "SQLs with execution errors" scenario, only 46 queries predicted by the initial text-to-SQL system
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    are non-executable, which limits the effectiveness of self-correction for these cases, with several methods achieving the same effectiveness (49.03) for medium query difficulty.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S5.F3">
+   <div class="ltx_flex_figure">
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S5.F3.1" style="width:195.1pt;">
+      <div class="ltx_inline-block ltx_transformed_outer" id="S5.F3.1.1" style="width:384.6pt;height:239.9pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-23.8pt,14.8pt) scale(0.89,0.89) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="287" id="S5.F3.1.1.g1" src="/html/2406.12692/assets/x3.png" width="461"/>
+       </span>
+      </div>
+      <figcaption class="ltx_caption ltx_centering">
+       a) MAGIC w/ manager.
+      </figcaption>
+     </figure>
+    </div>
+    <div class="ltx_flex_cell ltx_flex_size_2">
+     <figure class="ltx_figure ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" id="S5.F3.2" style="width:195.1pt;">
+      <div class="ltx_inline-block ltx_transformed_outer" id="S5.F3.2.1" style="width:384.6pt;height:239.9pt;vertical-align:-0.0pt;">
+       <span class="ltx_transformed_inner" style="transform:translate(-23.8pt,14.8pt) scale(0.89,0.89) ;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="287" id="S5.F3.2.1.g1" src="/html/2406.12692/assets/x4.png" width="461"/>
+       </span>
+      </div>
+      <figcaption class="ltx_caption ltx_centering">
+       b) MAGIC w/o manager.
+      </figcaption>
+     </figure>
+    </div>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 3:
+    </span>
+    Analyzing impact of maximum number of iterations on the total number of corrected SQLs, that were initially incorrect, with and without manager being involved in MAGIC. The analysis is conducted on the train set of the BIRD dataset.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S5.p4">
+   <p class="ltx_p" id="S5.p4.1">
+    It is noteworthy that although we have not attempted to combine MAGIC with other baselines, as our focus is on analyzing different self-correction methods rather than integrating them, some baselines could potentially enhance MAGIC if combined, such as Self-consistency
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Wang et al. (
+     <a class="ltx_ref" href="#bib.bib26" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and Multiple-Prompt
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Lee et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2024
+     </a>
+     )
+    </cite>
+    .
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S5.p5">
+   <p class="ltx_p" id="S5.p5.1">
+    <span class="ltx_text ltx_font_bold" id="S5.p5.1.1">
+     Impact of Feedback Quantity (RQ2)
+    </span>
+    . Table
+    <a class="ltx_ref" href="#S5.T3" title="Table 3 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    presents the results of the generated self-correction guideline effectiveness by MAGIC, where different numbers of batches of feedback are aggregated for generating the guideline. We found that after aggregating 10 batches of feedback, each batch consist of 10 feedbacks, the generated guideline by MAGIC outperforms existing self-correction baselines, including those with guidelines written by humans. This shows the efficiency of process of MAGIC for self-correction guideline generation. Furthermore, we found that questions for which MAGIC cannot provide feedback to self-correct are often controversial. For example, when an additional aggregation function column is reported alongside the main column name that should be reported, such as ’SELECT city, MAX(population) FROM cities‘ where the MAX(population) should not be included in the predicted query according to the ground truth.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S5.T4">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T4.9" style="width:210.1pt;height:109.4pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-33.2pt,17.3pt) scale(0.76,0.76) ;">
+     <table class="ltx_tabular ltx_align_middle" id="S5.T4.9.9">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S5.T4.9.9.10.1">
+        <td class="ltx_td ltx_border_r ltx_border_tt" id="S5.T4.9.9.10.1.1" rowspan="2">
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3" id="S5.T4.9.9.10.1.2">
+         BIRD
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" colspan="2" id="S5.T4.9.9.10.1.3">
+         Spider
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.7.7.7">
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.1.1.1.1">
+         EX
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T4.1.1.1.1.m1.1">
+          <semantics id="S5.T4.1.1.1.1.m1.1a">
+           <mo id="S5.T4.1.1.1.1.m1.1.1" stretchy="false" xref="S5.T4.1.1.1.1.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.1.1.1.1.m1.1b">
+            <ci id="S5.T4.1.1.1.1.m1.1.1.cmml" xref="S5.T4.1.1.1.1.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.1.1.1.1.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.2.2.2.2">
+         VES
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T4.2.2.2.2.m1.1">
+          <semantics id="S5.T4.2.2.2.2.m1.1a">
+           <mo id="S5.T4.2.2.2.2.m1.1.1" stretchy="false" xref="S5.T4.2.2.2.2.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.2.2.2.2.m1.1b">
+            <ci id="S5.T4.2.2.2.2.m1.1.1.cmml" xref="S5.T4.2.2.2.2.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.2.2.2.2.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.4.4.4.4">
+         AVG
+         <sub class="ltx_sub" id="S5.T4.4.4.4.4.1">
+          <span class="ltx_text ltx_font_italic" id="S5.T4.4.4.4.4.1.1">
+           i
+          </span>
+         </sub>
+         <math alttext="\downarrow" class="ltx_Math" display="inline" id="S5.T4.4.4.4.4.m2.1">
+          <semantics id="S5.T4.4.4.4.4.m2.1a">
+           <mo id="S5.T4.4.4.4.4.m2.1.1" stretchy="false" xref="S5.T4.4.4.4.4.m2.1.1.cmml">
+            ↓
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.4.4.4.4.m2.1b">
+            <ci id="S5.T4.4.4.4.4.m2.1.1.cmml" xref="S5.T4.4.4.4.4.m2.1.1">
+             ↓
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.4.4.4.4.m2.1c">
+            \downarrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.5.5.5.5">
+         EX
+         <math alttext="\uparrow" class="ltx_Math" display="inline" id="S5.T4.5.5.5.5.m1.1">
+          <semantics id="S5.T4.5.5.5.5.m1.1a">
+           <mo id="S5.T4.5.5.5.5.m1.1.1" stretchy="false" xref="S5.T4.5.5.5.5.m1.1.1.cmml">
+            ↑
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.5.5.5.5.m1.1b">
+            <ci id="S5.T4.5.5.5.5.m1.1.1.cmml" xref="S5.T4.5.5.5.5.m1.1.1">
+             ↑
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.5.5.5.5.m1.1c">
+            \uparrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.7.7.7.7">
+         AVG
+         <sub class="ltx_sub" id="S5.T4.7.7.7.7.1">
+          <span class="ltx_text ltx_font_italic" id="S5.T4.7.7.7.7.1.1">
+           i
+          </span>
+         </sub>
+         <math alttext="\downarrow" class="ltx_Math" display="inline" id="S5.T4.7.7.7.7.m2.1">
+          <semantics id="S5.T4.7.7.7.7.m2.1a">
+           <mo id="S5.T4.7.7.7.7.m2.1.1" stretchy="false" xref="S5.T4.7.7.7.7.m2.1.1.cmml">
+            ↓
+           </mo>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.7.7.7.7.m2.1b">
+            <ci id="S5.T4.7.7.7.7.m2.1.1.cmml" xref="S5.T4.7.7.7.7.m2.1.1">
+             ↓
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.7.7.7.7.m2.1c">
+            \downarrow
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.8.8.8">
+        <td class="ltx_td ltx_align_center ltx_border_t" colspan="6" id="S5.T4.8.8.8.1">
+         MAGIC
+         <math alttext="{}_{\text{max}_{i}=2}" class="ltx_Math" display="inline" id="S5.T4.8.8.8.1.m1.1">
+          <semantics id="S5.T4.8.8.8.1.m1.1a">
+           <msub id="S5.T4.8.8.8.1.m1.1.1" xref="S5.T4.8.8.8.1.m1.1.1.cmml">
+            <mi id="S5.T4.8.8.8.1.m1.1.1a" xref="S5.T4.8.8.8.1.m1.1.1.cmml">
+            </mi>
+            <mrow id="S5.T4.8.8.8.1.m1.1.1.1" xref="S5.T4.8.8.8.1.m1.1.1.1.cmml">
+             <msub id="S5.T4.8.8.8.1.m1.1.1.1.2" xref="S5.T4.8.8.8.1.m1.1.1.1.2.cmml">
+              <mtext id="S5.T4.8.8.8.1.m1.1.1.1.2.2" xref="S5.T4.8.8.8.1.m1.1.1.1.2.2a.cmml">
+               max
+              </mtext>
+              <mi id="S5.T4.8.8.8.1.m1.1.1.1.2.3" xref="S5.T4.8.8.8.1.m1.1.1.1.2.3.cmml">
+               i
+              </mi>
+             </msub>
+             <mo id="S5.T4.8.8.8.1.m1.1.1.1.1" xref="S5.T4.8.8.8.1.m1.1.1.1.1.cmml">
+              =
+             </mo>
+             <mn id="S5.T4.8.8.8.1.m1.1.1.1.3" xref="S5.T4.8.8.8.1.m1.1.1.1.3.cmml">
+              2
+             </mn>
+            </mrow>
+           </msub>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.8.8.8.1.m1.1b">
+            <apply id="S5.T4.8.8.8.1.m1.1.1.cmml" xref="S5.T4.8.8.8.1.m1.1.1">
+             <apply id="S5.T4.8.8.8.1.m1.1.1.1.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1">
+              <eq id="S5.T4.8.8.8.1.m1.1.1.1.1.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1.1">
+              </eq>
+              <apply id="S5.T4.8.8.8.1.m1.1.1.1.2.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1.2">
+               <csymbol cd="ambiguous" id="S5.T4.8.8.8.1.m1.1.1.1.2.1.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1.2">
+                subscript
+               </csymbol>
+               <ci id="S5.T4.8.8.8.1.m1.1.1.1.2.2a.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1.2.2">
+                <mtext id="S5.T4.8.8.8.1.m1.1.1.1.2.2.cmml" mathsize="70%" xref="S5.T4.8.8.8.1.m1.1.1.1.2.2">
+                 max
+                </mtext>
+               </ci>
+               <ci id="S5.T4.8.8.8.1.m1.1.1.1.2.3.cmml" xref="S5.T4.8.8.8.1.m1.1.1.1.2.3">
+                𝑖
+               </ci>
+              </apply>
+              <cn id="S5.T4.8.8.8.1.m1.1.1.1.3.cmml" type="integer" xref="S5.T4.8.8.8.1.m1.1.1.1.3">
+               2
+              </cn>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.8.8.8.1.m1.1c">
+            {}_{\text{max}_{i}=2}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.9.9.11.2">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S5.T4.9.9.11.2.1">
+         w/o manager
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.11.2.2">
+         73.01
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.11.2.3">
+         68.29
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.9.9.11.2.4">
+         1.17
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.11.2.5">
+         81.40
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.11.2.6">
+         1.11
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.9.9.12.3">
+        <td class="ltx_td ltx_align_left ltx_border_r" id="S5.T4.9.9.12.3.1">
+         w/ manager
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T4.9.9.12.3.2">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T4.9.9.12.3.2.1">
+          78.94
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T4.9.9.12.3.3">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T4.9.9.12.3.3.1">
+          80.22
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r" id="S5.T4.9.9.12.3.4">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.9.9.12.3.4.1">
+          1.12
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T4.9.9.12.3.5">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T4.9.9.12.3.5.1">
+          86.52
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T4.9.9.12.3.6">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T4.9.9.12.3.6.1">
+          1.05
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.9.9.9">
+        <td class="ltx_td ltx_align_center ltx_border_t" colspan="6" id="S5.T4.9.9.9.1">
+         MAGIC
+         <math alttext="{}_{\text{max}_{i}=5}" class="ltx_Math" display="inline" id="S5.T4.9.9.9.1.m1.1">
+          <semantics id="S5.T4.9.9.9.1.m1.1a">
+           <msub id="S5.T4.9.9.9.1.m1.1.1" xref="S5.T4.9.9.9.1.m1.1.1.cmml">
+            <mi id="S5.T4.9.9.9.1.m1.1.1a" xref="S5.T4.9.9.9.1.m1.1.1.cmml">
+            </mi>
+            <mrow id="S5.T4.9.9.9.1.m1.1.1.1" xref="S5.T4.9.9.9.1.m1.1.1.1.cmml">
+             <msub id="S5.T4.9.9.9.1.m1.1.1.1.2" xref="S5.T4.9.9.9.1.m1.1.1.1.2.cmml">
+              <mtext id="S5.T4.9.9.9.1.m1.1.1.1.2.2" xref="S5.T4.9.9.9.1.m1.1.1.1.2.2a.cmml">
+               max
+              </mtext>
+              <mi id="S5.T4.9.9.9.1.m1.1.1.1.2.3" xref="S5.T4.9.9.9.1.m1.1.1.1.2.3.cmml">
+               i
+              </mi>
+             </msub>
+             <mo id="S5.T4.9.9.9.1.m1.1.1.1.1" xref="S5.T4.9.9.9.1.m1.1.1.1.1.cmml">
+              =
+             </mo>
+             <mn id="S5.T4.9.9.9.1.m1.1.1.1.3" xref="S5.T4.9.9.9.1.m1.1.1.1.3.cmml">
+              5
+             </mn>
+            </mrow>
+           </msub>
+           <annotation-xml encoding="MathML-Content" id="S5.T4.9.9.9.1.m1.1b">
+            <apply id="S5.T4.9.9.9.1.m1.1.1.cmml" xref="S5.T4.9.9.9.1.m1.1.1">
+             <apply id="S5.T4.9.9.9.1.m1.1.1.1.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1">
+              <eq id="S5.T4.9.9.9.1.m1.1.1.1.1.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1.1">
+              </eq>
+              <apply id="S5.T4.9.9.9.1.m1.1.1.1.2.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1.2">
+               <csymbol cd="ambiguous" id="S5.T4.9.9.9.1.m1.1.1.1.2.1.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1.2">
+                subscript
+               </csymbol>
+               <ci id="S5.T4.9.9.9.1.m1.1.1.1.2.2a.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1.2.2">
+                <mtext id="S5.T4.9.9.9.1.m1.1.1.1.2.2.cmml" mathsize="70%" xref="S5.T4.9.9.9.1.m1.1.1.1.2.2">
+                 max
+                </mtext>
+               </ci>
+               <ci id="S5.T4.9.9.9.1.m1.1.1.1.2.3.cmml" xref="S5.T4.9.9.9.1.m1.1.1.1.2.3">
+                𝑖
+               </ci>
+              </apply>
+              <cn id="S5.T4.9.9.9.1.m1.1.1.1.3.cmml" type="integer" xref="S5.T4.9.9.9.1.m1.1.1.1.3">
+               5
+              </cn>
+             </apply>
+            </apply>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S5.T4.9.9.9.1.m1.1c">
+            {}_{\text{max}_{i}=5}
+           </annotation>
+          </semantics>
+         </math>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.9.9.13.4">
+        <td class="ltx_td ltx_align_left ltx_border_r ltx_border_t" id="S5.T4.9.9.13.4.1">
+         w/o manager
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.13.4.2">
+         78.60
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.13.4.3">
+         79.58
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_r ltx_border_t" id="S5.T4.9.9.13.4.4">
+         2.87
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.13.4.5">
+         83.28
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T4.9.9.13.4.6">
+         2.22
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T4.9.9.14.5">
+        <td class="ltx_td ltx_align_left ltx_border_bb ltx_border_r" id="S5.T4.9.9.14.5.1">
+         w/ manager
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T4.9.9.14.5.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.9.9.14.5.2.1">
+          81.81
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T4.9.9.14.5.3">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.9.9.14.5.3.1">
+          84.19
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb ltx_border_r" id="S5.T4.9.9.14.5.4">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T4.9.9.14.5.4.1">
+          2.41
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T4.9.9.14.5.5">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.9.9.14.5.5.1">
+          91.78
+         </span>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T4.9.9.14.5.6">
+         <span class="ltx_text ltx_font_bold" id="S5.T4.9.9.14.5.6.1">
+          2.15
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 4:
+    </span>
+    The effectiveness for generating feedbacks on the train set of BIRD dataset. The
+    <math alttext="max_{i}" class="ltx_Math" display="inline" id="S5.T4.12.m1.1">
+     <semantics id="S5.T4.12.m1.1b">
+      <mrow id="S5.T4.12.m1.1.1" xref="S5.T4.12.m1.1.1.cmml">
+       <mi id="S5.T4.12.m1.1.1.2" xref="S5.T4.12.m1.1.1.2.cmml">
+        m
+       </mi>
+       <mo id="S5.T4.12.m1.1.1.1" lspace="0em" rspace="0em" xref="S5.T4.12.m1.1.1.1.cmml">
+        ​
+       </mo>
+       <mi id="S5.T4.12.m1.1.1.3" xref="S5.T4.12.m1.1.1.3.cmml">
+        a
+       </mi>
+       <mo id="S5.T4.12.m1.1.1.1b" lspace="0em" rspace="0em" xref="S5.T4.12.m1.1.1.1.cmml">
+        ​
+       </mo>
+       <msub id="S5.T4.12.m1.1.1.4" xref="S5.T4.12.m1.1.1.4.cmml">
+        <mi id="S5.T4.12.m1.1.1.4.2" xref="S5.T4.12.m1.1.1.4.2.cmml">
+         x
+        </mi>
+        <mi id="S5.T4.12.m1.1.1.4.3" xref="S5.T4.12.m1.1.1.4.3.cmml">
+         i
+        </mi>
+       </msub>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S5.T4.12.m1.1c">
+       <apply id="S5.T4.12.m1.1.1.cmml" xref="S5.T4.12.m1.1.1">
+        <times id="S5.T4.12.m1.1.1.1.cmml" xref="S5.T4.12.m1.1.1.1">
+        </times>
+        <ci id="S5.T4.12.m1.1.1.2.cmml" xref="S5.T4.12.m1.1.1.2">
+         𝑚
+        </ci>
+        <ci id="S5.T4.12.m1.1.1.3.cmml" xref="S5.T4.12.m1.1.1.3">
+         𝑎
+        </ci>
+        <apply id="S5.T4.12.m1.1.1.4.cmml" xref="S5.T4.12.m1.1.1.4">
+         <csymbol cd="ambiguous" id="S5.T4.12.m1.1.1.4.1.cmml" xref="S5.T4.12.m1.1.1.4">
+          subscript
+         </csymbol>
+         <ci id="S5.T4.12.m1.1.1.4.2.cmml" xref="S5.T4.12.m1.1.1.4.2">
+          𝑥
+         </ci>
+         <ci id="S5.T4.12.m1.1.1.4.3.cmml" xref="S5.T4.12.m1.1.1.4.3">
+          𝑖
+         </ci>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.T4.12.m1.1d">
+       max_{i}
+      </annotation>
+     </semantics>
+    </math>
+    and
+    <math alttext="AVG_{i}" class="ltx_Math" display="inline" id="S5.T4.13.m2.1">
+     <semantics id="S5.T4.13.m2.1b">
+      <mrow id="S5.T4.13.m2.1.1" xref="S5.T4.13.m2.1.1.cmml">
+       <mi id="S5.T4.13.m2.1.1.2" xref="S5.T4.13.m2.1.1.2.cmml">
+        A
+       </mi>
+       <mo id="S5.T4.13.m2.1.1.1" lspace="0em" rspace="0em" xref="S5.T4.13.m2.1.1.1.cmml">
+        ​
+       </mo>
+       <mi id="S5.T4.13.m2.1.1.3" xref="S5.T4.13.m2.1.1.3.cmml">
+        V
+       </mi>
+       <mo id="S5.T4.13.m2.1.1.1b" lspace="0em" rspace="0em" xref="S5.T4.13.m2.1.1.1.cmml">
+        ​
+       </mo>
+       <msub id="S5.T4.13.m2.1.1.4" xref="S5.T4.13.m2.1.1.4.cmml">
+        <mi id="S5.T4.13.m2.1.1.4.2" xref="S5.T4.13.m2.1.1.4.2.cmml">
+         G
+        </mi>
+        <mi id="S5.T4.13.m2.1.1.4.3" xref="S5.T4.13.m2.1.1.4.3.cmml">
+         i
+        </mi>
+       </msub>
+      </mrow>
+      <annotation-xml encoding="MathML-Content" id="S5.T4.13.m2.1c">
+       <apply id="S5.T4.13.m2.1.1.cmml" xref="S5.T4.13.m2.1.1">
+        <times id="S5.T4.13.m2.1.1.1.cmml" xref="S5.T4.13.m2.1.1.1">
+        </times>
+        <ci id="S5.T4.13.m2.1.1.2.cmml" xref="S5.T4.13.m2.1.1.2">
+         𝐴
+        </ci>
+        <ci id="S5.T4.13.m2.1.1.3.cmml" xref="S5.T4.13.m2.1.1.3">
+         𝑉
+        </ci>
+        <apply id="S5.T4.13.m2.1.1.4.cmml" xref="S5.T4.13.m2.1.1.4">
+         <csymbol cd="ambiguous" id="S5.T4.13.m2.1.1.4.1.cmml" xref="S5.T4.13.m2.1.1.4">
+          subscript
+         </csymbol>
+         <ci id="S5.T4.13.m2.1.1.4.2.cmml" xref="S5.T4.13.m2.1.1.4.2">
+          𝐺
+         </ci>
+         <ci id="S5.T4.13.m2.1.1.4.3.cmml" xref="S5.T4.13.m2.1.1.4.3">
+          𝑖
+         </ci>
+        </apply>
+       </apply>
+      </annotation-xml>
+      <annotation encoding="application/x-tex" id="S5.T4.13.m2.1d">
+       AVG_{i}
+      </annotation>
+     </semantics>
+    </math>
+    refers to the maximum number of iterations and average number of iterations till stopping criteria triggers respectively.
+   </figcaption>
+  </figure>
+  <div class="ltx_para ltx_noindent" id="S5.p6">
+   <p class="ltx_p" id="S5.p6.1">
+    <span class="ltx_text ltx_font_bold" id="S5.p6.1.1">
+     Feedback generation effectiveness (RQ3)
+    </span>
+    .
+Figure
+    <a class="ltx_ref" href="#S5.F3" title="Figure 3 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      3
+     </span>
+    </a>
+    presents an analysis of the number of corrected SQL queries with and without the inclusion of the manager agent, by evaluating the performance of the MAGIC framework across a range of maximum iteration counts used as stopping criteria, from one to five. When the manager agent is excluded, the feedback agent controls the maximum iteration count and utilizes the SQL executor tool to compare the execution results of the revised SQL with the ground truth SQL. This comparison underscores the significant role of the manager agent in correcting a larger number of incorrect SQL queries within fewer iterations and ultimately correcting more SQL queries when both setups reach the maximum of five iterations. It is important to note that excluding the manager agent from MAGIC is equivalent to the critic-refine cycle method
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Kamoi et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2024
+     </a>
+     )
+    </cite>
+    , that has been employed in other tasks, such as code generation. However, unlike MAGIC, the critic-refine
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Kamoi et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2024
+     </a>
+     )
+    </cite>
+    does not produce any guidelines as a result of its feedback generation process and has not been applied to text-to-SQL tasks to the best of our knowledge.
+   </p>
+  </div>
+  <figure class="ltx_table" id="S5.T5">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.T5.1" style="width:331.5pt;height:100.8pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-41.4pt,12.6pt) scale(0.8,0.8) ;">
+     <table class="ltx_tabular ltx_align_middle" id="S5.T5.1.1">
+      <tbody class="ltx_tbody">
+       <tr class="ltx_tr" id="S5.T5.1.1.1.1">
+        <td class="ltx_td ltx_align_left ltx_border_tt" id="S5.T5.1.1.1.1.1">
+         Method
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_tt" id="S5.T5.1.1.1.1.2">
+         EX
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.2.2">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T5.1.1.2.2.1">
+         Zero-shot GPT-4
+         <cite class="ltx_cite ltx_citemacro_cite">
+          OpenAI (
+          <a class="ltx_ref" href="#bib.bib15" title="">
+           2023b
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.1.2.2.2">
+         40.18
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.3.3">
+        <td class="ltx_td ltx_align_left" id="S5.T5.1.1.3.3.1">
+         Zero-shot GPT-4 + MAGIC G (Ours)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T5.1.1.3.3.2">
+         48.19
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.4.4">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T5.1.1.4.4.1">
+         Few-shot GPT-4
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Li et al. (
+          <a class="ltx_ref" href="#bib.bib10" title="">
+           2023
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.1.4.4.2">
+         45.66
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.5.5">
+        <td class="ltx_td ltx_align_left" id="S5.T5.1.1.5.5.1">
+         Few-shot GPT-4
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Li et al. (
+          <a class="ltx_ref" href="#bib.bib10" title="">
+           2023
+          </a>
+          )
+         </cite>
+         + MAGIC G (Ours)
+        </td>
+        <td class="ltx_td ltx_align_center" id="S5.T5.1.1.5.5.2">
+         <span class="ltx_text ltx_framed ltx_framed_underline" id="S5.T5.1.1.5.5.2.1">
+          50.38
+         </span>
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.6.6">
+        <td class="ltx_td ltx_align_left ltx_border_t" id="S5.T5.1.1.6.6.1">
+         DIN-SQL
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Pourreza et al. (
+          <a class="ltx_ref" href="#bib.bib18" title="">
+           2023
+          </a>
+          )
+         </cite>
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_t" id="S5.T5.1.1.6.6.2">
+         56.52
+        </td>
+       </tr>
+       <tr class="ltx_tr" id="S5.T5.1.1.7.7">
+        <td class="ltx_td ltx_align_left ltx_border_bb" id="S5.T5.1.1.7.7.1">
+         DIN-SQL
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Pourreza et al. (
+          <a class="ltx_ref" href="#bib.bib18" title="">
+           2023
+          </a>
+          )
+         </cite>
+         + MAGIC G (Ours)
+        </td>
+        <td class="ltx_td ltx_align_center ltx_border_bb" id="S5.T5.1.1.7.7.2">
+         <span class="ltx_text ltx_font_bold" id="S5.T5.1.1.7.7.2.1">
+          59.13
+         </span>
+        </td>
+       </tr>
+      </tbody>
+     </table>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_table">
+     Table 5:
+    </span>
+    The effectiveness of self-correction guideline generated by our proposed method, MAGIC, across different methods.
+   </figcaption>
+  </figure>
+  <figure class="ltx_figure" id="S5.F4">
+   <div class="ltx_inline-block ltx_align_center ltx_transformed_outer" id="S5.F4.1" style="width:162.9pt;height:78.3pt;vertical-align:-0.0pt;">
+    <span class="ltx_transformed_inner" style="transform:translate(-122.2pt,58.8pt) scale(0.4,0.4) ;">
+     <img alt="Refer to caption" class="ltx_graphics ltx_img_landscape" height="209" id="S5.F4.1.g1" src="/html/2406.12692/assets/x5.png" width="431"/>
+    </span>
+   </div>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 4:
+    </span>
+    Analyzing impact of MAGIC’s correction guideline across different databases of development set of BIRD dataset.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S5.p7">
+   <p class="ltx_p" id="S5.p7.1">
+    We further analyze the impact of manager agent in terms of overall performance of self-correction considering all the queries. Table
+    <a class="ltx_ref" href="#S5.T4" title="Table 4 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    measures the effectiveness of MAGIC in terms of execution accuracy (EX) to determine how many could be addressed correctly in total with the already corrected predictions by LLM and self-corrected ones with MAGIC. We also measure Valid Efficiency Score (VES) to determine whether the self-correction by MAGIC results in optimized SQLs compared to the ground truth.
+As it can be observed, MAGIC with the manager agent outperforms the exclusion of manager agent in all setups in terms of all metrics across the BIRD and SPIDER datasets.
+Results show that MAGIC with manager agent is able to generate more efficient SQLs compared to exclusion of manager agent, e.g., 84.19 vs. 79.58 in terms of VES for w/ manager and w/o manager on the BIRD dataset where the maximum numebr of iteration is set to 5. We manually analyzed the revised prompt by manager agent and found out during its interactions with the agents where it revises the prompts, the manager agent tends add instructions for self-correction to optimize the efficiency of SQL, which might be the reason behind generating more efficient SQLs.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Discussion
+  </h2>
+  <div class="ltx_para ltx_noindent" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    <span class="ltx_text ltx_font_bold" id="S6.p1.1.1">
+     Applicability to other methods
+    </span>
+    . We analyze the applicability of the guideline generated by MAGIC based on the mistakes of the DIN-SQL
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Pourreza et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2023
+     </a>
+     )
+    </cite>
+    method on two other methods that generate SQL in a single step: zero-shot GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     OpenAI (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2023a
+     </a>
+     )
+    </cite>
+    and few-shot GPT-4
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Li et al. (
+     <a class="ltx_ref" href="#bib.bib10" title="">
+      2023
+     </a>
+     )
+    </cite>
+    as shown in Table
+    <a class="ltx_ref" href="#S5.T5" title="Table 5 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      5
+     </span>
+    </a>
+    . As we can observe, MAGIC’s guidelines improve the zero-shot GPT-4 baseline from 40.18 to 48.19 and few-shot GPT-4 from 45.56 to 50.38 in terms of execution accuracy, respectively.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p2">
+   <p class="ltx_p" id="S6.p2.1">
+    <span class="ltx_text ltx_font_bold" id="S6.p2.1.1">
+     Source of examples in guideline
+    </span>
+    .
+We analyzed the relationship between the generated guideline and the feedback that contributed to its creation. Specifically, we examined whether any examples in the guideline directly mirrored instances from the feedback or outputs of the correction agent. Our findings indicate that no example was directly copied from the feedback to be used in the guideline. Instead, our empirical observations reveal that the manager agent tends to aggregate multiple pieces of feedback to construct new examples into the self-correction guideline.
+   </p>
+  </div>
+  <div class="ltx_para ltx_noindent" id="S6.p3">
+   <p class="ltx_p" id="S6.p3.1">
+    <span class="ltx_text ltx_font_bold" id="S6.p3.1.1">
+     Database analysis
+    </span>
+    . Figure
+    <a class="ltx_ref" href="#S5.F4" title="Figure 4 ‣ 5 Results ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      4
+     </span>
+    </a>
+    illustrates the impact of the self-correction guidelines generated by MAGIC across different databases in the development set of the BIRD dataset. We found that while self-correction improves effectiveness across all databases, some databases benefit more from MAGIC’s guidelines. This variability could be due to the capability of the LLM, the differing levels of challenging information in the databases, or other factors. This observation could motivate the development of guidelines that are adapted to difficulty of database in the future.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Conclusions
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    This paper presents a new perspective on self-correction in in-context learning for text-to-SQL translation. It proposes a novel method for generating self-correction guidelines, called MAGIC. The motivation behind this approach is to overcome the limitations of existing methods that generate self-correction guidelines by hand, a time-consuming task. Additionally, it addresses the important and costly task of automatically fixing incorrect SQL generated by humans. This work showcases the potential of leveraging LLMs to generate their own self-correction guidelines and highlights the significance of guideline generation in text-to-SQL. We emphasize the importance of improving self-correction methods in text-to-SQL and addressing them as a separate task. The findings of this study contribute to advancing the state-of-the-art in text-to-SQL translation, as our method can be applied to fix issues in any method and provide valuable insights for future research in this domain.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S8">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    8
+   </span>
+   Limitations
+  </h2>
+  <div class="ltx_para" id="S8.p1">
+   <p class="ltx_p" id="S8.p1.1">
+    In this paper, we have demonstrated that generative LLMs are capable of generating their own self-correction guidelines even more effectively than exsiting guidelines written by human experts in previous studies. However, it is important to highlight that such training data might not be available for the new query languages. Moreover, while our experiments illustrate the superior effectiveness of our self-correction guidelines in comparison to those developed by human experts, we have not conducted a systematic study to quantify the potential generation of hallucinated data during this process and its subsequent impact on the performance of the automatically generated guidelines.
+   </p>
+  </div>
+  <div class="ltx_para" id="S8.p2">
+   <p class="ltx_p" id="S8.p2.1">
+    Additionally, despite the high effectiveness of the generated guidelines, we wish to underscore that for large businesses, it may still be needed to have humans review these guidelines. Nevertheless, given that the generated guidelines tend not to be overly lengthy and can be generated under 2 hours (presented in Figure
+    <a class="ltx_ref" href="#S9.F11" title="Figure 11 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      11
+     </span>
+    </a>
+    to Figure
+    <a class="ltx_ref" href="#S9.F16" title="Figure 16 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+     <span class="ltx_text ltx_ref_tag">
+      16
+     </span>
+    </a>
+    in appendix section), we believe that the effort required for reviewing the content of these guidelines is significantly more efficient than manually analyzing all of the LLM’s errors and developing self-correction guidelines from scratch.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xinyun Chen, Maxwell Lin, Nathanael Schärli, and Denny Zhou. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Teaching large language models to self-debug.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      arXiv preprint arXiv:2304.05128
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Dong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Xuemei Dong, Chao Zhang, Yuhang Ge, Yuren Mao, Yunjun Gao, Jinshu Lin, Dongfang Lou, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     C3: Zero-shot text-to-sql with chatgpt.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib2.1.1">
+      arXiv preprint arXiv:2307.07306
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gao et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Dawei Gao, Haibin Wang, Yaliang Li, Xiuyu Sun, Yichen Qian, Bolin Ding, and Jingren Zhou. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Text-to-sql empowered by large language models: A benchmark evaluation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib3.1.1">
+      arXiv preprint arXiv:2308.15363
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gou et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Zhibin Gou, Zhihong Shao, Yeyun Gong, yelong shen, Yujiu Yang, Nan Duan, and Weizhu Chen. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=Sx038qxjek" target="_blank" title="">
+      CRITIC: Large language models can self-correct with tool-interactive critiquing
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib4.1.1">
+      The Twelfth International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Guo et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Jiaqi Guo, Zecheng Zhan, Yan Gao, Yan Xiao, Jian-Guang Lou, Ting Liu, and Dongmei Zhang. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     Towards complex text-to-sql in cross-domain database with intermediate representation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib5.1.1">
+      arXiv preprint arXiv:1905.08205
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kamoi et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Ryo Kamoi, Yusen Zhang, Nan Zhang, Jiawei Han, and Rui Zhang. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     When can llms actually correct their own mistakes? a critical survey of self-correction of llms.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2406.01297
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Lee et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Dongjun Lee, Choongwon Park, Jaehyuk Kim, and Heesoo Park. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Mcs-sql: Leveraging multiple prompts and multiple-choice selection for text-to-sql generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2405.07467
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2024a)
+    </span>
+    <span class="ltx_bibblock">
+     Haoyang Li, Jing Zhang, Hanbing Liu, Ju Fan, Xiaokang Zhang, Jun Zhu, Renjie Wei, Hongyan Pan, Cuiping Li, and Hong Chen. 2024a.
+    </span>
+    <span class="ltx_bibblock">
+     Codes: Towards building open-source language models for text-to-sql.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib8.1.1">
+      arXiv preprint arXiv:2402.16347
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2024b)
+    </span>
+    <span class="ltx_bibblock">
+     Jinyang Li, Binyuan Hui, Ge Qu, Jiaxi Yang, Binhua Li, Bowen Li, Bailin Wang, Bowen Qin, Rongyu Cao, Ruiying Geng, Nan Huo, Xuanhe Zhou, Chenhao Ma, Guoliang Li, Kevin C. C. Chang, Fei Huang, Reynold Cheng, and Yongbin Li. 2024b.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://bird-bench.github.io/" target="_blank" title="">
+      Bird-sql leaderboard
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jinyang Li, Binyuan Hui, GE QU, Jiaxi Yang, Binhua Li, Bowen Li, Bailin Wang, Bowen Qin, Ruiying Geng, Nan Huo, Xuanhe Zhou, Chenhao Ma, Guoliang Li, Kevin Chang, Fei Huang, Reynold Cheng, and Yongbin Li. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=dI4wzAE6uV" target="_blank" title="">
+      Can LLM already serve as a database interface? a BIg bench for large-scale database grounded text-to-SQLs
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib10.1.1">
+      Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2024c)
+    </span>
+    <span class="ltx_bibblock">
+     Jinyang Li, Binyuan Hui, Ge Qu, Jiaxi Yang, Binhua Li, Bowen Li, Bailin Wang, Bowen Qin, Ruiying Geng, Nan Huo, et al. 2024c.
+    </span>
+    <span class="ltx_bibblock">
+     Can llm already serve as a database interface? a big bench for large-scale database grounded text-to-sqls.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib11.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 36.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Li et al. (2024d)
+    </span>
+    <span class="ltx_bibblock">
+     Loka Li, Guangyi Chen, Yusheng Su, Zhenhao Chen, Yixuan Zhang, Eric Xing, and Kun Zhang. 2024d.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.48550/arXiv.2402.12563" target="_blank" title="">
+      Confidence matters: Revisiting intrinsic self-correction capabilities of large language models
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      CoRR
+     </em>
+     , abs/2402.12563.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Self-refine: Iterative refinement with self-feedback.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib13.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023a)
+    </span>
+    <span class="ltx_bibblock">
+     OpenAI. 2023a.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2303.08774" target="_blank" title="">
+      Gpt-4 technical report
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     OpenAI (2023b)
+    </span>
+    <span class="ltx_bibblock">
+     R OpenAI. 2023b.
+    </span>
+    <span class="ltx_bibblock">
+     Gpt-4 technical report. arxiv 2303.08774.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib15.1.1">
+      View in Article
+     </em>
+     , 2(5).
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Liangming Pan, Michael Saxon, Wenda Xu, Deepak Nathani, Xinyi Wang, and William Yang Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Automatically correcting large language models: Surveying the landscape of diverse self-correction strategies.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      arXiv preprint arXiv:2308.03188
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pan et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Liangming Pan, Michael Saxon, Wenda Xu, Deepak Nathani, Xinyi Wang, and William Yang Wang. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.1162/tacl_a_00660" target="_blank" title="">
+      Automatically correcting large language models: Surveying the landscape of diverse automated correction strategies
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib17.1.1">
+      Transactions of the Association for Computational Linguistics
+     </em>
+     , 11:484–506.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Pourreza et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Mohammadreza Pourreza, , and Davood Rafiei. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/72223cc66f63ca1aa59edaec1b3670e6-Paper-Conference.pdf" target="_blank" title="">
+      Din-sql: Decomposed in-context learning of text-to-sql with self-correction
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib18.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 36, pages 36339–36348. Curran Associates, Inc.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Qu et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Ge Qu, Jinyang Li, Bowen Li, Bowen Qin, Nan Huo, Chenhao Ma, and Reynold Cheng. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Before generation, align it! a novel and effective strategy for mitigating hallucinations in text-to-sql generation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib19.1.1">
+      arXiv preprint arXiv:2405.15307
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Rajkumar et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Nitarshan Rajkumar, Raymond Li, and Dzmitry Bahdanau. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Evaluating the text-to-sql capabilities of large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib20.1.1">
+      arXiv preprint arXiv:2204.00498
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib21">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Shypula et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Alexander G Shypula, Aman Madaan, Yimeng Zeng, Uri Alon, Jacob R. Gardner, Yiming Yang, Milad Hashemi, Graham Neubig, Parthasarathy Ranganathan, Osbert Bastani, and Amir Yazdanbakhsh. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=ix7rLVHXyY" target="_blank" title="">
+      Learning performance-improving code edits
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib21.1.1">
+      The Twelfth International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib22">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     (22)
+    </span>
+    <span class="ltx_bibblock">
+     Significant Gravitas.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" title="">
+      AutoGPT
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib23">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Talaei et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Shayan Talaei, Mohammadreza Pourreza, Yu-Chen Chang, Azalia Mirhoseini, and Amin Saberi. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2405.16755" target="_blank" title="">
+      Chess: Contextual harnessing for efficient sql synthesis
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib24">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2024a)
+    </span>
+    <span class="ltx_bibblock">
+     Bing Wang, Changyu Ren, Jian Yang, Xinnian Liang, Jiaqi Bai, Linzheng Chai, Zhao Yan, Qian-Wen Zhang, Di Yin, Xing Sun, and Zhoujun Li. 2024a.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2312.11242" target="_blank" title="">
+      Mac-sql: A multi-agent collaborative framework for text-to-sql
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib25">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2024b)
+    </span>
+    <span class="ltx_bibblock">
+     Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai Tang, Xu Chen, Yankai Lin, et al. 2024b.
+    </span>
+    <span class="ltx_bibblock">
+     A survey on large language model based autonomous agents.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib25.1.1">
+      Frontiers of Computer Science
+     </em>
+     , 18(6):186345.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib26">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wang et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V Le, Ed H Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Self-consistency improves chain of thought reasoning in language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib26.1.1">
+      The Eleventh International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib27">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     Chain-of-thought prompting elicits reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib27.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , 35:24824–24837.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib28">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Shaokun Zhang, Erkang Zhu, Beibin Li, Li Jiang, Xiaoyun Zhang, and Chi Wang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Autogen: Enabling next-gen llm applications via multi-agent conversation framework.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib28.1.1">
+      arXiv preprint arXiv:2308.08155
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib29">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xie et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tianbao Xie, Fan Zhou, Zhoujun Cheng, Peng Shi, Luoxuan Weng, Yitao Liu, Toh Jing Hua, Junning Zhao, Qian Liu, Che Liu, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Openagents: An open platform for language agents in the wild.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib29.1.1">
+      arXiv preprint arXiv:2310.10634
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib30">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Yu et al. (2018)
+    </span>
+    <span class="ltx_bibblock">
+     Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingning Yao, Shanelle Roman, Zilin Zhang, and Dragomir Radev. 2018.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://doi.org/10.18653/v1/D18-1425" target="_blank" title="">
+      Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-SQL task
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib30.1.1">
+      Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing
+     </em>
+     , pages 3911–3921, Brussels, Belgium. Association for Computational Linguistics.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib31">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zelle and Mooney (1996)
+    </span>
+    <span class="ltx_bibblock">
+     John M Zelle and Raymond J Mooney. 1996.
+    </span>
+    <span class="ltx_bibblock">
+     Learning to parse database queries using inductive logic programming.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib31.1.1">
+      Proceedings of the national conference on artificial intelligence
+     </em>
+     , pages 1050–1055.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib32">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhang et al. (2024)
+    </span>
+    <span class="ltx_bibblock">
+     Bin Zhang, Yuxiao Ye, Guoqing Du, Xiaoru Hu, Zhishuai Li, Sun Yang, Chi Harold Liu, Rui Zhao, Ziyue Li, and Hangyu Mao. 2024.
+    </span>
+    <span class="ltx_bibblock">
+     Benchmarking the text-to-sql capability of large language models: A comprehensive evaluation.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib32.1.1">
+      arXiv preprint arXiv:2403.02951
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib33">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Zhou et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Denny Zhou, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc V Le, et al. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Least-to-most prompting enables complex reasoning in large language models.
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib33.1.1">
+      The Eleventh International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+ <div class="ltx_pagination ltx_role_newpage">
+ </div>
+ <section class="ltx_section" id="S9">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    9
+   </span>
+   Appendix
+  </h2>
+  <section class="ltx_subsection" id="S9.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     9.1
+    </span>
+    Prompts
+   </h3>
+   <div class="ltx_para" id="S9.SS1.p1">
+    <p class="ltx_p" id="S9.SS1.p1.1">
+     The prompts that are used are as follow:
+    </p>
+    <ul class="ltx_itemize" id="S9.I1">
+     <li class="ltx_item" id="S9.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S9.I1.i1.p1">
+       <p class="ltx_p" id="S9.I1.i1.p1.1">
+        The prompt for the predefined interaction of manager agent with feedback agent can be seen in Figure
+        <a class="ltx_ref" href="#S9.F5" title="Figure 5 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+         <span class="ltx_text ltx_ref_tag">
+          5
+         </span>
+        </a>
+        , and the prompt with that the manager agent revises its previous predefined prompt can be seen in Figure
+        <a class="ltx_ref" href="#S9.F7" title="Figure 7 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+         <span class="ltx_text ltx_ref_tag">
+          7
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S9.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S9.I1.i2.p1">
+       <p class="ltx_p" id="S9.I1.i2.p1.1">
+        The prompt for the predefined interaction of manager agent with feedback agent can be seen in Figure
+        <a class="ltx_ref" href="#S9.F6" title="Figure 6 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+         <span class="ltx_text ltx_ref_tag">
+          6
+         </span>
+        </a>
+        , and the prompt with that the manager agent revises its previous predefined prompt can be seen in Figure
+        <a class="ltx_ref" href="#S9.F8" title="Figure 8 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+         <span class="ltx_text ltx_ref_tag">
+          8
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S9.I1.i3" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S9.I1.i3.p1">
+       <p class="ltx_p" id="S9.I1.i3.p1.1">
+        The prompt for manager agent to generate the self-correction guideline can be seen in Figure
+        <a class="ltx_ref" href="#S9.F9" title="Figure 9 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+         <span class="ltx_text ltx_ref_tag">
+          9
+         </span>
+        </a>
+        .
+       </p>
+      </div>
+     </li>
+    </ul>
+    <p class="ltx_p" id="S9.SS1.p1.2">
+     Furthermore, an example of last iteration of our proposed method, MAGIC, on a question of BIRD dataset, that led to a successful self-correction can be seen in Figure
+     <a class="ltx_ref" href="#S9.F10" title="Figure 10 ‣ 9.1 Prompts ‣ 9 Appendix ‣ MAGIC: Generating Self-Correction Guideline for In-Context Text-to-SQL">
+      <span class="ltx_text ltx_ref_tag">
+       10
+      </span>
+     </a>
+     .
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S9.F5">
+    <span class="ltx_inline-block ltx_framed ltx_framed_rectangle" id="S9.F5.1" style="border-color: #000000;">
+     <span class="ltx_p" id="S9.F5.1.1">
+      <span class="ltx_text ltx_font_bold" id="S9.F5.1.1.1">
+       System role prompt:
+      </span>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      Complete the text in chat style like a database manager expert. Write in simple present without using correct SQL. Accept what the user identifies as correct or incorrect.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S9.F5.1.1.2">
+       User role prompt:
+      </span>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      "question": "{question}",
+      <br class="ltx_break"/>
+      "evidence": "{evidence}",
+      <br class="ltx_break"/>
+      "Correct SQL": "{Correct SQL}",
+      <br class="ltx_break"/>
+      "Incorrect SQL": "{Incorrect SQL}",
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      Incorrect SQL mistakes are:
+     </span>
+    </span>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 5:
+     </span>
+     The predefined prompt for interaction of magic agent with feedback agent.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F6">
+    <span class="ltx_inline-block ltx_framed ltx_framed_rectangle" id="S9.F6.1" style="border-color: #000000;">
+     <span class="ltx_p" id="S9.F6.1.1">
+      <span class="ltx_text ltx_font_bold" id="S9.F6.1.1.1">
+       System role prompt:
+      </span>
+      <br class="ltx_break"/>
+      Your task is to correct the predicted SQL based on the provided feedback by expert human.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      1. Input Information: You will receive a question, a database schema, a predicted SQL query, and a human feedback.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      2. SQL format in your response:
+      <br class="ltx_break"/>
+      - You must ensure that your response contains a valid SQL.
+      <br class="ltx_break"/>
+      - The format of SQL in your response must be in the following format: “‘sql SQL “‘.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S9.F6.1.1.2">
+       User role prompt:
+       <br class="ltx_break"/>
+       <br class="ltx_break"/>
+      </span>
+      - Schema Overview: {schema}
+      <br class="ltx_break"/>
+      - Columns Description: columns Description
+      <br class="ltx_break"/>
+      - Question: {question}
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      - Predicted SQL: “‘sql {Incorrect SQL} “‘
+      <br class="ltx_break"/>
+      - Expert Human Feedback: {feedback}
+     </span>
+    </span>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 6:
+     </span>
+     The predefined prompt for interaction of magic agent with correction agent.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F7">
+    <span class="ltx_inline-block ltx_framed ltx_framed_rectangle" id="S9.F7.1" style="border-color: #000000;">
+     <span class="ltx_p" id="S9.F7.1.1">
+      <span class="ltx_text ltx_font_bold" id="S9.F7.1.1.1">
+       System role prompt
+      </span>
+      <br class="ltx_break"/>
+      You are a helpful AI assistant that manages other assistants.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S9.F7.1.1.2">
+       User role prompt
+      </span>
+      <br class="ltx_break"/>
+      Manager, please review the following prompt for the following agent and generate a revised prompt.
+      <br class="ltx_break"/>
+      So far you have revised the prompt for {iteration_number} times.
+      <br class="ltx_break"/>
+      Agent description: This agent generates feedback based on the comparison between predicted and ground truth SQL queries.
+      <br class="ltx_break"/>
+      Previous output of agent that was not useful: {agent_outputs[-1]}
+      <br class="ltx_break"/>
+      Previous prompt of agent that you should revise: {agent_prompts[-1]}
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      Revise prompt (Return the entire prompt so it can be directly pass to the agent):
+     </span>
+    </span>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 7:
+     </span>
+     The prompt template of manager for revising the predefined prompts of feedback agent.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F8">
+    <span class="ltx_inline-block ltx_framed ltx_framed_rectangle" id="S9.F8.1" style="border-color: #000000;">
+     <span class="ltx_p" id="S9.F8.1.1">
+      <span class="ltx_text ltx_font_bold" id="S9.F8.1.1.1">
+       System role prompt:
+      </span>
+      <br class="ltx_break"/>
+      You are a helpful AI assistant that manages other assistants.
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <span class="ltx_text ltx_font_bold" id="S9.F8.1.1.2">
+       User role prompt:
+      </span>
+      <br class="ltx_break"/>
+      Manager, please review the following prompt for the following agent and generate a revised prompt.
+      <br class="ltx_break"/>
+      So far you have revised the prompt for {iteration_number} times.
+      <br class="ltx_break"/>
+      Agent description: This agent generates corrections for SQL queries based on expert human feedback.
+      <br class="ltx_break"/>
+      Previous output of agent that was not useful: {agent_outputs[-1]}
+      <br class="ltx_break"/>
+      Previous prompt of agent that you should revise: {agent_prompts[-1]}
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      ####
+      <br class="ltx_break"/>
+      The ideal output of agent should be the following but we cannot directly give the ideal output to the agent:
+      <br class="ltx_break"/>
+      Ideal output of agent: {Correct SQL}
+      <br class="ltx_break"/>
+      ####
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      Revise prompt (Return the entire prompt so it can be directly pass to the agent):
+      <br class="ltx_break"/>
+     </span>
+    </span>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 8:
+     </span>
+     The prompt template of manager for revising the predefined prompts of correction agent.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F9">
+    <span class="ltx_inline-block ltx_framed ltx_framed_rectangle" id="S9.F9.1" style="border-color: #000000;">
+     <span class="ltx_p" id="S9.F9.1.1">
+      # Guideline format:
+      <br class="ltx_break"/>
+      number. Reminder of mistake
+      <br class="ltx_break"/>
+      - Question: "Question"
+      <br class="ltx_break"/>
+      - Incorrect SQL generated by me: “‘sql incorrect sql “‘
+      <br class="ltx_break"/>
+      - Corrected SQL generated by me: “‘sql corrected sql “‘
+      <br class="ltx_break"/>
+      - Negative and strict step-by-step ask-to-myself questions to prevent same mistake again:
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      # Guideline so far:
+      <br class="ltx_break"/>
+      {current_guideline} // current guideline variable is empty at first
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      # Recent mistakes that must be aggregate to Guideline:
+      <br class="ltx_break"/>
+      {batch_of_successful_feedbacks}
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      <br class="ltx_break"/>
+      # Updated Guideline (Return the entire of guideline):
+     </span>
+    </span>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 9:
+     </span>
+     The prompt of manager for self-correction guideline generation.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F10">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="260" id="S9.F10.g1" src="/html/2406.12692/assets/x6.png" width="102"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 10:
+     </span>
+     Illustration of last iteration of our proposed method, MAGIC, on a question of BIRD dataset, that led to a successful self-correction.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F11">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F11.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F11.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F11.1.1.1">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F11.1.1.1.g1" src="/html/2406.12692/assets/x7.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 11:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 1.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F12">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F12.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F12.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F12.1.1.1" style="padding-bottom:14.22636pt;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F12.1.1.1.g1" src="/html/2406.12692/assets/x8.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 12:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 2.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F13">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F13.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F13.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F13.1.1.1" style="padding-bottom:14.22636pt;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F13.1.1.1.g1" src="/html/2406.12692/assets/x9.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 13:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 3.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F14">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F14.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F14.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F14.1.1.1" style="padding-bottom:14.22636pt;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F14.1.1.1.g1" src="/html/2406.12692/assets/x10.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 14:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 4.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F15">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F15.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F15.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F15.1.1.1" style="padding-bottom:14.22636pt;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F15.1.1.1.g1" src="/html/2406.12692/assets/x11.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 15:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 5.
+    </figcaption>
+   </figure>
+   <figure class="ltx_figure" id="S9.F16">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S9.F16.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S9.F16.1.1">
+       <td class="ltx_td ltx_align_center" id="S9.F16.1.1.1" style="padding-bottom:14.22636pt;">
+        <img alt="Refer to caption" class="ltx_graphics ltx_img_portrait" height="652" id="S9.F16.1.1.1.g1" src="/html/2406.12692/assets/x12.png" width="461"/>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 16:
+     </span>
+     Self-correction guideline that is generated by our method, MAGIC, automatically. Page 6.
+    </figcaption>
+   </figure>
+   <div class="ltx_pagination ltx_role_newpage">
+   </div>
+  </section>
+ </section>
+</article>

@@ -1,0 +1,3239 @@
+<article class="ltx_document">
+ <h1 class="ltx_title ltx_title_document">
+  SAIE Framework:
+  <span class="ltx_text ltx_framed ltx_framed_underline" id="id6.id1">
+   S
+  </span>
+  upport
+  <span class="ltx_text ltx_framed ltx_framed_underline" id="id7.id2">
+   A
+  </span>
+  lone
+  <span class="ltx_text ltx_framed ltx_framed_underline" id="id8.id3">
+   I
+  </span>
+  sn’t
+  <span class="ltx_text ltx_framed ltx_framed_underline" id="id9.id4">
+   E
+  </span>
+  nough - Advancing LLM Training with Adversarial Remarks
+ </h1>
+ <div class="ltx_authors">
+  <span class="ltx_creator ltx_role_author">
+   <span class="ltx_personname">
+    Mengsay Loem
+    <sup class="ltx_sup" id="id10.6.id1">
+     <span class="ltx_text ltx_font_italic" id="id10.6.id1.1">
+      1
+     </span>
+    </sup>
+    Masahiro Kaneko
+    <sup class="ltx_sup" id="id11.7.id2">
+     <span class="ltx_text ltx_font_italic" id="id11.7.id2.1">
+      2,1
+     </span>
+    </sup>
+    Naoaki Okazaki
+    <sup class="ltx_sup" id="id12.8.id3">
+     <span class="ltx_text ltx_font_italic" id="id12.8.id3.1">
+      1
+     </span>
+    </sup>
+    <br class="ltx_break"/>
+    <sup class="ltx_sup" id="id13.9.id4">
+     <span class="ltx_text ltx_font_italic" id="id13.9.id4.1">
+      1
+     </span>
+    </sup>
+    Tokyo Institute of Technology,
+    <sup class="ltx_sup" id="id14.10.id5">
+     <span class="ltx_text ltx_font_italic" id="id14.10.id5.1">
+      2
+     </span>
+    </sup>
+    MBZUAI
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id15.11.id6">
+     mengsay.loem@nlp.c.titech.ac.jp
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id16.12.id7">
+     masahiro.kaneko@mbzuai.ac.ae
+    </span>
+    <br class="ltx_break"/>
+    <span class="ltx_text ltx_font_typewriter" id="id17.13.id8">
+     okazaki@c.titech.ac.jp
+    </span>
+   </span>
+  </span>
+ </div>
+ <div class="ltx_abstract">
+  <h6 class="ltx_title ltx_title_abstract">
+   Abstract
+  </h6>
+  <p class="ltx_p" id="id18.id1">
+   Large Language Models (LLMs) can justify or criticize their predictions through discussion with other models or humans, thereby enhancing their intrinsic understanding of instances.
+While proactive discussions enhance performance, this approach is currently limited to the inference phase.
+In this context, we posit a hypothesis: learning interactive discussions during training can improve understanding for the instances in the training step and proficiency in logical/critical thinking ability and verbalized expression of the model in the inference step.
+Our proposed SAIE training method involves both supportive and adversarial discussions between the learner and partner models.
+The learner model receives a remark from the partner through the discussion, and the parameters of the learner model are then updated based on this remark. That is, the teacher signal dynamically adjusts in response to the evolving model output throughout the training step.
+By bolstering the capacity for discussion and comprehension of instances, our experiments across datasets, including GSM8K, CommonsenseQA, and MMLU, reveal that models fine-tuned with our method consistently surpass those trained with standard fine-tuning techniques.
+Moreover, our approach demonstrates superior performance in multi-agent inference scenarios, boosting the models’ reasoning abilities at the inference step.
+  </p>
+ </div>
+ <div class="ltx_para ltx_noindent" id="p1">
+  <div class="ltx_block ltx_align_bottom" id="p1.5">
+   <p class="ltx_p" id="p1.5.6">
+    <span class="ltx_text ltx_font_bold" id="p1.5.6.1">
+     SAIE Framework:
+     <span class="ltx_text ltx_framed ltx_framed_underline" id="p1.5.6.1.1">
+      S
+     </span>
+     upport
+     <span class="ltx_text ltx_framed ltx_framed_underline" id="p1.5.6.1.2">
+      A
+     </span>
+     lone
+     <span class="ltx_text ltx_framed ltx_framed_underline" id="p1.5.6.1.3">
+      I
+     </span>
+     sn’t
+     <span class="ltx_text ltx_framed ltx_framed_underline" id="p1.5.6.1.4">
+      E
+     </span>
+     nough - Advancing LLM Training with Adversarial Remarks
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+   <p class="ltx_p ltx_align_center" id="p1.5.5" style="width:433.6pt;">
+    <span class="ltx_text ltx_inline-block" id="p1.5.5.5" style="width:0.0pt;">
+     <span class="ltx_tabular ltx_guessed_headers ltx_align_top" id="p1.5.5.5.5">
+      <span class="ltx_thead">
+       <span class="ltx_tr" id="p1.3.3.3.3.3">
+        <span class="ltx_td ltx_align_center ltx_th ltx_th_column" id="p1.3.3.3.3.3.3">
+         <span class="ltx_text ltx_font_bold" id="p1.3.3.3.3.3.3.3">
+          Mengsay Loem
+          <sup class="ltx_sup" id="p1.3.3.3.3.3.3.3.1">
+           <span class="ltx_text ltx_font_medium ltx_font_italic" id="p1.3.3.3.3.3.3.3.1.1">
+            1
+           </span>
+          </sup>
+          Masahiro Kaneko
+          <sup class="ltx_sup" id="p1.3.3.3.3.3.3.3.2">
+           <span class="ltx_text ltx_font_medium ltx_font_italic" id="p1.3.3.3.3.3.3.3.2.1">
+            2,1
+           </span>
+          </sup>
+          Naoaki Okazaki
+          <sup class="ltx_sup" id="p1.3.3.3.3.3.3.3.3">
+           <span class="ltx_text ltx_font_medium ltx_font_italic" id="p1.3.3.3.3.3.3.3.3.1">
+            1
+           </span>
+          </sup>
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.5.5.5.5.5">
+        <span class="ltx_td ltx_align_center ltx_th ltx_th_column" id="p1.5.5.5.5.5.2">
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.2.1">
+          <span class="ltx_text ltx_font_italic" id="p1.5.5.5.5.5.2.1.1">
+           1
+          </span>
+         </sup>
+         Tokyo Institute of Technology,
+         <sup class="ltx_sup" id="p1.5.5.5.5.5.2.2">
+          <span class="ltx_text ltx_font_italic" id="p1.5.5.5.5.5.2.2.1">
+           2
+          </span>
+         </sup>
+         MBZUAI
+        </span>
+       </span>
+      </span>
+      <span class="ltx_tbody">
+       <span class="ltx_tr" id="p1.5.5.5.5.6.1">
+        <span class="ltx_td ltx_align_center" id="p1.5.5.5.5.6.1.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.5.5.5.5.6.1.1.1">
+          mengsay.loem@nlp.c.titech.ac.jp
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.5.5.5.5.7.2">
+        <span class="ltx_td ltx_align_center" id="p1.5.5.5.5.7.2.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.5.5.5.5.7.2.1.1">
+          masahiro.kaneko@mbzuai.ac.ae
+         </span>
+        </span>
+       </span>
+       <span class="ltx_tr" id="p1.5.5.5.5.8.3">
+        <span class="ltx_td ltx_align_center" id="p1.5.5.5.5.8.3.1">
+         <span class="ltx_text ltx_font_typewriter" id="p1.5.5.5.5.8.3.1.1">
+          okazaki@c.titech.ac.jp
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+   </p>
+   <br class="ltx_break ltx_centering"/>
+  </div>
+ </div>
+ <section class="ltx_section" id="S1">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    1
+   </span>
+   Introduction
+  </h2>
+  <div class="ltx_para" id="S1.p1">
+   <p class="ltx_p" id="S1.p1.1">
+    Large Language Models (LLMs) have transformed the Natural Language Processing (NLP) landscape, exhibiting extraordinary language comprehension and generation abilities across a range of tasks
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Brown et al. (
+     <a class="ltx_ref" href="#bib.bib1" title="">
+      2020
+     </a>
+     ); Chowdhery et al. (
+     <a class="ltx_ref" href="#bib.bib3" title="">
+      2022
+     </a>
+     ); Chung et al. (
+     <a class="ltx_ref" href="#bib.bib4" title="">
+      2022a
+     </a>
+     )
+    </cite>
+    .
+A key development in this domain is their capability to predict through discussions with either other models or humans.
+For example, an LLM explains the reasons for its predictions in response to counterarguments, persuades others, or corrects its own mistakes through multi-turn dialogue
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Kaneko et al. (
+     <a class="ltx_ref" href="#bib.bib11" title="">
+      2023
+     </a>
+     )
+    </cite>
+    .
+This interactive ability is critical in boosting LLM performance, especially in tasks requiring intricate reasoning and critical thinking.
+   </p>
+  </div>
+  <figure class="ltx_figure" id="S1.F1">
+   <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_landscape" height="138" id="S1.F1.g1" src="/html/2311.08107/assets/x1.png" width="242"/>
+   <figcaption class="ltx_caption ltx_centering">
+    <span class="ltx_tag ltx_tag_figure">
+     Figure 1:
+    </span>
+    Overview of the SAIE Framework. This figure delineates the interaction between the Learner and Partner models across multiple discussion rounds. The input to the Learner is the question for discussion, while the Partner receives instruction prompts for generating adaptive remarks and the gold answer for assessment. Only the Learner model undergoes parameter updates based on these interactions.
+   </figcaption>
+  </figure>
+  <div class="ltx_para" id="S1.p2">
+   <p class="ltx_p" id="S1.p2.1">
+    Recent studies
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Liang et al. (
+     <a class="ltx_ref" href="#bib.bib13" title="">
+      2023
+     </a>
+     ); Xiong et al. (
+     <a class="ltx_ref" href="#bib.bib20" title="">
+      2023
+     </a>
+     ); Chen et al. (
+     <a class="ltx_ref" href="#bib.bib2" title="">
+      2023
+     </a>
+     ); Madaan et al. (
+     <a class="ltx_ref" href="#bib.bib14" title="">
+      2023
+     </a>
+     ); Du et al. (
+     <a class="ltx_ref" href="#bib.bib7" title="">
+      2023
+     </a>
+     )
+    </cite>
+    have shown that proactive discussions during the inference stage can significantly improve LLMs’ performance.
+These discussions enable models to refine their understanding and approach to problems, thereby enhancing accuracy and adaptability in various tasks.
+However, there remains room for improvement in the training phase to fully capitalize on these capabilities.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p3">
+   <p class="ltx_p" id="S1.p3.1">
+    Integrating interactive discussions during the training phase remains a largely unexplored area.
+While recent works like
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Welleck et al. (
+     <a class="ltx_ref" href="#bib.bib18" title="">
+      2022
+     </a>
+     )
+    </cite>
+    and
+    <cite class="ltx_cite ltx_citemacro_citet">
+     Paul et al. (
+     <a class="ltx_ref" href="#bib.bib15" title="">
+      2023
+     </a>
+     )
+    </cite>
+    have explored using models in a generator-evaluator framework to improve performance, these approaches often limit interaction to providing hints or support to the generator.
+This method runs the risk of the generator model merely memorizing these hints or supports, rather than developing a deeper understanding.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p4">
+   <p class="ltx_p" id="S1.p4.1">
+    To address this, we propose the SAIE (Support Alone Isn’t Enough) Framework, hypothesizing that incorporating interactive discussions during the training phase can enhance task performance from two perspectives.
+First, discussions facilitate a more nuanced understanding of the training instances, thereby improving performance on the task when no discussion is present during inference.
+Second, the practice of dynamic discussion hones the model’s logical reasoning and critical thinking skills, thus also boosting task performance with discussions in the inference phase.
+Unlike the existing generator-evaluator framework, our method encourages a more dynamic interaction, moving beyond mere supportive feedback to include adversarial challenges, thereby enriching the learning experience.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p5">
+   <p class="ltx_p" id="S1.p5.1">
+    Introducing our SAIE, the proposed method involves the learner model engaging in both supportive and adversarial discussions with a partner model.
+This dynamic, discussion-driven learning process, under the SAIE framework, allows the learner model to refine its responses and evolve through the training.
+In a teacher-like role, the partner model provides remarks that shape the learner’s parameter adjustments, making the training process more nuanced and responsive.
+The integration of interactive discussions during training, as featured in our SAIE framework, is instrumental in enhancing the model’s capacity to comprehend and effectively discuss complex instances. Figure
+    <a class="ltx_ref" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    illustrates the overview of the SAIE framework.
+   </p>
+  </div>
+  <div class="ltx_para" id="S1.p6">
+   <p class="ltx_p" id="S1.p6.1">
+    Our empirical study, encompassing datasets such as GSM8K
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Cobbe et al. (
+     <a class="ltx_ref" href="#bib.bib6" title="">
+      2021
+     </a>
+     )
+    </cite>
+    , CommonsenseQA
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Talmor et al. (
+     <a class="ltx_ref" href="#bib.bib16" title="">
+      2019
+     </a>
+     )
+    </cite>
+    , and MMLU
+    <cite class="ltx_cite ltx_citemacro_cite">
+     Hendrycks et al. (
+     <a class="ltx_ref" href="#bib.bib9" title="">
+      2021
+     </a>
+     )
+    </cite>
+    provides concrete evidence of the effectiveness of the SAIE.
+Models fine-tuned using our method consistently outperform those trained with conventional techniques across a variety of tasks.
+Furthermore, in multi-agent inference scenarios through discussion, the SAIE framework enhances the reasoning abilities of models, highlighting its potential to make substantial contributions to the advancement of LLMs.
+   </p>
+  </div>
+  <figure class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top" id="alg1">
+   <div class="ltx_listing ltx_listing" id="alg1.2">
+    <div class="ltx_listingline" id="alg0.l1">
+     <span class="ltx_tag ltx_tag_listingline">
+      1:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l1.1">
+      procedure
+     </span>
+     <span class="ltx_text ltx_font_smallcaps" id="alg0.l1.2">
+      Fine-tuning
+     </span>
+     (
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l1.m1.1">
+      <semantics id="alg0.l1.m1.1a">
+       <mi id="alg0.l1.m1.1.1" xref="alg0.l1.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l1.m1.1b">
+        <ci id="alg0.l1.m1.1.1.cmml" xref="alg0.l1.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l1.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="P" class="ltx_Math" display="inline" id="alg0.l1.m2.1">
+      <semantics id="alg0.l1.m2.1a">
+       <mi id="alg0.l1.m2.1.1" xref="alg0.l1.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l1.m2.1b">
+        <ci id="alg0.l1.m2.1.1.cmml" xref="alg0.l1.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l1.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="D_{w}" class="ltx_Math" display="inline" id="alg0.l1.m3.1">
+      <semantics id="alg0.l1.m3.1a">
+       <msub id="alg0.l1.m3.1.1" xref="alg0.l1.m3.1.1.cmml">
+        <mi id="alg0.l1.m3.1.1.2" xref="alg0.l1.m3.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l1.m3.1.1.3" xref="alg0.l1.m3.1.1.3.cmml">
+         w
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l1.m3.1b">
+        <apply id="alg0.l1.m3.1.1.cmml" xref="alg0.l1.m3.1.1">
+         <csymbol cd="ambiguous" id="alg0.l1.m3.1.1.1.cmml" xref="alg0.l1.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l1.m3.1.1.2.cmml" xref="alg0.l1.m3.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l1.m3.1.1.3.cmml" xref="alg0.l1.m3.1.1.3">
+          𝑤
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l1.m3.1c">
+        D_{w}
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="D_{d}" class="ltx_Math" display="inline" id="alg0.l1.m4.1">
+      <semantics id="alg0.l1.m4.1a">
+       <msub id="alg0.l1.m4.1.1" xref="alg0.l1.m4.1.1.cmml">
+        <mi id="alg0.l1.m4.1.1.2" xref="alg0.l1.m4.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l1.m4.1.1.3" xref="alg0.l1.m4.1.1.3.cmml">
+         d
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l1.m4.1b">
+        <apply id="alg0.l1.m4.1.1.cmml" xref="alg0.l1.m4.1.1">
+         <csymbol cd="ambiguous" id="alg0.l1.m4.1.1.1.cmml" xref="alg0.l1.m4.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l1.m4.1.1.2.cmml" xref="alg0.l1.m4.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l1.m4.1.1.3.cmml" xref="alg0.l1.m4.1.1.3">
+          𝑑
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l1.m4.1c">
+        D_{d}
+       </annotation>
+      </semantics>
+     </math>
+     ,
+     <math alttext="N" class="ltx_Math" display="inline" id="alg0.l1.m5.1">
+      <semantics id="alg0.l1.m5.1a">
+       <mi id="alg0.l1.m5.1.1" xref="alg0.l1.m5.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l1.m5.1b">
+        <ci id="alg0.l1.m5.1.1.cmml" xref="alg0.l1.m5.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l1.m5.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+     )
+    </div>
+    <div class="ltx_listingline" id="alg0.l2">
+     <span class="ltx_tag ltx_tag_listingline">
+      2:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l2.1">
+      Input:
+     </span>
+     Learner model
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l2.m1.1">
+      <semantics id="alg0.l2.m1.1a">
+       <mi id="alg0.l2.m1.1.1" xref="alg0.l2.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l2.m1.1b">
+        <ci id="alg0.l2.m1.1.1.cmml" xref="alg0.l2.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l2.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     , Partner model
+     <math alttext="P" class="ltx_Math" display="inline" id="alg0.l2.m2.1">
+      <semantics id="alg0.l2.m2.1a">
+       <mi id="alg0.l2.m2.1.1" xref="alg0.l2.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l2.m2.1b">
+        <ci id="alg0.l2.m2.1.1.cmml" xref="alg0.l2.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l2.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l3">
+     <span class="ltx_tag ltx_tag_listingline">
+      3:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l3.1">
+      Input:
+     </span>
+     Data for Warm-up Phase
+     <math alttext="D_{w}" class="ltx_Math" display="inline" id="alg0.l3.m1.1">
+      <semantics id="alg0.l3.m1.1a">
+       <msub id="alg0.l3.m1.1.1" xref="alg0.l3.m1.1.1.cmml">
+        <mi id="alg0.l3.m1.1.1.2" xref="alg0.l3.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l3.m1.1.1.3" xref="alg0.l3.m1.1.1.3.cmml">
+         w
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l3.m1.1b">
+        <apply id="alg0.l3.m1.1.1.cmml" xref="alg0.l3.m1.1.1">
+         <csymbol cd="ambiguous" id="alg0.l3.m1.1.1.1.cmml" xref="alg0.l3.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l3.m1.1.1.2.cmml" xref="alg0.l3.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l3.m1.1.1.3.cmml" xref="alg0.l3.m1.1.1.3">
+          𝑤
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l3.m1.1c">
+        D_{w}
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l4">
+     <span class="ltx_tag ltx_tag_listingline">
+      4:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l4.1">
+      Input:
+     </span>
+     Data for Discussion Phase
+     <math alttext="D_{d}" class="ltx_Math" display="inline" id="alg0.l4.m1.1">
+      <semantics id="alg0.l4.m1.1a">
+       <msub id="alg0.l4.m1.1.1" xref="alg0.l4.m1.1.1.cmml">
+        <mi id="alg0.l4.m1.1.1.2" xref="alg0.l4.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l4.m1.1.1.3" xref="alg0.l4.m1.1.1.3.cmml">
+         d
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l4.m1.1b">
+        <apply id="alg0.l4.m1.1.1.cmml" xref="alg0.l4.m1.1.1">
+         <csymbol cd="ambiguous" id="alg0.l4.m1.1.1.1.cmml" xref="alg0.l4.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l4.m1.1.1.2.cmml" xref="alg0.l4.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l4.m1.1.1.3.cmml" xref="alg0.l4.m1.1.1.3">
+          𝑑
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l4.m1.1c">
+        D_{d}
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l5">
+     <span class="ltx_tag ltx_tag_listingline">
+      5:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l5.1">
+      Input:
+     </span>
+     Number of discussion iterations
+     <math alttext="N" class="ltx_Math" display="inline" id="alg0.l5.m1.1">
+      <semantics id="alg0.l5.m1.1a">
+       <mi id="alg0.l5.m1.1.1" xref="alg0.l5.m1.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l5.m1.1b">
+        <ci id="alg0.l5.m1.1.1.cmml" xref="alg0.l5.m1.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l5.m1.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l6">
+     <span class="ltx_tag ltx_tag_listingline">
+      6:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l6.1">
+      Output:
+     </span>
+     Updated Learner model
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l6.m1.1">
+      <semantics id="alg0.l6.m1.1a">
+       <mi id="alg0.l6.m1.1.1" xref="alg0.l6.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l6.m1.1b">
+        <ci id="alg0.l6.m1.1.1.cmml" xref="alg0.l6.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l6.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l7">
+     <span class="ltx_tag ltx_tag_listingline">
+      7:
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l8">
+     <span class="ltx_tag ltx_tag_listingline">
+      8:
+     </span>
+     <span class="ltx_text ltx_font_italic" id="alg0.l8.1">
+      Warm-up Phase:
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l9">
+     <span class="ltx_tag ltx_tag_listingline">
+      9:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l9.1">
+      for
+     </span>
+     each example in
+     <math alttext="D_{w}" class="ltx_Math" display="inline" id="alg0.l9.m1.1">
+      <semantics id="alg0.l9.m1.1a">
+       <msub id="alg0.l9.m1.1.1" xref="alg0.l9.m1.1.1.cmml">
+        <mi id="alg0.l9.m1.1.1.2" xref="alg0.l9.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l9.m1.1.1.3" xref="alg0.l9.m1.1.1.3.cmml">
+         w
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l9.m1.1b">
+        <apply id="alg0.l9.m1.1.1.cmml" xref="alg0.l9.m1.1.1">
+         <csymbol cd="ambiguous" id="alg0.l9.m1.1.1.1.cmml" xref="alg0.l9.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l9.m1.1.1.2.cmml" xref="alg0.l9.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l9.m1.1.1.3.cmml" xref="alg0.l9.m1.1.1.3">
+          𝑤
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l9.m1.1c">
+        D_{w}
+       </annotation>
+      </semantics>
+     </math>
+     <span class="ltx_text ltx_font_bold" id="alg0.l9.2">
+      do
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l10">
+     <span class="ltx_tag ltx_tag_listingline">
+      10:
+     </span>
+     Fine-tune
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l10.m1.1">
+      <semantics id="alg0.l10.m1.1a">
+       <mi id="alg0.l10.m1.1.1" xref="alg0.l10.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l10.m1.1b">
+        <ci id="alg0.l10.m1.1.1.cmml" xref="alg0.l10.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l10.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     with the example
+    </div>
+    <div class="ltx_listingline" id="alg0.l11">
+     <span class="ltx_tag ltx_tag_listingline">
+      11:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l11.1">
+      end
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l11.2">
+      for
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l12">
+     <span class="ltx_tag ltx_tag_listingline">
+      12:
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l13">
+     <span class="ltx_tag ltx_tag_listingline">
+      13:
+     </span>
+     <span class="ltx_text ltx_font_italic" id="alg0.l13.1">
+      Discussion Phase:
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l14">
+     <span class="ltx_tag ltx_tag_listingline">
+      14:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l14.1">
+      for
+     </span>
+     each example in
+     <math alttext="D_{d}" class="ltx_Math" display="inline" id="alg0.l14.m1.1">
+      <semantics id="alg0.l14.m1.1a">
+       <msub id="alg0.l14.m1.1.1" xref="alg0.l14.m1.1.1.cmml">
+        <mi id="alg0.l14.m1.1.1.2" xref="alg0.l14.m1.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="alg0.l14.m1.1.1.3" xref="alg0.l14.m1.1.1.3.cmml">
+         d
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="alg0.l14.m1.1b">
+        <apply id="alg0.l14.m1.1.1.cmml" xref="alg0.l14.m1.1.1">
+         <csymbol cd="ambiguous" id="alg0.l14.m1.1.1.1.cmml" xref="alg0.l14.m1.1.1">
+          subscript
+         </csymbol>
+         <ci id="alg0.l14.m1.1.1.2.cmml" xref="alg0.l14.m1.1.1.2">
+          𝐷
+         </ci>
+         <ci id="alg0.l14.m1.1.1.3.cmml" xref="alg0.l14.m1.1.1.3">
+          𝑑
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l14.m1.1c">
+        D_{d}
+       </annotation>
+      </semantics>
+     </math>
+     <span class="ltx_text ltx_font_bold" id="alg0.l14.2">
+      do
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l15">
+     <span class="ltx_tag ltx_tag_listingline">
+      15:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l15.1">
+      for
+     </span>
+     <math alttext="i=1" class="ltx_Math" display="inline" id="alg0.l15.m1.1">
+      <semantics id="alg0.l15.m1.1a">
+       <mrow id="alg0.l15.m1.1.1" xref="alg0.l15.m1.1.1.cmml">
+        <mi id="alg0.l15.m1.1.1.2" xref="alg0.l15.m1.1.1.2.cmml">
+         i
+        </mi>
+        <mo id="alg0.l15.m1.1.1.1" xref="alg0.l15.m1.1.1.1.cmml">
+         =
+        </mo>
+        <mn id="alg0.l15.m1.1.1.3" xref="alg0.l15.m1.1.1.3.cmml">
+         1
+        </mn>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="alg0.l15.m1.1b">
+        <apply id="alg0.l15.m1.1.1.cmml" xref="alg0.l15.m1.1.1">
+         <eq id="alg0.l15.m1.1.1.1.cmml" xref="alg0.l15.m1.1.1.1">
+         </eq>
+         <ci id="alg0.l15.m1.1.1.2.cmml" xref="alg0.l15.m1.1.1.2">
+          𝑖
+         </ci>
+         <cn id="alg0.l15.m1.1.1.3.cmml" type="integer" xref="alg0.l15.m1.1.1.3">
+          1
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l15.m1.1c">
+        i=1
+       </annotation>
+      </semantics>
+     </math>
+     to
+     <math alttext="N" class="ltx_Math" display="inline" id="alg0.l15.m2.1">
+      <semantics id="alg0.l15.m2.1a">
+       <mi id="alg0.l15.m2.1.1" xref="alg0.l15.m2.1.1.cmml">
+        N
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l15.m2.1b">
+        <ci id="alg0.l15.m2.1.1.cmml" xref="alg0.l15.m2.1.1">
+         𝑁
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l15.m2.1c">
+        N
+       </annotation>
+      </semantics>
+     </math>
+     <span class="ltx_text ltx_font_bold" id="alg0.l15.2">
+      do
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l16">
+     <span class="ltx_tag ltx_tag_listingline">
+      16:
+     </span>
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l16.m1.1">
+      <semantics id="alg0.l16.m1.1a">
+       <mi id="alg0.l16.m1.1.1" xref="alg0.l16.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l16.m1.1b">
+        <ci id="alg0.l16.m1.1.1.cmml" xref="alg0.l16.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l16.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     generates answer
+     <math alttext="A" class="ltx_Math" display="inline" id="alg0.l16.m2.1">
+      <semantics id="alg0.l16.m2.1a">
+       <mi id="alg0.l16.m2.1.1" xref="alg0.l16.m2.1.1.cmml">
+        A
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l16.m2.1b">
+        <ci id="alg0.l16.m2.1.1.cmml" xref="alg0.l16.m2.1.1">
+         𝐴
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l16.m2.1c">
+        A
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l17">
+     <span class="ltx_tag ltx_tag_listingline">
+      17:
+     </span>
+     <math alttext="P" class="ltx_Math" display="inline" id="alg0.l17.m1.1">
+      <semantics id="alg0.l17.m1.1a">
+       <mi id="alg0.l17.m1.1.1" xref="alg0.l17.m1.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l17.m1.1b">
+        <ci id="alg0.l17.m1.1.1.cmml" xref="alg0.l17.m1.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l17.m1.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     generate remark
+     <math alttext="R" class="ltx_Math" display="inline" id="alg0.l17.m2.1">
+      <semantics id="alg0.l17.m2.1a">
+       <mi id="alg0.l17.m2.1.1" xref="alg0.l17.m2.1.1.cmml">
+        R
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l17.m2.1b">
+        <ci id="alg0.l17.m2.1.1.cmml" xref="alg0.l17.m2.1.1">
+         𝑅
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l17.m2.1c">
+        R
+       </annotation>
+      </semantics>
+     </math>
+     given
+     <math alttext="A" class="ltx_Math" display="inline" id="alg0.l17.m3.1">
+      <semantics id="alg0.l17.m3.1a">
+       <mi id="alg0.l17.m3.1.1" xref="alg0.l17.m3.1.1.cmml">
+        A
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l17.m3.1b">
+        <ci id="alg0.l17.m3.1.1.cmml" xref="alg0.l17.m3.1.1">
+         𝐴
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l17.m3.1c">
+        A
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l18">
+     <span class="ltx_tag ltx_tag_listingline">
+      18:
+     </span>
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l18.m1.1">
+      <semantics id="alg0.l18.m1.1a">
+       <mi id="alg0.l18.m1.1.1" xref="alg0.l18.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l18.m1.1b">
+        <ci id="alg0.l18.m1.1.1.cmml" xref="alg0.l18.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l18.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     generates new answer given
+     <math alttext="R" class="ltx_Math" display="inline" id="alg0.l18.m2.1">
+      <semantics id="alg0.l18.m2.1a">
+       <mi id="alg0.l18.m2.1.1" xref="alg0.l18.m2.1.1.cmml">
+        R
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l18.m2.1b">
+        <ci id="alg0.l18.m2.1.1.cmml" xref="alg0.l18.m2.1.1">
+         𝑅
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l18.m2.1c">
+        R
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l19">
+     <span class="ltx_tag ltx_tag_listingline">
+      19:
+     </span>
+     Update
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l19.m1.1">
+      <semantics id="alg0.l19.m1.1a">
+       <mi id="alg0.l19.m1.1.1" xref="alg0.l19.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l19.m1.1b">
+        <ci id="alg0.l19.m1.1.1.cmml" xref="alg0.l19.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l19.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     using the gold reference
+    </div>
+    <div class="ltx_listingline" id="alg0.l20">
+     <span class="ltx_tag ltx_tag_listingline">
+      20:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l20.1">
+      end
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l20.2">
+      for
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l21">
+     <span class="ltx_tag ltx_tag_listingline">
+      21:
+     </span>
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l21.m1.1">
+      <semantics id="alg0.l21.m1.1a">
+       <mi id="alg0.l21.m1.1.1" xref="alg0.l21.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l21.m1.1b">
+        <ci id="alg0.l21.m1.1.1.cmml" xref="alg0.l21.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l21.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     generates an answer without
+     <math alttext="P" class="ltx_Math" display="inline" id="alg0.l21.m2.1">
+      <semantics id="alg0.l21.m2.1a">
+       <mi id="alg0.l21.m2.1.1" xref="alg0.l21.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l21.m2.1b">
+        <ci id="alg0.l21.m2.1.1.cmml" xref="alg0.l21.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l21.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l22">
+     <span class="ltx_tag ltx_tag_listingline">
+      22:
+     </span>
+     Update
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l22.m1.1">
+      <semantics id="alg0.l22.m1.1a">
+       <mi id="alg0.l22.m1.1.1" xref="alg0.l22.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l22.m1.1b">
+        <ci id="alg0.l22.m1.1.1.cmml" xref="alg0.l22.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l22.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     using the gold reference
+    </div>
+    <div class="ltx_listingline" id="alg0.l23">
+     <span class="ltx_tag ltx_tag_listingline">
+      23:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l23.1">
+      end
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l23.2">
+      for
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l24">
+     <span class="ltx_tag ltx_tag_listingline">
+      24:
+     </span>
+    </div>
+    <div class="ltx_listingline" id="alg0.l25">
+     <span class="ltx_tag ltx_tag_listingline">
+      25:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l25.1">
+      return
+     </span>
+     Updated Learner Model
+     <math alttext="L" class="ltx_Math" display="inline" id="alg0.l25.m1.1">
+      <semantics id="alg0.l25.m1.1a">
+       <mi id="alg0.l25.m1.1.1" xref="alg0.l25.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="alg0.l25.m1.1b">
+        <ci id="alg0.l25.m1.1.1.cmml" xref="alg0.l25.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="alg0.l25.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+    </div>
+    <div class="ltx_listingline" id="alg0.l26">
+     <span class="ltx_tag ltx_tag_listingline">
+      26:
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l26.1">
+      end
+     </span>
+     <span class="ltx_text ltx_font_bold" id="alg0.l26.2">
+      procedure
+     </span>
+    </div>
+   </div>
+   <figcaption class="ltx_caption">
+    <span class="ltx_tag ltx_tag_float">
+     <span class="ltx_text ltx_font_bold" id="alg1.3.1.1">
+      Algorithm 1
+     </span>
+    </span>
+    SAIE Framework
+   </figcaption>
+  </figure>
+ </section>
+ <section class="ltx_section" id="S2">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    2
+   </span>
+   SAIE Framework
+  </h2>
+  <div class="ltx_para" id="S2.p1">
+   <p class="ltx_p" id="S2.p1.1">
+    Our SAIE (Support Alone Isn’t Enough) Framework is designed to elevate models in two core aspects: (1) enhancing comprehension of training data, and (2) refining their capabilities in discussion and articulation during the inference phase.
+This is achieved through an interactive fine-tuning framework that includes a warm-up phase and a discussion phase, as detailed in Algorithm
+    <a class="ltx_ref" href="#alg1" title="Algorithm 1 ‣ 1 Introduction ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+     <span class="ltx_text ltx_ref_tag">
+      1
+     </span>
+    </a>
+    .
+   </p>
+  </div>
+  <section class="ltx_subsection" id="S2.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.1
+    </span>
+    Learner and Partner Models
+   </h3>
+   <div class="ltx_para" id="S2.SS1.p1">
+    <p class="ltx_p" id="S2.SS1.p1.1">
+     Within the SAIE framework, it is essential to define two primary roles:
+    </p>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p2">
+    <ul class="ltx_itemize" id="S2.I1">
+     <li class="ltx_item" id="S2.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I1.i1.p1">
+       <p class="ltx_p" id="S2.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S2.I1.i1.p1.1.1">
+         Learner Model
+        </span>
+        : Functioning as a student in traditional knowledge distillation
+        <cite class="ltx_cite ltx_citemacro_cite">
+         Hinton et al. (
+         <a class="ltx_ref" href="#bib.bib10" title="">
+          2015
+         </a>
+         ); Gu et al. (
+         <a class="ltx_ref" href="#bib.bib8" title="">
+          2023
+         </a>
+         )
+        </cite>
+        , the Learner model in our SAIE paradigm is designed to absorb and process the remarks provided by the Partner model.
+These remarks play a vital role in the Learner model’s development, enhancing its reasoning and problem-solving abilities.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S2.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S2.I1.i2.p1">
+       <p class="ltx_p" id="S2.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S2.I1.i2.p1.1.1">
+         Partner Model
+        </span>
+        : Acting in a teacher-like capacity, the Partner model in the SAIE framework provides remarks that vary from supportive to challenging, depending on the Learner model’s progress.
+This approach creates a responsive and dynamic learning environment, crucial for fostering depth in understanding and adaptability in the Learner model.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para" id="S2.SS1.p3">
+    <p class="ltx_p" id="S2.SS1.p3.1">
+     In our SAIE framework, ’remarks’ refer to the structured inputs provided by the Partner model, designed to stimulate and guide the Learner model’s development.
+These inputs vary from supportive to adversarial, tailored to challenge and enhance the Learner model’s reasoning and articulation skills in a manner akin to interactive educational dialogues.
+    </p>
+   </div>
+   <figure class="ltx_figure" id="S2.F2">
+    <img alt="Refer to caption" class="ltx_graphics ltx_centering ltx_img_portrait" height="308" id="S2.F2.g1" src="/html/2311.08107/assets/x2.png" width="242"/>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_figure">
+      Figure 2:
+     </span>
+     Interactive Discussion Example in the SAIE Framework. This figure illustrates a simulated discussion between the Learner and Partner models based on the question: ’Tom decides to renovate a house. There are 3 bedrooms and each bedroom takes 4 hours to renovate. The kitchen takes 50% longer than each bedroom. The living room took twice as much time as everything else combined. How long did everything take?’
+    </figcaption>
+   </figure>
+  </section>
+  <section class="ltx_subsection" id="S2.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.2
+    </span>
+    Warm-up Phase
+   </h3>
+   <div class="ltx_para" id="S2.SS2.p1">
+    <p class="ltx_p" id="S2.SS2.p1.3">
+     In the warm-up phase (lines 8-11 in Algorithm
+     <a class="ltx_ref" href="#alg1" title="Algorithm 1 ‣ 1 Introduction ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     ), the learner model (
+     <math alttext="L" class="ltx_Math" display="inline" id="S2.SS2.p1.1.m1.1">
+      <semantics id="S2.SS2.p1.1.m1.1a">
+       <mi id="S2.SS2.p1.1.m1.1.1" xref="S2.SS2.p1.1.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p1.1.m1.1b">
+        <ci id="S2.SS2.p1.1.m1.1.1.cmml" xref="S2.SS2.p1.1.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p1.1.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     ) in the SAIE framework undergoes initial fine-tuning with a select subset of the training dataset (
+     <math alttext="D_{w}" class="ltx_Math" display="inline" id="S2.SS2.p1.2.m2.1">
+      <semantics id="S2.SS2.p1.2.m2.1a">
+       <msub id="S2.SS2.p1.2.m2.1.1" xref="S2.SS2.p1.2.m2.1.1.cmml">
+        <mi id="S2.SS2.p1.2.m2.1.1.2" xref="S2.SS2.p1.2.m2.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S2.SS2.p1.2.m2.1.1.3" xref="S2.SS2.p1.2.m2.1.1.3.cmml">
+         w
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p1.2.m2.1b">
+        <apply id="S2.SS2.p1.2.m2.1.1.cmml" xref="S2.SS2.p1.2.m2.1.1">
+         <csymbol cd="ambiguous" id="S2.SS2.p1.2.m2.1.1.1.cmml" xref="S2.SS2.p1.2.m2.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS2.p1.2.m2.1.1.2.cmml" xref="S2.SS2.p1.2.m2.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S2.SS2.p1.2.m2.1.1.3.cmml" xref="S2.SS2.p1.2.m2.1.1.3">
+          𝑤
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p1.2.m2.1c">
+        D_{w}
+       </annotation>
+      </semantics>
+     </math>
+     ).
+This phase establishes a foundational understanding of the task domain, preparing
+     <math alttext="L" class="ltx_Math" display="inline" id="S2.SS2.p1.3.m3.1">
+      <semantics id="S2.SS2.p1.3.m3.1a">
+       <mi id="S2.SS2.p1.3.m3.1.1" xref="S2.SS2.p1.3.m3.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS2.p1.3.m3.1b">
+        <ci id="S2.SS2.p1.3.m3.1.1.cmml" xref="S2.SS2.p1.3.m3.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS2.p1.3.m3.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     for the more intricate discussion phase.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S2.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     2.3
+    </span>
+    Discussion Phase
+   </h3>
+   <div class="ltx_para" id="S2.SS3.p1">
+    <p class="ltx_p" id="S2.SS3.p1.6">
+     The discussion phase (lines 13-23 in Algorithm
+     <a class="ltx_ref" href="#alg1" title="Algorithm 1 ‣ 1 Introduction ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     ), a key component of the SAIE framework, features iterative interactions between the learner model (
+     <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.p1.1.m1.1">
+      <semantics id="S2.SS3.p1.1.m1.1a">
+       <mi id="S2.SS3.p1.1.m1.1.1" xref="S2.SS3.p1.1.m1.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.1.m1.1b">
+        <ci id="S2.SS3.p1.1.m1.1.1.cmml" xref="S2.SS3.p1.1.m1.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.1.m1.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     ) and the partner model (
+     <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.p1.2.m2.1">
+      <semantics id="S2.SS3.p1.2.m2.1a">
+       <mi id="S2.SS3.p1.2.m2.1.1" xref="S2.SS3.p1.2.m2.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.2.m2.1b">
+        <ci id="S2.SS3.p1.2.m2.1.1.cmml" xref="S2.SS3.p1.2.m2.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.2.m2.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     ).
+This phase uses the remaining subset of the training dataset (
+     <math alttext="D_{d}" class="ltx_Math" display="inline" id="S2.SS3.p1.3.m3.1">
+      <semantics id="S2.SS3.p1.3.m3.1a">
+       <msub id="S2.SS3.p1.3.m3.1.1" xref="S2.SS3.p1.3.m3.1.1.cmml">
+        <mi id="S2.SS3.p1.3.m3.1.1.2" xref="S2.SS3.p1.3.m3.1.1.2.cmml">
+         D
+        </mi>
+        <mi id="S2.SS3.p1.3.m3.1.1.3" xref="S2.SS3.p1.3.m3.1.1.3.cmml">
+         d
+        </mi>
+       </msub>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.3.m3.1b">
+        <apply id="S2.SS3.p1.3.m3.1.1.cmml" xref="S2.SS3.p1.3.m3.1.1">
+         <csymbol cd="ambiguous" id="S2.SS3.p1.3.m3.1.1.1.cmml" xref="S2.SS3.p1.3.m3.1.1">
+          subscript
+         </csymbol>
+         <ci id="S2.SS3.p1.3.m3.1.1.2.cmml" xref="S2.SS3.p1.3.m3.1.1.2">
+          𝐷
+         </ci>
+         <ci id="S2.SS3.p1.3.m3.1.1.3.cmml" xref="S2.SS3.p1.3.m3.1.1.3">
+          𝑑
+         </ci>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.3.m3.1c">
+        D_{d}
+       </annotation>
+      </semantics>
+     </math>
+     ), ensuring a consistent learning environment.
+The dynamic and adaptive interactions between
+     <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.p1.4.m4.1">
+      <semantics id="S2.SS3.p1.4.m4.1a">
+       <mi id="S2.SS3.p1.4.m4.1.1" xref="S2.SS3.p1.4.m4.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.4.m4.1b">
+        <ci id="S2.SS3.p1.4.m4.1.1.cmml" xref="S2.SS3.p1.4.m4.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.4.m4.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.p1.5.m5.1">
+      <semantics id="S2.SS3.p1.5.m5.1a">
+       <mi id="S2.SS3.p1.5.m5.1.1" xref="S2.SS3.p1.5.m5.1.1.cmml">
+        P
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.5.m5.1b">
+        <ci id="S2.SS3.p1.5.m5.1.1.cmml" xref="S2.SS3.p1.5.m5.1.1">
+         𝑃
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.5.m5.1c">
+        P
+       </annotation>
+      </semantics>
+     </math>
+     are tailored to advance
+     <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.p1.6.m6.1">
+      <semantics id="S2.SS3.p1.6.m6.1a">
+       <mi id="S2.SS3.p1.6.m6.1.1" xref="S2.SS3.p1.6.m6.1.1.cmml">
+        L
+       </mi>
+       <annotation-xml encoding="MathML-Content" id="S2.SS3.p1.6.m6.1b">
+        <ci id="S2.SS3.p1.6.m6.1.1.cmml" xref="S2.SS3.p1.6.m6.1.1">
+         𝐿
+        </ci>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S2.SS3.p1.6.m6.1c">
+        L
+       </annotation>
+      </semantics>
+     </math>
+     ’s discussion and articulation skills.
+    </p>
+   </div>
+   <section class="ltx_paragraph" id="S2.SS3.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Learner’s Initial Answer
+    </h4>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px1.p1">
+     <p class="ltx_p" id="S2.SS3.SSS0.Px1.p1.2">
+      : Initially,
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px1.p1.1.m1.1">
+       <semantics id="S2.SS3.SSS0.Px1.p1.1.m1.1a">
+        <mi id="S2.SS3.SSS0.Px1.p1.1.m1.1.1" xref="S2.SS3.SSS0.Px1.p1.1.m1.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px1.p1.1.m1.1b">
+         <ci id="S2.SS3.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S2.SS3.SSS0.Px1.p1.1.m1.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px1.p1.1.m1.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      generates an answer (
+      <math alttext="A" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px1.p1.2.m2.1">
+       <semantics id="S2.SS3.SSS0.Px1.p1.2.m2.1a">
+        <mi id="S2.SS3.SSS0.Px1.p1.2.m2.1.1" xref="S2.SS3.SSS0.Px1.p1.2.m2.1.1.cmml">
+         A
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px1.p1.2.m2.1b">
+         <ci id="S2.SS3.SSS0.Px1.p1.2.m2.1.1.cmml" xref="S2.SS3.SSS0.Px1.p1.2.m2.1.1">
+          𝐴
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px1.p1.2.m2.1c">
+         A
+        </annotation>
+       </semantics>
+      </math>
+      ) to a given question, setting the stage for interactive learning under the SAIE paradigm.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS3.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Partner’s Adaptive Response
+    </h4>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px2.p1">
+     <p class="ltx_p" id="S2.SS3.SSS0.Px2.p1.6">
+      : The partner model (
+      <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.1.m1.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.1.m1.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.1.m1.1.1" xref="S2.SS3.SSS0.Px2.p1.1.m1.1.1.cmml">
+         P
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.1.m1.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.1.m1.1.1">
+          𝑃
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.1.m1.1c">
+         P
+        </annotation>
+       </semantics>
+      </math>
+      ) generates responses based on tailored instruction prompts written in natural language.
+These prompts guide
+      <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.2.m2.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.2.m2.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.2.m2.1.1" xref="S2.SS3.SSS0.Px2.p1.2.m2.1.1.cmml">
+         P
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.2.m2.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.2.m2.1.1">
+          𝑃
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.2.m2.1c">
+         P
+        </annotation>
+       </semantics>
+      </math>
+      in providing remarks (
+      <math alttext="R" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.3.m3.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.3.m3.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.3.m3.1.1" xref="S2.SS3.SSS0.Px2.p1.3.m3.1.1.cmml">
+         R
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.3.m3.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.3.m3.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.3.m3.1.1">
+          𝑅
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.3.m3.1c">
+         R
+        </annotation>
+       </semantics>
+      </math>
+      ), which are contingent on the accuracy and depth of the learner model’s (
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.4.m4.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.4.m4.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.4.m4.1.1" xref="S2.SS3.SSS0.Px2.p1.4.m4.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.4.m4.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.4.m4.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.4.m4.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.4.m4.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      ) answer.
+To enable
+      <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.5.m5.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.5.m5.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.5.m5.1.1" xref="S2.SS3.SSS0.Px2.p1.5.m5.1.1.cmml">
+         P
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.5.m5.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.5.m5.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.5.m5.1.1">
+          𝑃
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.5.m5.1c">
+         P
+        </annotation>
+       </semantics>
+      </math>
+      to accurately assess
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px2.p1.6.m6.1">
+       <semantics id="S2.SS3.SSS0.Px2.p1.6.m6.1a">
+        <mi id="S2.SS3.SSS0.Px2.p1.6.m6.1.1" xref="S2.SS3.SSS0.Px2.p1.6.m6.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px2.p1.6.m6.1b">
+         <ci id="S2.SS3.SSS0.Px2.p1.6.m6.1.1.cmml" xref="S2.SS3.SSS0.Px2.p1.6.m6.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px2.p1.6.m6.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      ’s responses, it is also provided with the gold answers.
+In the SAIE framework:
+     </p>
+     <ul class="ltx_itemize" id="S2.I2">
+      <li class="ltx_item" id="S2.I2.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I2.i1.p1">
+        <p class="ltx_p" id="S2.I2.i1.p1.5">
+         <span class="ltx_text ltx_font_bold" id="S2.I2.i1.p1.1.1">
+          If
+          <math alttext="A" class="ltx_Math" display="inline" id="S2.I2.i1.p1.1.1.m1.1">
+           <semantics id="S2.I2.i1.p1.1.1.m1.1a">
+            <mi id="S2.I2.i1.p1.1.1.m1.1.1" xref="S2.I2.i1.p1.1.1.m1.1.1.cmml">
+             A
+            </mi>
+            <annotation-xml encoding="MathML-Content" id="S2.I2.i1.p1.1.1.m1.1b">
+             <ci id="S2.I2.i1.p1.1.1.m1.1.1.cmml" xref="S2.I2.i1.p1.1.1.m1.1.1">
+              𝐴
+             </ci>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S2.I2.i1.p1.1.1.m1.1c">
+             A
+            </annotation>
+           </semantics>
+          </math>
+          is incorrect
+         </span>
+         ,
+         <math alttext="P" class="ltx_Math" display="inline" id="S2.I2.i1.p1.2.m1.1">
+          <semantics id="S2.I2.i1.p1.2.m1.1a">
+           <mi id="S2.I2.i1.p1.2.m1.1.1" xref="S2.I2.i1.p1.2.m1.1.1.cmml">
+            P
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i1.p1.2.m1.1b">
+            <ci id="S2.I2.i1.p1.2.m1.1.1.cmml" xref="S2.I2.i1.p1.2.m1.1.1">
+             𝑃
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i1.p1.2.m1.1c">
+            P
+           </annotation>
+          </semantics>
+         </math>
+         is prompted to provide a constructive remark, leading
+         <math alttext="L" class="ltx_Math" display="inline" id="S2.I2.i1.p1.3.m2.1">
+          <semantics id="S2.I2.i1.p1.3.m2.1a">
+           <mi id="S2.I2.i1.p1.3.m2.1.1" xref="S2.I2.i1.p1.3.m2.1.1.cmml">
+            L
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i1.p1.3.m2.1b">
+            <ci id="S2.I2.i1.p1.3.m2.1.1.cmml" xref="S2.I2.i1.p1.3.m2.1.1">
+             𝐿
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i1.p1.3.m2.1c">
+            L
+           </annotation>
+          </semantics>
+         </math>
+         towards more accurate reasoning. The prompt is structured to encourage
+         <math alttext="P" class="ltx_Math" display="inline" id="S2.I2.i1.p1.4.m3.1">
+          <semantics id="S2.I2.i1.p1.4.m3.1a">
+           <mi id="S2.I2.i1.p1.4.m3.1.1" xref="S2.I2.i1.p1.4.m3.1.1.cmml">
+            P
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i1.p1.4.m3.1b">
+            <ci id="S2.I2.i1.p1.4.m3.1.1.cmml" xref="S2.I2.i1.p1.4.m3.1.1">
+             𝑃
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i1.p1.4.m3.1c">
+            P
+           </annotation>
+          </semantics>
+         </math>
+         to identify and address the specific inaccuracies in
+         <math alttext="L" class="ltx_Math" display="inline" id="S2.I2.i1.p1.5.m4.1">
+          <semantics id="S2.I2.i1.p1.5.m4.1a">
+           <mi id="S2.I2.i1.p1.5.m4.1.1" xref="S2.I2.i1.p1.5.m4.1.1.cmml">
+            L
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i1.p1.5.m4.1b">
+            <ci id="S2.I2.i1.p1.5.m4.1.1.cmml" xref="S2.I2.i1.p1.5.m4.1.1">
+             𝐿
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i1.p1.5.m4.1c">
+            L
+           </annotation>
+          </semantics>
+         </math>
+         ’s response.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S2.I2.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S2.I2.i2.p1">
+        <p class="ltx_p" id="S2.I2.i2.p1.4">
+         <span class="ltx_text ltx_font_bold" id="S2.I2.i2.p1.1.1">
+          If
+          <math alttext="A" class="ltx_Math" display="inline" id="S2.I2.i2.p1.1.1.m1.1">
+           <semantics id="S2.I2.i2.p1.1.1.m1.1a">
+            <mi id="S2.I2.i2.p1.1.1.m1.1.1" xref="S2.I2.i2.p1.1.1.m1.1.1.cmml">
+             A
+            </mi>
+            <annotation-xml encoding="MathML-Content" id="S2.I2.i2.p1.1.1.m1.1b">
+             <ci id="S2.I2.i2.p1.1.1.m1.1.1.cmml" xref="S2.I2.i2.p1.1.1.m1.1.1">
+              𝐴
+             </ci>
+            </annotation-xml>
+            <annotation encoding="application/x-tex" id="S2.I2.i2.p1.1.1.m1.1c">
+             A
+            </annotation>
+           </semantics>
+          </math>
+          is correct
+         </span>
+         ,
+         <math alttext="P" class="ltx_Math" display="inline" id="S2.I2.i2.p1.2.m1.1">
+          <semantics id="S2.I2.i2.p1.2.m1.1a">
+           <mi id="S2.I2.i2.p1.2.m1.1.1" xref="S2.I2.i2.p1.2.m1.1.1.cmml">
+            P
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i2.p1.2.m1.1b">
+            <ci id="S2.I2.i2.p1.2.m1.1.1.cmml" xref="S2.I2.i2.p1.2.m1.1.1">
+             𝑃
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i2.p1.2.m1.1c">
+            P
+           </annotation>
+          </semantics>
+         </math>
+         is prompted to challenge
+         <math alttext="L" class="ltx_Math" display="inline" id="S2.I2.i2.p1.3.m2.1">
+          <semantics id="S2.I2.i2.p1.3.m2.1a">
+           <mi id="S2.I2.i2.p1.3.m2.1.1" xref="S2.I2.i2.p1.3.m2.1.1.cmml">
+            L
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i2.p1.3.m2.1b">
+            <ci id="S2.I2.i2.p1.3.m2.1.1.cmml" xref="S2.I2.i2.p1.3.m2.1.1">
+             𝐿
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i2.p1.3.m2.1c">
+            L
+           </annotation>
+          </semantics>
+         </math>
+         with an adversarial remark.
+This is designed to push
+         <math alttext="L" class="ltx_Math" display="inline" id="S2.I2.i2.p1.4.m3.1">
+          <semantics id="S2.I2.i2.p1.4.m3.1a">
+           <mi id="S2.I2.i2.p1.4.m3.1.1" xref="S2.I2.i2.p1.4.m3.1.1.cmml">
+            L
+           </mi>
+           <annotation-xml encoding="MathML-Content" id="S2.I2.i2.p1.4.m3.1b">
+            <ci id="S2.I2.i2.p1.4.m3.1.1.cmml" xref="S2.I2.i2.p1.4.m3.1.1">
+             𝐿
+            </ci>
+           </annotation-xml>
+           <annotation encoding="application/x-tex" id="S2.I2.i2.p1.4.m3.1c">
+            L
+           </annotation>
+          </semantics>
+         </math>
+         to consider broader perspectives or engage in deeper reasoning, enhancing its analytical capabilities.
+        </p>
+       </div>
+      </li>
+     </ul>
+     <p class="ltx_p" id="S2.SS3.SSS0.Px2.p1.7">
+      Figure
+      <a class="ltx_ref" href="#S2.F2" title="Figure 2 ‣ 2.1 Learner and Partner Models ‣ 2 SAIE Framework ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+       <span class="ltx_text ltx_ref_tag">
+        2
+       </span>
+      </a>
+      demonstrates a discussion sequence on a training instance from the GSM8K dataset.
+The instruction for remark generation in this example is as follows.
+     </p>
+    </div>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px2.p2">
+     <blockquote class="ltx_quote" id="S2.SS3.SSS0.Px2.p2.1">
+      <p class="ltx_p" id="S2.SS3.SSS0.Px2.p2.1.1">
+       You are in a discussion with your partner on the given question.
+Please give a response adaptively based on the partner’s answer.
+If the partner’s answer is correct, write a response that is opposite to that answer or misleading to an incorrect conclusion.
+If the partner’s answer is incorrect, provide assistance to help them arrive at the correct answer.
+Think step-by-step and be careful with ethical content.
+Your response:
+      </p>
+     </blockquote>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS3.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Learner’s Refinement
+    </h4>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px3.p1">
+     <p class="ltx_p" id="S2.SS3.SSS0.Px3.p1.3">
+      : Following the Partner model’s remark, the Learner model (
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px3.p1.1.m1.1">
+       <semantics id="S2.SS3.SSS0.Px3.p1.1.m1.1a">
+        <mi id="S2.SS3.SSS0.Px3.p1.1.m1.1.1" xref="S2.SS3.SSS0.Px3.p1.1.m1.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px3.p1.1.m1.1b">
+         <ci id="S2.SS3.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S2.SS3.SSS0.Px3.p1.1.m1.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px3.p1.1.m1.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      ) refines its answer. This refinement process involves updating
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px3.p1.2.m2.1">
+       <semantics id="S2.SS3.SSS0.Px3.p1.2.m2.1a">
+        <mi id="S2.SS3.SSS0.Px3.p1.2.m2.1.1" xref="S2.SS3.SSS0.Px3.p1.2.m2.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px3.p1.2.m2.1b">
+         <ci id="S2.SS3.SSS0.Px3.p1.2.m2.1.1.cmml" xref="S2.SS3.SSS0.Px3.p1.2.m2.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px3.p1.2.m2.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      ’s parameters based on the gold reference provided in the training set. This step is crucial as it ensures that
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px3.p1.3.m3.1">
+       <semantics id="S2.SS3.SSS0.Px3.p1.3.m3.1a">
+        <mi id="S2.SS3.SSS0.Px3.p1.3.m3.1.1" xref="S2.SS3.SSS0.Px3.p1.3.m3.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px3.p1.3.m3.1b">
+         <ci id="S2.SS3.SSS0.Px3.p1.3.m3.1.1.cmml" xref="S2.SS3.SSS0.Px3.p1.3.m3.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px3.p1.3.m3.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      not only adjusts its responses to the immediate feedback but also aligns its learning with the correct solution, thereby deepening its understanding and enhancing its reasoning skills.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S2.SS3.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Independent Update
+    </h4>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px4.p1">
+     <p class="ltx_p" id="S2.SS3.SSS0.Px4.p1.3">
+      : After several interaction rounds,
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p1.1.m1.1">
+       <semantics id="S2.SS3.SSS0.Px4.p1.1.m1.1a">
+        <mi id="S2.SS3.SSS0.Px4.p1.1.m1.1.1" xref="S2.SS3.SSS0.Px4.p1.1.m1.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p1.1.m1.1b">
+         <ci id="S2.SS3.SSS0.Px4.p1.1.m1.1.1.cmml" xref="S2.SS3.SSS0.Px4.p1.1.m1.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p1.1.m1.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      is prompted to answer independently, without input from
+      <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p1.2.m2.1">
+       <semantics id="S2.SS3.SSS0.Px4.p1.2.m2.1a">
+        <mi id="S2.SS3.SSS0.Px4.p1.2.m2.1.1" xref="S2.SS3.SSS0.Px4.p1.2.m2.1.1.cmml">
+         P
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p1.2.m2.1b">
+         <ci id="S2.SS3.SSS0.Px4.p1.2.m2.1.1.cmml" xref="S2.SS3.SSS0.Px4.p1.2.m2.1.1">
+          𝑃
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p1.2.m2.1c">
+         P
+        </annotation>
+       </semantics>
+      </math>
+      .
+Updating
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p1.3.m3.1">
+       <semantics id="S2.SS3.SSS0.Px4.p1.3.m3.1a">
+        <mi id="S2.SS3.SSS0.Px4.p1.3.m3.1.1" xref="S2.SS3.SSS0.Px4.p1.3.m3.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p1.3.m3.1b">
+         <ci id="S2.SS3.SSS0.Px4.p1.3.m3.1.1.cmml" xref="S2.SS3.SSS0.Px4.p1.3.m3.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p1.3.m3.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      ’s parameters using the gold reference at this stage reinforces its independent reasoning and articulation abilities, an essential aspect of the SAIE framework.
+     </p>
+    </div>
+    <div class="ltx_para" id="S2.SS3.SSS0.Px4.p2">
+     <p class="ltx_p" id="S2.SS3.SSS0.Px4.p2.3">
+      In the inference phase, the learner model,
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p2.1.m1.1">
+       <semantics id="S2.SS3.SSS0.Px4.p2.1.m1.1a">
+        <mi id="S2.SS3.SSS0.Px4.p2.1.m1.1.1" xref="S2.SS3.SSS0.Px4.p2.1.m1.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p2.1.m1.1b">
+         <ci id="S2.SS3.SSS0.Px4.p2.1.m1.1.1.cmml" xref="S2.SS3.SSS0.Px4.p2.1.m1.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p2.1.m1.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      , operates autonomously, applying the skills and understanding developed during training without the presence of the partner model
+      <math alttext="P" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p2.2.m2.1">
+       <semantics id="S2.SS3.SSS0.Px4.p2.2.m2.1a">
+        <mi id="S2.SS3.SSS0.Px4.p2.2.m2.1.1" xref="S2.SS3.SSS0.Px4.p2.2.m2.1.1.cmml">
+         P
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p2.2.m2.1b">
+         <ci id="S2.SS3.SSS0.Px4.p2.2.m2.1.1.cmml" xref="S2.SS3.SSS0.Px4.p2.2.m2.1.1">
+          𝑃
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p2.2.m2.1c">
+         P
+        </annotation>
+       </semantics>
+      </math>
+      .
+The structured discussion phase in the SAIE framework, incorporating both supportive and adversarial remarks, is pivotal in developing advanced reasoning and articulation skills in
+      <math alttext="L" class="ltx_Math" display="inline" id="S2.SS3.SSS0.Px4.p2.3.m3.1">
+       <semantics id="S2.SS3.SSS0.Px4.p2.3.m3.1a">
+        <mi id="S2.SS3.SSS0.Px4.p2.3.m3.1.1" xref="S2.SS3.SSS0.Px4.p2.3.m3.1.1.cmml">
+         L
+        </mi>
+        <annotation-xml encoding="MathML-Content" id="S2.SS3.SSS0.Px4.p2.3.m3.1b">
+         <ci id="S2.SS3.SSS0.Px4.p2.3.m3.1.1.cmml" xref="S2.SS3.SSS0.Px4.p2.3.m3.1.1">
+          𝐿
+         </ci>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S2.SS3.SSS0.Px4.p2.3.m3.1c">
+         L
+        </annotation>
+       </semantics>
+      </math>
+      , particularly valuable during inference scenarios.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S3">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    3
+   </span>
+   Experiments
+  </h2>
+  <section class="ltx_subsection" id="S3.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     3.1
+    </span>
+    Settings
+   </h3>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px1">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Datasets
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px1.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px1.p1.1">
+      For evaluating the SAIE framework, we used three datasets that cover a range of reasoning tasks: GSM8K
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Cobbe et al. (
+       <a class="ltx_ref" href="#bib.bib6" title="">
+        2021
+       </a>
+       )
+      </cite>
+      for mathematical reasoning, CommonsenseQA
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Talmor et al. (
+       <a class="ltx_ref" href="#bib.bib16" title="">
+        2019
+       </a>
+       )
+      </cite>
+      for commonsense reasoning, and MMLU
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Hendrycks et al. (
+       <a class="ltx_ref" href="#bib.bib9" title="">
+        2021
+       </a>
+       )
+      </cite>
+      for multi-task understanding.
+     </p>
+     <ul class="ltx_itemize" id="S3.I1">
+      <li class="ltx_item" id="S3.I1.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I1.i1.p1">
+        <p class="ltx_p" id="S3.I1.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i1.p1.1.1">
+          GSM8K Dataset:
+         </span>
+         Consisting of 8.5K grade school math word problems, it is divided into 7.5K for training and 1K for testing.
+The accuracy of the final answer, based on an exact match with the gold reference, serves as the evaluation metric.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I1.i2.p1">
+        <p class="ltx_p" id="S3.I1.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i2.p1.1.1">
+          CommonsenseQA Dataset:
+         </span>
+         This dataset comprises 12K multiple-choice questions aimed at evaluating commonsense reasoning
+         <span class="ltx_note ltx_role_footnote" id="footnote1">
+          <sup class="ltx_note_mark">
+           1
+          </sup>
+          <span class="ltx_note_outer">
+           <span class="ltx_note_content">
+            <sup class="ltx_note_mark">
+             1
+            </sup>
+            <span class="ltx_tag ltx_tag_note">
+             1
+            </span>
+            The results for the CommonsenseQA dataset reported in this paper are based on the official development subset. Access to the official test set was unavailable during this study.
+           </span>
+          </span>
+         </span>
+         .
+Performance is measured by the accuracy of selecting the correct choice.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I1.i3" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I1.i3.p1">
+        <p class="ltx_p" id="S3.I1.i3.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I1.i3.p1.1.1">
+          MMLU Dataset:
+         </span>
+         Encompassing 57 diverse tasks across various subjects like mathematics, history, and law.
+There are about 100K of training examples in this dataset.
+Accuracy in answer selection is used as the evaluation metric.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px2">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Models
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px2.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px2.p1.1">
+      In our experiments, the Flan-T5-Large model
+      <cite class="ltx_cite ltx_citemacro_cite">
+       Chung et al. (
+       <a class="ltx_ref" href="#bib.bib5" title="">
+        2022b
+       </a>
+       )
+      </cite>
+      is utilized as the learner model, while GPT-3.5 (gpt-3.5-turbo), accessible via OpenAI’s API
+      <span class="ltx_note ltx_role_footnote" id="footnote2">
+       <sup class="ltx_note_mark">
+        2
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          2
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          2
+         </span>
+         <a class="ltx_ref ltx_url ltx_font_typewriter" href="https://platform.openai.com/docs/models/gpt-3-5" target="_blank" title="">
+          https://platform.openai.com/docs/models/gpt-3-5
+         </a>
+        </span>
+       </span>
+      </span>
+      , functions as the partner model within the SAIE framework.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px3">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Training Setups
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px3.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px3.p1.1">
+      The learner model is trained in a two-phase process as per the SAIE framework.
+The initial warm-up phase involves conventional fine-tuning using
+      <math alttext="10\%" class="ltx_Math" display="inline" id="S3.SS1.SSS0.Px3.p1.1.m1.1">
+       <semantics id="S3.SS1.SSS0.Px3.p1.1.m1.1a">
+        <mrow id="S3.SS1.SSS0.Px3.p1.1.m1.1.1" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1.cmml">
+         <mn id="S3.SS1.SSS0.Px3.p1.1.m1.1.1.2" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1.2.cmml">
+          10
+         </mn>
+         <mo id="S3.SS1.SSS0.Px3.p1.1.m1.1.1.1" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1.1.cmml">
+          %
+         </mo>
+        </mrow>
+        <annotation-xml encoding="MathML-Content" id="S3.SS1.SSS0.Px3.p1.1.m1.1b">
+         <apply id="S3.SS1.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1">
+          <csymbol cd="latexml" id="S3.SS1.SSS0.Px3.p1.1.m1.1.1.1.cmml" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1.1">
+           percent
+          </csymbol>
+          <cn id="S3.SS1.SSS0.Px3.p1.1.m1.1.1.2.cmml" type="integer" xref="S3.SS1.SSS0.Px3.p1.1.m1.1.1.2">
+           10
+          </cn>
+         </apply>
+        </annotation-xml>
+        <annotation encoding="application/x-tex" id="S3.SS1.SSS0.Px3.p1.1.m1.1c">
+         10\%
+        </annotation>
+       </semantics>
+      </math>
+      of each dataset’s training set.
+Subsequently, the discussion phase spans three epochs on the remaining dataset, incorporating three rounds
+      <span class="ltx_note ltx_role_footnote" id="footnote3">
+       <sup class="ltx_note_mark">
+        3
+       </sup>
+       <span class="ltx_note_outer">
+        <span class="ltx_note_content">
+         <sup class="ltx_note_mark">
+          3
+         </sup>
+         <span class="ltx_tag ltx_tag_note">
+          3
+         </span>
+         This specific number of interaction rounds has been shown to facilitate better convergence in recent studies such as
+         <cite class="ltx_cite ltx_citemacro_citep">
+          Chen et al.,
+          <a class="ltx_ref" href="#bib.bib2" title="">
+           2023
+          </a>
+         </cite>
+         .
+        </span>
+       </span>
+      </span>
+      of interaction between the learner and partner models.
+     </p>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px4">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Baselines
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px4.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px4.p1.1">
+      The SAIE interactive training method is evaluated against two baselines:
+     </p>
+     <ul class="ltx_itemize" id="S3.I2">
+      <li class="ltx_item" id="S3.I2.i1" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I2.i1.p1">
+        <p class="ltx_p" id="S3.I2.i1.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I2.i1.p1.1.1">
+          Zero-shot setting
+         </span>
+         : Employs Chain-of-Thought prompted responses without specific task training
+         <cite class="ltx_cite ltx_citemacro_cite">
+          Wei et al. (
+          <a class="ltx_ref" href="#bib.bib17" title="">
+           2023
+          </a>
+          ); Kojima et al. (
+          <a class="ltx_ref" href="#bib.bib12" title="">
+           2022
+          </a>
+          )
+         </cite>
+         , assessing the inherent reasoning abilities of the models.
+        </p>
+       </div>
+      </li>
+      <li class="ltx_item" id="S3.I2.i2" style="list-style-type:none;">
+       <span class="ltx_tag ltx_tag_item">
+        •
+       </span>
+       <div class="ltx_para" id="S3.I2.i2.p1">
+        <p class="ltx_p" id="S3.I2.i2.p1.1">
+         <span class="ltx_text ltx_font_bold" id="S3.I2.i2.p1.1.1">
+          Standard fine-tuning
+         </span>
+         : Involves training models exclusively on the target data, omitting the interactive discussion phase characteristic of SAIE. This baseline helps quantify the additional benefits conferred by our interactive training approach.
+        </p>
+       </div>
+      </li>
+     </ul>
+    </div>
+   </section>
+   <section class="ltx_paragraph" id="S3.SS1.SSS0.Px5">
+    <h4 class="ltx_title ltx_title_paragraph">
+     Inference Phase
+    </h4>
+    <div class="ltx_para" id="S3.SS1.SSS0.Px5.p1">
+     <p class="ltx_p" id="S3.SS1.SSS0.Px5.p1.1">
+      In the inference phase of our experiments, the learner model functions independently, without the assistance of the partner model. This setup is designed to evaluate the learner model’s reasoning and articulation capabilities, as developed through the SAIE training process, emphasizing its ability to operate autonomously.
+     </p>
+    </div>
+   </section>
+  </section>
+ </section>
+ <section class="ltx_section" id="S4">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    4
+   </span>
+   Results and Analysis
+  </h2>
+  <section class="ltx_subsection" id="S4.SS1">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.1
+    </span>
+    Comparative Performance
+   </h3>
+   <div class="ltx_para" id="S4.SS1.p1">
+    <p class="ltx_p" id="S4.SS1.p1.1">
+     Outcomes of our experiments, as shown in Table
+     <a class="ltx_ref" href="#S4.T1" title="Table 1 ‣ 4.1 Comparative Performance ‣ 4 Results and Analysis ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+      <span class="ltx_text ltx_ref_tag">
+       1
+      </span>
+     </a>
+     , underscore the efficacy of the SAIE framework in interactive training.
+We observed notable improvements across all datasets when compared to the baselines.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T1">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T1.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T1.1.1.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.1.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.1.1">
+         Method
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.1.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.2.1">
+         GSM8K
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.1.1.1.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.3.1">
+         Com.QA
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T1.1.1.1.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.1.1.4.1">
+         MMLU
+        </span>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T1.1.2.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.1.2.1.1">
+        Zero-shot
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.2.1.2">
+        5.83
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.2.1.3">
+        32.84
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.2.1.4">
+        43.51
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.3.2">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t" id="S4.T1.1.3.2.1">
+        Fine-tuning
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.3.2.2">
+        14.63
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.3.2.3">
+        80.83
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T1.1.3.2.4">
+        47.85
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T1.1.4.3">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r ltx_border_t" id="S4.T1.1.4.3.1">
+        SAIE (Ours)
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T1.1.4.3.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.4.3.2.1">
+         18.50
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T1.1.4.3.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.4.3.3.1">
+         84.84
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T1.1.4.3.4">
+        <span class="ltx_text ltx_font_bold" id="S4.T1.1.4.3.4.1">
+         49.21
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 1:
+     </span>
+     Performance comparison across GSM8K, CommonsenseQA (Com.QA), and MMLU.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS1.p2">
+    <p class="ltx_p" id="S4.SS1.p2.3">
+     On the GSM8K dataset, our SAIE approach achieved a
+     <math alttext="3.87\%" class="ltx_Math" display="inline" id="S4.SS1.p2.1.m1.1">
+      <semantics id="S4.SS1.p2.1.m1.1a">
+       <mrow id="S4.SS1.p2.1.m1.1.1" xref="S4.SS1.p2.1.m1.1.1.cmml">
+        <mn id="S4.SS1.p2.1.m1.1.1.2" xref="S4.SS1.p2.1.m1.1.1.2.cmml">
+         3.87
+        </mn>
+        <mo id="S4.SS1.p2.1.m1.1.1.1" xref="S4.SS1.p2.1.m1.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.1.m1.1b">
+        <apply id="S4.SS1.p2.1.m1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1">
+         <csymbol cd="latexml" id="S4.SS1.p2.1.m1.1.1.1.cmml" xref="S4.SS1.p2.1.m1.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS1.p2.1.m1.1.1.2.cmml" type="float" xref="S4.SS1.p2.1.m1.1.1.2">
+          3.87
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.1.m1.1c">
+        3.87\%
+       </annotation>
+      </semantics>
+     </math>
+     improvement over standard fine-tuning.
+Similarly, in CommonsenseQA and MMLU, we observed accuracy increases of
+     <math alttext="4.01\%" class="ltx_Math" display="inline" id="S4.SS1.p2.2.m2.1">
+      <semantics id="S4.SS1.p2.2.m2.1a">
+       <mrow id="S4.SS1.p2.2.m2.1.1" xref="S4.SS1.p2.2.m2.1.1.cmml">
+        <mn id="S4.SS1.p2.2.m2.1.1.2" xref="S4.SS1.p2.2.m2.1.1.2.cmml">
+         4.01
+        </mn>
+        <mo id="S4.SS1.p2.2.m2.1.1.1" xref="S4.SS1.p2.2.m2.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.2.m2.1b">
+        <apply id="S4.SS1.p2.2.m2.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1">
+         <csymbol cd="latexml" id="S4.SS1.p2.2.m2.1.1.1.cmml" xref="S4.SS1.p2.2.m2.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS1.p2.2.m2.1.1.2.cmml" type="float" xref="S4.SS1.p2.2.m2.1.1.2">
+          4.01
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.2.m2.1c">
+        4.01\%
+       </annotation>
+      </semantics>
+     </math>
+     and
+     <math alttext="1.36\%" class="ltx_Math" display="inline" id="S4.SS1.p2.3.m3.1">
+      <semantics id="S4.SS1.p2.3.m3.1a">
+       <mrow id="S4.SS1.p2.3.m3.1.1" xref="S4.SS1.p2.3.m3.1.1.cmml">
+        <mn id="S4.SS1.p2.3.m3.1.1.2" xref="S4.SS1.p2.3.m3.1.1.2.cmml">
+         1.36
+        </mn>
+        <mo id="S4.SS1.p2.3.m3.1.1.1" xref="S4.SS1.p2.3.m3.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS1.p2.3.m3.1b">
+        <apply id="S4.SS1.p2.3.m3.1.1.cmml" xref="S4.SS1.p2.3.m3.1.1">
+         <csymbol cd="latexml" id="S4.SS1.p2.3.m3.1.1.1.cmml" xref="S4.SS1.p2.3.m3.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS1.p2.3.m3.1.1.2.cmml" type="float" xref="S4.SS1.p2.3.m3.1.1.2">
+          1.36
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS1.p2.3.m3.1c">
+        1.36\%
+       </annotation>
+      </semantics>
+     </math>
+     , respectively.
+These results substantiate the effectiveness of incorporating a discussion phase in LLM training as proposed in the SAIE framework, confirming our hypothesis about its benefits in enhancing reasoning abilities.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS2">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.2
+    </span>
+    Ablation Study: Interaction Methods
+   </h3>
+   <div class="ltx_para" id="S4.SS2.p1">
+    <p class="ltx_p" id="S4.SS2.p1.1">
+     Our ablation study delved into the impact of different interaction methods during the SAIE framework’s discussion phase.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T2">
+    <table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle" id="S4.T2.1">
+     <thead class="ltx_thead">
+      <tr class="ltx_tr" id="S4.T2.1.1.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_t" id="S4.T2.1.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.1.1.1">
+         Method
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.1.2.1">
+         GSM8K
+        </span>
+       </th>
+       <th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" id="S4.T2.1.1.1.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.1.1.3.1">
+         Com.QA
+        </span>
+       </th>
+      </tr>
+     </thead>
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T2.1.2.1">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" id="S4.T2.1.2.1.1">
+        Supportive
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.2.1.2">
+        16.60
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_t" id="S4.T2.1.2.1.3">
+        84.28
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T2.1.3.2">
+       <th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_t" id="S4.T2.1.3.2.1">
+        SAIE (Ours)
+       </th>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T2.1.3.2.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.3.2.2.1">
+         18.50
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_center ltx_border_b ltx_border_t" id="S4.T2.1.3.2.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T2.1.3.2.3.1">
+         84.84
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 2:
+     </span>
+     Comparing performance with different interaction guidelines on GSM8K and CommonsenseQA datasets.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS2.p2">
+    <p class="ltx_p" id="S4.SS2.p2.1">
+     This experiment compared:
+    </p>
+    <ul class="ltx_itemize" id="S4.I1">
+     <li class="ltx_item" id="S4.I1.i1" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i1.p1">
+       <p class="ltx_p" id="S4.I1.i1.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i1.p1.1.1">
+         Supportive Interaction
+        </span>
+        : Where the partner model consistently provides supportive remarks.
+       </p>
+      </div>
+     </li>
+     <li class="ltx_item" id="S4.I1.i2" style="list-style-type:none;">
+      <span class="ltx_tag ltx_tag_item">
+       •
+      </span>
+      <div class="ltx_para" id="S4.I1.i2.p1">
+       <p class="ltx_p" id="S4.I1.i2.p1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.I1.i2.p1.1.1">
+         Adaptive Interaction (SAIE)
+        </span>
+        : In our method, the partner model’s remarks adapt to the learner model’s answers, offering support for incorrect responses and challenges for correct ones to foster deeper understanding.
+       </p>
+      </div>
+     </li>
+    </ul>
+   </div>
+   <div class="ltx_para" id="S4.SS2.p3">
+    <p class="ltx_p" id="S4.SS2.p3.1">
+     As shown in Table
+     <a class="ltx_ref" href="#S4.T2" title="Table 2 ‣ 4.2 Ablation Study: Interaction Methods ‣ 4 Results and Analysis ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+      <span class="ltx_text ltx_ref_tag">
+       2
+      </span>
+     </a>
+     , the adaptive interaction method of SAIE achieved higher accuracy compared to the purely supportive approach on both GSM8K and CommonsenseQA datasets.
+This finding emphasizes the significance of varied interactions in LLM training, reinforcing our proposition that a dynamic and responsive training environment, as offered by SAIE, enhances model performance.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_subsection" id="S4.SS3">
+   <h3 class="ltx_title ltx_title_subsection">
+    <span class="ltx_tag ltx_tag_subsection">
+     4.3
+    </span>
+    Impact on Inference-time Discussion
+   </h3>
+   <div class="ltx_para" id="S4.SS3.p1">
+    <p class="ltx_p" id="S4.SS3.p1.1">
+     We explored the impact of the SAIE training approach on model performance during inference discussions, particularly examining scenarios where the partner model is reintroduced during the inference phase.
+    </p>
+   </div>
+   <figure class="ltx_table" id="S4.T3">
+    <table class="ltx_tabular ltx_centering ltx_align_middle" id="S4.T3.1">
+     <tbody class="ltx_tbody">
+      <tr class="ltx_tr" id="S4.T3.1.1.1">
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.1.1.1">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.1.1">
+         Learner
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.1.1.2">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.2.1">
+         Partner
+        </span>
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T3.1.1.1.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.1.1.3.1">
+         GSM8K
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.2.2">
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.2.2.1">
+        Zero-shot
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.2.2.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T3.1.2.2.3">
+        5.83
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.3.3">
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.3.3.1">
+        Fine-tuning
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.3.3.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_right" id="S4.T3.1.3.3.3">
+        14.63
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.4.4">
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.4.4.1">
+        SAIE
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.4.4.2">
+        -
+       </td>
+       <td class="ltx_td ltx_align_right" id="S4.T3.1.4.4.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.4.4.3.1">
+         18.50
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.5.5">
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T3.1.5.5.1">
+        Flan-T5-Large
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_tt" id="S4.T3.1.5.5.2">
+        Flan-T5-Large
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_tt" id="S4.T3.1.5.5.3">
+        5.19
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.6.6">
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.6.6.1">
+        Fine-tuning
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.6.6.2">
+        Fine-tuning
+       </td>
+       <td class="ltx_td ltx_align_right" id="S4.T3.1.6.6.3">
+        15.54
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.7.7">
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.7.7.1">
+        SAIE
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.7.7.2">
+        SAIE
+       </td>
+       <td class="ltx_td ltx_align_right" id="S4.T3.1.7.7.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.7.7.3.1">
+         20.11
+        </span>
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.8.8">
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.8.8.1">
+        Flan-T5-Large
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_t" id="S4.T3.1.8.8.2">
+        GPT-3.5
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_t" id="S4.T3.1.8.8.3">
+        7.80
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.9.9">
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.9.9.1">
+        Fine-tuning
+       </td>
+       <td class="ltx_td ltx_align_left" id="S4.T3.1.9.9.2">
+        GPT-3.5
+       </td>
+       <td class="ltx_td ltx_align_right" id="S4.T3.1.9.9.3">
+        19.03
+       </td>
+      </tr>
+      <tr class="ltx_tr" id="S4.T3.1.10.10">
+       <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T3.1.10.10.1">
+        SAIE
+       </td>
+       <td class="ltx_td ltx_align_left ltx_border_b" id="S4.T3.1.10.10.2">
+        GPT-3.5
+       </td>
+       <td class="ltx_td ltx_align_right ltx_border_b" id="S4.T3.1.10.10.3">
+        <span class="ltx_text ltx_font_bold" id="S4.T3.1.10.10.3.1">
+         60.80
+        </span>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+    <figcaption class="ltx_caption ltx_centering">
+     <span class="ltx_tag ltx_tag_table">
+      Table 3:
+     </span>
+     Inference phase performance on the GSM8K dataset, comparing different learner and partner model configurations.
+    </figcaption>
+   </figure>
+   <div class="ltx_para" id="S4.SS3.p2">
+    <p class="ltx_p" id="S4.SS3.p2.1">
+     Table
+     <a class="ltx_ref" href="#S4.T3" title="Table 3 ‣ 4.3 Impact on Inference-time Discussion ‣ 4 Results and Analysis ‣ SAIE Framework: Support Alone Isn’t Enough - Advancing LLM Training with Adversarial Remarks">
+      <span class="ltx_text ltx_ref_tag">
+       3
+      </span>
+     </a>
+     presents the performance across various training and inference configurations on the GSM8K dataset.
+The top section of the table reveals the superiority of our SAIE method over traditional fine-tuning when the learner model operates independently.
+The middle and bottom sections present a more nuanced insight, where our method is assessed in scenarios involving self-model interaction (Flan-T5-Large as both learner and partner) and in collaboration with GPT-3.5 during inference, respectively, echoing methods from existing studies
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      ); Xiong et al. (
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2023
+      </a>
+      ); Madaan et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+    </p>
+   </div>
+   <div class="ltx_para" id="S4.SS3.p3">
+    <p class="ltx_p" id="S4.SS3.p3.1">
+     The most significant improvement in performance is observed when our SAIE-trained learner model collaborates with GPT-3.5 during inference, achieving an impressive
+     <math alttext="60.80\%" class="ltx_Math" display="inline" id="S4.SS3.p3.1.m1.1">
+      <semantics id="S4.SS3.p3.1.m1.1a">
+       <mrow id="S4.SS3.p3.1.m1.1.1" xref="S4.SS3.p3.1.m1.1.1.cmml">
+        <mn id="S4.SS3.p3.1.m1.1.1.2" xref="S4.SS3.p3.1.m1.1.1.2.cmml">
+         60.80
+        </mn>
+        <mo id="S4.SS3.p3.1.m1.1.1.1" xref="S4.SS3.p3.1.m1.1.1.1.cmml">
+         %
+        </mo>
+       </mrow>
+       <annotation-xml encoding="MathML-Content" id="S4.SS3.p3.1.m1.1b">
+        <apply id="S4.SS3.p3.1.m1.1.1.cmml" xref="S4.SS3.p3.1.m1.1.1">
+         <csymbol cd="latexml" id="S4.SS3.p3.1.m1.1.1.1.cmml" xref="S4.SS3.p3.1.m1.1.1.1">
+          percent
+         </csymbol>
+         <cn id="S4.SS3.p3.1.m1.1.1.2.cmml" type="float" xref="S4.SS3.p3.1.m1.1.1.2">
+          60.80
+         </cn>
+        </apply>
+       </annotation-xml>
+       <annotation encoding="application/x-tex" id="S4.SS3.p3.1.m1.1c">
+        60.80\%
+       </annotation>
+      </semantics>
+     </math>
+     accuracy.
+This result not only validates the efficacy of our training method but also demonstrates its potential to enhance collaborative reasoning abilities during inference, a noteworthy advancement in LLM training and application strategies.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S5">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    5
+   </span>
+   Related Work
+  </h2>
+  <div class="ltx_para" id="S5.p1">
+   <p class="ltx_p" id="S5.p1.1">
+    Several lines of research have been dedicated to improving the reasoning capabilities of LLMs.
+These efforts each contribute unique insights and methodologies, exploring different dimensions of LLM training and inference.
+Amidst these, our SAIE framework introduces a transformative approach, emphasizing interactive learning during the training phase.
+This method diverges from the traditional, predominantly inference-focused methods prevalent in current LLM research, addressing critical aspects of LLM development that have been less explored.
+   </p>
+  </div>
+  <section class="ltx_paragraph" id="S5.SS0.SSS0.Px1">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Self-Directed Learning in LLMs
+   </h4>
+   <div class="ltx_para" id="S5.SS0.SSS0.Px1.p1">
+    <p class="ltx_p" id="S5.SS0.SSS0.Px1.p1.1">
+     Chain-of-Thought (CoT) and self-enhancement strategies, pivotal in LLM reasoning enhancement, involve prompting models to articulate their reasoning processes.
+CoT encourages models to detail step-by-step thought processes
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Wei et al. (
+      <a class="ltx_ref" href="#bib.bib17" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+Self-enhancement, on the other hand, allows models to self-evaluate and improve their responses
+     <cite class="ltx_cite ltx_citemacro_cite">
+      Weng et al. (
+      <a class="ltx_ref" href="#bib.bib19" title="">
+       2023
+      </a>
+      ); Madaan et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2023
+      </a>
+      )
+     </cite>
+     .
+While effective, these approaches are often limited to enhancing large models during inference.
+In contrast, SAIE diversifies this approach by implementing interactive learning in training, enabling a broader development of reasoning skills.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S5.SS0.SSS0.Px2">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Inference-Time Discussion Methods
+   </h4>
+   <div class="ltx_para" id="S5.SS0.SSS0.Px2.p1">
+    <p class="ltx_p" id="S5.SS0.SSS0.Px2.p1.1">
+     Inference-time discussion methods, explored in studies like
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Liang et al. (
+      <a class="ltx_ref" href="#bib.bib13" title="">
+       2023
+      </a>
+      )
+     </cite>
+     ,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Xiong et al. (
+      <a class="ltx_ref" href="#bib.bib20" title="">
+       2023
+      </a>
+      )
+     </cite>
+     ,
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Chen et al. (
+      <a class="ltx_ref" href="#bib.bib2" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , and
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Madaan et al. (
+      <a class="ltx_ref" href="#bib.bib14" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , aim to enhance model performance through discussion during inference.
+However, these methods can be limited in adaptability and responsiveness. While these discussions have improved model performance during inference, there remains room for improvement in the training phase to fully capitalize on these capabilities.
+SAIE addresses this gap by enhancing performance not only in solo inference scenarios but also in collaborative inference discussions, indicating a significant advancement over traditional methods.
+    </p>
+   </div>
+  </section>
+  <section class="ltx_paragraph" id="S5.SS0.SSS0.Px3">
+   <h4 class="ltx_title ltx_title_paragraph">
+    Model Interactions in Training Methods
+   </h4>
+   <div class="ltx_para" id="S5.SS0.SSS0.Px3.p1">
+    <p class="ltx_p" id="S5.SS0.SSS0.Px3.p1.1">
+     Traditional teacher-student interactions in knowledge distillation, foundational in works like
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Hinton et al. (
+      <a class="ltx_ref" href="#bib.bib10" title="">
+       2015
+      </a>
+      )
+     </cite>
+     and
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Gu et al. (
+      <a class="ltx_ref" href="#bib.bib8" title="">
+       2023
+      </a>
+      )
+     </cite>
+     , typically involve a one-way transfer of knowledge.
+Recent generator-evaluator frameworks such as
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Welleck et al. (
+      <a class="ltx_ref" href="#bib.bib18" title="">
+       2022
+      </a>
+      )
+     </cite>
+     and
+     <cite class="ltx_cite ltx_citemacro_citet">
+      Paul et al. (
+      <a class="ltx_ref" href="#bib.bib15" title="">
+       2023
+      </a>
+      )
+     </cite>
+     have introduced more dynamic interactions.
+However, they often restrict interactions to providing hints or support to the generator, risking superficial learning outcomes.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS0.SSS0.Px3.p2">
+    <p class="ltx_p" id="S5.SS0.SSS0.Px3.p2.1">
+     In the same vein, but with a distinct approach, the SAIE framework advances this concept by introducing a more dynamic and adaptive interaction model in the training phase.
+Instead of solely relying on supportive feedback, the SAIE framework blends proactive, supportive, and adversarial remarks from the partner model.
+This creates a richer and more versatile learning environment, where the learner model is constantly challenged and supported, encouraging deeper understanding and more robust reasoning development.
+    </p>
+   </div>
+   <div class="ltx_para" id="S5.SS0.SSS0.Px3.p3">
+    <p class="ltx_p" id="S5.SS0.SSS0.Px3.p3.1">
+     Overall, the SAIE framework’s approach to integrating varied interactive elements during training signifies a substantial evolution in LLM training methodologies, enhancing reasoning capabilities and adaptability.
+    </p>
+   </div>
+  </section>
+ </section>
+ <section class="ltx_section" id="S6">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    6
+   </span>
+   Conclusion
+  </h2>
+  <div class="ltx_para" id="S6.p1">
+   <p class="ltx_p" id="S6.p1.1">
+    This study introduces the SAIE (Support Alone Isn’t Enough) framework, a novel interactive training approach that significantly enhances the reasoning capabilities of LLMs.
+By facilitating simulated discussions between learner and partner models, the framework adeptly handles complex reasoning tasks.
+The effectiveness of this approach lies in the partner model’s adaptive remarks, which adeptly blend support with challenge, leading to a deeper understanding in LLMs.
+The improvements observed in both independent and collaborative inference scenarios underscore the potential of interactive training in advancing LLMs toward more sophisticated reasoning akin to human cognition.
+This work not only demonstrates the value of interactive training but also establishes a new standard in LLM development.
+   </p>
+  </div>
+ </section>
+ <section class="ltx_section" id="S7">
+  <h2 class="ltx_title ltx_title_section">
+   <span class="ltx_tag ltx_tag_section">
+    7
+   </span>
+   Limitations and Future Work
+  </h2>
+  <div class="ltx_para" id="S7.p1">
+   <p class="ltx_p" id="S7.p1.1">
+    While our SAIE framework marks a significant advance in LLM interactive training, acknowledging its limitations is crucial for guiding future research.
+A primary limitation lies in the diversity of models tested.
+Our current results, significant with certain LLMs, need further validation across a wider range of models varying in architecture and scale.
+   </p>
+  </div>
+  <div class="ltx_para" id="S7.p2">
+   <p class="ltx_p" id="S7.p2.1">
+    Future extensions of our work could explore two promising avenues:
+   </p>
+   <ul class="ltx_itemize" id="S7.I1">
+    <li class="ltx_item" id="S7.I1.i1" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S7.I1.i1.p1">
+      <p class="ltx_p" id="S7.I1.i1.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S7.I1.i1.p1.1.1">
+        Expanding Model Diversity:
+       </span>
+       Investigating the impact of the SAIE framework on a broader spectrum of LLMs will offer valuable insights into its adaptability and efficacy across different architectures and sizes.
+      </p>
+     </div>
+    </li>
+    <li class="ltx_item" id="S7.I1.i2" style="list-style-type:none;">
+     <span class="ltx_tag ltx_tag_item">
+      •
+     </span>
+     <div class="ltx_para" id="S7.I1.i2.p1">
+      <p class="ltx_p" id="S7.I1.i2.p1.1">
+       <span class="ltx_text ltx_font_bold" id="S7.I1.i2.p1.1.1">
+        Bidirectional Learning:
+       </span>
+       Enhancing the training environment to enable mutual learning and adaptation between the learner and partner models.
+This bidirectional approach has the potential to yield more pronounced performance improvements and foster a richer, synergistic learning process.
+      </p>
+     </div>
+    </li>
+   </ul>
+  </div>
+ </section>
+ <section class="ltx_bibliography" id="bib">
+  <h2 class="ltx_title ltx_title_bibliography">
+   References
+  </h2>
+  <ul class="ltx_biblist">
+   <li class="ltx_bibitem" id="bib.bib1">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Brown et al. (2020)
+    </span>
+    <span class="ltx_bibblock">
+     Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. 2020.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper_files/paper/2020/file/1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf" target="_blank" title="">
+      Language models are few-shot learners
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib1.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 33, pages 1877–1901.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib2">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chen et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Justin Chih-Yao Chen, Swarnadeep Saha, and Mohit Bansal. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2309.13007" target="_blank" title="">
+      Reconcile: Round-table conference improves reasoning via consensus among diverse llms
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib3">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chowdhery et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra, Adam Roberts, Paul Barham, Hyung Won Chung, Charles Sutton, Sebastian Gehrmann, Parker Schuh, Kensen Shi, Sasha Tsvyashchenko, Joshua Maynez, Abhishek Rao, Parker Barnes, Yi Tay, Noam Shazeer, Vinodkumar Prabhakaran, Emily Reif, Nan Du, Ben Hutchinson, Reiner Pope, James Bradbury, Jacob Austin, Michael Isard, Guy Gur-Ari, Pengcheng Yin, Toju Duke, Anselm Levskaya, Sanjay Ghemawat, Sunipa Dev, Henryk Michalewski, Xavier Garcia, Vedant Misra, Kevin Robinson, Liam Fedus, Denny Zhou, Daphne Ippolito, David Luan, Hyeontaek Lim, Barret Zoph, Alexander Spiridonov, Ryan Sepassi, David Dohan, Shivani Agrawal, Mark Omernick, Andrew M. Dai, Thanumalayan Sankaranarayana Pillai, Marie Pellat, Aitor Lewkowycz, Erica Moreira, Rewon Child, Oleksandr Polozov, Katherine Lee, Zongwei Zhou, Xuezhi Wang, Brennan Saeta, Mark Diaz, Orhan Firat, Michele Catasta, Jason Wei, Kathy Meier-Hellstern, Douglas Eck, Jeff Dean, Slav Petrov, and Noah Fiedel. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2204.02311" target="_blank" title="">
+      Palm: Scaling language modeling with pathways
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib4">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chung et al. (2022a)
+    </span>
+    <span class="ltx_bibblock">
+     Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, Albert Webson, Shixiang Shane Gu, Zhuyun Dai, Mirac Suzgun, Xinyun Chen, Aakanksha Chowdhery, Alex Castro-Ros, Marie Pellat, Kevin Robinson, Dasha Valter, Sharan Narang, Gaurav Mishra, Adams Yu, Vincent Zhao, Yanping Huang, Andrew Dai, Hongkun Yu, Slav Petrov, Ed H. Chi, Jeff Dean, Jacob Devlin, Adam Roberts, Denny Zhou, Quoc V. Le, and Jason Wei. 2022a.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2210.11416" target="_blank" title="">
+      Scaling instruction-finetuned language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib5">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Chung et al. (2022b)
+    </span>
+    <span class="ltx_bibblock">
+     Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, Albert Webson, Shixiang Shane Gu, Zhuyun Dai, Mirac Suzgun, Xinyun Chen, Aakanksha Chowdhery, Alex Castro-Ros, Marie Pellat, Kevin Robinson, Dasha Valter, Sharan Narang, Gaurav Mishra, Adams Yu, Vincent Zhao, Yanping Huang, Andrew Dai, Hongkun Yu, Slav Petrov, Ed H. Chi, Jeff Dean, Jacob Devlin, Adam Roberts, Denny Zhou, Quoc V. Le, and Jason Wei. 2022b.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2210.11416" target="_blank" title="">
+      Scaling instruction-finetuned language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib6">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Cobbe et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     Training verifiers to solve math word problems.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib6.1.1">
+      arXiv preprint arXiv:2110.14168
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib7">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Du et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yilun Du, Shuang Li, Antonio Torralba, Joshua B Tenenbaum, and Igor Mordatch. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     Improving factuality and reasoning in language models through multiagent debate.
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib7.1.1">
+      arXiv preprint arXiv:2305.14325
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib8">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Gu et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yuxian Gu, Li Dong, Furu Wei, and Minlie Huang. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2306.08543" target="_blank" title="">
+      Knowledge distillation of large language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib9">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hendrycks et al. (2021)
+    </span>
+    <span class="ltx_bibblock">
+     Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. 2021.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://openreview.net/forum?id=d7KBjmI3GmQ" target="_blank" title="">
+      Measuring massive multitask language understanding
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib9.1.1">
+      International Conference on Learning Representations
+     </em>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib10">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Hinton et al. (2015)
+    </span>
+    <span class="ltx_bibblock">
+     Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. 2015.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/1503.02531" target="_blank" title="">
+      Distilling the knowledge in a neural network
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib11">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kaneko et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Masahiro Kaneko, Graham Neubig, and Naoaki Okazaki. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.11789" target="_blank" title="">
+      Solving nlp problems through human-system collaboration: A discussion-based approach
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib12">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Kojima et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Takeshi Kojima, Shixiang (Shane) Gu, Machel Reid, Yutaka Matsuo, and Yusuke Iwasawa. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://proceedings.neurips.cc/paper_files/paper/2022/file/8bb0d291acd4acf06ef112099c16f326-Paper-Conference.pdf" target="_blank" title="">
+      Large language models are zero-shot reasoners
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     In
+     <em class="ltx_emph ltx_font_italic" id="bib.bib12.1.1">
+      Advances in Neural Information Processing Systems
+     </em>
+     , volume 35, pages 22199–22213. Curran Associates, Inc.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib13">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Liang et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Zhaopeng Tu, and Shuming Shi. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.19118" target="_blank" title="">
+      Encouraging divergent thinking in large language models through multi-agent debate
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib14">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Madaan et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Shashank Gupta, Bodhisattwa Prasad Majumder, Katherine Hermann, Sean Welleck, Amir Yazdanbakhsh, and Peter Clark. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2303.17651" target="_blank" title="">
+      Self-refine: Iterative refinement with self-feedback
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib15">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Paul et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Debjit Paul, Mete Ismayilzada, Maxime Peyrard, Beatriz Borges, Antoine Bosselut, Robert West, and Boi Faltings. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2304.01904" target="_blank" title="">
+      Refiner: Reasoning feedback on intermediate representations
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib16">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Talmor et al. (2019)
+    </span>
+    <span class="ltx_bibblock">
+     Alon Talmor, Jonathan Herzig, Nicholas Lourie, and Jonathan Berant. 2019.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="https://api.semanticscholar.org/CorpusID:53296520" target="_blank" title="">
+      Commonsenseqa: A question answering challenge targeting commonsense knowledge
+     </a>
+     .
+    </span>
+    <span class="ltx_bibblock">
+     <em class="ltx_emph ltx_font_italic" id="bib.bib16.1.1">
+      ArXiv
+     </em>
+     , abs/1811.00937.
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib17">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Wei et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2201.11903" target="_blank" title="">
+      Chain-of-thought prompting elicits reasoning in large language models
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib18">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Welleck et al. (2022)
+    </span>
+    <span class="ltx_bibblock">
+     Sean Welleck, Ximing Lu, Peter West, Faeze Brahman, Tianxiao Shen, Daniel Khashabi, and Yejin Choi. 2022.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2211.00053" target="_blank" title="">
+      Generating sequences by learning to self-correct
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib19">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Weng et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Yixuan Weng, Minjun Zhu, Fei Xia, Bin Li, Shizhu He, Kang Liu, and Jun Zhao. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2212.09561" target="_blank" title="">
+      Large language models are better reasoners with self-verification
+     </a>
+     .
+    </span>
+   </li>
+   <li class="ltx_bibitem" id="bib.bib20">
+    <span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">
+     Xiong et al. (2023)
+    </span>
+    <span class="ltx_bibblock">
+     Kai Xiong, Xiao Ding, Yixin Cao, Ting Liu, and Bing Qin. 2023.
+    </span>
+    <span class="ltx_bibblock">
+     <a class="ltx_ref ltx_href" href="http://arxiv.org/abs/2305.11595" target="_blank" title="">
+      Examining inter-consistency of large language models collaboration: An in-depth analysis via debate
+     </a>
+     .
+    </span>
+   </li>
+  </ul>
+ </section>
+</article>
