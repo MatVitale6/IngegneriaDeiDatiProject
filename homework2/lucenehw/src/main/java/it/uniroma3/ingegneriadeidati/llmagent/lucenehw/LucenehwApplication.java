@@ -1,11 +1,19 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -16,46 +24,44 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.apache.lucene.store.ByteBuffersDirectory;
-
-
-
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class LucenehwApplication {
+
+    @Value("${lucene.index.path}")
+    static String luceneIndexPath;
+
 	public static void main(String[] args) {
-		try {
-            // Step 1: Initialize an Analyzer (StandardAnalyzer for this example)
-            StandardAnalyzer analyzer = new StandardAnalyzer();
+        Path path = Paths.get(System.getProperty("user.dir")).resolve(luceneIndexPath);
+        try {
+            Directory directory = FSDirectory.open(path);
+            Document doc1 = new Document();
+            doc1.add(new TextField("titolo", "Come diventare un ingegnere dei dati, Data Engineer?", Field.Store.YES));
+            doc1.add(new TextField("contenuto","Sembra che oggigiorno tutti vogliono diventare un Data Scientist", Field.Store.YES));
+            
+            Document doc2 = new Document();
+            doc2.add(new TextField("titolo", "Curriculum Ingegneria dei Dati - Sezione di Informatica e Automazione", Field.Store.YES));
+            doc2.add(new TextField("contenuto","Curriculum. Ingegneria dei dati. Laurea magistrale in ingegneria informatica", Field.Store.YES));
 
-            Directory index = new ByteBuffersDirectory();
+            IndexWriterConfig config = new IndexWriterConfig();
+            IndexWriter writer = new IndexWriter(directory, config);
 
-            // Step 3: Set up IndexWriter configuration and create an IndexWriter
-            IndexWriterConfig config = new IndexWriterConfig(analyzer);
-            IndexWriter writer = new IndexWriter(index, config);
+            writer.addDocument(doc1);
+            writer.commit();
 
-			// Step 4: Create a document and add it to the index
-			Document doc = new Document();
-			doc.add(new TextField("titolo", "Hello World with Apache Lucene", TextField.Store.YES));
-			writer.addDocument(doc);
+            Analyzer a = CustomAnalyzer.builder()
+                            .withTokenizer(WhitespaceTokenizerFactory.class)
+                            .addTokenFilter(LowerCaseFilterFactory.class)
+                            .addTokenFilter(WordDelimiterGraphFilterFactory.class)
+                            .build();
 
-            // Step 5: Build a Query using QueryParser
-            String queryString = "Hello";
-            QueryParser queryParser = new QueryParser("titolo", new WhitespaceAnalyzer());
-			Query query = queryParser.parse(queryString);
-
-            // Step 6: Search the Index
-            DirectoryReader reader = DirectoryReader.open(index);
-			IndexSearcher searcher = new IndexSearcher(reader);
-			TopDocs results = searcher.search(query, 10); // top 10 results
-
-            // Step 8: Clean up (index closed automatically by try-with-resources)
-            index.close();
-
-        } catch (IOException | ParseException e) {
+            writer.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 	}
