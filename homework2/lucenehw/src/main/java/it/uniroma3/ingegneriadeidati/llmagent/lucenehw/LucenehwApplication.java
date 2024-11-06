@@ -40,45 +40,10 @@ import java.util.Map;
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class LucenehwApplication {
 
-    @Value("${lucene.index.path}")
-    static String luceneIndexPath;
-
 	public static void main(String[] args) {
-        Path path = Paths.get(System.getProperty("user.dir")).resolve(luceneIndexPath);
-        try {
-            Directory directory = FSDirectory.open(path);
-            Document doc1 = new Document();
-            doc1.add(new TextField("titolo", "Come diventare un ingegnere dei dati, Data Engineer?", Field.Store.YES));
-            doc1.add(new TextField("contenuto","Sembra che oggigiorno tutti vogliono diventare un Data Scientist", Field.Store.YES));
-            
-            Document doc2 = new Document();
-            doc2.add(new TextField("titolo", "Curriculum Ingegneria dei Dati - Sezione di Informatica e Automazione", Field.Store.YES));
-            doc2.add(new TextField("contenuto","Curriculum. Ingegneria dei dati. Laurea magistrale in ingegneria informatica", Field.Store.YES));
+        SpringApplication.run(LucenehwApplication.class, args);
 
-            IndexWriterConfig config = new IndexWriterConfig();
-            IndexWriter writer = new IndexWriter(directory, config);
-
-            writer.addDocument(doc1);
-            writer.commit();
-
-            Analyzer a = CustomAnalyzer.builder()
-                            .withTokenizer(WhitespaceTokenizerFactory.class)
-                            .addTokenFilter(LowerCaseFilterFactory.class)
-                            .addTokenFilter(WordDelimiterGraphFilterFactory.class)
-                            .build();
-
-            writer.close();
-
-            Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
-
-            CharArraySet stopWords = new CharArraySet(Arrays.asList("in", "dei", "di"), true);
-            perFieldAnalyzers.put("titolo", new WhitespaceAnalyzer());
-            perFieldAnalyzers.put("contenuto", new StandardAnalyzer(stopWords));
-
-            Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new ItalianAnalyzer(), perFieldAnalyzers);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        LucenehwApplication application = new LucenehwApplication();    
 	}
 
 }
