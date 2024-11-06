@@ -6,10 +6,13 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.it.ItalianAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -29,6 +32,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class LucenehwApplication {
@@ -61,6 +68,14 @@ public class LucenehwApplication {
                             .build();
 
             writer.close();
+
+            Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
+
+            CharArraySet stopWords = new CharArraySet(Arrays.asList("in", "dei", "di"), true);
+            perFieldAnalyzers.put("titolo", new WhitespaceAnalyzer());
+            perFieldAnalyzers.put("contenuto", new StandardAnalyzer(stopWords));
+
+            Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new ItalianAnalyzer(), perFieldAnalyzers);
         } catch (IOException e) {
             e.printStackTrace();
         }
