@@ -5,6 +5,6 @@ public class SearchResult {
     private String author;
     private String contentSnippet;
 
-    // Constructors, Getters and Setters
+    //TODO: write Constructors, Getters and Setters
 
 }

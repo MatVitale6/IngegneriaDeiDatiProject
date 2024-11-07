@@ -3,10 +3,14 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -27,13 +31,17 @@ public class LuceneConfig {
 
     @Bean
     public Analyzer analyzer() {
-        return new StandardAnalyzer();
+        Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+        perFieldAnalyzer.put("title", new StandardAnalyzer());
+        perFieldAnalyzer.put("content", new EnglishAnalyzer());
+        perFieldAnalyzer.put("authors", new KeywordAnalyzer());
+
+        return new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
     }
 
     @Bean
-    public IndexWriter indexWriter(Directory directory, Analyzer analyzer) throws IOException {
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-        return new IndexWriter(directory, indexWriterConfig);
+    public IndexWriterConfig indexWriterConfig(Analyzer analyzer) {
+        return new IndexWriterConfig(analyzer);
     }
 
 }
