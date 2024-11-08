@@ -15,9 +15,23 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
+
+/**
+ * Classe di utilitá per il parsing di file HTML.
+ * 'HTMLParserUtils' offre metodi statici per estrarre informazioni come titolo, autori e contenuto dai file HTML
+ * utilizzando la libreria Jsoup per analizzare la struttura del documento HTML
+ */
 public class HTMLParserUtils {
     private static final Logger logger = LoggerFactory.getLogger(HTMLParserUtils.class);
 
+
+    /**
+     * Estrae il titolo del docuemento HTML.
+     * Il metodo cerca l'elemento '<h1>' con classi 'ltx_title ltx_title_document' e restituisce il suo testo.
+     * @param file Il file HTML da analizzare.
+     * @return il titolo del documento, o una stringa vuota se il titolo non é trovato.
+     * @throws IOException IOException se sis verifica un errore durante la lettura del file.
+     */
     public static String parseTitle(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
         
@@ -46,18 +60,37 @@ public class HTMLParserUtils {
         return titleText.toString().trim();
     }
 
+    /**
+     * Estrae gli autori dal documento HTML.
+     * Cerca una 'div' con classe 'ltx_authors' e seleziona gli elementi `span` con classi `ltx_creator ltx_role_author`.
+     * Il nome di ogni autore viene aggiunto alla lista restituita.
+     * @param file Il file HTML da analizzare.
+     * @return Una lista di nomi degli autori; restituisce una lista vuota se non sono trovati autori.
+     * @throws IOException se si verifica un errore durante la lettura del file.
+     */
     public static String parseAuthors(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
-        Element authorsElement = htmlDoc.selectFirst("span.ltx_personname");
+        List<String> authors = new ArrayList<>();
 
-        if(authorsElement == null) {
-            logger.warn("Extracted empty authors");
-            return "";
+        Element authorsDiv = htmlDoc.selectFirst("div.ltx_authors");
+        if (authorsDiv != null) {
+            Elements authorSpans = authorsDiv.select("span.ltx_creator.ltx_role_author");
+            for (Element author : authorSpans) {
+                authors.add(author.select("span.ltx_personname").text());
+            }
         }
-  
-        return authorsElement.text();
+        return authors;
     }
 
+
+    /**
+     * Estrae il contenuto dell'articolo HTML.
+     * Cerca un elemento `<article>` e ne estrae il testo, suddiviso in sezioni, se disponibili.
+     * Ogni sezione viene aggiunta a un `StringBuilder`, con due righe di separazione tra le sezioni.
+     * @param file Il file HTML da analizzare.
+     * @return Il contenuto completo dell'articolo come stringa, o una stringa vuota se l'elemento `article` non è trovato.
+     * @throws IOException se si verifica un errore durante la lettura del file.
+     */
     public static String parseContent(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
 
@@ -72,6 +105,13 @@ public class HTMLParserUtils {
         return contentBuilder.toString().trim();
     }
 
+    
+    /**
+     * Placeholder per il metodo di estrazione dell'abstract dal documento HTML.
+     * Attualmente, restituisce una stringa vuota.
+     * @param file Il file HTML da analizzare.
+     * @return Stringa vuota, in attesa di implementazione.
+     */
     public static String parseAbstract(File file) {
         return "";
     }
