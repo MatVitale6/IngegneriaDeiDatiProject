@@ -1,9 +1,6 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
@@ -28,10 +25,7 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 @Service
 public class FileIndexer {
 
-    /**
-     * Dimensione del batch per l'indicizzazione, per ridurre le operazioni di commit frequenti e migliorare le performance.
-     */
-    private static final int BATCH_SIZE = 500;
+
     /**
      * Logger per registrare le informazioni relative al processo di indicizzazione.
      */

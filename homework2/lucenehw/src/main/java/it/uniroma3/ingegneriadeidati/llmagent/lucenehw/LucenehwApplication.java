@@ -1,6 +1,9 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,8 +20,13 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class LucenehwApplication {
 
+    private static final Logger logger = LoggerFactory.getLogger(LucenehwApplication.class);
+
     @Autowired
     private FileIndexer indexer;
+
+    @Value("${indexer.runonstartup}")
+    private boolean runIndexerOnStartup;
 
     /**
      * Metodo principale che avvia l'applicazione Spring Boot.
@@ -34,8 +42,12 @@ public class LucenehwApplication {
     @Bean
     public CommandLineRunner runIndexer() {
         return args -> {
-            System.out.println("Starting indexing process...");
-            indexer.run();
+            if (runIndexerOnStartup) {
+                logger.info("Starting indexing process...");
+                indexer.run();
+            } else {
+                logger.info("Indexer startup run is disabled");
+            }
         };
     }
 }           

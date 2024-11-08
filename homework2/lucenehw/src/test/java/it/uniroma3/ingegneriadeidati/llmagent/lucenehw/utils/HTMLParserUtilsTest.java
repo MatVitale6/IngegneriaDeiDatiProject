@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +40,7 @@ public class HTMLParserUtilsTest {
 
     private final static String fileName1 = "ar5iv_article_2407.18219.html";
     private final static String fileName2 = "1_arXiv2410.03427.html";
-    private final static String fileName3 = "0710.0386v1.html";
+    private final static String fileName3 = "2410.13674.html";
     private final static String fileName4 = "arXiv_2108.02092.html";
 
     @BeforeEach
@@ -96,13 +95,13 @@ public class HTMLParserUtilsTest {
     }
     
     @Test
-    public void testParseTitle_0710_0386v1() throws IOException {
+    public void testParseTitle_2410_13674() throws IOException {
         String title3 = HTMLParserUtils.parseTitle(testFile3);
         assertEquals("Comparing Maintenance Strategies for Overlays", title3);
     }
 
     @Test
-    public void testParseAuthors_0710_0386v1() throws IOException {
+    public void testParseAuthors_2410_13674() throws IOException {
         String authors = HTMLParserUtils.parseAuthors(testFile3);
         assertEquals("Supriya Krishnamurthy, Sameh El-Ansary, Erik Aurell and Seif Haridi", authors);
     }
