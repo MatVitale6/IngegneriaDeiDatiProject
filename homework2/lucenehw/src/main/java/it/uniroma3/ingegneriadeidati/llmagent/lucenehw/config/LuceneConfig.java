@@ -57,8 +57,8 @@ public class LuceneConfig {
     public Analyzer analyzer() {
         Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
         perFieldAnalyzer.put("title", new StandardAnalyzer());
-        perFieldAnalyzer.put("content", new EnglishAnalyzer());
         perFieldAnalyzer.put("authors", new KeywordAnalyzer());
+        perFieldAnalyzer.put("content", new EnglishAnalyzer());
 
         return new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
     }

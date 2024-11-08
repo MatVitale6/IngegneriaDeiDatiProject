@@ -1,6 +1,7 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
@@ -35,6 +37,9 @@ public class FileIndexer {
      */
     private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);
 
+    @Value("${html.files.path}")
+    private String htmlFilesPath;
+
     /**
      * Directory di Lucene in cui vengono memorizzati gli indici
      * Viene iniettata da Spring utilizzando '@Autowired'
@@ -48,6 +53,14 @@ public class FileIndexer {
      */
     @Autowired
     private IndexWriterConfig indexWriterConfig;
+
+    public void run() {
+        try {
+            this.indexHtmlFiles(htmlFilesPath);
+        } catch (IOException e) {
+            logger.error("Error indexing HTML files ", e);
+        }
+    }
 
     /**
      * Metodo per indicizzare tutti i file HTML presenti nella directory specificata.
@@ -65,48 +78,27 @@ public class FileIndexer {
         File[] files = new File(directoryPath).listFiles((dir, name) -> name.endsWith(".html"));
         if (files == null || files.length == 0) {
             logger.warn("No HTML files found in directory: {}", directoryPath);
-            return;
-        };
+            return;  
+        }
         
-        //Indicizzazione in batch
-        List<File> batch = new ArrayList<>();
-        for (int i = 0; i < files.length; i++) {
-            batch.add(files[i]);
-
-            //Processa il batch quando raggiunge la dimensione specificata o é l'ultimo file
-            if (batch.size() == BATCH_SIZE || i == files.length - 1) {
-                long batchStartTime = System.nanoTime();
-
-                indexBatch(batch);
-                totalIndexed += batch.size();
-
-                long batchEndTime = System.nanoTime();
-                logger.info("Indexed batch of {} documents (Total Indexed: {}), Batch Time: {}ms",
-                        batch.size(), totalIndexed, (batchEndTime - batchStartTime) / 1_000_000);
-                batch.clear();
+        try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
+            for (File file : files) {
+                long fileStartTime = System.nanoTime();
+    
+                Document doc = createDocumentFromFile(file);
+                writer.addDocument(doc);
+                writer.commit();     //effettua il commit al termine del batch
+                totalIndexed++;
+                long fileEndTime = System.nanoTime();
+    
+                logger.info("Indexed file: {} (Total Indexed: {}), File Time: {}ms",
+                        file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
             }
         }
 
         long endTime = System.nanoTime();
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
-    }    
-
-
-    /**
-     * Indicizza un batch di file.
-     * Crea un 'IndexWriter' per aggiungere i documenti all'indice Lucene.
-     * @param batch Lista di file da indicizzare.
-     * @throws IOException se si verifica un errore durante l'indicizzazione.
-     */
-    private void indexBatch(List<File> batch) throws IOException {
-        try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
-            for (File file : batch) {
-                Document doc = createDocumentFromFile(file);
-                writer.addDocument(doc);
-            }
-            writer.commit();     //effettua il commit al termine del batch
-        }
-    }
+    }  
 
     /**
      * Crea un documento Lucene per ciascun file HTML.
@@ -135,7 +127,6 @@ public class FileIndexer {
         if (content != null && !content.isEmpty()) {
             doc.add(new TextField("content", content, Field.Store.YES));
         }
-
         return doc;
     }
 }

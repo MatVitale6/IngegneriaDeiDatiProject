@@ -37,7 +37,7 @@ public class HTMLParserUtils {
         
         Element titleElement = htmlDoc.selectFirst("h1.ltx_title.ltx_title_document");
         if(titleElement == null) {
-            logger.warn("Extracted empty title");
+            logger.warn("Extracted empty title at {}", file.getName());
             return "";
         }
 
@@ -56,7 +56,6 @@ public class HTMLParserUtils {
                 }
             }
         }
-        
         return titleText.toString().trim();
     }
 
@@ -70,16 +69,14 @@ public class HTMLParserUtils {
      */
     public static String parseAuthors(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
-        List<String> authors = new ArrayList<>();
+        Elements authorsElements = htmlDoc.select("span.ltx_personname");
 
-        Element authorsDiv = htmlDoc.selectFirst("div.ltx_authors");
-        if (authorsDiv != null) {
-            Elements authorSpans = authorsDiv.select("span.ltx_creator.ltx_role_author");
-            for (Element author : authorSpans) {
-                authors.add(author.select("span.ltx_personname").text());
-            }
+        if (authorsElements == null) {
+            logger.warn("Extracted empty authors at {}", file.getName());
+            return "";
         }
-        return authors;
+
+        return authorsElements.text().trim();
     }
 
 
@@ -93,8 +90,12 @@ public class HTMLParserUtils {
      */
     public static String parseContent(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
-
         Element articleElement = htmlDoc.selectFirst("article");
+
+        if (articleElement == null) {
+            logger.warn("Extracted empty article at {}", file.getName());
+            return "";
+        }
 
         StringBuilder contentBuilder = new StringBuilder();
         Elements sections = articleElement.select("section");
