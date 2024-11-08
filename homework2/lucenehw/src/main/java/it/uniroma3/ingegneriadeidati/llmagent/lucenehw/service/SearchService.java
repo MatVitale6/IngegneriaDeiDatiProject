@@ -11,14 +11,13 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 @Service
 public class SearchService {
     /**
-     * Esegie una ricerca itilizzando la query fornita.
+     * Esegue una ricerca utilizzando la query fornita.
      * La query viene elaborata in base ai campi specifici (es. titolo, autore, contenuto) e restituisce una lista di risultati.
      * @param query La query di ricerca inserita dall'utente
      * @return una lista di ogetti 'SearchResult' che rappresentano i documenti trovati che soddisfano i criteri di ricerca.
      */
     public List<SearchResult> search(String query) {
         // Parse query based on field (name, content)
-
         return new LinkedList<SearchResult>();
     }
 
