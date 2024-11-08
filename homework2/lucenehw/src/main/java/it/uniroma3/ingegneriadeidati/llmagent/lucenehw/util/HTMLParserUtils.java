@@ -39,22 +39,7 @@ public class HTMLParserUtils {
             return "";
         }
 
-        StringBuilder titleText = new StringBuilder();
-
-        for (Node node : titleElement.childNodes()) {
-            if (node instanceof TextNode) {
-                // append pure text
-                titleText.append(((TextNode) node).text());
-            } else if (node instanceof Element) {
-                Element childElement = (Element) node;
-                // if there are sub elements, check if they refer to formatetd text only
-                if (childElement.tagName().equals("em") || childElement.tagName().equals("strong") ||
-                    childElement.tagName().equals("i") || childElement.tagName().equals("b")) {
-                        titleText.append(childElement.ownText());
-                }
-            }
-        }
-        return titleText.toString().trim();
+        return titleElement.text().trim();
     }
 
     /**
