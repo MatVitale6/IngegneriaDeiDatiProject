@@ -83,11 +83,9 @@ public class FileIndexer {
             doc.add(new TextField("title", title, Field.Store.YES));
         }
 
-        List<String> authors = HTMLParserUtils.parseAuthors(file);
+        String authors = HTMLParserUtils.parseAuthors(file);
         if (authors != null && !authors.isEmpty()) {
-            for (String author : authors) {
-                doc.add(new TextField("authors", author, Field.Store.YES));
-            }
+            doc.add(new TextField("authors", authors, Field.Store.YES));
         }
 
         String content = HTMLParserUtils.parseContent(file);

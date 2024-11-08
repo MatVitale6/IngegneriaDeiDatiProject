@@ -1,5 +1,8 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,28 +11,51 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 public class HTMLParserUtils {
+    private static final Logger logger = LoggerFactory.getLogger(HTMLParserUtils.class);
+
     public static String parseTitle(File file) throws IOException {
         Document htmlDoc = Jsoup.parse(file, "UTF-8");
         
         Element titleElement = htmlDoc.selectFirst("h1.ltx_title.ltx_title_document");
-        return titleElement != null ? titleElement.text() : "";
-    }
+        if(titleElement == null) {
+            logger.warn("Extracted empty title");
+            return "";
+        }
 
-    public static List<String> parseAuthors(File file) throws IOException {
-        Document htmlDoc = Jsoup.parse(file, "UTF-8");
-        List<String> authors = new ArrayList<>();
+        StringBuilder titleText = new StringBuilder();
 
-        Element authorsDiv = htmlDoc.selectFirst("div.ltx_authors");
-        if (authorsDiv != null) {
-            Elements authorSpans = authorsDiv.select("span.ltx_creator.ltx_role_author");
-            for (Element author : authorSpans) {
-                authors.add(author.select("span.ltx_personname").text());
+        for (Node node : titleElement.childNodes()) {
+            if (node instanceof TextNode) {
+                // append pure text
+                titleText.append(((TextNode) node).text());
+            } else if (node instanceof Element) {
+                Element childElement = (Element) node;
+                // if there are sub elements, check if they refer to formatetd text only
+                if (childElement.tagName().equals("em") || childElement.tagName().equals("strong") ||
+                    childElement.tagName().equals("i") || childElement.tagName().equals("b")) {
+                        titleText.append(childElement.ownText());
+                }
             }
         }
-        return authors;
+        
+        return titleText.toString().trim();
+    }
+
+    public static String parseAuthors(File file) throws IOException {
+        Document htmlDoc = Jsoup.parse(file, "UTF-8");
+        Element authorsElement = htmlDoc.selectFirst("span.ltx_personname");
+
+        if(authorsElement == null) {
+            logger.warn("Extracted empty authors");
+            return "";
+        }
+  
+        return authorsElement.text();
     }
 
     public static String parseContent(File file) throws IOException {
