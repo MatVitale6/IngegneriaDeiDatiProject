@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -57,7 +58,7 @@ public class LuceneConfig {
     public Analyzer analyzer() {
         Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
         perFieldAnalyzer.put("title", new StandardAnalyzer());
-        perFieldAnalyzer.put("authors", new KeywordAnalyzer());
+        perFieldAnalyzer.put("authors", new WhitespaceAnalyzer());
         perFieldAnalyzer.put("content", new EnglishAnalyzer());
 
         return new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
