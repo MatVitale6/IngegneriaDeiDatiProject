@@ -1,4 +1,5 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.controller;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,10 @@ public class SearchController {
      * Riceve una query di ricerca come parametro e restituisce una lista di risultati che soddisfano la query.
      * @param query la stringa id ricerca inserita dall'utente.
      * @return una lista di ogetti 'SearchResult' che rappresentano i documenti trovati.
+     * @throws IOException 
      */
     @PostMapping("/search")
-    public List<SearchResult> search(@RequestParam("inputString") String query) {
+    public List<SearchResult> search(@RequestParam("inputString") String query) throws IOException {
         List<SearchResult> results = searchService.search(query);
         return results;
     }

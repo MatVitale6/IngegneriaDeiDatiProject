@@ -6,11 +6,13 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model;
  * - titolo 
  * - autore
  * - estratto del contenuto
+ * - abstract 
  */
 public class SearchResult {
     private String title;
     private String author;
     private String contentSnippet;
+    private String abstractA;
 
     
      /**
@@ -25,11 +27,13 @@ public class SearchResult {
      * @param title il titolo del documento
      * @param author l'autore del documento
      * @param contentSnippet l'estratto del contenuto rilevante del docuemnto
+     * @param abstract abstract del documento
      */
-    public SearchResult(String title, String author, String contentSnippet) {
+    public SearchResult(String title, String author, String contentSnippet, String abstractA) {
         this.title = title;
         this.author = author;
         this.contentSnippet = contentSnippet;
+        this.abstractA = abstractA;
     }
 
     /**
@@ -78,6 +82,21 @@ public class SearchResult {
      */
     public void setContentSnippet(String contentSnippet) {
         this.contentSnippet = contentSnippet;
+    }
+        /**
+     * Restituisce abstract del documento trovato.
+     * @return 
+     */
+    public String getAbstract() {
+        return abstractA;
+    }
+
+    /**
+     * Imposta un abstract del documento trovato.
+     * @param contentSnippet 
+     */
+    public void setAbstract(String abstractA) {
+        this.abstractA = abstractA;
     }
 
 }

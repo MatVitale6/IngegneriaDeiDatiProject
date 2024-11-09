@@ -60,7 +60,8 @@ public class LuceneConfig {
         perFieldAnalyzer.put("title", new StandardAnalyzer());
         perFieldAnalyzer.put("authors", new WhitespaceAnalyzer());
         perFieldAnalyzer.put("content", new EnglishAnalyzer());
-
+        perFieldAnalyzer.put("abstract", new EnglishAnalyzer());
+        
         return new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
     }
 
