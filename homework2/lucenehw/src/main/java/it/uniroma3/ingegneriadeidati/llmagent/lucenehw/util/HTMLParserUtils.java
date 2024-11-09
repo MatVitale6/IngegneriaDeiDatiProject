@@ -26,6 +26,7 @@ public class HTMLParserUtils {
 
     private static final List<String> emptyTitleFiles = new ArrayList<>();
     private static final List<String> emptyAuthorFiles = new ArrayList<>();
+    private static final List<String> emptyAbstractFiles = new ArrayList<>();
 
     /**
      * Estrae il titolo del docuemento HTML.
@@ -126,6 +127,7 @@ public class HTMLParserUtils {
 
         if (abstractElement == null) {
             logger.warn("Abstract not found in {}", file.getName());
+            emptyAbstractFiles.add(file.getName());
             return "";
         }
 
@@ -149,4 +151,7 @@ public class HTMLParserUtils {
         return emptyAuthorFiles;
     }
 
+    public static List<String> getEmptyAbstractFiles() {
+        return emptyAbstractFiles;
+    }
 }

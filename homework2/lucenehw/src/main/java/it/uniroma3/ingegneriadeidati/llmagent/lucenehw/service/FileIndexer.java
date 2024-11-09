@@ -97,17 +97,25 @@ public class FileIndexer {
         // Recupera e stampa le liste dei file con titolo o autori vuoti
         List<String> filesWithEmptyTitles = HTMLParserUtils.getEmptyTitleFiles();
         List<String> filesWithEmptyAuthors = HTMLParserUtils.getEmptyAuthorFiles();
+        List<String> filesWithEmptyAbstract = HTMLParserUtils.getEmptyAbstractFiles();
 
         if (!filesWithEmptyTitles.isEmpty()) {
             logger.warn("Files with empty titles: {}", filesWithEmptyTitles);
+            logger.warn("Files with empty title size: ", filesWithEmptyTitles.size());   
         } else {
             logger.info("No files with empty titles.");
         }
-
         if (!filesWithEmptyAuthors.isEmpty()) {
             logger.warn("Files with empty authors: {}", filesWithEmptyAuthors);
+            logger.warn("Files with empty authors size: ", filesWithEmptyAuthors.size());   
         } else {
             logger.info("No files with empty authors.");
+        }
+        if (!filesWithEmptyAbstract.isEmpty()) {
+            logger.warn("Files with empty abstract: {}", filesWithEmptyAbstract);
+            logger.warn("Files with empty abstract size: ", filesWithEmptyAbstract.size());            
+        } else {
+            logger.info("No files with empty abstract.");
         }
     }  
 
