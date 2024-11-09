@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,6 +24,8 @@ import org.jsoup.select.Elements;
 public class HTMLParserUtils {
     private static final Logger logger = LoggerFactory.getLogger(HTMLParserUtils.class);
 
+    private static final List<String> emptyTitleFiles = new ArrayList<>();
+    private static final List<String> emptyAuthorFiles = new ArrayList<>();
 
     /**
      * Estrae il titolo del docuemento HTML.
@@ -36,8 +40,10 @@ public class HTMLParserUtils {
         Element titleElement = htmlDoc.selectFirst("h1.ltx_title.ltx_title_document");
         if(titleElement == null) {
             logger.warn("Extracted empty title at {}", file.getName());
+            emptyTitleFiles.add(file.getName());
             return "";
         }
+
 
         return titleElement.text().trim();
     }
@@ -56,6 +62,7 @@ public class HTMLParserUtils {
 
         if (authorsElements == null) {
             logger.warn("Extracted empty authors at {}", file.getName());
+            emptyAuthorFiles.add(file.getName());
             return "";
         }
 
@@ -98,6 +105,14 @@ public class HTMLParserUtils {
      */
     public static String parseAbstract(File file) {
         return "";
+    }
+
+    public static List<String> getEmptyTitleFiles() {
+        return emptyTitleFiles;
+    }
+
+    public static List<String> getEmptyAuthorFiles() {
+        return emptyAuthorFiles;
     }
 
 }

@@ -36,6 +36,8 @@ public class HTMLParserUtilsTest {
     private static File testFile3;
     private static File testFile4;
     private static File testFile5;
+    private static File testFile6;
+    private static File testFile7;
     
     @Value("${html.files.path}")
     private String htmlFilesPath;
@@ -44,7 +46,12 @@ public class HTMLParserUtilsTest {
     private final static String fileName2 = "1_arXiv2410.03427.html";
     private final static String fileName3 = "0710.0386v1.html";
     private final static String fileName4 = "arXiv_2108.02092.html";
+
+    //questo articolo é stato estratto no male di piú
     private final static String fileName5 = "2410.13674.html";
+
+    private final static String fileName6 = "2409.03821.html";
+    private final static String fileName7 = "11_arXiv2409.05874.html";
 
     @BeforeEach
     public void setUp() throws IOException {
@@ -53,6 +60,9 @@ public class HTMLParserUtilsTest {
         testFile3 = Paths.get(this.htmlFilesPath, fileName3).toFile();
         testFile4 = Paths.get(this.htmlFilesPath, fileName4).toFile();
         testFile5 = Paths.get(this.htmlFilesPath, fileName5).toFile();
+        testFile6 = Paths.get(this.htmlFilesPath, fileName6).toFile();
+        testFile7 = Paths.get(this.htmlFilesPath, fileName7).toFile();
+        
 
         if (!testFile1.exists()) {
             throw new IOException("Test file not found at: " + testFile1.getAbsolutePath());
@@ -133,4 +143,29 @@ public class HTMLParserUtilsTest {
         String authors = HTMLParserUtils.parseAuthors(testFile5);
         assertEquals("Zheng Li, Jingwen Ye, Mingli Song, Ying Huang, Zhigeng Pan", authors);
     }
+
+    @Test
+    public void testParseTitle_2409_03821() throws IOException {
+        String title = HTMLParserUtils.parseTitle(testFile6);
+        assertEquals("Long-distance N-partite information for fermionic CFTs", title);
+    }
+
+    @Test
+    public void testParseAuthors_2409_03821() throws IOException {
+        String authors = HTMLParserUtils.parseAuthors(testFile6);
+        assertEquals("César A. Agón ♆, Pablo Bueno ♃ and Guido van der Velde ♃", authors);
+    }
+
+    @Test
+    public void testParseTitle_2409_05874() throws IOException {
+        String title = HTMLParserUtils.parseTitle(testFile7);
+        assertEquals("Nested Fusion: A Method for Learning High Resolution Latent Structure of Multi-Scale Measurement Data on Mars", title);
+    }
+
+    @Test
+    public void testParseAuthors_2409_05874() throws IOException {
+        String authors = HTMLParserUtils.parseAuthors(testFile7);
+        assertEquals("Austin P. Wright Scott Davidoff Duen Horng Chau", authors);
+    }
+    
 }

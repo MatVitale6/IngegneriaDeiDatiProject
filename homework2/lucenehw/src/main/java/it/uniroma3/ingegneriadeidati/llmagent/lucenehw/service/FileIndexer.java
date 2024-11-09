@@ -8,7 +8,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,24 @@ public class FileIndexer {
         }
 
         long endTime = System.nanoTime();
+        
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
+
+        // Recupera e stampa le liste dei file con titolo o autori vuoti
+        List<String> filesWithEmptyTitles = HTMLParserUtils.getEmptyTitleFiles();
+        List<String> filesWithEmptyAuthors = HTMLParserUtils.getEmptyAuthorFiles();
+
+        if (!filesWithEmptyTitles.isEmpty()) {
+            logger.warn("Files with empty titles: {}", filesWithEmptyTitles);
+        } else {
+            logger.info("No files with empty titles.");
+        }
+
+        if (!filesWithEmptyAuthors.isEmpty()) {
+            logger.warn("Files with empty authors: {}", filesWithEmptyAuthors);
+        } else {
+            logger.info("No files with empty authors.");
+        }
     }  
 
     /**
