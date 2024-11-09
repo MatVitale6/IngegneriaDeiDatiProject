@@ -121,6 +121,14 @@ public class FileIndexer {
         if (content != null && !content.isEmpty()) {
             doc.add(new TextField("content", content, Field.Store.YES));
         }
+        // Estrae e aggiunge l'abstract
+        String abstractText = HTMLParserUtils.parseAbstract(file);
+        if (abstractText != null && !abstractText.isEmpty()) {
+             doc.add(new TextField("abstract", abstractText, Field.Store.YES));
+        }
+        
+
+
         return doc;
     }
 }
