@@ -8,6 +8,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -64,11 +66,24 @@ public class SearchService {
         try (DirectoryReader reader = DirectoryReader.open(directory)) {
             IndexSearcher searcher = new IndexSearcher(reader);
 
-            // Analizziamo la query per il campo "content" o qualsiasi altro campo richiesto
-            QueryParser parser = new QueryParser("content", analyzer);
-            Query query = parser.parse(queryStr);
+            QueryParser titleParser = new QueryParser("title", analyzer);
+            QueryParser contentParser = new QueryParser("content", analyzer);
+            QueryParser authorsParser = new QueryParser("authors", analyzer);
 
-            TopDocs topDocs = searcher.search(query, 10); // Recuperiamo i primi 10 risultati
+            Query titleQuery = titleParser.parse(queryStr);
+            Query contentQuery = contentParser.parse(queryStr);
+            Query authorsQuery = authorsParser.parse(queryStr);
+
+            // Combina le query in una BooleanQuery
+            BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+            booleanQuery.add(titleQuery, BooleanClause.Occur.SHOULD);
+            booleanQuery.add(contentQuery, BooleanClause.Occur.SHOULD);
+            booleanQuery.add(authorsQuery, BooleanClause.Occur.SHOULD);
+
+            Query finalQuery = booleanQuery.build();
+
+
+            TopDocs topDocs = searcher.search(finalQuery, 10); // Recuperiamo i primi 10 risultati
 
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
