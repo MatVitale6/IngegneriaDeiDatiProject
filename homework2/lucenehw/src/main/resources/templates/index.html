@@ -83,12 +83,12 @@
         });
     </script>
     <script>
-        document.getElementById("searchForm").addEventListener("submit", function(event) {
+        function performSearch(event) {
             event.preventDefault();  // Previene l'invio predefinito del form
-    
+
             // Ottieni il valore del campo di input
             const query = document.getElementById("inputString").value;
-    
+
             // Invia la richiesta POST tramite fetch
             fetch("/search", {
                 method: "POST",
@@ -97,25 +97,29 @@
                 },
                 body: new URLSearchParams({ inputString: query })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Errore nella risposta della rete");
-                }
-                return response.json();  // Converte la risposta in JSON
-            })
+            .then(response => response.json())  // Converte la risposta in JSON
             .then(results => {
                 // Se il risultato è JSON, aggiorna i risultati nella pagina
                 const resultsList = document.getElementById("resultsList");
                 resultsList.innerHTML = "";  // Svuota il contenitore dei risultati
-    
-                results.forEach(result => {
+
+                if (results.length === 0) {
+                    // Se non ci sono risultati, stampa "LISTA VUOTA! FORZA ROMA!"
                     const li = document.createElement("li");
-                    li.textContent = result;  // Aggiunge ogni risultato come testo
+                    li.textContent = "LISTA VUOTA! FORZA ROMA!";
+                    li.classList.add("fw-bold", "text-danger"); // Facoltativo: stile per renderlo evidente
                     resultsList.appendChild(li);
-                });
+                } else {
+                    // Altrimenti, stampa i risultati nella lista
+                    results.forEach(result => {
+                        const li = document.createElement("li");
+                        li.textContent = result;  // Aggiunge ogni risultato come testo
+                        resultsList.appendChild(li);
+                    });
+                }
             })
             .catch(error => console.error("Errore durante la ricerca:", error));
-        });
+        }
     </script>
 </body>
 </html>
