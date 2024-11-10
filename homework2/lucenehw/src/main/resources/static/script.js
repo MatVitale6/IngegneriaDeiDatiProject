@@ -1,7 +1,3 @@
-/**
- * NON RIESCO A METTERLO NEL index.html e farlo funzionare
- */
-
 // Funzione per calcolare il colore opposto
 function getComplementaryColor(hexColor) {
     // Rimuove il # dal colore
@@ -18,6 +14,24 @@ function getComplementaryColor(hexColor) {
     return `#${complementaryR}${complementaryG}${complementaryB}`;
 }
 
+// Listener per il cambiamento del colore
+document.getElementById('colorPicker').addEventListener('input', function(event) {
+    const selectedColor = event.target.value;
+    const complementaryColor = getComplementaryColor(selectedColor);
+
+    // Cambia il colore di sfondo del container descrizione
+    document.getElementById('descriptionContainer').style.backgroundColor = selectedColor;
+
+    document.getElementById('resultsContainer').style.backgroundColor = selectedColor;
+
+    // Cambia il colore del testo del titolo principale e di headingText al colore opposto
+    document.getElementById('headingText').style.color = selectedColor;
+    document.getElementById('mainTitle').style.color = complementaryColor;
+
+    // Cambia il colore di sfondo e del testo del pulsante
+    document.getElementById('submitButton').style.backgroundColor = selectedColor;
+    document.getElementById('submitButton').style.color = complementaryColor;
+});
 
 // Funzione per gestire la richiesta di ricerca
 function performSearch(event) {
@@ -35,6 +49,11 @@ function performSearch(event) {
         body: new URLSearchParams({ inputString: query })
     })
     .then(response => response.json())  // Converte la risposta in JSON
+
+    /*
+    * TODO: questa roba andrebbe tolta e fatta nel controller, usando il model SearchResult
+    * e creando html dinamicamnte con thymleaf non con javascript
+    */
     .then(results => {
         // Se il risultato è JSON, aggiorna i risultati nella pagina
         const resultsList = document.getElementById("resultsList");

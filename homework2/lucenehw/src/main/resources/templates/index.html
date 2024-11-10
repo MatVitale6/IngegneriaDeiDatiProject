@@ -8,29 +8,25 @@
 </head>
 <body class="bg-light d-flex flex-column align-items-center">
 
-    <!-- Container per la descrizione senza bg-primary -->
     <div id="descriptionContainer" class="container-fluid py-5 text-center rounded mb-4 shadow">
         <h1 id="mainTitle" class="display-4 fw-bold mb-2">Welcome to Colour's Search Engine</h1>
         <p class="lead">The Best You’ve Ever Seen!</p>
         <p class="lead">Be careful you might became blind looking how beautiful is!</p>
     </div>
 
-    <!-- Form centrato in card -->
     <div class="container d-flex justify-content-center mb-4">
         <div class="card p-4 shadow-lg" style="max-width: 500px;">
-            <h3 id="headingText" class="text-center mb-4" style="color: red;">Inserisci una stringa</h3>
+            <h3 id="headingText" class="text-center mb-4" style="color: red;">Search something!</h3>
             <form id="searchForm" onsubmit="performSearch(event)">
                 <div class="mb-3">
                     <input type="text" class="form-control" id="inputString" name="inputString" placeholder="Type your search here..." required>
                 </div>
 
-                <!-- Color Picker -->
                 <div class="mb-3 text-center">
                     <label for="colorPicker" class="form-label">Choose your color!</label>
                     <input type="color" id="colorPicker" class="form-control form-control-color mx-auto" value="#563d7c" title="Choose your color">
                 </div>
-
-                <button type="submit" id="submitButton" class="btn w-100">Invia</button>
+                <button type="submit" id="submitButton" class="btn w-100">Send</button>
             </form>
         </div>
     </div>
@@ -45,85 +41,6 @@
 
     <!-- Bootstrap JS Bundle CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoHkHr58Us9kRexIVMQAp7ntEj62Hf8zTsoG6ZhE6xga2+V" crossorigin="anonymous"></script>
-
-    <script>
-        // Funzione per calcolare il colore opposto
-        function getComplementaryColor(hexColor) {
-            // Rimuove il # dal colore
-            hexColor = hexColor.replace('#', '');
-
-            // Converte il colore in componenti R, G, B
-            const r = parseInt(hexColor.slice(0, 2), 16);
-            const g = parseInt(hexColor.slice(2, 4), 16);
-            const b = parseInt(hexColor.slice(4, 6), 16);
-
-            // Calcola il colore opposto
-            const complementaryR = (255 - r).toString(16).padStart(2, '0');
-            const complementaryG = (255 - g).toString(16).padStart(2, '0');
-            const complementaryB = (255 - b).toString(16).padStart(2, '0');
-
-            return `#${complementaryR}${complementaryG}${complementaryB}`;
-        }
-
-        // Listener per il cambiamento del colore
-        document.getElementById('colorPicker').addEventListener('input', function(event) {
-            const selectedColor = event.target.value;
-            const complementaryColor = getComplementaryColor(selectedColor);
-
-            // Cambia il colore di sfondo del container descrizione
-            document.getElementById('descriptionContainer').style.backgroundColor = selectedColor;
-
-            document.getElementById('resultsContainer').style.backgroundColor = selectedColor;
-
-            // Cambia il colore del testo del titolo principale e di headingText al colore opposto
-            document.getElementById('headingText').style.color = selectedColor;
-            document.getElementById('mainTitle').style.color = complementaryColor;
-
-            // Cambia il colore di sfondo e del testo del pulsante
-            document.getElementById('submitButton').style.backgroundColor = selectedColor;
-            document.getElementById('submitButton').style.color = complementaryColor;
-        });
-    </script>
-    <script>
-        function performSearch(event) {
-            event.preventDefault();  // Previene l'invio predefinito del form
-
-            // Ottieni il valore del campo di input
-            const query = document.getElementById("inputString").value;
-
-            // Invia la richiesta POST tramite fetch
-            fetch("/search", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: new URLSearchParams({ inputString: query })
-            })
-            .then(response => response.json())  // Converte la risposta in JSON
-            .then(results => {
-                const resultsList = document.getElementById("resultsList");
-                resultsList.innerHTML = "";
-
-                if (results.length === 0) {
-                    const li = document.createElement("li");
-                    li.textContent = "LISTA VUOTA! FORZA ROMA!";
-                    li.classList.add("fw-bold", "text-danger");
-                    resultsList.appendChild(li);
-                } else {
-                    results.forEach(result => {
-                        const li = document.createElement("li");
-                        li.classList.add("mb-3", "p-4", "border", "rounded", "shadow-sm", "bg-light");
-
-                        li.innerHTML = `
-                            <h5 class="fw-bold" style="font-size: 1.5rem;">${result.title}</h5>
-                            <p class="text-muted" style="font-size: 1.1rem;"><strong>Author:</strong> ${result.author}</p>
-                            <p style="font-size: 1rem;"><strong>Abstract:</strong> ${result.abstract}</p>
-                        `;
-                        resultsList.appendChild(li);
-                    });
-                }
-            })
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
