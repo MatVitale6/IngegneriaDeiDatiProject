@@ -9,6 +9,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
@@ -65,16 +66,30 @@ public class SearchService {
         for (int i = 0; i < topDocs.scoreDocs.length; i++) {
             int docId = topDocs.scoreDocs[i].doc;
             Document doc = searcher.doc(docId);
+
+            Explanation explanation = searcher.explain(query, docId);
+            String matchField = getDominantField(explanation, fields);
     
             SearchResult searchResult = new SearchResult();
             searchResult.setTitle(doc.get("title"));
             searchResult.setAuthor(doc.get("authors"));
             searchResult.setContentSnippet(doc.get("content"));
             searchResult.setAbstract(doc.get("abstract"));
+            searchResult.setMatchField(matchField);
             results.add(searchResult);
         }
     
         reader.close();
         return results;
+    }
+
+    // Metodo per ottenere il campo con punteggio dominante dall'Explanation
+    private String getDominantField(Explanation explanation, String[] fields) {
+        for (String field : fields) {
+            if (explanation.toString().contains(field)) {
+                return field;
+            }
+        }
+        return "N/A"; // Ritorna un valore di default se non è possibile determinare il campo
     }
 }

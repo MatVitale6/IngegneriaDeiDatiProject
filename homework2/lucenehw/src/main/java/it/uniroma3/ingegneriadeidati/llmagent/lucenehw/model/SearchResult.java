@@ -13,6 +13,7 @@ public class SearchResult {
     private String author;
     private String contentSnippet;
     private String abstractA;
+    private String matchField;
 
     
      /**
@@ -29,11 +30,12 @@ public class SearchResult {
      * @param contentSnippet l'estratto del contenuto rilevante del docuemnto
      * @param abstract abstract del documento
      */
-    public SearchResult(String title, String author, String contentSnippet, String abstractA) {
+    public SearchResult(String title, String author, String contentSnippet, String abstractA, String matchField) {
         this.title = title;
         this.author = author;
         this.contentSnippet = contentSnippet;
         this.abstractA = abstractA;
+        this.matchField = matchField;
     }
 
     /**
@@ -97,6 +99,14 @@ public class SearchResult {
      */
     public void setAbstract(String abstractA) {
         this.abstractA = abstractA;
+    }
+
+    public String getMatchField() {
+        return matchField;
+    }
+
+    public void setMatchField(String matchField) {
+        this.matchField = matchField;
     }
 
 }

@@ -65,15 +65,29 @@ function performSearch(event) {
         } else {
             results.forEach(result => {
                 const li = document.createElement("li");
-                li.classList.add("mb-3", "p-4", "border", "rounded", "shadow-sm", "bg-light");
-
-                li.innerHTML = `
+                li.classList.add("mb-3", "p-4", "border", "rounded", "shadow-sm", "bg-light", "d-flex", "align-items-start");
+                
+                const matchField = document.createElement("div");
+                matchField.classList.add("text-danger", "fw-bold");
+                matchField.style.fontSize = "0.7rem";
+                matchField.style.marginLeft = "auto";
+                matchField.textContent = result.matchField;
+            
+                
+                const resultContent = document.createElement("div");
+                resultContent.innerHTML = `
                     <h5 class="fw-bold" style="font-size: 0.9rem;">${result.title}</h5>
                     <p class="text-muted" style="font-size: 0.7rem;"><strong>Author:</strong> ${result.author}</p>
                     <p style="font-size: 0.7rem;"><strong>Abstract:</strong> ${result.abstract}</p>
                 `;
+            
+                
+                li.appendChild(resultContent);
+                li.appendChild(matchField);
+            
                 resultsList.appendChild(li);
             });
+            
         }
     })
 }
