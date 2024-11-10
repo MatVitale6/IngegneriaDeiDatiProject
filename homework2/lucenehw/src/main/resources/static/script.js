@@ -77,7 +77,7 @@ function performSearch(event) {
                 const resultContent = document.createElement("div");
                 resultContent.innerHTML = `
                     <h5 class="fw-bold" style="font-size: 1.1rem;">
-                        <a href="${result.link}" target="_blank">${result.title}</a>
+                        <a href="${result.link}" style="color: black" target="_blank">${result.title}</a>
                     </h5>
                     <p class="text-muted" style="font-size: 0.9rem;"><strong>Author:</strong> ${result.author}</p>
                 `;
