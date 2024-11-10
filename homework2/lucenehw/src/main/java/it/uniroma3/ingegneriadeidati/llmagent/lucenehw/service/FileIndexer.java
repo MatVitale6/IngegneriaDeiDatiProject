@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -97,19 +98,19 @@ public class FileIndexer {
 
         if (!filesWithEmptyTitles.isEmpty()) {
             logger.warn("Files with empty titles: {}", filesWithEmptyTitles);
-            logger.warn("Files with empty title size: ", filesWithEmptyTitles.size());   
+            logger.warn("Size of files with empty title: ", filesWithEmptyTitles.size());   
         } else {
             logger.info("No files with empty titles.");
         }
         if (!filesWithEmptyAuthors.isEmpty()) {
             logger.warn("Files with empty authors: {}", filesWithEmptyAuthors);
-            logger.warn("Files with empty authors size: ", filesWithEmptyAuthors.size());   
+            logger.warn("Size of files with empty authors: ", filesWithEmptyAuthors.size());   
         } else {
             logger.info("No files with empty authors.");
         }
         if (!filesWithEmptyAbstract.isEmpty()) {
             logger.warn("Files with empty abstract: {}", filesWithEmptyAbstract);
-            logger.warn("Files with empty abstract size: ", filesWithEmptyAbstract.size());            
+            logger.warn("Size of files with empty abstract: ", filesWithEmptyAbstract.size());            
         } else {
             logger.info("No files with empty abstract.");
         }
@@ -147,6 +148,9 @@ public class FileIndexer {
         if (abstractText != null && !abstractText.isEmpty()) {
              doc.add(new TextField("abstract", abstractText, Field.Store.YES));
         }
+
+        doc.add(new StringField("filename", file.getName(), Field.Store.YES));
+        
         return doc;
     }
 }

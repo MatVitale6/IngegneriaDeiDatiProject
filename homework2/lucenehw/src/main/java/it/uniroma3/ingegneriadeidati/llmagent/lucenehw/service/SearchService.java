@@ -3,6 +3,8 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -30,6 +32,11 @@ public class SearchService {
 
     @Autowired
     private Analyzer analyzer;
+
+    String regex = "(\\d{4})\\.(\\d{5})";
+    Pattern pattern = Pattern.compile(regex);
+    String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
+   
 
     /**
      * Esegue una ricerca utilizzando la query fornita.
@@ -69,6 +76,17 @@ public class SearchService {
 
             Explanation explanation = searcher.explain(query, docId);
             String matchField = getDominantField(explanation, fields);
+            
+            String filename = doc.get("filename");
+            Matcher matcher = pattern.matcher(filename);
+
+            String link = null;
+            if(matcher.find()) {
+                String numericCode = matcher.group(1) + "." + matcher.group(2);
+                link = baseUrl + numericCode;
+            } else { 
+                link = "Link non valido";
+            }
     
             SearchResult searchResult = new SearchResult();
             searchResult.setTitle(doc.get("title"));
@@ -76,6 +94,7 @@ public class SearchService {
             searchResult.setContentSnippet(doc.get("content"));
             searchResult.setAbstract(doc.get("abstract"));
             searchResult.setMatchField(matchField);
+            searchResult.setLink(link);
             results.add(searchResult);
         }
     

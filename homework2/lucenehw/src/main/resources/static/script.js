@@ -76,11 +76,41 @@ function performSearch(event) {
                 
                 const resultContent = document.createElement("div");
                 resultContent.innerHTML = `
-                    <h5 class="fw-bold" style="font-size: 0.9rem;">${result.title}</h5>
-                    <p class="text-muted" style="font-size: 0.7rem;"><strong>Author:</strong> ${result.author}</p>
-                    <p style="font-size: 0.7rem;"><strong>Abstract:</strong> ${result.abstract}</p>
+                    <h5 class="fw-bold" style="font-size: 1.1rem;">
+                        <a href="${result.link}" target="_blank">${result.title}</a>
+                    </h5>
+                    <p class="text-muted" style="font-size: 0.9rem;"><strong>Author:</strong> ${result.author}</p>
                 `;
-            
+
+                const abstractContainer = document.createElement("p");
+                abstractContainer.style.fontSize = "0.9rem"
+
+                
+                const shortAbstract = result.abstract.slice(0, 150) + "..."; 
+                const abstractText = document.createElement("span");
+                abstractText.classList.add("abstract-text");
+                abstractText.textContent = shortAbstract;
+
+                const expandButton = document.createElement("button");
+                expandButton.textContent = "Read abstract";
+                expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
+                expandButton.style.fontSize = "0.7rem";
+
+
+                expandButton.addEventListener("click", () => {
+                    const abstractText = abstractContainer.querySelector(".abstract-text");
+                    if (expandButton.textContent === "Read abstract") {
+                        abstractText.textContent = result.abstract;
+                        expandButton.textContent = "Compress abstract";
+                    } else {
+                        abstractText.textContent = shortAbstract;
+                        expandButton.textContent = "Read abstract";
+                    }
+                });
+
+                abstractContainer.appendChild(abstractText);
+                abstractContainer.appendChild(expandButton);
+                resultContent.appendChild(abstractContainer);
                 
                 li.appendChild(resultContent);
                 li.appendChild(matchField);
