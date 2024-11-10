@@ -25,10 +25,6 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 @Service
 public class FileIndexer {
 
-
-    /**
-     * Logger per registrare le informazioni relative al processo di indicizzazione.
-     */
     private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);
 
     @Value("${html.files.path}")
@@ -151,9 +147,6 @@ public class FileIndexer {
         if (abstractText != null && !abstractText.isEmpty()) {
              doc.add(new TextField("abstract", abstractText, Field.Store.YES));
         }
-        
-
-
         return doc;
     }
 }

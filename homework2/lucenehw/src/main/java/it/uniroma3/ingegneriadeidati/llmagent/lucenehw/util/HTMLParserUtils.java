@@ -11,8 +11,6 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 /**
@@ -48,8 +46,6 @@ public class HTMLParserUtils {
             emptyTitleFiles.add(file.getName());
             return "";
         }
-
-
         return titleElement.text().trim();
     }
 
@@ -73,7 +69,6 @@ public class HTMLParserUtils {
             emptyAuthorFiles.add(file.getName());
             return "";
         }
-
         return authorsElements.text().trim();
     }
 
@@ -109,10 +104,8 @@ public class HTMLParserUtils {
 
     /**
      * Estrae l'abstract dal documento HTML.
-     * Cerca un elemento `<div>` con classe `ltx_abstract` e ne restituisce il testo
-     * contenuto nel paragrafo `
-     * <p>
-     * `.
+     * Cerca un elemento 'div' con classe 'ltx_abstract' e ne restituisce il testo
+     * contenuto nel paragrafo 'p'.
      * 
      * @param file Il file HTML da analizzare.
      * @return Il contenuto dell'abstract come stringa, o una stringa vuota se non è
