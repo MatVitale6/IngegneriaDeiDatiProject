@@ -45,6 +45,7 @@ public class LucenehwApplication {
             if (runIndexerOnStartup) {
                 logger.info("Starting indexing process...");
                 indexer.run();
+                runIndexerOnStartup = false;
             } else {
                 logger.info("Indexer startup run is disabled");
             }

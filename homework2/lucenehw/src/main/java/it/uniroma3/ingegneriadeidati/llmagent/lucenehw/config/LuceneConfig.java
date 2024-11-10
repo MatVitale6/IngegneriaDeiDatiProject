@@ -16,6 +16,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +31,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LuceneConfig {
-    /**
-     * Percorso della directory dell'indice Lucene
-     * Il valore viene iniettato dalla proprietà configurata in `application.properties` tramite l'annotazione `@Value`.
-     */
+    
+    private static final Logger logger = LoggerFactory.getLogger(LuceneConfig.class);
+
     @Value("${lucene.index.path}")
     private String indexDirectory;
 
@@ -79,9 +80,15 @@ public class LuceneConfig {
         perFieldAnalyzer.put("content", new EnglishAnalyzer());
         perFieldAnalyzer.put("abstract", new EnglishAnalyzer());
         
-        return new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
-    }
+        PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
 
+        logger.info("Analyzer configuration:");
+        perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+            logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+        );
+
+        return perFieldAnalyzerWrapper;
+    }
 
     /**
      * Configura un bean 'IndexWriterConfig' per gestire le impostazioni di scrittura dell'indice.

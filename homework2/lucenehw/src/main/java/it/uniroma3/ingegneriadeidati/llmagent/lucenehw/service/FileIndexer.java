@@ -70,6 +70,8 @@ public class FileIndexer {
             logger.warn("No HTML files found in directory: {}", directoryPath);
             return;  
         }
+
+        int totalFiles = files.length;
         
         try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
             for (File file : files) {
@@ -96,20 +98,26 @@ public class FileIndexer {
         List<String> filesWithEmptyAbstract = HTMLParserUtils.getEmptyAbstractFiles();
 
         if (!filesWithEmptyTitles.isEmpty()) {
+            double percentageOfEmptyTitles = (filesWithEmptyTitles.size() * 100.0) / totalFiles;
             logger.warn("Files with empty titles: {}", filesWithEmptyTitles);
-            logger.warn("Files with empty title size: ", filesWithEmptyTitles.size());   
+            logger.warn("Files with empty title size: {}, which is {}% of total files",
+                 filesWithEmptyTitles.size(), String.format("%.2f", percentageOfEmptyTitles));   
         } else {
             logger.info("No files with empty titles.");
         }
         if (!filesWithEmptyAuthors.isEmpty()) {
+            double percentageOfEmptyAuthors = (filesWithEmptyAuthors.size() * 100.0) / totalFiles;
             logger.warn("Files with empty authors: {}", filesWithEmptyAuthors);
-            logger.warn("Files with empty authors size: ", filesWithEmptyAuthors.size());   
+            logger.warn("Files with empty authors size: {}, which is {}% of total files",
+                    filesWithEmptyAuthors.size(), String.format("%.2f", percentageOfEmptyAuthors));   
         } else {
             logger.info("No files with empty authors.");
         }
         if (!filesWithEmptyAbstract.isEmpty()) {
+            double percentageOfEmptyAbstract = (filesWithEmptyAbstract.size() * 100.0) / totalFiles;
             logger.warn("Files with empty abstract: {}", filesWithEmptyAbstract);
-            logger.warn("Files with empty abstract size: ", filesWithEmptyAbstract.size());            
+            logger.warn("Files with empty abstract size: {}, which is {}% of total files",
+                    filesWithEmptyAbstract.size(), String.format("%.2f", percentageOfEmptyAbstract));            
         } else {
             logger.info("No files with empty abstract.");
         }
