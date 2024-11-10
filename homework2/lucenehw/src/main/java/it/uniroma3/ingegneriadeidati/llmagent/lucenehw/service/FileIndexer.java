@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -155,6 +156,9 @@ public class FileIndexer {
         if (abstractText != null && !abstractText.isEmpty()) {
              doc.add(new TextField("abstract", abstractText, Field.Store.YES));
         }
+
+        doc.add(new StringField("filename", file.getName(), Field.Store.YES));
+        
         return doc;
     }
 }

@@ -14,6 +14,7 @@ public class SearchResult {
     private String contentSnippet;
     private String abstractA;
     private String matchField;
+    private String link;
 
     
      /**
@@ -29,13 +30,16 @@ public class SearchResult {
      * @param author l'autore del documento
      * @param contentSnippet l'estratto del contenuto rilevante del docuemnto
      * @param abstract abstract del documento
+     * @param matchField il campo su cui ha scelto l'articolo
+     * @param link il link dell'articolo
      */
-    public SearchResult(String title, String author, String contentSnippet, String abstractA, String matchField) {
+    public SearchResult(String title, String author, String contentSnippet, String abstractA, String matchField, String link) {
         this.title = title;
         this.author = author;
         this.contentSnippet = contentSnippet;
         this.abstractA = abstractA;
         this.matchField = matchField;
+        this.link = link;
     }
 
     /**
@@ -108,5 +112,13 @@ public class SearchResult {
     public void setMatchField(String matchField) {
         this.matchField = matchField;
     }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+       }
 
 }
