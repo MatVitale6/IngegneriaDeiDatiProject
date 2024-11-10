@@ -1,13 +1,14 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
@@ -35,14 +36,30 @@ public class LuceneConfig {
     @Value("${lucene.index.path}")
     private String indexDirectory;
 
+    @Value("${indexer.runonstartup}")
+    private boolean clearDirectory;
+
     /**
      * Crea un bean 'Directory' che rappresenta la directory del file system in cui Lucene memorizza l'indice
      * @return un'istanza di 'FSDirectory' che punta al percorso specificato in 'indexDirectory'.
      * @throws IOException se il percorso specificato non é accessibile o non puó essere aperto.
      */
     @Bean
-    public Directory luceneDirectory() throws IOException {
+    public Directory createIndexDirectory() throws IOException {
         Path path = Paths.get(indexDirectory);
+
+        if (clearDirectory) {
+            try (DirectoryStream<Path> directoryStream =  Files.newDirectoryStream(path)) {
+                for (Path filePath : directoryStream) {
+                    if(!filePath.getFileName().toString().equals(".gitkeep")) {
+                        Files.delete(filePath);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IOException("Error clearing indexDirectory " + e.getMessage(), e);
+            }
+        }
+
         return FSDirectory.open(path);
     }
 
