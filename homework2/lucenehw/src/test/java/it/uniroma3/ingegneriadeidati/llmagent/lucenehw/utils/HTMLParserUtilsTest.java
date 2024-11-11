@@ -1,6 +1,7 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -35,6 +36,7 @@ public class HTMLParserUtilsTest {
     private static File testFile2;
     private static File testFile3;
     private static File testFile4;
+    private static File testFile5;
     private static File testFile7;
     
     @Value("${html.files.path}")
@@ -44,6 +46,7 @@ public class HTMLParserUtilsTest {
     private final static String fileName2 = "1_arXiv2410.03427.html";
     private final static String fileName3 = "0710.0386v1.html";
     private final static String fileName4 = "arXiv_2108.02092.html";
+    private final static String fileName5 = "2410.13674.html";
     private final static String fileName7 = "11_arXiv2409.05874.html";
 
     @BeforeEach
@@ -52,6 +55,7 @@ public class HTMLParserUtilsTest {
         testFile2 = Paths.get(this.htmlFilesPath, fileName2).toFile();
         testFile3 = Paths.get(this.htmlFilesPath, fileName3).toFile();
         testFile4 = Paths.get(this.htmlFilesPath, fileName4).toFile();
+        testFile5 = Paths.get(this.htmlFilesPath, fileName5).toFile();
         testFile7 = Paths.get(this.htmlFilesPath, fileName7).toFile();
         
 
@@ -129,6 +133,18 @@ public class HTMLParserUtilsTest {
         assertTrue(authors.contains("Mingli Song"));
         assertTrue(authors.contains("Ying Huang"));
         assertTrue(authors.contains("Zhigeng Pan"));
+    }
+
+    @Test
+    public void testParseTitle_2410_13674() throws IOException {
+        String title = HTMLParserUtils.parseTitle(testFile5);
+        assertEquals(title.isEmpty(), title.equals(""));
+    }
+    
+    @Test
+    public void testParseAuthors_2410_13674() throws IOException {
+        String authors = HTMLParserUtils.parseAuthors(testFile5);
+        assertTrue(!authors.isEmpty());
     }
 
     @Test

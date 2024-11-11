@@ -10,7 +10,12 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +34,7 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 public class FileIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);
+    private Map<String, List<String>> emptyFieldsFiles = new HashMap<>();
 
     @Value("${html.files.path}")
     private String htmlFilesPath;
@@ -49,6 +55,13 @@ public class FileIndexer {
 
     @Autowired
     private ProgressService progressService;
+
+    public FileIndexer() {
+        emptyFieldsFiles.put("title", new ArrayList<>());
+        emptyFieldsFiles.put("authors", new ArrayList<>());
+        emptyFieldsFiles.put("abstract", new ArrayList<>());
+        emptyFieldsFiles.put("content", new ArrayList<>());
+    }
 
     public void run() {
         try {
@@ -101,35 +114,21 @@ public class FileIndexer {
         long endTime = System.nanoTime();        
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
 
-        // Recupera e stampa le liste dei file con titolo o autori vuoti
-        List<String> filesWithEmptyTitles = HTMLParserUtils.getEmptyTitleFiles();
-        List<String> filesWithEmptyAuthors = HTMLParserUtils.getEmptyAuthorFiles();
-        List<String> filesWithEmptyAbstract = HTMLParserUtils.getEmptyAbstractFiles();
+        // log empty fields summary
+        logEmptyFieldsSummary(totalFiles);
+    }
 
-        if (!filesWithEmptyTitles.isEmpty()) {
-            double percentageOfEmptyTitles = (filesWithEmptyTitles.size() * 100.0) / totalFiles;
-            logger.warn("Files with empty titles: {}", filesWithEmptyTitles);
-            logger.warn("Files with empty title size: {}, which is {}% of total files",
-                 filesWithEmptyTitles.size(), String.format("%.2f", percentageOfEmptyTitles));   
-        } else {
-            logger.info("No files with empty titles.");
-        }
-        if (!filesWithEmptyAuthors.isEmpty()) {
-            double percentageOfEmptyAuthors = (filesWithEmptyAuthors.size() * 100.0) / totalFiles;
-            logger.warn("Files with empty authors: {}", filesWithEmptyAuthors);
-            logger.warn("Files with empty authors size: {}, which is {}% of total files",
-                    filesWithEmptyAuthors.size(), String.format("%.2f", percentageOfEmptyAuthors));   
-        } else {
-            logger.info("No files with empty authors.");
-        }
-        if (!filesWithEmptyAbstract.isEmpty()) {
-            double percentageOfEmptyAbstract = (filesWithEmptyAbstract.size() * 100.0) / totalFiles;
-            logger.warn("Files with empty abstract: {}", filesWithEmptyAbstract);
-            logger.warn("Files with empty abstract size: {}, which is {}% of total files",
-                    filesWithEmptyAbstract.size(), String.format("%.2f", percentageOfEmptyAbstract));            
-        } else {
-            logger.info("No files with empty abstract.");
-        }
+    private void logEmptyFieldsSummary(int totalFiles) {
+        emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
+            logger.info(filesWithEmptyField.toString());
+            if (!filesWithEmptyField.isEmpty()) {
+                double percentage = (filesWithEmptyField.size() * 100.0) / totalFiles;
+                logger.warn("Files with empty {}: {} ({} files, {}% of total files)",
+                    field, filesWithEmptyField, filesWithEmptyField.size(), String.format("%.2f", percentage));   
+            } else {
+                logger.info("No files with empty {}", field);
+            }
+        });
     }  
 
     /**
@@ -144,29 +143,36 @@ public class FileIndexer {
 
         //Estrae e aggiunge il titolo
         String title = HTMLParserUtils.parseTitle(file);
-        if (title != null && !title.isEmpty()) {
+        if (!title.isEmpty()) {
             doc.add(new TextField("title", title, Field.Store.YES));
+        } else {
+            emptyFieldsFiles.get("title").add(file.getName());
         }
 
         //Estrae e aggiunge gli autori
         String authors = HTMLParserUtils.parseAuthors(file);
-        if (authors != null && !authors.isEmpty()) {
+        if (!authors.isEmpty()) {
             doc.add(new TextField("authors", authors, Field.Store.YES));
+        } else {
+            emptyFieldsFiles.get("authors").add(file.getName());
         }
 
         //Estrae e aggiunge il contenuto del file
         String content = HTMLParserUtils.parseContent(file);
-        if (content != null && !content.isEmpty()) {
+        if (!content.isEmpty()) {
             doc.add(new TextField("content", content, Field.Store.YES));
-        }
-        // Estrae e aggiunge l'abstract
-        String abstractText = HTMLParserUtils.parseAbstract(file);
-        if (abstractText != null && !abstractText.isEmpty()) {
-             doc.add(new TextField("abstract", abstractText, Field.Store.YES));
+        } else {
+            emptyFieldsFiles.get("content").add(file.getName());
         }
 
+        // Estrae e aggiunge l'abstract
+        String abstractText = HTMLParserUtils.parseAbstract(file);
+        if (!abstractText.isEmpty()) {
+             doc.add(new TextField("abstract", abstractText, Field.Store.YES));
+        } else {
+            emptyFieldsFiles.get("abstract").add(file.getName());
+        }
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
-        
         return doc;
     }
 }

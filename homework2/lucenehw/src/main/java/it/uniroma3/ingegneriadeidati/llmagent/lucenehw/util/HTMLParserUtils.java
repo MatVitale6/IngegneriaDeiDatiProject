@@ -22,10 +22,6 @@ import org.jsoup.select.Elements;
 public class HTMLParserUtils {
     private static final Logger logger = LoggerFactory.getLogger(HTMLParserUtils.class);
 
-    private static final List<String> emptyTitleFiles = new ArrayList<>();
-    private static final List<String> emptyAuthorFiles = new ArrayList<>();
-    private static final List<String> emptyAbstractFiles = new ArrayList<>();
-
     /**
      * Estrae il titolo del docuemento HTML.
      * Il metodo cerca l'elemento 'h1' con classi 'ltx_title ltx_title_document' e restituisce il suo testo.
@@ -42,7 +38,6 @@ public class HTMLParserUtils {
         Element titleElement = htmlDoc.selectFirst("h1.ltx_title.ltx_title_document");
         if (titleElement == null) {
             logger.warn("Extracted empty title at {}", file.getName());
-            emptyTitleFiles.add(file.getName());
             return "";
         }
         return titleElement.text().trim();
@@ -65,7 +60,6 @@ public class HTMLParserUtils {
 
         if (authorsElements == null) {
             logger.warn("Extracted empty authors at {}", file.getName());
-            emptyAuthorFiles.add(file.getName());
             return "";
         }
         return authorsElements.text().trim();
@@ -119,7 +113,6 @@ public class HTMLParserUtils {
 
         if (abstractElement == null) {
             logger.warn("Abstract not found in {}", file.getName());
-            emptyAbstractFiles.add(file.getName());
             return "";
         }
 
@@ -133,17 +126,5 @@ public class HTMLParserUtils {
         }
 
         return paragraph.text().trim();
-    }
-
-    public static List<String> getEmptyTitleFiles() {
-        return emptyTitleFiles;
-    }
-
-    public static List<String> getEmptyAuthorFiles() {
-        return emptyAuthorFiles;
-    }
-
-    public static List<String> getEmptyAbstractFiles() {
-        return emptyAbstractFiles;
     }
 }
