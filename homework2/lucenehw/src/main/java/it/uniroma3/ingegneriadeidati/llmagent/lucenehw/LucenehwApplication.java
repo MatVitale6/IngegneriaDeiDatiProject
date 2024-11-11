@@ -47,7 +47,7 @@ public class LucenehwApplication {
     }
 
     @Bean
-    public CommandLineRunner runIndexer() {
+    public CommandLineRunner runIndexer(@Autowired(required = false) FileIndexer indexer) {
         return args -> {
             Path flagFilePath = Paths.get(indexDirectory, "indexing_complete.flag");
 
@@ -55,8 +55,7 @@ public class LucenehwApplication {
                 logger.info("Indexing has already completed. Skipping...");
                 return;
             }
-            if (context.containsBean("fileIndexer")) {
-                FileIndexer indexer = context.getBean(FileIndexer.class);
+            if (indexer != null) {
                 logger.info("Starting indexing process...");
                 indexer.run();
             } else {

@@ -38,7 +38,6 @@ public class SearchService {
     Pattern pattern = Pattern.compile(regex);
     String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
    
-
     /**
      * Esegue una ricerca utilizzando la query fornita.
      * La query viene elaborata in base ai campi specifici (es. titolo, autore,

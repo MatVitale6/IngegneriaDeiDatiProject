@@ -26,7 +26,6 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
  * La classe 'FileIndexer gestisce l'iterazione dei file, la creazione dei documenti per Lucene e l'indicizzazione in batch.
  */
 @Service
-@ConditionalOnProperty(name = "indexer.runonstartup", havingValue = "true")
 public class FileIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);

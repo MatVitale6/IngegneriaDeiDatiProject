@@ -74,7 +74,7 @@ public class LuceneConfig {
     public FileIndexer fileIndexer() {
         Path flagFilePath = Paths.get(indexDirectory, INDEXING_COMPLETE_FLAG);
 
-        if (Files.exists(flagFilePath)) {
+        if (!Files.exists(flagFilePath)) {
             logger.info("Indexing Flag file not found, creating FileIndexer");
             return new FileIndexer();
         } else {
