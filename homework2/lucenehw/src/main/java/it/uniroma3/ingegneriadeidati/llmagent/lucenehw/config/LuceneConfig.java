@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+
 /**
  * 
  * Questa classe configura le impostazioni di base per l'uso di Lucene. Definisce ad esempio il percorso dell'indice
@@ -37,8 +39,7 @@ public class LuceneConfig {
     @Value("${lucene.index.path}")
     private String indexDirectory;
 
-    @Value("${indexer.runonstartup}")
-    private boolean clearDirectory;
+    private static final String INDEXING_COMPLETE_FLAG = "indexing_complete.flag";
 
     /**
      * Crea un bean 'Directory' che rappresenta la directory del file system in cui Lucene memorizza l'indice
@@ -48,11 +49,16 @@ public class LuceneConfig {
     @Bean
     public Directory createIndexDirectory() throws IOException {
         Path path = Paths.get(indexDirectory);
+        String flagFileName = "indexing_complete.flag";
+        Path flagFilePath = path.resolve(flagFileName);
 
-        if (clearDirectory) {
+        boolean indexingCompleted = Files.exists(flagFilePath);
+        
+        if (!indexingCompleted) {
             try (DirectoryStream<Path> directoryStream =  Files.newDirectoryStream(path)) {
                 for (Path filePath : directoryStream) {
-                    if(!filePath.getFileName().toString().equals(".gitkeep")) {
+                    if(!filePath.getFileName().toString().equals(".gitkeep") && !filePath.getFileName().toString().equals(flagFileName)) {
+                        logger.warn("Deleting {}", filePath.getFileName().toString());
                         Files.delete(filePath);
                     }
                 }
@@ -62,6 +68,19 @@ public class LuceneConfig {
         }
 
         return FSDirectory.open(path);
+    }
+
+    @Bean
+    public FileIndexer fileIndexer() {
+        Path flagFilePath = Paths.get(indexDirectory, INDEXING_COMPLETE_FLAG);
+
+        if (Files.exists(flagFilePath)) {
+            logger.info("Indexing Flag file not found, creating FileIndexer");
+            return new FileIndexer();
+        } else {
+            logger.info("Indexing complete, skipping FileIndexer creation");
+            return null;
+        }
     }
 
     /**

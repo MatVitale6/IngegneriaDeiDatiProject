@@ -119,6 +119,6 @@ public class SearchResult {
 
     public void setLink(String link) {
         this.link = link;
-       }
+    }
 
 }
