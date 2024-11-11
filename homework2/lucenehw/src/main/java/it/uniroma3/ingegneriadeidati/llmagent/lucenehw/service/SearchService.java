@@ -10,6 +10,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
@@ -70,11 +71,10 @@ public class SearchService {
         TopDocs topDocs = searcher.search(query, 10); // Limitando la ricerca ai primi 10 risultati
     
         // Creazione degli oggetti SearchResult per ogni documento trovato
-        for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-            int docId = topDocs.scoreDocs[i].doc;
-            Document doc = searcher.doc(docId);
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            Document doc = searcher.doc(scoreDoc.doc);
 
-            Explanation explanation = searcher.explain(query, docId);
+            Explanation explanation = searcher.explain(query, scoreDoc.doc);
             String matchField = getDominantField(explanation, fields);
             
             String filename = doc.get("filename");
@@ -95,6 +95,7 @@ public class SearchService {
             searchResult.setAbstract(doc.get("abstract"));
             searchResult.setMatchField(matchField);
             searchResult.setLink(link);
+            searchResult.setScore(scoreDoc.score);
             results.add(searchResult);
         }
     

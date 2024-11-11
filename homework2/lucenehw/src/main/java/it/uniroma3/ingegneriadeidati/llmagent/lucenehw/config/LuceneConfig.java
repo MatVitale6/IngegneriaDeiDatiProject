@@ -51,8 +51,8 @@ public class LuceneConfig {
         Path path = Paths.get(indexDirectory);
         String flagFileName = "indexing_complete.flag";
         Path flagFilePath = path.resolve(flagFileName);
-
         boolean indexingCompleted = Files.exists(flagFilePath);
+        logger.info("{}", indexingCompleted);
         
         if (!indexingCompleted) {
             try (DirectoryStream<Path> directoryStream =  Files.newDirectoryStream(path)) {
