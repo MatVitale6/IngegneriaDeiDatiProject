@@ -28,8 +28,7 @@ public class HTMLParserUtils {
 
     /**
      * Estrae il titolo del docuemento HTML.
-     * Il metodo cerca l'elemento '
-     * <h1>' con classi 'ltx_title ltx_title_document' e restituisce il suo testo.
+     * Il metodo cerca l'elemento 'h1' con classi 'ltx_title ltx_title_document' e restituisce il suo testo.
      * 
      * @param file Il file HTML da analizzare.
      * @return il titolo del documento, o una stringa vuota se il titolo non é
