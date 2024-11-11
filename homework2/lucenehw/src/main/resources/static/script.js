@@ -1,7 +1,3 @@
-document.getElementById('colorPickerR').addEventListener('input', function(event) {
-    updateColors(event.target.value);
-});
-
 document.getElementById('colorPickerL').addEventListener('input', function(event) {
     updateColors(event.target.value);
 });
@@ -19,6 +15,8 @@ function updateColors(selectedColor) {
     // Cambia il colore di sfondo e del testo del pulsante di submit
     document.getElementById('submitButton').style.backgroundColor = selectedColor;
     document.getElementById('submitButton').style.color = complementaryColor;
+
+    document.getElementById('researchResults').style.color = complementaryColor;
 }
 
 // Funzione per calcolare il colore opposto
@@ -96,6 +94,8 @@ function performSearch(event) {
                 expandButton.textContent = "Read abstract";
                 expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
                 expandButton.style.fontSize = "0.7rem";
+                //expandButton.style.color = "black"
+                //expandButton.style.textDecoration = "underline"
 
 
                 expandButton.addEventListener("click", () => {
