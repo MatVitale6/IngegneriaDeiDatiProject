@@ -42,6 +42,7 @@ function performSearch(event) {
 
     // Ottieni il valore del campo di input
     const query = document.getElementById("inputString").value;
+    const resultCount = document.getElementById("resultCount").value;
 
     // Invia la richiesta POST tramite fetch
     fetch("/search", {
@@ -49,7 +50,7 @@ function performSearch(event) {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: new URLSearchParams({ inputString: query })
+        body: new URLSearchParams({ inputString: query, resultCount: resultCount })
     })
     .then(response => response.json())  // Converte la risposta in JSON
     .then(results => {

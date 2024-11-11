@@ -24,7 +24,7 @@ public class AnalyzerEvaluationTest {
     public void testQueryMatchingUsingSearchService() throws Exception {
         for (int i = 0; i < queries.length; i++) {
             String queryStr = queries[i];
-            List<SearchResult> results = searchService.search(queryStr);
+            List<SearchResult> results = searchService.search(queryStr, 10);
 
             int relevantCount = 0;
             int totalHits = results.size();

@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,8 +35,14 @@ public class SearchController {
      * @throws IOException 
      */
     @PostMapping("/search")
-    public List<SearchResult> search(@RequestParam("inputString") String query) throws IOException {
-        List<SearchResult> results = searchService.search(query);
-        return results;
+    public ResponseEntity<List<SearchResult>> searchArticles(@RequestParam("inputString") String queryStr,
+                                                            @RequestParam("resultCount") int resultCount) {
+        try {
+            List<SearchResult> results = searchService.search(queryStr, resultCount);
+            return ResponseEntity.ok(results);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

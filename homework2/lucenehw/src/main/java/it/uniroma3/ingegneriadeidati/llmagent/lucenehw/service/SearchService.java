@@ -47,7 +47,7 @@ public class SearchService {
      * @return una lista di ogetti 'SearchResult' che rappresentano i documenti
      *         trovati che soddisfano i criteri di ricerca.
      */
-    public List<SearchResult> search(String queryStr) throws IOException {
+    public List<SearchResult> search(String queryStr, int maxResults) throws IOException {
         LinkedList<SearchResult> results = new LinkedList<SearchResult>();
         
         // Parse query based on field 'title','authors','content','abstract'
@@ -67,7 +67,7 @@ public class SearchService {
             return results; // Restituisce una lista vuota in caso di errore
         }
     
-        TopDocs topDocs = searcher.search(query, 10); // Limitando la ricerca ai primi 10 risultati
+        TopDocs topDocs = searcher.search(query, maxResults); // Limitando la ricerca ai primi 10 risultati
     
         // Creazione degli oggetti SearchResult per ogni documento trovato
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
