@@ -9,12 +9,14 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
+
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
@@ -24,6 +26,7 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
  * La classe 'FileIndexer gestisce l'iterazione dei file, la creazione dei documenti per Lucene e l'indicizzazione in batch.
  */
 @Service
+@ConditionalOnProperty(name = "indexer.runonstartup", havingValue = "true")
 public class FileIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);
@@ -45,6 +48,9 @@ public class FileIndexer {
     @Autowired
     private IndexWriterConfig indexWriterConfig;
 
+    @Autowired
+    private ProgressService progressService;
+
     public void run() {
         try {
             this.indexHtmlFiles(htmlFilesPath);
@@ -61,9 +67,7 @@ public class FileIndexer {
      */
     public void indexHtmlFiles(String directoryPath) throws IOException {
         logger.info("Starting HTML file indexing...");
-
-        long startTime = System.nanoTime();
-        int totalIndexed = 0;
+        progressService.resetProgress();
 
         //Trova tutti i file HTML nella directory specificata
         File[] files = new File(directoryPath).listFiles((dir, name) -> name.endsWith(".html"));
@@ -71,7 +75,9 @@ public class FileIndexer {
             logger.warn("No HTML files found in directory: {}", directoryPath);
             return;  
         }
-
+        
+        long startTime = System.nanoTime();
+        int totalIndexed = 0;
         int totalFiles = files.length;
         
         try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
@@ -86,11 +92,14 @@ public class FileIndexer {
     
                 logger.info("Indexed file: {} (Total Indexed: {}), File Time: {}ms",
                         file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
+                
+                int progress = (int) (((double) totalIndexed / totalFiles) * 100);
+                progressService.setProgress(progress);
             }
         }
-
-        long endTime = System.nanoTime();
-        
+        progressService.setProgress(100);
+        progressService.markIndexingComplete();
+        long endTime = System.nanoTime();        
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
 
         // Recupera e stampa le liste dei file con titolo o autori vuoti

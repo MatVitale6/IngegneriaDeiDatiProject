@@ -38,6 +38,7 @@ function getComplementaryColor(hexColor) {
 
     return `#${complementaryR}${complementaryG}${complementaryB}`;
 }
+
 function performSearch(event) {
     event.preventDefault();  // Previene l'invio predefinito del form
 

@@ -15,6 +15,7 @@ public class SearchResult {
     private String abstractA;
     private String matchField;
     private String link;
+    private float score;
 
     
      /**
@@ -119,6 +120,14 @@ public class SearchResult {
 
     public void setLink(String link) {
         this.link = link;
-       }
+    }
+
+    public float getScore() {
+        return this.score;
+    }
+
+    public void setScore(float score) {
+        this.score = score;
+    }
 
 }
