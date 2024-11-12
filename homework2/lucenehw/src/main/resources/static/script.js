@@ -11,7 +11,9 @@ function updateColors(selectedColor) {
 
     // Cambia il colore del testo del titolo principale
     document.getElementById('mainTitle').style.color = complementaryColor;
-
+    document.getElementById('subTitle1').style.color = complementaryColor;
+    document.getElementById('subTitle2').style.color = complementaryColor;
+    
     // Cambia il colore di sfondo e del testo del pulsante di submit
     document.getElementById('submitButton').style.backgroundColor = selectedColor;
     document.getElementById('submitButton').style.color = complementaryColor;
