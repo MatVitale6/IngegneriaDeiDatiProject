@@ -1,24 +1,9 @@
-//package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
-
-//import org.junit.jupiter.api.Test;
-//import org.springframework.boot.test.context.SpringBootTest;
-
-//@SpringBootTest
-//class LucenehwApplicationTests {
-
-//	@Test
-//	void contextLoads() {
-//	}
-
-//}
-
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
 import org.junit.jupiter.api.Test;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
@@ -31,7 +16,6 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @SpringBootTest
 class LucenehwApplicationTests {

@@ -6,45 +6,80 @@ def convert_milliseconds(ms):
     milliseconds = ms % 1000
     return f"{minutes} min, {seconds} sec, {milliseconds} ms"
 
-# Define patterns to capture specific log data
+query_pattern = re.compile(r"Query: (.+)")
+title_pattern = re.compile(r"Title: (.+)")
+total_matches_pattern = re.compile(r"Total Matches: (\d+)")
+average_score_pattern = re.compile(r"Average Score: ([\d.]+)")
+score_variance_pattern = re.compile(r"Score Variance: ([\d.]+)")
+score_decay_pattern = re.compile(r"Score Decay: ([\d.]+)")
+individual_score_pattern = re.compile(r"Score: ([\d.]+) on Field: (\w+)")
 analyzer_pattern = re.compile(r"Field '(\w+)', Analyzer '([\w\.]+)'")
 file_index_time_pattern = re.compile(r"Indexed file: .+? \(Total Indexed: \d+\), File Time: (\d+)ms")
-# Define the log pattern to capture the field, file count, and percentage
 empty_field_pattern = re.compile(r"Files with empty (\w+): \[.*\] \((\d+) files, ([\d.]+)% of total files\)")
-# Initialize counters and storage variables
+
 analyzers = {}
+queries = []
+titles = []
+numeric_results = []
 file_times = []
 missing_percentages = {}
 
-# Path to the log file
-log_file_path = 'lucenehw/logs/spring.log'  # Replace with your actual path
+log_file_path = 'lucenehw/logs/spring.log'  
 
-# Process log file line by line
 with open(log_file_path, 'r') as file:
     for line in file:
-        # Match and store analyzer configuration
         analyzer_match = analyzer_pattern.search(line)
         if analyzer_match:
             field, analyzer = analyzer_match.groups()
             analyzers[field] = analyzer
 
-        # Match and store file indexing time
         file_index_time_match = file_index_time_pattern.search(line)
         if file_index_time_match:
             file_time = int(file_index_time_match.group(1))
             file_times.append(file_time)
 
-        # Capture the percentage of missing fields with the updated log format
         missing_percentage_match = empty_field_pattern.search(line)
         if missing_percentage_match:
             field, count, percentage = missing_percentage_match.groups()
             missing_percentages[field] = (int(count), float(percentage))
 
-# Calculate average file index time and total index time
+        query_match = query_pattern.search(line)
+        if query_match:
+            queries.append(query_match.group(1))
+        
+        title_match = title_pattern.search(line)
+        if title_match:
+            titles.append(title_match.group(1))
+
+        total_matches_match = total_matches_pattern.search(line)
+        if total_matches_match:
+            total_matches = int(total_matches_match.group(1))
+            numeric_results.append({'Total Matches': total_matches})
+
+        average_score_match = average_score_pattern.search(line)
+        if average_score_match:
+            average_score = float(average_score_match.group(1))
+            numeric_results[-1]['Average Score'] = average_score
+
+        score_variance_match = score_variance_pattern.search(line)
+        if score_variance_match:
+            score_variance = float(score_variance_match.group(1))
+            numeric_results[-1]['Score Variance'] = score_variance
+
+        score_decay_match = score_decay_pattern.search(line)
+        if score_decay_match:
+            score_decay = float(score_decay_match.group(1))
+            numeric_results[-1]['Score Decay'] = score_decay
+
+        individual_score_match = individual_score_pattern.search(line)
+        if individual_score_match:
+            score, field = individual_score_match.groups()
+            numeric_results[-1].setdefault('Individual Scores', []).append((float(score), field))
+
+
 average_index_time = sum(file_times) / len(file_times) if file_times else 0
 total_index_time = sum(file_times)
 
-# Print extracted information
 print("Analyzers Used:")
 for field, analyzer in analyzers.items():
     print(f"  {field}: {analyzer}")
@@ -56,3 +91,6 @@ print(f"Total Index Time: {convert_milliseconds(total_index_time)}")
 print("\nMissing Fields Summary:")
 for field, (count, percentage) in missing_percentages.items():
     print(f"  {field.capitalize()} - Missing Count: {count} ({percentage:.2f}%)")
+
+print("\nQueries Executed:", queries)
+print("\nNumeric Results of Queries:", numeric_results)

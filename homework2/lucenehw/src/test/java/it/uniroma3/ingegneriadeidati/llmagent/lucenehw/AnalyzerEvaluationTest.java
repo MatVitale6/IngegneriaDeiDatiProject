@@ -41,7 +41,6 @@ public class AnalyzerEvaluationTest {
     @Test
     public void evaluateQueryScores() throws Exception {
         List<String> queries = loadQueries(QUERY_FILE_PATH);
-        logger.info(QUERY_FILE_PATH);
         List<QueryResult> queryResults = new ArrayList<>();
         
 
