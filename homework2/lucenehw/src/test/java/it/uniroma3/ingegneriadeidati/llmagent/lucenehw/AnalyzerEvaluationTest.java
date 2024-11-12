@@ -12,20 +12,30 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils.QueryResult;
 
+import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SpringBootTest
 public class AnalyzerEvaluationTest {
     private static final Logger logger = LoggerFactory.getLogger(AnalyzerEvaluationTest.class);
     private static final String QUERY_FILE_PATH = "src/test/resources/queries.txt";
+    private static final String OUTPUT_DIR_PATH = "src/test/resources/results";
 
     @Autowired
     private SearchService searchService;
@@ -34,27 +44,22 @@ public class AnalyzerEvaluationTest {
     public void evaluateQueryScores() throws Exception {
         List<String> queries = loadQueries(QUERY_FILE_PATH);
         logger.info(QUERY_FILE_PATH);
+        List<QueryResult> queryResults = new ArrayList<>();
+        
 
         for (String queryStr : queries) {
-            List<SearchResult> results = searchService.search(queryStr, 20); 
-
-            logger.info("Query: {}", queryStr);
-            logger.info("Total Matches: {}", results.size());
+            long startTime = System.nanoTime();
+            List<SearchResult> results = searchService.search(queryStr, 20);
+            long endTime = System.nanoTime();
+            long durationInMillis = (endTime - startTime) / 1_000_000; 
 
             double averageScore = results.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
             double scoreVariance = calculateVariance(results, averageScore);
             double scoreDecay = calculateScoreDecay(results);
 
-            logger.info("Average Score: {}", averageScore);
-            logger.info("Score Variance: {}", scoreVariance);
-            logger.info("Score Decay: {}", scoreDecay);
-
-            for (SearchResult result : results) {
-                logger.info("Title: {}", result.getTitle());
-                logger.info("Score: {} on Field: {}", result.getScore(), result.getMatchField());
-            }
-            logger.info("\n");
+            queryResults.add(new QueryResult(queryStr, durationInMillis, results.size(), averageScore, scoreVariance, scoreDecay, results));   
         }
+        saveAsJSON(queryResults, OUTPUT_DIR_PATH);
     }
 
     private List<String> loadQueries(String filePath) throws Exception {
@@ -78,4 +83,30 @@ public class AnalyzerEvaluationTest {
         double minScore = results.get(results.size() - 1).getScore();
         return maxScore - minScore;
     }
+
+    private void saveAsJSON(List<QueryResult> queryResults, String dirPath) throws IOException {
+        String nextFileName = getNextFileName(dirPath, "query_results", ".json");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.writeValue(new File(dirPath, nextFileName), queryResults);
+    }
+
+    private String getNextFileName(String dirPath, String baseName, String extension) {
+        File dir = new File(dirPath);
+        File[] files = dir.listFiles((d, name) -> name.matches(baseName + "\\d+" + extension));
+        
+        int maxNumber = 0;
+        if (files != null) {
+            Pattern pattern = Pattern.compile(baseName + "(\\d+)" + extension);
+            for (File file : files) {
+                Matcher matcher = pattern.matcher(file.getName());
+                if (matcher.matches()) {
+                    int number = Integer.parseInt(matcher.group(1));
+                    maxNumber = Math.max(maxNumber, number);
+                }
+            }
+        }
+        return baseName + (maxNumber + 1) + extension;
+    }
+
 }
