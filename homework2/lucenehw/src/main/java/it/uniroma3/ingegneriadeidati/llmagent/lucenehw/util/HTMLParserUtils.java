@@ -5,9 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -127,4 +124,16 @@ public class HTMLParserUtils {
 
         return paragraph.text().trim();
     }
+
+    // public static String parseKeywords(File file) throws IOException {
+    //     Document htmlDoc = Jsoup.parse(file, "UTF-8");
+    //     Element keywordsElement = htmlDoc.selectFirst("div.ltx_keywords");
+
+    //     if (keywordsElement == null) {
+    //         logger.warn("Extracted empty keywords at {}", file.getName());
+    //         return "";
+    //     }
+    //     return keywordsElement.text().trim();
+    // }
+
 }

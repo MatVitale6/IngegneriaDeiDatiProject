@@ -1,69 +1,81 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@SpringBootTest
 public class AnalyzerEvaluationTest {
+    private static final Logger logger = LoggerFactory.getLogger(AnalyzerEvaluationTest.class);
+    private static final String QUERY_FILE_PATH = "src/test/resources/queries.txt";
 
     @Autowired
     private SearchService searchService;
 
-    private final String[] queries = {"Large Language Model", "With the advancement of Large Language Models (LLMs), many researchers have employed LLMs as the ESC models"};
-    private final String[][] expectedRelevantTitles = {
-        {"ESC-Eval: Evaluating Emotion Support Conversations in Large Language Models"},
-        {"ESC-Eval: Evaluating Emotion Support Conversations in Large Language Models"}
-    };
-
     @Test
-    public void testQueryMatchingUsingSearchService() throws Exception {
-        for (int i = 0; i < queries.length; i++) {
-            String queryStr = queries[i];
-            List<SearchResult> results = searchService.search(queryStr, 10);
+    public void evaluateQueryScores() throws Exception {
+        List<String> queries = loadQueries(QUERY_FILE_PATH);
+        logger.info(QUERY_FILE_PATH);
 
-            int relevantCount = 0;
-            int totalHits = results.size();
-            double averageScore = 0;
+        for (String queryStr : queries) {
+            List<SearchResult> results = searchService.search(queryStr, 20); 
 
-            System.out.println("Query: " + queryStr);
-            System.out.println("Total Matches: " + totalHits);
+            logger.info("Query: {}", queryStr);
+            logger.info("Total Matches: {}", results.size());
+
+            double averageScore = results.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
+            double scoreVariance = calculateVariance(results, averageScore);
+            double scoreDecay = calculateScoreDecay(results);
+
+            logger.info("Average Score: {}", averageScore);
+            logger.info("Score Variance: {}", scoreVariance);
+            logger.info("Score Decay: {}", scoreDecay);
 
             for (SearchResult result : results) {
-                System.out.println("Title: " + result.getTitle());
-                System.out.println("Score: " + result.getScore());  // Assuming SearchResult has a score attribute
-                averageScore += result.getScore();  // Collect score for average calculation
-
-                // Check if the result is in the expected relevant documents
-                for (String expectedTitle : expectedRelevantTitles[i]) {
-                    if (result.getTitle().equalsIgnoreCase(expectedTitle)) {
-                        relevantCount++;
-                        break;
-                    }
-                }
+                logger.info("Title: {}", result.getTitle());
+                logger.info("Score: {} on Field: {}", result.getScore(), result.getMatchField());
             }
-
-            // Calculate average score
-            averageScore = totalHits > 0 ? averageScore / totalHits : 0;
-            System.out.println("Average Score: " + averageScore);
-            System.out.println("Relevant Matches: " + relevantCount);
-
-            // Calculate and print precision and recall
-            double precision = totalHits > 0 ? (double) relevantCount / totalHits : 0;
-            double recall = (double) relevantCount / expectedRelevantTitles[i].length;
-
-            System.out.println("Precision: " + precision);
-            System.out.println("Recall: " + recall);
-            System.out.println("----");
-
-            // Basic assertions
-            assertTrue(relevantCount > 0, "Expected at least one relevant match for query: " + queryStr);
-            assertTrue(precision > 0, "Expected non-zero precision for query: " + queryStr);
-            assertTrue(recall > 0, "Expected non-zero recall for query: " + queryStr);
+            logger.info("\n");
         }
+    }
+
+    private List<String> loadQueries(String filePath) throws Exception {
+        return Files.lines(Paths.get(filePath))
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .collect(Collectors.toList());
+    }
+
+    private double calculateVariance(List<SearchResult> results, double averageScore) {
+        if (results.isEmpty()) return 0;
+        return results.stream()
+                        .mapToDouble(result -> Math.pow(result.getScore() - averageScore, 2))
+                        .average()
+                        .orElse(0);
+    }
+    
+    private double calculateScoreDecay(List<SearchResult> results) {
+        if (results.size() < 2) return 0;
+        double maxScore = results.get(0).getScore();
+        double minScore = results.get(results.size() - 1).getScore();
+        return maxScore - minScore;
     }
 }

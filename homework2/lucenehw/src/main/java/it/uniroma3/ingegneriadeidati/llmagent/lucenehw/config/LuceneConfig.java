@@ -9,7 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.LowerCaseFilter;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -22,7 +25,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import ch.qos.logback.core.subst.Tokenizer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.CustomAuthorAnalyzer;
 
 /**
  * 
@@ -52,13 +57,11 @@ public class LuceneConfig {
         String flagFileName = "indexing_complete.flag";
         Path flagFilePath = path.resolve(flagFileName);
         boolean indexingCompleted = Files.exists(flagFilePath);
-        logger.info("{}", indexingCompleted);
         
         if (!indexingCompleted) {
             try (DirectoryStream<Path> directoryStream =  Files.newDirectoryStream(path)) {
                 for (Path filePath : directoryStream) {
                     if(!filePath.getFileName().toString().equals(".gitkeep") && !filePath.getFileName().toString().equals(flagFileName)) {
-                        logger.warn("Deleting {}", filePath.getFileName().toString());
                         Files.delete(filePath);
                     }
                 }
@@ -94,10 +97,11 @@ public class LuceneConfig {
     @Bean
     public Analyzer analyzer() {
         Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
-        perFieldAnalyzer.put("title", new StandardAnalyzer());
-        perFieldAnalyzer.put("authors", new WhitespaceAnalyzer());
+        perFieldAnalyzer.put("title", new KeywordAnalyzer());
+        perFieldAnalyzer.put("authors", new CustomAuthorAnalyzer());
         perFieldAnalyzer.put("content", new EnglishAnalyzer());
         perFieldAnalyzer.put("abstract", new EnglishAnalyzer());
+        // perFieldAnalyzer.put("keywords", new KeywordAnalyzer());
         
         PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
 

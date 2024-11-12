@@ -1,7 +1,5 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
-import org.springframework.context.ApplicationContext;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,10 +25,6 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
 public class LucenehwApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(LucenehwApplication.class);
-
-    @Autowired
-    private ApplicationContext context;
-
 
     @Value("${lucene.index.path}")  
     private String indexDirectory;

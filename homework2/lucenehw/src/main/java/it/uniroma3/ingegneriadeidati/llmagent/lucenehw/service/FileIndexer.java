@@ -11,7 +11,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
@@ -61,6 +59,7 @@ public class FileIndexer {
         emptyFieldsFiles.put("authors", new ArrayList<>());
         emptyFieldsFiles.put("abstract", new ArrayList<>());
         emptyFieldsFiles.put("content", new ArrayList<>());
+        // emptyFieldsFiles.put("keywords", new ArrayList<>());
     }
 
     public void run() {
@@ -172,6 +171,15 @@ public class FileIndexer {
         } else {
             emptyFieldsFiles.get("abstract").add(file.getName());
         }
+
+        // // Estrae e aggiunge le keywords
+        // String keywordsText = HTMLParserUtils.parseKeywords(file);
+        // if (!keywordsText.isEmpty()) {
+        //         doc.add(new TextField("keywords", keywordsText, Field.Store.YES));
+        // } else {
+        //     emptyFieldsFiles.get("keywords").add(file.getName());
+        // }
+
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
     }
