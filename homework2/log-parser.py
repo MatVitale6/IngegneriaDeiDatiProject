@@ -9,19 +9,11 @@ def convert_milliseconds(ms):
 # Define patterns to capture specific log data
 analyzer_pattern = re.compile(r"Field '(\w+)', Analyzer '([\w\.]+)'")
 file_index_time_pattern = re.compile(r"Indexed file: .+? \(Total Indexed: \d+\), File Time: (\d+)ms")
-missing_title_pattern = re.compile(r"Extracted empty title at (.+)")
-missing_abstract_pattern = re.compile(r"Abstract not found in (.+)")
-missing_authors_pattern = re.compile(r"Authors not found in (.+)")
-missing_percentage_pattern = re.compile(r"Files with empty (title|abstract|authors) size: (\d+), which is ([\d.]+)% of total files")
+missing_percentage_pattern = re.compile(r"Files with empty (\w+): (\w+) \((\d+) files, ([\d.]+)% of total files\)")
 
 # Initialize counters and storage variables
 analyzers = {}
 file_times = []
-missing_fields = {
-    "title": [],
-    "abstract": [],
-    "authors": []
-}
 missing_percentages = {}
 
 # Path to the log file
@@ -42,23 +34,10 @@ with open(log_file_path, 'r') as file:
             file_time = int(file_index_time_match.group(1))
             file_times.append(file_time)
 
-        # Count entries for missing fields and store filenames
-        title_match = missing_title_pattern.search(line)
-        if title_match:
-            missing_fields["title"].append(title_match.group(1))
-
-        abstract_match = missing_abstract_pattern.search(line)
-        if abstract_match:
-            missing_fields["abstract"].append(abstract_match.group(1))
-
-        authors_match = missing_authors_pattern.search(line)
-        if authors_match:
-            missing_fields["authors"].append(authors_match.group(1))
-
-        # Capture the percentage of missing fields
+        # Capture the percentage of missing fields with the updated log format
         missing_percentage_match = missing_percentage_pattern.search(line)
         if missing_percentage_match:
-            field, count, percentage = missing_percentage_match.groups()
+            field, _, count, percentage = missing_percentage_match.groups()
             missing_percentages[field] = (int(count), float(percentage))
 
 # Calculate average file index time and total index time
@@ -75,8 +54,5 @@ print(f"Total Index Time: {convert_milliseconds(total_index_time)}")
 
 # Print missing fields information
 print("\nMissing Fields Summary:")
-for field, files in missing_fields.items():
-    count = len(files)
-    percentage_info = missing_percentages.get(field, (count, 0.0))
-    print(f"  {field.capitalize()} - Missing Count: {percentage_info[0]} ({percentage_info[1]:.2f}%)")
-    print("    Files:", ", ".join(files) if files else "None")
+for field, (count, percentage) in missing_percentages.items():
+    print(f"  {field.capitalize()} - Missing Count: {count} ({percentage:.2f}%)")
