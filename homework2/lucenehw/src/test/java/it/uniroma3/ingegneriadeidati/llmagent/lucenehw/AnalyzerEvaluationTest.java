@@ -50,12 +50,19 @@ public class AnalyzerEvaluationTest {
             List<SearchResult> results = searchService.search(queryStr, 20);
             long endTime = System.nanoTime();
             long durationInMillis = (endTime - startTime) / 1_000_000; 
+            List<SearchResult> filteredResults = results.stream()
+                .map(result -> {
+                    result.setContentSnippet(null);  // Escludi lo snippet
+                    result.setAbstract(null);        // Escludi l'abstract
+                    return result;
+                })
+                .collect(Collectors.toList());
 
-            double averageScore = results.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
-            double scoreVariance = calculateVariance(results, averageScore);
-            double scoreDecay = calculateScoreDecay(results);
+            double averageScore = filteredResults.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
+            double scoreVariance = calculateVariance(filteredResults, averageScore);
+            double scoreDecay = calculateScoreDecay(filteredResults);
 
-            queryResults.add(new QueryResult(queryStr, durationInMillis, results.size(), averageScore, scoreVariance, scoreDecay, results));   
+            queryResults.add(new QueryResult(queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
         }
         saveAsJSON(queryResults, OUTPUT_DIR_PATH);
     }
