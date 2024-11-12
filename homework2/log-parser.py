@@ -9,8 +9,8 @@ def convert_milliseconds(ms):
 # Define patterns to capture specific log data
 analyzer_pattern = re.compile(r"Field '(\w+)', Analyzer '([\w\.]+)'")
 file_index_time_pattern = re.compile(r"Indexed file: .+? \(Total Indexed: \d+\), File Time: (\d+)ms")
-missing_percentage_pattern = re.compile(r"Files with empty (\w+): (\w+) \((\d+) files, ([\d.]+)% of total files\)")
-
+# Define the log pattern to capture the field, file count, and percentage
+empty_field_pattern = re.compile(r"Files with empty (\w+): \[.*\] \((\d+) files, ([\d.]+)% of total files\)")
 # Initialize counters and storage variables
 analyzers = {}
 file_times = []
@@ -35,9 +35,9 @@ with open(log_file_path, 'r') as file:
             file_times.append(file_time)
 
         # Capture the percentage of missing fields with the updated log format
-        missing_percentage_match = missing_percentage_pattern.search(line)
+        missing_percentage_match = empty_field_pattern.search(line)
         if missing_percentage_match:
-            field, _, count, percentage = missing_percentage_match.groups()
+            field, count, percentage = missing_percentage_match.groups()
             missing_percentages[field] = (int(count), float(percentage))
 
 # Calculate average file index time and total index time
