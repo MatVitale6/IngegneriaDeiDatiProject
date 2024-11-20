@@ -22,6 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 
 /**
@@ -36,6 +39,9 @@ public class FileIndexer {
 
     @Value("${html.files.path}")
     private String htmlFilesPath;
+
+    @Value("${json.files.path}")
+    private String jsonFilePath;
 
     /**
      * Directory di Lucene in cui vengono memorizzati gli indici
@@ -65,8 +71,9 @@ public class FileIndexer {
     public void run() {
         try {
             this.indexHtmlFiles(htmlFilesPath);
+            this.indexJsonFiles(jsonFilePath);
         } catch (IOException e) {
-            logger.error("Error indexing HTML files ", e);
+            logger.error("Error during file indexing ", e);
         }
     }
 
@@ -116,6 +123,49 @@ public class FileIndexer {
         // log empty fields summary
         logEmptyFieldsSummary(totalFiles);
     }
+
+    public void indexJsonFiles(String directoryPath) throws IOException {
+        logger.info("Starting JSON file indexing...");
+        progressService.resetProgress();
+
+        File[] files = new File(directoryPath).listFiles((dir, name) -> name.endsWith(".json"));
+        if(files == null || files.length == 0) {
+            logger.warn("No JSON files found in directory: {}", directoryPath);
+            return;
+        }
+
+        long startTime = System.nanoTime();
+        int totalIndexed = 0;
+        int totalFiles = files.length;
+
+        try(IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
+            for(File file : files) {
+                long fileStartTime = System.nanoTime();
+
+                List<Document> documents = createDocumentFromJsonFile(file);
+                for (Document doc : documents) {
+                    writer.addDocument(doc);
+                }
+                writer.commit();
+                totalIndexed++;
+                long fileEndTime = System.nanoTime();
+
+                logger.info("Indexed JSON file: {} (Total Indexed: {}), File Time: {}ms",
+                    file.getName(), totalIndexed, (fileEndTime - fileStartTime)/ 1_000_000);
+                
+                    int progress = (int) (((double) totalIndexed / totalFiles) * 100);
+                    progressService.setProgress(progress);
+            }
+        }
+
+        progressService.setProgress(100);
+        progressService.markIndexingComplete();
+        long endTime = System.nanoTime();
+        logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
+    }
+
+
+
 
     private void logEmptyFieldsSummary(int totalFiles) {
         emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
@@ -182,5 +232,32 @@ public class FileIndexer {
 
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
+    }
+
+
+    public List<Document> createDocumentFromJsonFile(File file) throws IOException {
+        List<Document> documents = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(file);
+
+        rootNode.fields().forEachRemaining(entry -> {
+            String tableId = entry.getKey();
+            JsonNode tableData = entry.getValue();
+
+            Document doc = new Document();
+            doc.add(new StringField("tableId", tableId, Field.Store.YES));
+
+            String tableHtml = tableData.get("table").asText("");
+            if(!tableHtml.isEmpty()) {
+                doc.add(new TextField("tableHtml", tableHtml, Field.Store.YES));
+            } else {
+                logger.warn("Empty table HTML for table ID: {}", tableId);
+            }
+
+            //altri campi?
+
+            documents.add(doc);
+        });
+        return documents;
     }
 }
