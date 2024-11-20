@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 
 import java.nio.file.Paths;
@@ -24,7 +24,7 @@ class LucenehwApplicationTests {
     private ApplicationContext applicationContext;  // Contesto Spring, utile per testare la configurazione dell'applicazione
 
     @Autowired
-    private FileIndexer fileIndexer = new FileIndexer();  // Indice dei file, utilizzato per testare l'indicizzazione
+    private HTMLIndexer fileIndexer = new HTMLIndexer();  // Indice dei file, utilizzato per testare l'indicizzazione
 
     @Autowired
     private SearchService searchService = new SearchService();  // Servizio di ricerca, utilizzato per testare le query
@@ -55,7 +55,7 @@ class LucenehwApplicationTests {
         }
 
         // Verifica che il file di flag dell'indicizzazione esista, per assicurarsi che l'indicizzazione sia stata completata
-        Assert.isTrue(new FileIndexer() != null, "Il FileIndexer non è stato correttamente configurato.");
+        Assert.isTrue(new HTMLIndexer() != null, "Il FileIndexer non è stato correttamente configurato.");
     }
 
     /**

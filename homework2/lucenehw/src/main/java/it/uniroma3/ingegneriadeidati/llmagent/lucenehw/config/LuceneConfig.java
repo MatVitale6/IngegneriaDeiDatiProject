@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ch.qos.logback.core.subst.Tokenizer;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.CustomAuthorAnalyzer;
 
 /**
@@ -74,12 +74,12 @@ public class LuceneConfig {
     }
 
     @Bean
-    public FileIndexer fileIndexer() {
+    public HTMLIndexer fileIndexer() {
         Path flagFilePath = Paths.get(indexDirectory, INDEXING_COMPLETE_FLAG);
 
         if (!Files.exists(flagFilePath)) {
             logger.info("Indexing Flag file not found, creating FileIndexer");
-            return new FileIndexer();
+            return new HTMLIndexer();
         } else {
             logger.info("Indexing complete, skipping FileIndexer creation");
             return null;
