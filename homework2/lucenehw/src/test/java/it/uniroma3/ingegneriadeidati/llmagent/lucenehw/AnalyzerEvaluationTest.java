@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils.QueryResult;
 
@@ -46,10 +46,10 @@ public class AnalyzerEvaluationTest {
 
         for (String queryStr : queries) {
             long startTime = System.nanoTime();
-            List<SearchResult> results = searchService.search(queryStr, 20);
+            List<SearchResultHTML> results = searchService.searchHTML(queryStr, 20);
             long endTime = System.nanoTime();
             long durationInMillis = (endTime - startTime) / 1_000_000; 
-            List<SearchResult> filteredResults = results.stream()
+            List<SearchResultHTML> filteredResults = results.stream()
                 .map(result -> {
                     result.setContentSnippet(null);  // Escludi lo snippet
                     result.setAbstract(null);        // Escludi l'abstract
@@ -57,7 +57,7 @@ public class AnalyzerEvaluationTest {
                 })
                 .collect(Collectors.toList());
 
-            double averageScore = filteredResults.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
+            double averageScore = filteredResults.stream().mapToDouble(SearchResultHTML::getScore).average().orElse(0);
             double scoreVariance = calculateVariance(filteredResults, averageScore);
             double scoreDecay = calculateScoreDecay(filteredResults);
 
@@ -73,7 +73,7 @@ public class AnalyzerEvaluationTest {
                     .collect(Collectors.toList());
     }
 
-    private double calculateVariance(List<SearchResult> results, double averageScore) {
+    private double calculateVariance(List<SearchResultHTML> results, double averageScore) {
         if (results.isEmpty()) return 0;
         return results.stream()
                         .mapToDouble(result -> Math.pow(result.getScore() - averageScore, 2))
@@ -81,7 +81,7 @@ public class AnalyzerEvaluationTest {
                         .orElse(0);
     }
     
-    private double calculateScoreDecay(List<SearchResult> results) {
+    private double calculateScoreDecay(List<SearchResultHTML> results) {
         if (results.size() < 2) return 0;
         double maxScore = results.get(0).getScore();
         double minScore = results.get(results.size() - 1).getScore();

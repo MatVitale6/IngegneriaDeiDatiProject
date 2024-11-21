@@ -19,7 +19,9 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultJSON;
+
 
 /**
  * Seervizio per eseguire ricerche sull'indice Lucene.
@@ -33,7 +35,10 @@ public class SearchService {
     private Directory directory;
 
     @Autowired
-    private Analyzer analyzer;
+    private Analyzer analyzer_html;
+
+    @Autowired
+    private Analyzer analyzer_json;
 
     String regex = "(\\d{4})\\.(\\d{5})";
     Pattern pattern = Pattern.compile(regex);
@@ -48,8 +53,8 @@ public class SearchService {
      * @return una lista di ogetti 'SearchResult' che rappresentano i documenti
      *         trovati che soddisfano i criteri di ricerca.
      */
-    public List<SearchResult> search(String queryStr, int maxResults) throws IOException {
-        LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+    public List<SearchResultHTML> searchHTML(String queryStr, int maxResults) throws IOException {
+        LinkedList<SearchResultHTML> results = new LinkedList<SearchResultHTML>();
         
         // Parse query based on field 'title','authors','content','abstract'
         DirectoryReader reader = DirectoryReader.open(directory);
@@ -57,7 +62,7 @@ public class SearchService {
     
         // Parsing della query sui campi 'title', 'authors', 'content', 'abstract'
         String[] fields = { "title", "authors", "content", "abstract" };
-        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
+        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer_html);
     
         Query query = null;
         try {
@@ -88,7 +93,7 @@ public class SearchService {
                 link = "Link non valido";
             }
     
-            SearchResult searchResult = new SearchResult();
+            SearchResultHTML searchResult = new SearchResultHTML();
             searchResult.setTitle(doc.get("title"));
             searchResult.setAuthor(doc.get("authors"));
             searchResult.setContentSnippet(doc.get("content"));
@@ -99,6 +104,59 @@ public class SearchService {
             results.add(searchResult);
         }
     
+        reader.close();
+        return results;
+    }
+
+    public List<SearchResultJSON> searchJSON(String queryStr, int maxResults) throws IOException {
+        LinkedList<SearchResultJSON> results = new LinkedList<SearchResultJSON>();
+
+        DirectoryReader reader = DirectoryReader.open(directory);
+        IndexSearcher searcher = new IndexSearcher(reader);
+
+        String[] fields = {"tableId", "tableHtml"};
+        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer_json);
+
+        Query query = null;
+
+        try {
+            query = queryParser.parse(queryStr);
+        } catch (Exception e) {
+            System.err.println("Errore durante il parsing della query: " + queryStr);
+            e.printStackTrace();
+            return results;
+        }
+
+        TopDocs topDocs = searcher.search(query, maxResults);
+
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            Document doc = searcher.doc(scoreDoc.doc);
+
+            Explanation explanation = searcher.explain(query, scoreDoc.doc);
+            String matchField = getDominantField(explanation, fields);
+
+            String filename = doc.get("filename");
+            Matcher matcher = pattern.matcher(filename);
+
+            String link = null;
+            if(matcher.find()) {
+                String numericCode = matcher.group(1) + "." + matcher.group(2);
+                link = baseUrl + numericCode;
+            } else { 
+                link = "Link non valido";
+            }
+
+            SearchResultJSON searchResultJSON = new SearchResultJSON();
+            searchResultJSON.setTableId(doc.get("tableId"));
+            searchResultJSON.setTableHtml(doc.get("table"));    //non mi ricordo se fosse taggato solo come table
+            searchResultJSON.setCaption(doc.get("caption"));
+            searchResultJSON.setMatchField(matchField);
+            searchResultJSON.setScore(scoreDoc.score);
+            searchResultJSON.setLink(link);
+
+            results.add(searchResultJSON);
+        }
+
         reader.close();
         return results;
     }

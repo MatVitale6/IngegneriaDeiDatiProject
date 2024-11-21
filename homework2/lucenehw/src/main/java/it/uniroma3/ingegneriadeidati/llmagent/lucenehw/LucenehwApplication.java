@@ -14,7 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JsonIndexer;
 
 /**
  * Classe principale dell'applicazione Lucenehw.
@@ -41,7 +42,7 @@ public class LucenehwApplication {
     }
 
     @Bean
-    public CommandLineRunner runIndexer(@Autowired(required = false) FileIndexer indexer) {
+    public CommandLineRunner runIndexer(@Autowired(required = false) HTMLIndexer htmlIndexer, @Autowired(required = false) JsonIndexer jsonIndexer) {
         return args -> {
             Path flagFilePath = Paths.get(indexDirectory, "indexing_complete.flag");
 
@@ -49,11 +50,17 @@ public class LucenehwApplication {
                 logger.info("Indexing has already completed. Skipping...");
                 return;
             }
-            if (indexer != null) {
+            if (htmlIndexer != null) {
                 logger.info("Starting indexing process...");
-                indexer.run();
+                htmlIndexer.run();
             } else {
-                logger.info("Indexer startup run is disabled");
+                logger.info("htmlIndexer startup run is disabled");
+            }
+            if (jsonIndexer != null) {
+                logger.info("Starting indexing process...");
+                jsonIndexer.run();
+            } else {
+                logger.info("jsonIndexer startup run is disabled");
             }
         };
     }

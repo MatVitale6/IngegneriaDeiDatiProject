@@ -8,7 +8,7 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model;
  * - estratto del contenuto
  * - abstract 
  */
-public class SearchResult {
+public class SearchResultHTML {
     private String title;
     private String author;
     private String contentSnippet;
@@ -22,7 +22,7 @@ public class SearchResult {
      * Costruttore senza argomenti per la classe `SearchResult`.
      * Necessario per la deserializzazione e per framework che richiedono un costruttore vuoto.
      */
-    public SearchResult() {
+    public SearchResultHTML() {
     }
 
     /**
@@ -34,7 +34,7 @@ public class SearchResult {
      * @param matchField il campo su cui ha scelto l'articolo
      * @param link il link dell'articolo
      */
-    public SearchResult(String title, String author, String contentSnippet, String abstractA, String matchField, String link) {
+    public SearchResultHTML(String title, String author, String contentSnippet, String abstractA, String matchField, String link) {
         this.title = title;
         this.author = author;
         this.contentSnippet = contentSnippet;

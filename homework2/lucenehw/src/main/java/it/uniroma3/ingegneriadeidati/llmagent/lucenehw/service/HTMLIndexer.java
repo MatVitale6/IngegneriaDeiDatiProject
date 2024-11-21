@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
+
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 
 /**
@@ -29,9 +31,9 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
  * La classe 'FileIndexer gestisce l'iterazione dei file, la creazione dei documenti per Lucene e l'indicizzazione in batch.
  */
 @Service
-public class FileIndexer {
+public class HTMLIndexer {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileIndexer.class);
+    private static final Logger logger = LoggerFactory.getLogger(HTMLIndexer.class);
     private Map<String, List<String>> emptyFieldsFiles = new HashMap<>();
 
     @Value("${html.files.path}")
@@ -54,7 +56,7 @@ public class FileIndexer {
     @Autowired
     private ProgressService progressService;
 
-    public FileIndexer() {
+    public HTMLIndexer() {
         emptyFieldsFiles.put("title", new ArrayList<>());
         emptyFieldsFiles.put("authors", new ArrayList<>());
         emptyFieldsFiles.put("abstract", new ArrayList<>());
@@ -63,11 +65,7 @@ public class FileIndexer {
     }
 
     public void run() {
-        try {
-            this.indexHtmlFiles(htmlFilesPath);
-        } catch (IOException e) {
-            logger.error("Error indexing HTML files ", e);
-        }
+        
     }
 
     /**
@@ -116,6 +114,8 @@ public class FileIndexer {
         // log empty fields summary
         logEmptyFieldsSummary(totalFiles);
     }
+
+    
 
     private void logEmptyFieldsSummary(int totalFiles) {
         emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
@@ -183,4 +183,5 @@ public class FileIndexer {
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
     }
+
 }

@@ -26,7 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ch.qos.logback.core.subst.Tokenizer;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.FileIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JsonIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.CustomAuthorAnalyzer;
 
 /**
@@ -74,16 +75,23 @@ public class LuceneConfig {
     }
 
     @Bean
-    public FileIndexer fileIndexer() {
+    public HTMLIndexer htmlIndexer() {
         Path flagFilePath = Paths.get(indexDirectory, INDEXING_COMPLETE_FLAG);
 
         if (!Files.exists(flagFilePath)) {
             logger.info("Indexing Flag file not found, creating FileIndexer");
-            return new FileIndexer();
+            return new HTMLIndexer();
         } else {
             logger.info("Indexing complete, skipping FileIndexer creation");
             return null;
         }
+    }
+
+    //manno so benissimo che l'if sulla flagFilePath é na bella cornice poi in caso si aggiunge eh
+    @Bean
+    public JsonIndexer jsonIndexer() {
+        logger.info("Creating JsonIndexer bean");
+        return new JsonIndexer();
     }
 
     /**
@@ -95,7 +103,7 @@ public class LuceneConfig {
      * @return un'istanza di 'Analyzer' per i vari campi definiti.
      */
     @Bean
-    public Analyzer analyzer() {
+    public Analyzer analyzer_html() {
         Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
         perFieldAnalyzer.put("title", new KeywordAnalyzer());
         perFieldAnalyzer.put("authors", new WhitespaceAnalyzer());
@@ -106,6 +114,23 @@ public class LuceneConfig {
         PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
 
         logger.info("Analyzer configuration:");
+        perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+            logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+        );
+
+        return perFieldAnalyzerWrapper;
+    }
+
+    @Bean
+    public Analyzer analyzer_json() {
+        Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+        // Supponiamo che i dati nel JSON siano più semplici, quindi puoi usare un analizzatore più semplice
+        perFieldAnalyzer.put("tableId", new KeywordAnalyzer());
+        //perFieldAnalyzer.put("tableHtml", new HTMLAnalyzer()); 
+        
+        PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
+
+        logger.info("Analyzer JSON configuration:");
         perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
             logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
         );
