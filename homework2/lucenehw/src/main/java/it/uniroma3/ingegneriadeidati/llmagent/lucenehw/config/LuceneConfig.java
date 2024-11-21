@@ -120,23 +120,50 @@ public class LuceneConfig {
 
         return perFieldAnalyzerWrapper;
     }
-
-    @Bean
-    public Analyzer analyzer_json() {
-        Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+//#########################################################################//////////////
+   //PARTE DI MATTEO COMMENTATA:
+   // @Bean
+    //public Analyzer analyzer_json() {
+     //   Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
         // Supponiamo che i dati nel JSON siano più semplici, quindi puoi usare un analizzatore più semplice
-        perFieldAnalyzer.put("tableId", new KeywordAnalyzer());
-        //perFieldAnalyzer.put("tableHtml", new HTMLAnalyzer()); 
+      //  perFieldAnalyzer.put("tableId", new KeywordAnalyzer());
+      //  //perFieldAnalyzer.put("tableHtml", new HTMLAnalyzer()); 
         
-        PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
+      //  PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
 
-        logger.info("Analyzer JSON configuration:");
-        perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
-            logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
-        );
+      //  logger.info("Analyzer JSON configuration:");
+      //  perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+        //    logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+      //  );
 
-        return perFieldAnalyzerWrapper;
-    }
+     //   return perFieldAnalyzerWrapper;
+   // }
+//##############################################################################################à
+
+//PARTE CON GLI ANALYZER -BY TERRY <3
+@Bean
+public Analyzer analyzer_json() {
+    // Mappa per definire analizzatori specifici per ogni campo
+    Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+
+    // Configura un analizzatore adatto per ogni campo:
+    perFieldAnalyzer.put("caption", new EnglishAnalyzer()); // Analisi linguistica per la caption
+    perFieldAnalyzer.put("table", new StandardAnalyzer()); // Tokenizzazione generale per i dati tabellari
+    perFieldAnalyzer.put("footnotes", new WhitespaceAnalyzer()); // Divide il testo su spazi, utile per liste brevi
+    perFieldAnalyzer.put("references", new EnglishAnalyzer()); // Analisi linguistica per riferimenti complessi
+
+    // PerFieldAnalyzerWrapper permette di usare diversi analizzatori per ogni campo
+    PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
+
+    // Logging per verificare la configurazione
+    logger.info("Analyzer JSON configuration:");
+    perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+        logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+    );
+
+    return perFieldAnalyzerWrapper;
+}
+
 
     /**
      * Configura un bean 'IndexWriterConfig' per gestire le impostazioni di scrittura dell'indice.

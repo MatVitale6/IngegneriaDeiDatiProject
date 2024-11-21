@@ -23,6 +23,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
+import org.jsoup.Jsoup;
 
 
 @Service
@@ -98,48 +99,131 @@ public class JsonIndexer {
         logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
     }
 
-    public List<Document> createDocumentFromJsonFile(File file) throws IOException {
-        List<Document> documents = new ArrayList<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(file);
+    //#####PARTE DI MATTEO COMMENTATA#################################
+    // public List<Document> createDocumentFromJsonFile(File file) throws IOException {
+    //     List<Document> documents = new ArrayList<>();
+    //     ObjectMapper objectMapper = new ObjectMapper();
+    //     JsonNode rootNode = objectMapper.readTree(file);
 
-        rootNode.fields().forEachRemaining(entry -> {
-            String tableId = entry.getKey();
-            JsonNode tableData = entry.getValue();
+    //     rootNode.fields().forEachRemaining(entry -> {
+    //         String tableId = entry.getKey();
+    //         JsonNode tableData = entry.getValue();
     
-            Document doc = new Document();
-            doc.add(new StringField("tableId", tableId, Field.Store.YES));
+    //         Document doc = new Document();
+    //         doc.add(new StringField("tableId", tableId, Field.Store.YES));
     
-            // Verifica se il nodo "table" esiste e non è null
-            JsonNode tableNode = tableData.get("table");
-            if (tableNode != null && !tableNode.asText().isEmpty()) {
-                String tableHtml = tableNode.asText();
-                doc.add(new TextField("tableHtml", tableHtml, Field.Store.YES));
-            } else {
-                // Se il nodo "table" non esiste o è vuoto, registra un avviso
-                logger.warn("Empty table HTML for table ID: {}", tableId);
-            }
+    //         // Verifica se il nodo "table" esiste e non è null
+    //         JsonNode tableNode = tableData.get("table");
+    //         if (tableNode != null && !tableNode.asText().isEmpty()) {
+    //             String tableHtml = tableNode.asText();
+    //             doc.add(new TextField("tableHtml", tableHtml, Field.Store.YES));
+    //         } else {
+    //             // Se il nodo "table" non esiste o è vuoto, registra un avviso
+    //             logger.warn("Empty table HTML for table ID: {}", tableId);
+    //         }
     
-            // Aggiungi altri campi con verifiche simili, se necessari
-            JsonNode captionNode = tableData.get("caption");
-            if (captionNode != null && !captionNode.asText().isEmpty()) {
-                doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES));
-            }
+    //         // Aggiungi altri campi con verifiche simili, se necessari
+    //         JsonNode captionNode = tableData.get("caption");
+    //         if (captionNode != null && !captionNode.asText().isEmpty()) {
+    //             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES));
+    //         }
     
-            JsonNode footnotesNode = tableData.get("footnotes");
-            if (footnotesNode != null && !footnotesNode.asText().isEmpty()) {
-                doc.add(new TextField("footnotes", footnotesNode.asText(), Field.Store.YES));
-            }
+    //         JsonNode footnotesNode = tableData.get("footnotes");
+    //         if (footnotesNode != null && !footnotesNode.asText().isEmpty()) {
+    //             doc.add(new TextField("footnotes", footnotesNode.asText(), Field.Store.YES));
+    //         }
     
-            JsonNode referencesNode = tableData.get("references");
-            if (referencesNode != null && !referencesNode.asText().isEmpty()) {
-                doc.add(new TextField("references", referencesNode.asText(), Field.Store.YES));
-            }
+    //         JsonNode referencesNode = tableData.get("references");
+    //         if (referencesNode != null && !referencesNode.asText().isEmpty()) {
+    //             doc.add(new TextField("references", referencesNode.asText(), Field.Store.YES));
+    //         }
     
-            // Aggiungi il documento alla lista
-            documents.add(doc);
-        });
-        return documents;
-    }
+    //         // Aggiungi il documento alla lista
+    //         documents.add(doc);
+    //     });
+    //     return documents;
+    // }
     
+//######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI DEGLI ANALYZER##########################à
+public List<Document> createDocumentFromJsonFile(File file) throws IOException {
+    List<Document> documents = new ArrayList<>();
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode rootNode = objectMapper.readTree(file);
+
+    rootNode.fields().forEachRemaining(entry -> {
+        String tableId = entry.getKey(); // ID della tabella
+        JsonNode tableData = entry.getValue();
+
+        Document doc = new Document();
+        doc.add(new StringField("tableId", tableId, Field.Store.YES)); // Campo non analizzato
+
+        // Estrai e indicizza il campo "table":
+
+        //Questo codice estrae il contenuto del campo table, pulisce i dati (es. rimuove tag HTML) e li concatena in una stringa leggibile e indicizzabile.
+        // 3 cose principali:
+        //1) iterazione su righe e celle -> Scorre ogni riga della tabella e ogni cella all'interno della riga.
+        //2) pulizia html -> Usa Jsoup.parse(cell.asText()).text() per rimuovere tag HTML.
+        //3) concatenzaione -> ggiunge il testo pulito di ogni cella a una stringa cumulativa (tabl
+
+        JsonNode tableNode = tableData.get("table");
+        if (tableNode != null && tableNode.isArray()) {
+            // Pulizia e unione di celle/tabella in modo efficiente
+            String tableText = cleanAndJoinTable(tableNode);
+            doc.add(new TextField("table", tableText, Field.Store.NO)); // Campo analizzato per la ricerca
+        } else {
+            logger.warn("Empty table for table ID: {}", tableId);
+        }
+
+        // Estrai e indicizza il campo "caption"
+        JsonNode captionNode = tableData.get("caption");
+        if (captionNode != null && !captionNode.asText().isEmpty()) {
+            doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES)); // Campo analizzato
+        } else {
+            logger.warn("Empty caption for table ID: {}", tableId);
+        }
+
+        // Estrai e indicizza il campo "footnotes"
+        JsonNode footnotesNode = tableData.get("footnotes");
+        if (footnotesNode != null && footnotesNode.isArray()) {
+            String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
+            doc.add(new TextField("footnotes", footnotesText, Field.Store.NO)); // Campo analizzato
+        } else {
+            logger.warn("Empty footnotes for table ID: {}", tableId);
+        }
+
+        // Estrai e indicizza il campo "references"
+        JsonNode referencesNode = tableData.get("references");
+        if (referencesNode != null && referencesNode.isArray()) {
+            String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
+            doc.add(new TextField("references", referencesText, Field.Store.NO)); // Campo analizzato
+        } else {
+            logger.warn("Empty references for table ID: {}", tableId);
+        }
+
+        // Aggiungi il documento alla lista
+        documents.add(doc);
+    });
+    return documents;
+}
+
+/**
+ * Pulisce e concatena i contenuti delle celle di una tabella.
+ */
+private String cleanAndJoinTable(JsonNode tableNode) {
+    StringBuilder tableText = new StringBuilder();
+    tableNode.forEach(row -> row.forEach(cell -> {
+        tableText.append(Jsoup.parse(cell.asText()).text()).append(" ");
+    }));
+    return tableText.toString().trim();
+}
+
+/**
+ * Converte un array JSON in una lista di stringhe.
+ */
+private List<String> convertJsonArrayToList(JsonNode arrayNode) {
+    List<String> list = new ArrayList<>();
+    arrayNode.forEach(element -> list.add(element.asText()));
+    return list;
+}
+
 }
