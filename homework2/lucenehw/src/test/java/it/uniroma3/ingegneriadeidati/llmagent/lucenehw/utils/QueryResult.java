@@ -2,7 +2,7 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils;
 
 import java.util.List;
 
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 
 // Classe di supporto per organizzare i dati rilevanti della query
 public class QueryResult {
@@ -12,10 +12,10 @@ public class QueryResult {
     private final double averageScore;
     private final double scoreVariance;
     private final double scoreDecay;
-    private final List<SearchResult> results;
+    private final List<SearchResultHTML> results;
 
     public QueryResult(String query, long executionTime, int totalMatches, double averageScore,
-                       double scoreVariance, double scoreDecay, List<SearchResult> results) {
+                       double scoreVariance, double scoreDecay, List<SearchResultHTML> results) {
         this.query = query;
         this.executionTime = executionTime;
         this.totalMatches = totalMatches;
@@ -32,6 +32,6 @@ public class QueryResult {
     public double getAverageScore() { return averageScore; }
     public double getScoreVariance() { return scoreVariance; }
     public double getScoreDecay() { return scoreDecay; }
-    public List<SearchResult> getResults() { return results; }
+    public List<SearchResultHTML> getResults() { return results; }
 }
 

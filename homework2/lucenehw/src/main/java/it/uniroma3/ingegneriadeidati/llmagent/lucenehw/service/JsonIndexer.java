@@ -2,6 +2,7 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 
+
+@Service
 public class JsonIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonIndexer.class);
@@ -103,19 +106,37 @@ public class JsonIndexer {
         rootNode.fields().forEachRemaining(entry -> {
             String tableId = entry.getKey();
             JsonNode tableData = entry.getValue();
-
+    
             Document doc = new Document();
             doc.add(new StringField("tableId", tableId, Field.Store.YES));
-
-            String tableHtml = tableData.get("table").asText("");
-            if(!tableHtml.isEmpty()) {
+    
+            // Verifica se il nodo "table" esiste e non è null
+            JsonNode tableNode = tableData.get("table");
+            if (tableNode != null && !tableNode.asText().isEmpty()) {
+                String tableHtml = tableNode.asText();
                 doc.add(new TextField("tableHtml", tableHtml, Field.Store.YES));
             } else {
+                // Se il nodo "table" non esiste o è vuoto, registra un avviso
                 logger.warn("Empty table HTML for table ID: {}", tableId);
             }
-
-            //altri campi?
-
+    
+            // Aggiungi altri campi con verifiche simili, se necessari
+            JsonNode captionNode = tableData.get("caption");
+            if (captionNode != null && !captionNode.asText().isEmpty()) {
+                doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES));
+            }
+    
+            JsonNode footnotesNode = tableData.get("footnotes");
+            if (footnotesNode != null && !footnotesNode.asText().isEmpty()) {
+                doc.add(new TextField("footnotes", footnotesNode.asText(), Field.Store.YES));
+            }
+    
+            JsonNode referencesNode = tableData.get("references");
+            if (referencesNode != null && !referencesNode.asText().isEmpty()) {
+                doc.add(new TextField("references", referencesNode.asText(), Field.Store.YES));
+            }
+    
+            // Aggiungi il documento alla lista
             documents.add(doc);
         });
         return documents;

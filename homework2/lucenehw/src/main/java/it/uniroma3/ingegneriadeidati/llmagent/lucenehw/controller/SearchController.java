@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 
 
@@ -35,10 +35,10 @@ public class SearchController {
      * @throws IOException 
      */
     @PostMapping("/search")
-    public ResponseEntity<List<SearchResult>> searchArticles(@RequestParam("inputString") String queryStr,
+    public ResponseEntity<List<SearchResultHTML>> searchArticles(@RequestParam("inputString") String queryStr,
                                                             @RequestParam("resultCount") int resultCount) {
         try {
-            List<SearchResult> results = searchService.search(queryStr, resultCount);
+            List<SearchResultHTML> results = searchService.searchHTML(queryStr, resultCount);
             return ResponseEntity.ok(results);
         } catch (IOException e) {
             e.printStackTrace();
