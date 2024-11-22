@@ -99,50 +99,7 @@ public class JsonIndexer {
         logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
     }
 
-    //#####PARTE DI MATTEO COMMENTATA#################################
-    // public List<Document> createDocumentFromJsonFile(File file) throws IOException {
-    //     List<Document> documents = new ArrayList<>();
-    //     ObjectMapper objectMapper = new ObjectMapper();
-    //     JsonNode rootNode = objectMapper.readTree(file);
-
-    //     rootNode.fields().forEachRemaining(entry -> {
-    //         String tableId = entry.getKey();
-    //         JsonNode tableData = entry.getValue();
     
-    //         Document doc = new Document();
-    //         doc.add(new StringField("tableId", tableId, Field.Store.YES));
-    
-    //         // Verifica se il nodo "table" esiste e non è null
-    //         JsonNode tableNode = tableData.get("table");
-    //         if (tableNode != null && !tableNode.asText().isEmpty()) {
-    //             String tableHtml = tableNode.asText();
-    //             doc.add(new TextField("tableHtml", tableHtml, Field.Store.YES));
-    //         } else {
-    //             // Se il nodo "table" non esiste o è vuoto, registra un avviso
-    //             logger.warn("Empty table HTML for table ID: {}", tableId);
-    //         }
-    
-    //         // Aggiungi altri campi con verifiche simili, se necessari
-    //         JsonNode captionNode = tableData.get("caption");
-    //         if (captionNode != null && !captionNode.asText().isEmpty()) {
-    //             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES));
-    //         }
-    
-    //         JsonNode footnotesNode = tableData.get("footnotes");
-    //         if (footnotesNode != null && !footnotesNode.asText().isEmpty()) {
-    //             doc.add(new TextField("footnotes", footnotesNode.asText(), Field.Store.YES));
-    //         }
-    
-    //         JsonNode referencesNode = tableData.get("references");
-    //         if (referencesNode != null && !referencesNode.asText().isEmpty()) {
-    //             doc.add(new TextField("references", referencesNode.asText(), Field.Store.YES));
-    //         }
-    
-    //         // Aggiungi il documento alla lista
-    //         documents.add(doc);
-    //     });
-    //     return documents;
-    // }
     
 //######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI DEGLI ANALYZER##########################à
 public List<Document> createDocumentFromJsonFile(File file) throws IOException {
@@ -163,7 +120,7 @@ public List<Document> createDocumentFromJsonFile(File file) throws IOException {
         // 3 cose principali:
         //1) iterazione su righe e celle -> Scorre ogni riga della tabella e ogni cella all'interno della riga.
         //2) pulizia html -> Usa Jsoup.parse(cell.asText()).text() per rimuovere tag HTML.
-        //3) concatenzaione -> ggiunge il testo pulito di ogni cella a una stringa cumulativa (tabl
+        //3) concatenzaione -> aggiunge il testo pulito di ogni cella a una stringa cumulativa (tabl
 
         JsonNode tableNode = tableData.get("table");
         if (tableNode != null && tableNode.isArray()) {

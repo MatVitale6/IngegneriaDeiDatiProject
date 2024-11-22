@@ -18,6 +18,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultJSON;
@@ -35,9 +36,11 @@ public class SearchService {
     private Directory directory;
 
     @Autowired
+    @Qualifier("analyzer_html")
     private Analyzer analyzer_html;
 
     @Autowired
+    @Qualifier("analyzer_json")
     private Analyzer analyzer_json;
 
     String regex = "(\\d{4})\\.(\\d{5})";

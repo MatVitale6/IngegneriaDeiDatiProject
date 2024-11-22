@@ -120,61 +120,79 @@ public class LuceneConfig {
 
         return perFieldAnalyzerWrapper;
     }
-//#########################################################################//////////////
-   //PARTE DI MATTEO COMMENTATA:
-   // @Bean
-    //public Analyzer analyzer_json() {
-     //   Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
-        // Supponiamo che i dati nel JSON siano più semplici, quindi puoi usare un analizzatore più semplice
-      //  perFieldAnalyzer.put("tableId", new KeywordAnalyzer());
-      //  //perFieldAnalyzer.put("tableHtml", new HTMLAnalyzer()); 
-        
-      //  PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
-
-      //  logger.info("Analyzer JSON configuration:");
-      //  perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
-        //    logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
-      //  );
-
-     //   return perFieldAnalyzerWrapper;
-   // }
-//##############################################################################################à
-
-//PARTE CON GLI ANALYZER -BY TERRY <3
-@Bean
-public Analyzer analyzer_json() {
-    // Mappa per definire analizzatori specifici per ogni campo
-    Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
-
-    // Configura un analizzatore adatto per ogni campo:
-    perFieldAnalyzer.put("caption", new EnglishAnalyzer()); // Analisi linguistica per la caption
-    perFieldAnalyzer.put("table", new StandardAnalyzer()); // Tokenizzazione generale per i dati tabellari
-    perFieldAnalyzer.put("footnotes", new WhitespaceAnalyzer()); // Divide il testo su spazi, utile per liste brevi
-    perFieldAnalyzer.put("references", new EnglishAnalyzer()); // Analisi linguistica per riferimenti complessi
-
-    // PerFieldAnalyzerWrapper permette di usare diversi analizzatori per ogni campo
-    PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
-
-    // Logging per verificare la configurazione
-    logger.info("Analyzer JSON configuration:");
-    perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
-        logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
-    );
-
-    return perFieldAnalyzerWrapper;
-}
 
 
-    /**
-     * Configura un bean 'IndexWriterConfig' per gestire le impostazioni di scrittura dell'indice.
-     * Utilizza l''Analyzer' configurato per gestire l'analisi dei dati.
-     * L''IndexWriterConfig' é fondamentale per la creazione e aggiornamento dell'indice.
-     * @param analyzer l'analizzatore specificato per l'indice.
-     * @return una nuova istanza di 'IndexWriterConfig' configurata con l'analizzatore
-     */
+    //PARTE CON GLI ANALYZER -BY TERRY <3
     @Bean
-    public IndexWriterConfig indexWriterConfig(Analyzer analyzer) {
-        return new IndexWriterConfig(analyzer);
+    public Analyzer analyzer_json() {
+        // Mappa per definire analizzatori specifici per ogni campo
+        Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+
+        // Configura un analizzatore adatto per ogni campo:
+        perFieldAnalyzer.put("caption", new EnglishAnalyzer()); // Analisi linguistica per la caption
+        perFieldAnalyzer.put("table", new StandardAnalyzer()); // Tokenizzazione generale per i dati tabellari
+        perFieldAnalyzer.put("footnotes", new WhitespaceAnalyzer()); // Divide il testo su spazi, utile per liste brevi
+        perFieldAnalyzer.put("references", new EnglishAnalyzer()); // Analisi linguistica per riferimenti complessi
+
+        // PerFieldAnalyzerWrapper permette di usare diversi analizzatori per ogni campo
+        PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
+
+        // Logging per verificare la configurazione
+        logger.info("Analyzer JSON configuration:");
+        perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+            logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+        );
+
+        return perFieldAnalyzerWrapper;
+    }
+
+
+    /*C'é chiamaremnte un problema, perché questo metodo IndexWriterConfig prende in input un solo anlayzer, per il momendo ho messo solo analyzer_json ma
+     * avrebbe senso per il futuro mettere un unico analyzer "combined" come mi suggerisce chatgpt come questo:
+     * @Bean
+        public Analyzer combinedAnalyzer() {
+            Map<String, Analyzer> perFieldAnalyzer = new HashMap<>();
+
+            // Aggiungi i campi di analyzer_html
+            perFieldAnalyzer.put("title", new KeywordAnalyzer());
+            perFieldAnalyzer.put("authors", new WhitespaceAnalyzer());
+            perFieldAnalyzer.put("content", new EnglishAnalyzer());
+            perFieldAnalyzer.put("abstract", new EnglishAnalyzer());
+
+            // Aggiungi i campi di analyzer_json
+            perFieldAnalyzer.put("caption", new EnglishAnalyzer());
+            perFieldAnalyzer.put("table", new StandardAnalyzer());
+            perFieldAnalyzer.put("footnotes", new WhitespaceAnalyzer());
+            perFieldAnalyzer.put("references", new EnglishAnalyzer());
+
+            // Crea un PerFieldAnalyzerWrapper con un analizzatore predefinito
+            PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
+
+            // Logging per verificare la configurazione
+            logger.info("Combined Analyzer configuration:");
+            perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
+                logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
+            );
+
+            return perFieldAnalyzerWrapper;
+        }
+     */
+//HEY//
+            //LEGGERE QUESTO COMMENTO SOPRA//
+//LEGGI//
+//AO//
+//AO//
+//EDDAI//
+        /**
+         * Configura un bean 'IndexWriterConfig' per gestire le impostazioni di scrittura dell'indice.
+         * Utilizza l''Analyzer' configurato per gestire l'analisi dei dati.
+         * L''IndexWriterConfig' é fondamentale per la creazione e aggiornamento dell'indice.
+         * @param analyzer l'analizzatore specificato per l'indice.
+         * @return una nuova istanza di 'IndexWriterConfig' configurata con l'analizzatore
+         */
+    @Bean
+    public IndexWriterConfig indexWriterConfig(Analyzer analyzer_json) {
+        return new IndexWriterConfig(analyzer_json);
     }
 
 }
