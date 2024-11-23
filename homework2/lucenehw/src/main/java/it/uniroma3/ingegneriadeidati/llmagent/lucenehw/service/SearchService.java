@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.lucene.analysis.AnalysisSPILoader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -17,9 +16,13 @@ import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultJSON;
 
@@ -32,20 +35,14 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultJSON;
 @Service
 public class SearchService {
 
-    @Autowired
-    private Directory directory;
+    private final static Logger logger = LoggerFactory.getLogger(SearchService.class);
 
     @Autowired
-    @Qualifier("analyzer_html")
-    private Analyzer analyzer_html;
+    private ResourceManager resourceManager;
 
-    @Autowired
-    @Qualifier("analyzer_json")
-    private Analyzer analyzer_json;
-
-    String regex = "(\\d{4})\\.(\\d{5})";
-    Pattern pattern = Pattern.compile(regex);
-    String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
+    private String regex = "(\\d{4})\\.(\\d{5})";
+    private Pattern pattern = Pattern.compile(regex);
+    private String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
    
     /**
      * Esegue una ricerca utilizzando la query fornita.
@@ -56,112 +53,99 @@ public class SearchService {
      * @return una lista di ogetti 'SearchResult' che rappresentano i documenti
      *         trovati che soddisfano i criteri di ricerca.
      */
-    public List<SearchResultHTML> searchHTML(String queryStr, int maxResults) throws IOException {
-        LinkedList<SearchResultHTML> results = new LinkedList<SearchResultHTML>();
-        
+    public List<SearchResult> search(String resourceType, String queryStr, int maxResults) throws IOException {        
         // Parse query based on field 'title','authors','content','abstract'
-        DirectoryReader reader = DirectoryReader.open(directory);
-        IndexSearcher searcher = new IndexSearcher(reader);
-    
-        // Parsing della query sui campi 'title', 'authors', 'content', 'abstract'
-        String[] fields = { "title", "authors", "content", "abstract" };
-        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer_html);
-    
-        Query query = null;
-        try {
-            query = queryParser.parse(queryStr); 
-        } catch (Exception e) {
-            System.err.println("Errore durante il parsing della query: " + queryStr);
-            e.printStackTrace();
-            return results; // Restituisce una lista vuota in caso di errore
-        }
-    
-        TopDocs topDocs = searcher.search(query, maxResults); // Limitando la ricerca ai primi 10 risultati
-    
-        // Creazione degli oggetti SearchResult per ogni documento trovato
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            Document doc = searcher.doc(scoreDoc.doc);
+        
+        Directory directory = this.resourceManager.getDirectory(resourceType);
+        Analyzer analyzer = this.resourceManager.getAnalyzer(resourceType);
+        String[] fields = this.resourceManager.getSearchFields(resourceType);
 
-            Explanation explanation = searcher.explain(query, scoreDoc.doc);
-            String matchField = getDominantField(explanation, fields);
+        List<SearchResult> results = new LinkedList<>();
+
+        try(DirectoryReader reader = DirectoryReader.open(directory)) {
+            IndexSearcher searcher = new IndexSearcher(reader);
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
+
+            Query query = queryParser.parse(queryStr);;
             
-            String filename = doc.get("filename");
-            Matcher matcher = pattern.matcher(filename);
+            TopDocs topDocs = searcher.search(query, maxResults); // Limitando la ricerca ai primi 10 risultati
 
-            String link = null;
-            if(matcher.find()) {
-                String numericCode = matcher.group(1) + "." + matcher.group(2);
-                link = baseUrl + numericCode;
-            } else { 
-                link = "Link non valido";
+            // Creazione degli oggetti SearchResult per ogni documento trovato
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                Explanation explanation = searcher.explain(query, scoreDoc.doc);
+                String matchField = getDominantField(explanation, fields);
+                
+                String filename = doc.get("filename");
+                String link = generateLink(filename);
+        
+                SearchResult searchResult = createSearchResult(resourceType, doc, matchField, link, scoreDoc.doc);
+                results.add(searchResult);
             }
-    
-            SearchResultHTML searchResult = new SearchResultHTML();
-            searchResult.setTitle(doc.get("title"));
-            searchResult.setAuthor(doc.get("authors"));
-            searchResult.setContentSnippet(doc.get("content"));
-            searchResult.setAbstract(doc.get("abstract"));
-            searchResult.setMatchField(matchField);
-            searchResult.setLink(link);
-            searchResult.setScore(scoreDoc.score);
-            results.add(searchResult);
+        } catch (Exception e) {
+            logger.error("Error during search for type '{}': {}", resourceType, e.getMessage());
         }
-    
-        reader.close();
         return results;
     }
 
-    public List<SearchResultJSON> searchJSON(String queryStr, int maxResults) throws IOException {
-        LinkedList<SearchResultJSON> results = new LinkedList<SearchResultJSON>();
 
-        DirectoryReader reader = DirectoryReader.open(directory);
-        IndexSearcher searcher = new IndexSearcher(reader);
+    // chat gpt generates good javadoc :3
+    /**
+     * Dynamically creates a search result object based on the resource type.
+     * <p>
+     * This method uses the specified resource type to instantiate the appropriate
+     * subclass of {@link SearchResult}, populates its fields from the provided
+     * Lucene {@link Document}, and returns the resulting object. Common fields
+     * such as match field, link, and score are set on all search result types, 
+     * while resource-specific fields are populated via the {@code populateFields}
+     * method in the respective subclass.
+     * </p>
+     *
+     * @param resourceType the type of the resource to search (e.g., "html", "json").
+     *                     Must correspond to a valid resource type in the application.
+     * @param doc the Lucene {@link Document} retrieved from the index.
+     *            Contains the fields to populate the search result object.
+     * @param matchField the field in the document that matched the query.
+     *                   Used to indicate which field was most relevant.
+     * @param link the link generated for the resource, usually based on the filename.
+     * @param score the relevance score of the document, as computed by Lucene.
+     * @return an instance of {@link SearchResult}, populated with data from the document.
+     *         The specific type of {@link SearchResult} depends on the {@code resourceType}.
+     * @throws IllegalArgumentException if the {@code resourceType} is unknown or unsupported.
+     */
+    private SearchResult createSearchResult(String resourceType, Document doc, String matchField, String link, float score) {
+        SearchResult result;
 
-        String[] fields = {"tableId", "tableHtml"};
-        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer_json);
+        switch (resourceType) {
+            case "html":
+                result = new SearchResultHTML();
+                break;
 
-        Query query = null;
+            case "json":
+                result = new SearchResultJSON();
+                break;
 
-        try {
-            query = queryParser.parse(queryStr);
-        } catch (Exception e) {
-            System.err.println("Errore durante il parsing della query: " + queryStr);
-            e.printStackTrace();
-            return results;
+            default:
+                throw new IllegalArgumentException("Unknown resource type: " + resourceType); 
         }
 
-        TopDocs topDocs = searcher.search(query, maxResults);
+        result.setMatchField(matchField);
+        result.setLink(link);
+        result.setScore(score);
+        
+        result.populateFields(doc);
 
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            Document doc = searcher.doc(scoreDoc.doc);
+        return result;
+    }
 
-            Explanation explanation = searcher.explain(query, scoreDoc.doc);
-            String matchField = getDominantField(explanation, fields);
-
-            String filename = doc.get("filename");
-            Matcher matcher = pattern.matcher(filename);
-
-            String link = null;
-            if(matcher.find()) {
-                String numericCode = matcher.group(1) + "." + matcher.group(2);
-                link = baseUrl + numericCode;
-            } else { 
-                link = "Link non valido";
-            }
-
-            SearchResultJSON searchResultJSON = new SearchResultJSON();
-            searchResultJSON.setTableId(doc.get("tableId"));
-            searchResultJSON.setTableHtml(doc.get("table"));    //non mi ricordo se fosse taggato solo come table
-            searchResultJSON.setCaption(doc.get("caption"));
-            searchResultJSON.setMatchField(matchField);
-            searchResultJSON.setScore(scoreDoc.score);
-            searchResultJSON.setLink(link);
-
-            results.add(searchResultJSON);
+    private String generateLink(String filename) {
+        Matcher matcher = pattern.matcher(filename);
+   
+        if(matcher.find()) {
+            String numericCode = matcher.group(1) + "." + matcher.group(2);
+            return baseUrl + numericCode;
         }
-
-        reader.close();
-        return results;
+        return "Link not valid";
     }
 
     // Metodo per ottenere il campo con punteggio dominante dall'Explanation

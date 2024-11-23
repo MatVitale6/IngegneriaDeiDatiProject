@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JSONIndexer;
@@ -56,7 +57,8 @@ public class LuceneConfig {
      * 
      * @return The configured {@link ResourceManager}.
      */
-    @Bean 
+    @Bean
+    @Lazy 
     public ResourceManager resourceManager() {
         ResourceManager resourceManager = new ResourceManager();
 
@@ -73,25 +75,10 @@ public class LuceneConfig {
             new JSONIndexer(), 
             AnalyzerFactory.getAnalyzer("json"),
             resourceManager.prepareIndexDirectory("json"),
-            new String[] {"tableId", "tableHtml", "caption", "footnotes"}    
+            new String[] {"tableId", "tableHtml", "caption", "footnotes", "references"}    
         );
 
         logger.info("Resources registered: {}", resourceManager.getRegisteredTypes());
         return resourceManager;
-    }
-
-    /**
-     * Creates the {@link IndexWriterConfig} bean for configuring the index writing process.
-     * The {@link IndexWriterConfig} is essential for controlling how documents are written
-     * to the Lucene index. By default, it uses the analyzer for the "html" resource as
-     * configured in the {@link ResourceManager}.
-     * 
-     * @param resourceManager The {@link ResourceManager} instance managing resource configurations.
-     * @return The configured {@link IndexWriterConfig}.
-     */
-    @Bean
-    public IndexWriterConfig indexWriterConfig(ResourceManager resourceManager) {
-        Analyzer defaultAnalyzer = resourceManager.getAnalyzer("html");
-        return new IndexWriterConfig(defaultAnalyzer);
     }
 }

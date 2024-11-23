@@ -7,6 +7,7 @@ public class SearchResultJSON extends SearchResult {
     private String tableContent; // Contenuto HTML della tabella
     private String caption;
     private String footnotes;
+    private String references;
 
     public String getTableId() { return tableId; }
     public void setTableId(String tableId) { this.tableId = tableId; }
@@ -19,6 +20,9 @@ public class SearchResultJSON extends SearchResult {
     
     public String getFootnotes() { return footnotes; }
     public void setFootnotes(String footnotes) { this.footnotes = footnotes; }
+    
+    public String getReferences() { return references; }
+    public void setReferences(String references) { this.references = references; }
 
     @Override
     public void populateFields(Document doc) {
@@ -26,5 +30,6 @@ public class SearchResultJSON extends SearchResult {
         this.tableContent = doc.get("tableContent");
         this.caption = doc.get("caption");
         this.footnotes = doc.get("footnotes");
+        this.references = doc.get("references");
     }   
 }

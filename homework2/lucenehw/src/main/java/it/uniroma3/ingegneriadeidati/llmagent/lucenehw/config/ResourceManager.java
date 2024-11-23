@@ -167,6 +167,7 @@ public class ResourceManager {
      * @return the prepared {@link Directory}
      */
     public Directory prepareIndexDirectory(String type) {
+        logger.info("preparing directory at {}", type.equalsIgnoreCase("html") ? htmlIndexPath : jsonIndexPath);
         Path path = type.equalsIgnoreCase("html") ? Paths.get(htmlIndexPath) : Paths.get(jsonIndexPath);
 
         try {
@@ -188,4 +189,7 @@ public class ResourceManager {
             throw new RuntimeException("Error preparing directories", e);
         }
     }
+
+    public String getHtmlIndexPath() { return this.htmlIndexPath; }
+    public String getJsonIndexPath() { return this.jsonIndexPath; }
 }

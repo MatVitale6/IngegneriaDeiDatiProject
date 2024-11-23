@@ -1,21 +1,16 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JsonIndexer;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.IndexingService;
 
 /**
  * Classe principale dell'applicazione Lucenehw.
@@ -27,8 +22,11 @@ public class LucenehwApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(LucenehwApplication.class);
 
-    @Value("${lucene.index.path}")  
-    private String indexDirectory;
+    @Autowired
+    private ResourceManager resourceManager;
+
+    @Autowired
+    private IndexingService indexingService;
 
     /**
      * Metodo principale che avvia l'applicazione Spring Boot.
@@ -41,26 +39,33 @@ public class LucenehwApplication {
         SpringApplication.run(LucenehwApplication.class, args);
     }
 
+    /**
+     * Configures a {@link CommandLineRunner} bean to handle the indexing process.
+     * <p>
+     * This method ensures that the indexing process runs only for resources
+     * where indexing is incomplete. It uses {@link ResourceManager} to determine
+     * the indexing status and {@link IndexingService} to perform indexing tasks.
+     * </p>
+     * 
+     * @return a {@link CommandLineRunner} instance to manage the indexing process
+     */
     @Bean
-    public CommandLineRunner runIndexer(@Autowired(required = false) HTMLIndexer htmlIndexer, @Autowired(required = false) JsonIndexer jsonIndexer) {
+    public CommandLineRunner runIndexing() {
         return args -> {
-            Path flagFilePath = Paths.get(indexDirectory, "indexing_complete.flag");
+            boolean allIndexingComplete = true;
 
-            if (Files.exists(flagFilePath)){
-                logger.info("Indexing has already completed. Skipping...");
-                return;
+            for (String type : resourceManager.getRegisteredTypes()) {
+                if (!resourceManager.isIndexingComplete(type)) {
+                    logger.info("indexing required for {}", type);
+                    indexingService.runIndexingForType(type);
+                    allIndexingComplete = false;
+                } else {
+                    logger.info("Indexing already complete for {}", type);
+                }
             }
-            if (htmlIndexer != null) {
-                logger.info("Starting indexing process...");
-                htmlIndexer.run();
-            } else {
-                logger.info("htmlIndexer startup run is disabled");
-            }
-            if (jsonIndexer != null) {
-                logger.info("Starting indexing process...");
-                jsonIndexer.run();
-            } else {
-                logger.info("jsonIndexer startup run is disabled");
+
+            if (allIndexingComplete){
+                logger.info("indexing already complete for all resources, skipping...");
             }
         };
     }
