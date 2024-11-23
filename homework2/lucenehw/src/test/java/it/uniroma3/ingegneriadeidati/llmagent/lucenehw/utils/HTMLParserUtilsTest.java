@@ -1,7 +1,6 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;

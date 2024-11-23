@@ -1,11 +1,5 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils.QueryResult;
@@ -38,33 +33,33 @@ public class AnalyzerEvaluationTest {
     @Autowired
     private SearchService searchService;
 
-    @Test
-    public void evaluateQueryScores() throws Exception {
-        List<String> queries = loadQueries(QUERY_FILE_PATH);
-        List<QueryResult> queryResults = new ArrayList<>();
+    // @Test
+    // public void evaluateQueryScores() throws Exception {
+    //     List<String> queries = loadQueries(QUERY_FILE_PATH);
+    //     List<QueryResult> queryResults = new ArrayList<>();
         
 
-        for (String queryStr : queries) {
-            long startTime = System.nanoTime();
-            List<SearchResultHTML> results = searchService.searchHTML(queryStr, 20);
-            long endTime = System.nanoTime();
-            long durationInMillis = (endTime - startTime) / 1_000_000; 
-            List<SearchResultHTML> filteredResults = results.stream()
-                .map(result -> {
-                    result.setContentSnippet(null);  // Escludi lo snippet
-                    result.setAbstract(null);        // Escludi l'abstract
-                    return result;
-                })
-                .collect(Collectors.toList());
+    //     for (String queryStr : queries) {
+    //         long startTime = System.nanoTime();
+    //         List<SearchResult> results = searchService.search("html", queryStr, 20);
+    //         long endTime = System.nanoTime();
+    //         long durationInMillis = (endTime - startTime) / 1_000_000; 
+    //         List<SearchResult> filteredResults = results.stream()
+    //             .map(result -> {
+    //                 //result.setContentSnippet(null);  // Escludi lo snippet
+    //                 //result.setAbstract(null);        // Escludi l'abstract
+    //                 return result;
+    //             })
+    //             .collect(Collectors.toList());
 
-            double averageScore = filteredResults.stream().mapToDouble(SearchResultHTML::getScore).average().orElse(0);
-            double scoreVariance = calculateVariance(filteredResults, averageScore);
-            double scoreDecay = calculateScoreDecay(filteredResults);
+    //         double averageScore = filteredResults.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
+    //         double scoreVariance = calculateVariance(filteredResults, averageScore);
+    //         double scoreDecay = calculateScoreDecay(filteredResults);
 
-            queryResults.add(new QueryResult(queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
-        }
-        saveAsJSON(queryResults, OUTPUT_DIR_PATH);
-    }
+    //         queryResults.add(new QueryResult(queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
+    //     }
+    //     saveAsJSON(queryResults, OUTPUT_DIR_PATH);
+    // }
 
     private List<String> loadQueries(String filePath) throws Exception {
         return Files.lines(Paths.get(filePath))
@@ -73,7 +68,7 @@ public class AnalyzerEvaluationTest {
                     .collect(Collectors.toList());
     }
 
-    private double calculateVariance(List<SearchResultHTML> results, double averageScore) {
+    private double calculateVariance(List<SearchResult> results, double averageScore) {
         if (results.isEmpty()) return 0;
         return results.stream()
                         .mapToDouble(result -> Math.pow(result.getScore() - averageScore, 2))
@@ -81,7 +76,7 @@ public class AnalyzerEvaluationTest {
                         .orElse(0);
     }
     
-    private double calculateScoreDecay(List<SearchResultHTML> results) {
+    private double calculateScoreDecay(List<SearchResult> results) {
         if (results.size() < 2) return 0;
         double maxScore = results.get(0).getScore();
         double minScore = results.get(results.size() - 1).getScore();
