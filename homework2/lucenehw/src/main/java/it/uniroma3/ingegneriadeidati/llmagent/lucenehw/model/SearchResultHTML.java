@@ -1,5 +1,7 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model;
 
+import org.apache.lucene.document.Document;
+
 /**
  * Modello per rappresentare un risultato di ricerca.
  * La classe 'SearchResult' contiene i campi essenziali per descrivere un documento trovato tramite la ricerca:
@@ -8,126 +10,31 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model;
  * - estratto del contenuto
  * - abstract 
  */
-public class SearchResultHTML {
+public class SearchResultHTML extends SearchResult {
     private String title;
-    private String author;
+    private String authors;
     private String contentSnippet;
-    private String abstractA;
-    private String matchField;
-    private String link;
-    private float score;
+    private String abstractText;
 
-    
-     /**
-     * Costruttore senza argomenti per la classe `SearchResult`.
-     * Necessario per la deserializzazione e per framework che richiedono un costruttore vuoto.
-     */
-    public SearchResultHTML() {
+    @Override
+    public void populateFields(Document doc) {
+        this.title = doc.get("title");
+        this.authors = doc.get("authors");
+        this.contentSnippet = doc.get("content");
+        this.abstractText = doc.get("abstract");
     }
 
-    /**
-     * Costruttore con tutti i campi per inizializzare un ogetto 'SearchResult'.
-     * @param title il titolo del documento
-     * @param author l'autore del documento
-     * @param contentSnippet l'estratto del contenuto rilevante del docuemnto
-     * @param abstract abstract del documento
-     * @param matchField il campo su cui ha scelto l'articolo
-     * @param link il link dell'articolo
-     */
-    public SearchResultHTML(String title, String author, String contentSnippet, String abstractA, String matchField, String link) {
-        this.title = title;
-        this.author = author;
-        this.contentSnippet = contentSnippet;
-        this.abstractA = abstractA;
-        this.matchField = matchField;
-        this.link = link;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    /**
-     * restituisce il titolo del documento trovato
-     * @return il titolo del documento
-     */
-    public String getTitle() {
-        return title;
-    }
+    public String getAuthor() { return authors; }
+    public void setAuthor(String authors) { this.authors = authors; }
 
-    /**
-     * Imposta il titolo del documento trovato
-     * @param title il titolo del documento
-     */
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getContentSnippet() { return contentSnippet; }
+    public void setContentSnippet(String contentSnippet) { this.contentSnippet = contentSnippet; }
 
-    /**
-     * Restituisce l'autore del documento trovato.
-     * @return l'autore del documento.
-     */
-    public String getAuthor() {
-        return author;
-    }
+    public String getAbstract() { return abstractText; }
+    public void setAbstract(String abstractText) { this.abstractText = abstractText; }
 
-    /**
-     * Imposta l'autore del documento trovato.
-     * @param author l'autore del documento.
-     */
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    /**
-     * Restituisce un estratto del contenuto del documento trovato.
-     * @return un snippet di contenuto rilevante.
-     */
-    public String getContentSnippet() {
-        return contentSnippet;
-    }
-
-    /**
-     * Imposta un estratto del contenuto del documento trovato.
-     * @param contentSnippet lo snippet di contenuto.
-     */
-    public void setContentSnippet(String contentSnippet) {
-        this.contentSnippet = contentSnippet;
-    }
-        /**
-     * Restituisce abstract del documento trovato.
-     * @return 
-     */
-    public String getAbstract() {
-        return abstractA;
-    }
-
-    /**
-     * Imposta un abstract del documento trovato.
-     * @param contentSnippet 
-     */
-    public void setAbstract(String abstractA) {
-        this.abstractA = abstractA;
-    }
-
-    public String getMatchField() {
-        return matchField;
-    }
-
-    public void setMatchField(String matchField) {
-        this.matchField = matchField;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
-    }
-
-    public float getScore() {
-        return this.score;
-    }
-
-    public void setScore(float score) {
-        this.score = score;
-    }
 
 }
