@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
-import jakarta.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -30,7 +30,8 @@ import org.jsoup.Jsoup;
 
 /**
  * Service responsible for indexing HTML files.
- * Handles iterating through files, creating Lucene documents, and performing batch indexing.
+ * Handles iterating through files, creating Lucene documents, and performing
+ * batch indexing.
  */
 @Service
 public class JSONIndexer implements IIndexer {
@@ -43,10 +44,10 @@ public class JSONIndexer implements IIndexer {
 
     @Autowired
     private ResourceManager resourceManager;
-    
+
     @Autowired
     private ProgressService progressService;
-    
+
     @Override
     public void run() throws IOException {
         logger.info("ResourceManager injected = {}", resourceManager);
@@ -65,39 +66,60 @@ public class JSONIndexer implements IIndexer {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(resourceManager.getAnalyzer("json"));
 
         File[] files = new File(directoryPath).listFiles((dir, name) -> name.endsWith(".json"));
-        if(files == null || files.length == 0) {
+        if (files == null || files.length == 0) {
             logger.warn("No JSON files found in directory: {}", directoryPath);
             return;
         }
 
         long startTime = System.nanoTime();
-        int totalIndexed = 0;
+        AtomicInteger totalIndexed = new AtomicInteger(0);
         int totalFiles = files.length;
-        
-        try(IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
-            for(File file : files) {
+
+        try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
+            for (File file : files) {
                 long fileStartTime = System.nanoTime();
-                
-                JsonNode jsonNode = parseJsonFile(file);
-                JsonNode tableNode = jsonNode.get("table");
 
-                if (tableNode != null) {
-                    String tableId = jsonNode.get("tableId").asText();
-                    Document doc = createDocumentFromTable(tableId, tableNode);
+                JsonNode rootNode = parseJsonFile(file);
 
-                    writer.addDocument(doc);
-                    writer.commit();
-                    
-                    totalIndexed++;
+                if (rootNode != null && rootNode.isObject()) {
+                    // Iterate through the root keys (table keys)
+                    rootNode.fieldNames().forEachRemaining(entryKey -> {
+                        try {
+                            JsonNode entryNode = rootNode.get(entryKey);
+
+                            // Extract required fields
+                            String tableId = entryKey;
+                            JsonNode tableNode = entryNode.get("table");
+                            JsonNode captionNode = entryNode.get("caption");
+                            JsonNode footnotesNode = entryNode.get("footnotes");
+                            JsonNode referencesNode = entryNode.get("references");
+
+                            if (tableNode != null) {
+                                Document doc = createDocumentFromTable(tableId, tableNode, captionNode, footnotesNode,
+                                        referencesNode);
+
+                                writer.addDocument(doc);
+                                writer.commit();
+
+                                totalIndexed.incrementAndGet();
+                            } else {
+                                logger.warn("Skipping entry {} in file {}: Missing 'table' field", entryKey,
+                                        file.getName());
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error indexing entry in file {}: {}", file.getName(), e.getMessage());
+                        }
+                    });
                     long fileEndTime = System.nanoTime();
                     logger.info("Indexed JSON file: {} (Total Indexed: {}), File Time: {}ms",
-                        file.getName(), totalIndexed, (fileEndTime - fileStartTime)/ 1_000_000);
-                    
-                    int progress = (int) (((double) totalIndexed / totalFiles) * 100);
-                    progressService.setProgress(progress);
+                            file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
+
                 } else {
-                    logger.warn("Skipping file {}: Missing 'table' field", file.getName());
+                    logger.warn("Invalid JSON structure in file: {}", file.getName());
                 }
+
+                int progress = (int) (((double) totalIndexed.get() / totalFiles) * 100);
+                progressService.setProgress(progress);
             }
         }
 
@@ -118,22 +140,25 @@ public class JSONIndexer implements IIndexer {
         return mapper.readTree(file);
     }
 
-    
-    
-    //######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI DEGLI ANALYZER##########################à
-    public Document createDocumentFromTable(String tableId, JsonNode tableData) throws IOException {
+    // ######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI
+    // DEGLI ANALYZER##########################à
+    public Document createDocumentFromTable(String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
         Document doc = new Document();
-        
+
         doc.add(new StringField("tableId", tableId, Field.Store.YES));
 
         // Estrai e indicizza il campo "table":
 
-        //Questo codice estrae il contenuto del campo table, pulisce i dati (es. rimuove tag HTML) e li concatena in una stringa leggibile e indicizzabile.
+        // Questo codice estrae il contenuto del campo table, pulisce i dati (es.
+        // rimuove tag HTML) e li concatena in una stringa leggibile e indicizzabile.
         // 3 cose principali:
-        //1) iterazione su righe e celle -> Scorre ogni riga della tabella e ogni cella all'interno della riga.
-        //2) pulizia html -> Usa Jsoup.parse(cell.asText()).text() per rimuovere tag HTML.
-        //3) concatenzaione -> aggiunge il testo pulito di ogni cella a una stringa cumulativa (table) 
-        JsonNode tableNode = tableData.get("table");
+        // 1) iterazione su righe e celle -> Scorre ogni riga della tabella e ogni cella
+        // all'interno della riga.
+        // 2) pulizia html -> Usa Jsoup.parse(cell.asText()).text() per rimuovere tag
+        // HTML.
+        // 3) concatenzaione -> aggiunge il testo pulito di ogni cella a una stringa
+        // cumulativa (table)
+
         if (tableNode != null && tableNode.isArray()) {
             // Pulizia e unione di celle/tabella in modo efficiente
             String tableContent = cleanAndJoinTable(tableNode);
@@ -143,7 +168,6 @@ public class JSONIndexer implements IIndexer {
         }
 
         // Estrai e indicizza il campo "caption"
-        JsonNode captionNode = tableData.get("caption");
         if (captionNode != null && !captionNode.asText().isEmpty()) {
             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES)); // Campo analizzato
         } else {
@@ -151,7 +175,6 @@ public class JSONIndexer implements IIndexer {
         }
 
         // Estrai e indicizza il campo "footnotes"
-        JsonNode footnotesNode = tableData.get("footnotes");
         if (footnotesNode != null && footnotesNode.isArray()) {
             String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
             doc.add(new TextField("footnotes", footnotesText, Field.Store.NO)); // Campo analizzato
@@ -160,7 +183,6 @@ public class JSONIndexer implements IIndexer {
         }
 
         // Estrai e indicizza il campo "references"
-        JsonNode referencesNode = tableData.get("references");
         if (referencesNode != null && referencesNode.isArray()) {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
             doc.add(new TextField("references", referencesText, Field.Store.NO)); // Campo analizzato
