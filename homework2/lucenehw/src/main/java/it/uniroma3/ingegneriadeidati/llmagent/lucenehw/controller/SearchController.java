@@ -44,7 +44,7 @@ public class SearchController {
      */
     @PostMapping("/search")
     public ResponseEntity<?> searchArticles(
-        @RequestParam("resourceType") String resourceType,
+        @RequestParam(value = "resourceType", defaultValue =  "html") String resourceType,
         @RequestParam("inputString") String queryStr,
         @RequestParam("resultCount") int resultCount) {
         

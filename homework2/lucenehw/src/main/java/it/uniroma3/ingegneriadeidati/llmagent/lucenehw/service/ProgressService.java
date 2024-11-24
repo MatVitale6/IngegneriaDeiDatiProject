@@ -3,31 +3,34 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 import java.io.File;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class ProgressService {
+    private final static Logger logger = LoggerFactory.getLogger(ProgressService.class);
 
     private volatile int progress = 0;
 
-    @Value("${lucene.index.path}")
-    private String indexDirectory;
+    @Autowired 
+    private ResourceManager resourceManager;
 
-    private static final String INDEXING_COMPLETE_FLAG = "indexing_complete.flag";
-
-    @PostConstruct
-    public void initializeProgress() {
-        File flagFile = new File(indexDirectory, INDEXING_COMPLETE_FLAG);
-        if (flagFile.exists()) {
-            progress = 100;
-        } else {
-            progress = 0;
-        }
+    public void initializeProgress(String resourceType) {
+        boolean isComplete = this.resourceManager.isIndexingComplete(resourceType);
+        this.progress = isComplete ? 100 : 0;
     }
 
+    /**
+     * Retrieves the overall progress from the ResourceManager.
+     * 
+     * @return Progress percentage (0 to 100).
+     */
     public int getProgress() {
         return progress;
     }
@@ -36,24 +39,7 @@ public class ProgressService {
         this.progress = progress;
     }
 
-    public void markIndexingComplete() {
-        File flagFile = new File(indexDirectory, INDEXING_COMPLETE_FLAG);
-        try {
-            if (flagFile.createNewFile()) {
-                this.progress = 100;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to mark indexing as complete", e);
-        } 
-    }
-
     public void resetProgress() {
-        File flagFile = new File(indexDirectory, INDEXING_COMPLETE_FLAG);
-        if (flagFile.exists()) {
-            flagFile.delete();
-        }
         this.progress = 0;
     }
-
-
 }

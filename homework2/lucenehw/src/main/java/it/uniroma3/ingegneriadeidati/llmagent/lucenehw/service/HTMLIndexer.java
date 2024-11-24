@@ -99,7 +99,6 @@ public class HTMLIndexer implements IIndexer{
             }
         }
         progressService.setProgress(100);
-        progressService.markIndexingComplete();
         long endTime = System.nanoTime();        
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
 

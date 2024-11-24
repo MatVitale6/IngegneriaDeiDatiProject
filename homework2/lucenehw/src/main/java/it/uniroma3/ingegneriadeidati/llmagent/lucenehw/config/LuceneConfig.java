@@ -4,6 +4,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -32,6 +34,21 @@ public class LuceneConfig {
     
     private static final Logger logger = LoggerFactory.getLogger(LuceneConfig.class);
 
+    @Value("${lucene.index.html.path}")
+    private String htmlIndexPath;
+
+    @Value("${lucene.index.json.path}") 
+    private String jsonIndexPath;
+
+    @Lazy
+    @Autowired
+    private HTMLIndexer htmlIndexer;
+
+    @Lazy
+    @Autowired
+    private JSONIndexer jsonIndexer;
+
+    
     /**
      * Creates and configures the {@link ResourceManager} bean.
      * The {@link ResourceManager} is responsible for managing all resource-specific configurations,
@@ -58,27 +75,27 @@ public class LuceneConfig {
      * @return The configured {@link ResourceManager}.
      */
     @Bean
-    @Lazy 
     public ResourceManager resourceManager() {
-        ResourceManager resourceManager = new ResourceManager();
+        ResourceManager resourceManager = new ResourceManager(htmlIndexPath, jsonIndexPath);
 
         resourceManager.registerResource(
-            "html", 
-            new HTMLIndexer(), 
-            AnalyzerFactory.getAnalyzer("html"),
-            resourceManager.prepareIndexDirectory("html"),
+            "html",
+            htmlIndexer, 
+            AnalyzerFactory.getAnalyzer("html"), 
+            resourceManager.prepareIndexDirectory("html"), 
             new String[] {"title", "authors", "content", "abstract"}
         );
 
         resourceManager.registerResource(
             "json", 
-            new JSONIndexer(), 
-            AnalyzerFactory.getAnalyzer("json"),
-            resourceManager.prepareIndexDirectory("json"),
-            new String[] {"tableId", "tableHtml", "caption", "footnotes", "references"}    
+            jsonIndexer, 
+            AnalyzerFactory.getAnalyzer("json"), 
+            resourceManager.prepareIndexDirectory("json"), 
+            new String[] {"tableId", "tableContent", "caption", "footnotes", "references"}
         );
 
         logger.info("Resources registered: {}", resourceManager.getRegisteredTypes());
+
         return resourceManager;
     }
 }

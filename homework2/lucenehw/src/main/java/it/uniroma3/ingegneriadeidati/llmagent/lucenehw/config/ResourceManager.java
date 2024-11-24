@@ -38,14 +38,22 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.IIndexer;
 public class ResourceManager {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ResourceManager.class);
 
-    @Value("${lucene.index.html.path}")
-    private String htmlIndexPath;
-
-    @Value("${lucene.index.json.path}") 
-    private String jsonIndexPath;
+    private final String htmlIndexPath;
+    private final String jsonIndexPath;
 
     private static final String INDEXING_COMPLETE_FLAG = "indexing_complete.flag"; 
     private final Map<String, Resource> resources = new HashMap<>();
+
+    public ResourceManager(String htmlIndexPath, String jsonIndexPath) {
+        this.htmlIndexPath = htmlIndexPath;
+        this.jsonIndexPath = jsonIndexPath;
+
+        if (htmlIndexPath == null || jsonIndexPath == null) {
+            throw new IllegalArgumentException("Index Paths must not be null");
+        }
+
+        logger.info("Resource Manager initialized with HTML path = {} and JSON path = {}", this.htmlIndexPath, this.jsonIndexPath);
+    }
 
     /**
      * Retrieves the directory associated with a given resource type.
@@ -167,7 +175,6 @@ public class ResourceManager {
      * @return the prepared {@link Directory}
      */
     public Directory prepareIndexDirectory(String type) {
-        logger.info("preparing directory at {}", type.equalsIgnoreCase("html") ? htmlIndexPath : jsonIndexPath);
         Path path = type.equalsIgnoreCase("html") ? Paths.get(htmlIndexPath) : Paths.get(jsonIndexPath);
 
         try {

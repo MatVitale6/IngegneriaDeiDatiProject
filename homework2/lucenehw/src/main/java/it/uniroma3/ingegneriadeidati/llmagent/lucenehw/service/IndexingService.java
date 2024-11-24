@@ -23,6 +23,7 @@ public class IndexingService {
     private ResourceManager resourceManager;
 
     public void runIndexingForType(String type) {
+        logger.info("ResourceManager injected = {}", resourceManager);
         try {
             IIndexer indexer = resourceManager.getIndexer(type);
 
@@ -41,5 +42,4 @@ public class IndexingService {
             logger.error("Resource type {} not found: {}", type, e.getMessage());
         }
     }
-
 }

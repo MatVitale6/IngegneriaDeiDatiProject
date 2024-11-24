@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
+import jakarta.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,8 +36,8 @@ import org.jsoup.Jsoup;
 public class JSONIndexer implements IIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(JSONIndexer.class);
-    private Map<String, List<String>> emptyFieldsFiles;
-    
+    private final Map<String, List<String>> emptyFieldsFiles = new HashMap<>();
+
     @Value("${json.files.path}")
     private String jsonFilePath;
 
@@ -45,14 +46,13 @@ public class JSONIndexer implements IIndexer {
     
     @Autowired
     private ProgressService progressService;
-
-    public JSONIndexer() {
-        this.emptyFieldsFiles = new HashMap<>();
-    }
     
     @Override
     public void run() throws IOException {
-        initializeEmptyFields();
+        logger.info("ResourceManager injected = {}", resourceManager);
+        if (emptyFieldsFiles.isEmpty()) {
+            initializeEmptyFields();
+        }
         indexFiles(jsonFilePath);
     }
 
@@ -102,7 +102,6 @@ public class JSONIndexer implements IIndexer {
         }
 
         progressService.setProgress(100);
-        progressService.markIndexingComplete();
         long endTime = System.nanoTime();
         logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
     }
