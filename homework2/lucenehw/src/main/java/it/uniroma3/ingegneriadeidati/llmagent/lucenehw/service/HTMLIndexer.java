@@ -109,8 +109,8 @@ public class HTMLIndexer implements IIndexer{
         emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
             if (!filesWithEmptyField.isEmpty()) {
                 double percentage = (filesWithEmptyField.size() * 100.0) / totalFiles;
-                logger.warn("Files with empty {}: {} ({} files, {}% of total files)",
-                    field, filesWithEmptyField, filesWithEmptyField.size(), String.format("%.2f", percentage));   
+                logger.warn("Files with empty {} ({} files, {}% of total files)",
+                    field, filesWithEmptyField.size(), String.format("%.2f", percentage));   
             } else {
                 logger.info("No files with empty {}", field);
             }

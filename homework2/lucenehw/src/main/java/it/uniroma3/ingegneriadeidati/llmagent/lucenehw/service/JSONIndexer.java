@@ -110,19 +110,17 @@ public class JSONIndexer implements IIndexer {
                             logger.error("Error indexing entry in file {}: {}", file.getName(), e.getMessage());
                         }
                     });
-                    long fileEndTime = System.nanoTime();
-                    logger.info("Indexed JSON file: {} (Total Indexed: {}), File Time: {}ms",
-                            file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
-
                 } else {
                     logger.warn("Invalid JSON structure in file: {}", file.getName());
                 }
-
+                
+                long fileEndTime = System.nanoTime();
+                logger.info("Indexed JSON file: {} (Total Indexed: {}), File Time: {}ms",
+                        file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
                 int progress = (int) (((double) totalIndexed.get() / totalFiles) * 100);
                 progressService.setProgress(progress);
             }
         }
-
         progressService.setProgress(100);
         long endTime = System.nanoTime();
         logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
