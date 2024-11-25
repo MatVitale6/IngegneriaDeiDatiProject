@@ -54,7 +54,11 @@ public class HTMLIndexer implements IIndexer{
 
     @Override
     public void run() throws IOException {
+        initializeEmptyFields();
+
+        progressService.startIndexing("html");
         indexFiles(htmlFilesPath);
+        progressService.completeIndexing("html");
     }
 
     /**
@@ -65,7 +69,6 @@ public class HTMLIndexer implements IIndexer{
     @Override
     public void indexFiles(String directoryPath) throws IOException {
         logger.info("Starting HTML file indexing...");
-        progressService.resetProgress();
 
         Directory directory = this.resourceManager.getDirectory("html");
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(resourceManager.getAnalyzer("html"));
@@ -98,25 +101,12 @@ public class HTMLIndexer implements IIndexer{
                 progressService.setProgress(progress);
             }
         }
-        progressService.setProgress(100);
         long endTime = System.nanoTime();        
         logger.info("Total indexing time: {}ms", (endTime - startTime) / 1_000_000);
-
         logEmptyFieldsSummary(totalFiles);
     }
 
-    private void logEmptyFieldsSummary(int totalFiles) {
-        emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
-            if (!filesWithEmptyField.isEmpty()) {
-                double percentage = (filesWithEmptyField.size() * 100.0) / totalFiles;
-                logger.warn("Files with empty {} ({} files, {}% of total files)",
-                    field, filesWithEmptyField.size(), String.format("%.2f", percentage));   
-            } else {
-                logger.info("No files with empty {}", field);
-            }
-        });
-    }  
-
+    
     /**
      * Creates a Lucene document for each HTML file.
      * Uses {@link HTMLParserUtils} to extract relevant content from the HTML file and adds it as fields.
@@ -127,14 +117,14 @@ public class HTMLIndexer implements IIndexer{
      */
     public Document createDocumentFromFile(File file) throws IOException {
         Document doc = new Document();
-
+        
         String title = HTMLParserUtils.parseTitle(file);
         if (!title.isEmpty()) {
             doc.add(new TextField("title", title, Field.Store.YES));
         } else {
             emptyFieldsFiles.get("title").add(file.getName());
         }
-
+        
         String authors = HTMLParserUtils.parseAuthors(file);
         if (!authors.isEmpty()) {
             doc.add(new TextField("authors", authors, Field.Store.YES));
@@ -151,12 +141,31 @@ public class HTMLIndexer implements IIndexer{
 
         String abstractText = HTMLParserUtils.parseAbstract(file);
         if (!abstractText.isEmpty()) {
-             doc.add(new TextField("abstract", abstractText, Field.Store.YES));
+            doc.add(new TextField("abstract", abstractText, Field.Store.YES));
         } else {
             emptyFieldsFiles.get("abstract").add(file.getName());
         }
-
+        
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
     }
+    
+    private void initializeEmptyFields() {
+        String[] fields = this.resourceManager.getSearchFields("json");
+        for (String field : fields) {
+            emptyFieldsFiles.put(field, new ArrayList<>());
+        }
+    }
+    
+    private void logEmptyFieldsSummary(int totalFiles) {
+        emptyFieldsFiles.forEach((field, filesWithEmptyField) -> {
+            if (!filesWithEmptyField.isEmpty()) {
+                double percentage = (filesWithEmptyField.size() * 100.0) / totalFiles;
+                logger.warn("Files with empty {} ({} files, {}% of total files)",
+                    field, filesWithEmptyField.size(), String.format("%.2f", percentage));   
+            } else {
+                logger.info("No files with empty {}", field);
+            }
+        });
+    }  
 }

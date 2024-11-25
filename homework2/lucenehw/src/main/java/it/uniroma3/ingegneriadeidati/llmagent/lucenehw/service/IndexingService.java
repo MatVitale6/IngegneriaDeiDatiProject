@@ -30,11 +30,7 @@ public class IndexingService {
                 logger.warn("No indexer registered for resource type {}", type);
                 return;
             }
-            
-            logger.info("Starting indexing process for {}", type);
             indexer.run();
-            resourceManager.markIndexingComplete(type);
-            logger.info("Indexing completed for resource type: {}", type);
         } catch (IOException e) {
             logger.error("Error during {} indexing", type, e);
         } catch (IllegalArgumentException e) {

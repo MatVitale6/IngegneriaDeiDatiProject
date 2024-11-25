@@ -16,14 +16,15 @@ public class IndexerController {
 
     @GetMapping("/")
     public String index(Model model) {
-        boolean indexingProcess = progressService.getProgress() < 100;
+        boolean indexingProcess = this.progressService.getProgress() < 100;
         model.addAttribute("indexingProcess", indexingProcess);
+        model.addAttribute("currentResourceType", this.progressService.getCurrentResourceType());
         return "index";
     }
 
     @GetMapping("/indexing/progress") 
     @ResponseBody
     public int getProgress() {
-        return progressService.getProgress();
+        return this.progressService.getProgress();
     }
 }

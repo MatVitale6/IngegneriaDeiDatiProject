@@ -34,7 +34,7 @@ public class AnalyzerFactory {
         perFieldAnalyzer.put("abstract", new EnglishAnalyzer());
         PerFieldAnalyzerWrapper perFieldAnalyzerWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzer);
 
-        logger.info("Analyzer configuration:");
+        logger.info("Analyzer HTML configuration:");
         perFieldAnalyzer.forEach((field, fieldAnalyzer) -> 
             logger.info("Field '{}', Analyzer '{}'", field, fieldAnalyzer.getClass().getName())
         );

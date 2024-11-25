@@ -50,8 +50,6 @@ public class ResourceManager {
         if (htmlIndexPath == null || jsonIndexPath == null) {
             throw new IllegalArgumentException("Index Paths must not be null");
         }
-
-        logger.info("Resource Manager initialized with HTML path = {} and JSON path = {}", this.htmlIndexPath, this.jsonIndexPath);
     }
 
     /**

@@ -51,7 +51,6 @@ public class LucenehwApplication {
      */
     @Bean
     public CommandLineRunner runIndexing() {
-        logger.info("ResourceManager injected = {}", resourceManager);
         return args -> {
             boolean allIndexingComplete = true;
 
