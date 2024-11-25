@@ -245,7 +245,6 @@ public class JSONIndexer implements IIndexer {
     // DEGLI ANALYZER##########################à
     private Document createDocumentFromTable(File file, String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
         Document doc = new Document();
-
         doc.add(new StringField("tableId", tableId, Field.Store.YES));
 
         // Estrai e indicizza il campo "table":
@@ -260,10 +259,10 @@ public class JSONIndexer implements IIndexer {
         // 3) concatenzaione -> aggiunge il testo pulito di ogni cella a una stringa
         // cumulativa (table)
 
-        if (tableNode != null && tableNode.isArray()) {
+        if (tableNode != null) {
             // Pulizia e unione di celle/tabella in modo efficiente
-            String tableContent = cleanAndJoinTable(tableNode);
-            doc.add(new TextField("tableContent", tableContent, Field.Store.NO)); // Campo analizzato per la ricerca
+            //String tableContent = cleanAndJoinTable(tableNode);
+            doc.add(new TextField("tableContent", tableNode.asText(), Field.Store.YES)); // Campo analizzato per la ricerca
         } else {
             emptyFieldsTables.get("tableContent").add(tableId);
         }
@@ -278,7 +277,7 @@ public class JSONIndexer implements IIndexer {
         // Estrai e indicizza il campo "footnotes"
         if (footnotesNode != null && footnotesNode.isArray()) {
             String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
-            doc.add(new TextField("footnotes", footnotesText, Field.Store.NO)); // Campo analizzato
+            doc.add(new TextField("footnotes", footnotesText, Field.Store.YES)); // Campo analizzato
         } else {
             emptyFieldsTables.get("footnotes").add(tableId);
         }
@@ -286,11 +285,10 @@ public class JSONIndexer implements IIndexer {
         // Estrai e indicizza il campo "references"
         if (referencesNode != null && referencesNode.isArray()) {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
-            doc.add(new TextField("references", referencesText, Field.Store.NO)); // Campo analizzato
+            doc.add(new TextField("references", referencesText, Field.Store.YES)); // Campo analizzato
         } else {
             emptyFieldsTables.get("references").add(tableId);
         }
-
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
     }
@@ -302,10 +300,10 @@ public class JSONIndexer implements IIndexer {
      */
     private String cleanAndJoinTable(JsonNode tableNode) {
         StringBuilder tableText = new StringBuilder();
-        tableNode.forEach(row -> row.forEach(cell -> {
-            tableText.append(Jsoup.parse(cell.asText()).text()).append(" ");
-        }));
-        return tableText.toString().trim();
+        //tableNode.forEach(row -> row.forEach(cell -> {
+        //    tableText.append(Jsoup.parse(cell.asText()).text()).append(" ");
+        //}));
+        return tableNode.toString().trim();
     }
 
     /**

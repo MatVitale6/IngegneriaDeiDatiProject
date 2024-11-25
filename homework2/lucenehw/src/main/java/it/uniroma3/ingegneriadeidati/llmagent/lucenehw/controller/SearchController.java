@@ -66,7 +66,7 @@ public class SearchController {
      */
     @PostMapping("/search")
     public ResponseEntity<?> searchArticles(
-        @RequestParam(value = "resourceType", defaultValue =  "json") String resourceType,
+        @RequestParam("resourceType") String resourceType,
         @RequestParam("inputString") String queryStr,
         @RequestParam("resultCount") int resultCount) {
         

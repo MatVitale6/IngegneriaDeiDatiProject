@@ -15,10 +15,32 @@ function updateColors(selectedColor) {
     document.getElementById('subTitle2').style.color = complementaryColor;
     
     // Cambia il colore di sfondo e del testo del pulsante di submit
-    document.getElementById('submitButton').style.backgroundColor = selectedColor;
-    document.getElementById('submitButton').style.color = complementaryColor;
+    document.getElementById('submitButton1').style.backgroundColor = selectedColor;
+    document.getElementById('submitButton1').style.color = complementaryColor;
+
+    document.getElementById('submitButton2').style.backgroundColor = selectedColor;
+    document.getElementById('submitButton2').style.color = complementaryColor;
 
     document.getElementById('researchResults').style.color = complementaryColor;
+
+    const tables = document.querySelectorAll('.table-preview table'); // Selettore delle tabelle
+    tables.forEach(table => {
+        // Cambia lo sfondo delle celle pari e dispari per alternanza
+        table.querySelectorAll('tr:nth-child(even) td').forEach(cell => {
+            cell.style.backgroundColor = selectedColor; // Sfondo per righe pari
+            cell.style.color = complementaryColor; // Colore testo
+        });
+        table.querySelectorAll('tr:nth-child(odd) td').forEach(cell => {
+            cell.style.backgroundColor = complementaryColor; // Sfondo per righe dispari
+            cell.style.color = selectedColor; // Colore testo
+        });
+
+        // Cambia stile intestazioni (th)
+        table.querySelectorAll('th').forEach(header => {
+            header.style.backgroundColor = complementaryColor;
+            header.style.color = selectedColor;
+        });
+    });
 }
 
 // Funzione per calcolare il colore opposto
@@ -45,6 +67,7 @@ function performSearch(event) {
     // Ottieni il valore del campo di input
     const query = document.getElementById("inputString").value;
     const resultCount = document.getElementById("resultCount").value;
+    const resourceType = event.submitter.getAttribute("data-resource-type");
 
     // Invia la richiesta POST tramite fetch
     fetch("/search", {
@@ -52,7 +75,7 @@ function performSearch(event) {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: new URLSearchParams({ inputString: query, resultCount: resultCount })
+        body: new URLSearchParams({ inputString: query, resultCount: resultCount, resourceType: resourceType})
     })
     .then(response => response.json())  // Converte la risposta in JSON
     .then(results => {
@@ -88,12 +111,16 @@ function performSearch(event) {
                         </p>
                     `;
 
-                    if (result.tableHtml) {
+                    if (result.tableContent) {
                         const tableContainer = document.createElement("div");
-                        tableContainer.classList.add("table-container", "mt-2");
+                        tableContainer.classList.add("d-flex", "justify-content-center", "mt-2"); // Flexbox per centrare
                         tableContainer.innerHTML = `
-                            <p class="fw-bold" style="font-size: 0.9rem;">Table Preview:</p>
-                            <div class="table-preview border rounded p-2 bg-white">${result.tableHtml}</div>
+                            <div class="table-container">
+                                <p class="fw-bold text-center" style="font-size: 0.9rem;">Table Preview:</p>
+                                <div class="table-preview border rounded p-3 bg-light">
+                                    ${result.tableContent}
+                                </div>
+                            </div>
                         `;
                         resultContent.appendChild(tableContainer);
                     }
