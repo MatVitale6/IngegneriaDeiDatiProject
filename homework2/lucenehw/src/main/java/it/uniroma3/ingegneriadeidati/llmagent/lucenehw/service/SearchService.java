@@ -91,10 +91,10 @@ public class SearchService {
             IndexSearcher searcher = new IndexSearcher(reader);
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
 
-            Query query = queryParser.parse(queryStr);;
+            Query query = queryParser.parse(queryStr);
             
             TopDocs topDocs = searcher.search(query, maxResults); // Limitando la ricerca ai primi 10 risultati
-
+            
             // Creazione degli oggetti SearchResult per ogni documento trovato
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
@@ -103,7 +103,7 @@ public class SearchService {
                 
                 String filename = doc.get("filename");
                 String link = generateLink(filename);
-        
+                
                 SearchResult searchResult = createSearchResult(resourceType, doc, matchField, link, scoreDoc.doc);
                 results.add(searchResult);
             }
@@ -165,6 +165,7 @@ public class SearchService {
 
     private String generateLink(String filename) {
         Matcher matcher = pattern.matcher(filename);
+    
    
         if(matcher.find()) {
             String numericCode = matcher.group(1) + "." + matcher.group(2);

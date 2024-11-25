@@ -122,7 +122,6 @@ public class JSONIndexer implements IIndexer {
 
                 int progress = (int) (((double) this.filesTime.size() / totalFiles) * 100);
                 progressService.setProgress(progress);
-                
             }
         }
         long endTime = System.nanoTime();
@@ -147,7 +146,7 @@ public class JSONIndexer implements IIndexer {
                 if (entryNode.get("table") != null) {
                     long tableStartTime = System.nanoTime();
 
-                    processTable(entryKey, entryNode, writer);
+                    processTable(file, entryKey, entryNode, writer);
 
                     long tableEndTime = System.nanoTime();
                     this.tablesTime.add((tableEndTime - tableStartTime) / 1_000_000); 
@@ -171,13 +170,13 @@ public class JSONIndexer implements IIndexer {
      * @param writer    the {@link IndexWriter} used for adding documents
      * @throws IOException if an I/O error occurs during document creation
      */
-    private void processTable(String tableId, JsonNode entryNode, IndexWriter writer) throws IOException {
+    private void processTable(File file, String tableId, JsonNode entryNode, IndexWriter writer) throws IOException {
         JsonNode tableNode = entryNode.get("table");
         JsonNode captionNode = entryNode.get("caption");
         JsonNode footnotesNode = entryNode.get("footnotes");
         JsonNode referencesNode = entryNode.get("references");
 
-        Document doc = createDocumentFromTable(tableId, tableNode, captionNode, footnotesNode, referencesNode);
+        Document doc = createDocumentFromTable(file, tableId, tableNode, captionNode, footnotesNode, referencesNode);
         writer.addDocument(doc);
         writer.commit();
     }
@@ -244,7 +243,7 @@ public class JSONIndexer implements IIndexer {
 
     // ######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI
     // DEGLI ANALYZER##########################à
-    private Document createDocumentFromTable(String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
+    private Document createDocumentFromTable(File file, String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
         Document doc = new Document();
 
         doc.add(new StringField("tableId", tableId, Field.Store.YES));
@@ -292,6 +291,7 @@ public class JSONIndexer implements IIndexer {
             emptyFieldsTables.get("references").add(tableId);
         }
 
+        doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
     }
 
