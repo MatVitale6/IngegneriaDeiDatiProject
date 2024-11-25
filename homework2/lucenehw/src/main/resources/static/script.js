@@ -68,56 +68,93 @@ function performSearch(event) {
             results.forEach(result => {
                 const li = document.createElement("li");
                 li.classList.add("mb-3", "p-4", "border", "rounded", "shadow-sm", "bg-light", "d-flex", "align-items-start");
-                
-                const matchField = document.createElement("div");
-                matchField.classList.add("text-danger", "fw-bold");
-                matchField.style.fontSize = "0.7rem";
-                matchField.style.marginLeft = "auto";
-                matchField.textContent = result.matchField;
-            
-                
-                const resultContent = document.createElement("div");
-                resultContent.innerHTML = `
-                    <h5 class="fw-bold" style="font-size: 1.1rem;">
-                        <a href="${result.link}" style="color: black" target="_blank">${result.title}</a>
-                    </h5>
-                    <p class="text-muted" style="font-size: 0.9rem;"><strong>Author:</strong> ${result.author}</p>
-                `;
 
-                const abstractContainer = document.createElement("p");
-                abstractContainer.style.fontSize = "0.9rem"
+                // Identifica il formato della risposta
+                if (result.tableId && result.caption) {
+                    // Nuovo formato
+                    const matchField = document.createElement("div");
+                    matchField.classList.add("text-danger", "fw-bold");
+                    matchField.style.fontSize = "0.7rem";
+                    matchField.style.marginLeft = "auto";
+                    matchField.textContent = result.matchField;
 
-                
-                const shortAbstract = result.abstract.slice(0, 150) + "..."; 
-                const abstractText = document.createElement("span");
-                abstractText.classList.add("abstract-text");
-                abstractText.textContent = shortAbstract;
+                    const resultContent = document.createElement("div");
+                    resultContent.innerHTML = `
+                        <h5 class="fw-bold" style="font-size: 1.1rem;">
+                            <a href="${result.link}" style="color: black" target="_blank">Table ID: ${result.tableId}</a>
+                        </h5>
+                        <p class="text-muted" style="font-size: 0.9rem;">
+                            <strong>Caption:</strong> ${result.caption}
+                        </p>
+                    `;
 
-                const expandButton = document.createElement("button");
-                expandButton.textContent = "Read abstract";
-                expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
-                expandButton.style.fontSize = "0.7rem";
-                //expandButton.style.color = "black"
-                //expandButton.style.textDecoration = "underline"
-
-
-                expandButton.addEventListener("click", () => {
-                    const abstractText = abstractContainer.querySelector(".abstract-text");
-                    if (expandButton.textContent === "Read abstract") {
-                        abstractText.textContent = result.abstract;
-                        expandButton.textContent = "Compress abstract";
-                    } else {
-                        abstractText.textContent = shortAbstract;
-                        expandButton.textContent = "Read abstract";
+                    if (result.tableHtml) {
+                        const tableContainer = document.createElement("div");
+                        tableContainer.classList.add("table-container", "mt-2");
+                        tableContainer.innerHTML = `
+                            <p class="fw-bold" style="font-size: 0.9rem;">Table Preview:</p>
+                            <div class="table-preview border rounded p-2 bg-white">${result.tableHtml}</div>
+                        `;
+                        resultContent.appendChild(tableContainer);
                     }
-                });
 
-                abstractContainer.appendChild(abstractText);
-                abstractContainer.appendChild(expandButton);
-                resultContent.appendChild(abstractContainer);
-                
-                li.appendChild(resultContent);
-                li.appendChild(matchField);
+                    li.appendChild(resultContent);
+                    li.appendChild(matchField);
+                } else if (result.title && result.author) {
+                    // Vecchio formato
+                    const matchField = document.createElement("div");
+                    matchField.classList.add("text-danger", "fw-bold");
+                    matchField.style.fontSize = "0.7rem";
+                    matchField.style.marginLeft = "auto";
+                    matchField.textContent = result.matchField;
+
+                    const resultContent = document.createElement("div");
+                    resultContent.innerHTML = `
+                        <h5 class="fw-bold" style="font-size: 1.1rem;">
+                            <a href="${result.link}" style="color: black" target="_blank">${result.title}</a>
+                        </h5>
+                        <p class="text-muted" style="font-size: 0.9rem;">
+                            <strong>Author:</strong> ${result.author}
+                        </p>
+                    `;
+
+                    const abstractContainer = document.createElement("p");
+                    abstractContainer.style.fontSize = "0.9rem";
+
+                    const shortAbstract = result.abstract.slice(0, 150) + "...";
+                    const abstractText = document.createElement("span");
+                    abstractText.classList.add("abstract-text");
+                    abstractText.textContent = shortAbstract;
+
+                    const expandButton = document.createElement("button");
+                    expandButton.textContent = "Read abstract";
+                    expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
+                    expandButton.style.fontSize = "0.7rem";
+
+                    expandButton.addEventListener("click", () => {
+                        const abstractText = abstractContainer.querySelector(".abstract-text");
+                        if (expandButton.textContent === "Read abstract") {
+                            abstractText.textContent = result.abstract;
+                            expandButton.textContent = "Compress abstract";
+                        } else {
+                            abstractText.textContent = shortAbstract;
+                            expandButton.textContent = "Read abstract";
+                        }
+                    });
+
+                    abstractContainer.appendChild(abstractText);
+                    abstractContainer.appendChild(expandButton);
+                    resultContent.appendChild(abstractContainer);
+
+                    li.appendChild(resultContent);
+                    li.appendChild(matchField);
+                } else {
+                    // Formato sconosciuto
+                    const errorMessage = document.createElement("p");
+                    errorMessage.textContent = "Formato della risposta non riconosciuto.";
+                    errorMessage.classList.add("text-danger", "fst-italic");
+                    li.appendChild(errorMessage);
+                }
             
                 resultsList.appendChild(li);
             });
