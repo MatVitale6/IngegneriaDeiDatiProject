@@ -37,7 +37,9 @@ import org.jsoup.Jsoup;
 public class JSONIndexer implements IIndexer {
 
     private static final Logger logger = LoggerFactory.getLogger(JSONIndexer.class);
-    private final Map<String, List<String>> emptyFieldsFiles = new HashMap<>();
+    private final Map<String, List<String>> emptyFieldsTables = new HashMap<>();
+    private final List<Long> filesTime = new ArrayList<>();
+    private final List<Long> tablesTime = new ArrayList<>();
 
     @Value("${json.files.path}")
     private String jsonFilePath;
@@ -50,17 +52,17 @@ public class JSONIndexer implements IIndexer {
 
     @Override
     public void run() throws IOException {
-        logger.info("ResourceManager injected = {}", resourceManager);
-        if (emptyFieldsFiles.isEmpty()) {
+        if (emptyFieldsTables.isEmpty()) {
             initializeEmptyFields();
         }
+        progressService.startIndexing("json");
         indexFiles(jsonFilePath);
+        progressService.completeIndexing("json");
     }
 
     @Override
     public void indexFiles(String directoryPath) throws IOException {
         logger.info("Starting JSON file indexing...");
-        progressService.resetProgress();
 
         Directory directory = this.resourceManager.getDirectory("json");
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(resourceManager.getAnalyzer("json"));
@@ -71,65 +73,123 @@ public class JSONIndexer implements IIndexer {
             return;
         }
 
-        long startTime = System.nanoTime();
-        AtomicInteger totalIndexed = new AtomicInteger(0);
+        long totalStartTime = System.nanoTime();
         int totalFiles = files.length;
 
         try (IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
             for (File file : files) {
-                long fileStartTime = System.nanoTime();
-
                 JsonNode rootNode = parseJsonFile(file);
+                if (rootNode != null && rootNode.isObject()) {  
+                    long fileStartTime = System.nanoTime();
 
-                if (rootNode != null && rootNode.isObject()) {
-                    // Iterate through the root keys (table keys)
-                    rootNode.fieldNames().forEachRemaining(entryKey -> {
-                        try {
-                            JsonNode entryNode = rootNode.get(entryKey);
-
-                            // Extract required fields
-                            String tableId = entryKey;
-                            JsonNode tableNode = entryNode.get("table");
-                            JsonNode captionNode = entryNode.get("caption");
-                            JsonNode footnotesNode = entryNode.get("footnotes");
-                            JsonNode referencesNode = entryNode.get("references");
-
-                            if (tableNode != null) {
-                                Document doc = createDocumentFromTable(tableId, tableNode, captionNode, footnotesNode,
-                                        referencesNode);
-
-                                writer.addDocument(doc);
-                                writer.commit();
-
-                                totalIndexed.incrementAndGet();
-                            } else {
-                                logger.warn("Skipping entry {} in file {}: Missing 'table' field", entryKey,
-                                        file.getName());
-                            }
-                        } catch (Exception e) {
-                            logger.error("Error indexing entry in file {}: {}", file.getName(), e.getMessage());
-                        }
-                    });
+                    processFile(file, rootNode, writer);
+                    
+                    long fileEndTime = System.nanoTime();
+                    this.filesTime.add((fileEndTime - fileStartTime) / 1_000_000);
+                    logger.info("Indexed file: {} (Total Files Indexed: {}), File Time: {}ms",
+                        file.getName(), this.filesTime.size(), (fileEndTime - fileStartTime) / 1_000_000);  // i'm using the size of time lists to count files and tables
                 } else {
                     logger.warn("Invalid JSON structure in file: {}", file.getName());
                 }
-                
-                long fileEndTime = System.nanoTime();
-                logger.info("Indexed JSON file: {} (Total Indexed: {}), File Time: {}ms",
-                        file.getName(), totalIndexed, (fileEndTime - fileStartTime) / 1_000_000);
-                int progress = (int) (((double) totalIndexed.get() / totalFiles) * 100);
+
+                int progress = (int) (((double) this.filesTime.size() / totalFiles) * 100);
                 progressService.setProgress(progress);
+                
             }
         }
-        progressService.setProgress(100);
         long endTime = System.nanoTime();
-        logger.info("Total JSON indexing time: {}ms", (endTime - startTime) / 1_000_000);
+        logger.info("Total JSON indexing time: {}ms", (endTime - totalStartTime) / 1_000_000);
+
+        logProcessingSummary();
     }
+
+    private void processFile(File file, JsonNode rootNode, IndexWriter writer) throws IOException {
+        rootNode.fieldNames().forEachRemaining(entryKey -> {
+            try {
+                JsonNode entryNode = rootNode.get(entryKey);
+                
+                if (entryNode.get("table") != null) {
+                    long tableStartTime = System.nanoTime();
+
+                    processTable(entryKey, entryNode, writer);
+
+                    long tableEndTime = System.nanoTime();
+                    this.tablesTime.add((tableEndTime - tableStartTime) / 1_000_000); 
+
+                    logger.info("Indexed table: {} (Total Tables Indexed: {}), Table Time: {}ms",
+                            entryKey, this.tablesTime.size(), (tableEndTime - tableStartTime) / 1_000_000);
+                } else {
+                    logger.warn("Skipping table {} in file {}: Missing 'table' field", entryKey, file.getName());
+                }
+            } catch (Exception e) {
+                logger.error("Error indexing entry in file {}: {}", file.getName(), e.getMessage());
+            }
+        });
+    }
+
+    private void processTable(String tableId, JsonNode entryNode, IndexWriter writer) throws IOException {
+        JsonNode tableNode = entryNode.get("table");
+        JsonNode captionNode = entryNode.get("caption");
+        JsonNode footnotesNode = entryNode.get("footnotes");
+        JsonNode referencesNode = entryNode.get("references");
+
+        Document doc = createDocumentFromTable(tableId, tableNode, captionNode, footnotesNode, referencesNode);
+        writer.addDocument(doc);
+        writer.commit();
+    }
+
+    private void logProcessingSummary() {
+        // Calculate and log average processing time for files and tables 
+        calculateAndLogAverageTimes();
+        
+        // Log empty field statistics for tables
+        logEmptyFieldsSummary();
+    }
+
+    private void calculateAndLogAverageTimes() {
+        if (!this.filesTime.isEmpty()) {
+            double averageFileTime = this.filesTime.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0);
+            logger.info("Average Processing time per file: {} ms", String.format("%.2f", averageFileTime));
+        } else {
+            logger.warn("No files were processed.");
+        }
+
+        if (!this.tablesTime.isEmpty()) {
+            double averageTableTime = this.tablesTime.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0);
+            logger.info("Average Processing time per table: {} ms", String.format("%.2f", averageTableTime));
+        } else {
+            logger.warn("No tables were processed.");
+        }
+    }
+
+    private void logEmptyFieldsSummary() {
+        if (tablesTime.isEmpty()) {
+            logger.warn("No tables were processed, skipping empty fields analysis...");
+            return;
+        }
+
+        emptyFieldsTables.forEach((field, tablesWithEmptyField) -> {
+            if (!tablesWithEmptyField.isEmpty()) {
+                double percentage = (tablesWithEmptyField.size() * 100.0) / this.tablesTime.size();
+
+                logger.warn("Tables with empty {} ({} files, {}% of total tables)",
+                    field, tablesWithEmptyField.size(), String.format("%.2f", percentage));   
+            } else {
+                logger.info("No tables with empty {}", field);
+            }
+        });
+    }  
 
     private void initializeEmptyFields() {
         String[] fields = this.resourceManager.getSearchFields("json");
         for (String field : fields) {
-            emptyFieldsFiles.put(field, new ArrayList<>());
+            emptyFieldsTables.put(field, new ArrayList<>());
         }
     }
 
@@ -140,7 +200,7 @@ public class JSONIndexer implements IIndexer {
 
     // ######################## PARTE TERRY CON L'INDICIZZAZIONE DI TUTTI I CAMPI
     // DEGLI ANALYZER##########################à
-    public Document createDocumentFromTable(String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
+    private Document createDocumentFromTable(String tableId, JsonNode tableNode, JsonNode captionNode, JsonNode footnotesNode, JsonNode referencesNode ) throws IOException {
         Document doc = new Document();
 
         doc.add(new StringField("tableId", tableId, Field.Store.YES));
@@ -162,14 +222,14 @@ public class JSONIndexer implements IIndexer {
             String tableContent = cleanAndJoinTable(tableNode);
             doc.add(new TextField("tableContent", tableContent, Field.Store.NO)); // Campo analizzato per la ricerca
         } else {
-            emptyFieldsFiles.get("tableContent").add(tableId);
+            emptyFieldsTables.get("tableContent").add(tableId);
         }
 
         // Estrai e indicizza il campo "caption"
         if (captionNode != null && !captionNode.asText().isEmpty()) {
             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES)); // Campo analizzato
         } else {
-            emptyFieldsFiles.get("caption").add(tableId);
+            emptyFieldsTables.get("caption").add(tableId);
         }
 
         // Estrai e indicizza il campo "footnotes"
@@ -177,7 +237,7 @@ public class JSONIndexer implements IIndexer {
             String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
             doc.add(new TextField("footnotes", footnotesText, Field.Store.NO)); // Campo analizzato
         } else {
-            emptyFieldsFiles.get("footnotes").add(tableId);
+            emptyFieldsTables.get("footnotes").add(tableId);
         }
 
         // Estrai e indicizza il campo "references"
@@ -185,7 +245,7 @@ public class JSONIndexer implements IIndexer {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
             doc.add(new TextField("references", referencesText, Field.Store.NO)); // Campo analizzato
         } else {
-            emptyFieldsFiles.get("references").add(tableId);
+            emptyFieldsTables.get("references").add(tableId);
         }
 
         return doc;
