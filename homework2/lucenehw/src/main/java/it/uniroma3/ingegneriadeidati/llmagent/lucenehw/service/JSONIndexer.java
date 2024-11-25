@@ -20,8 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -260,9 +262,12 @@ public class JSONIndexer implements IIndexer {
         // cumulativa (table)
 
         if (tableNode != null) {
-            // Pulizia e unione di celle/tabella in modo efficiente
-            //String tableContent = cleanAndJoinTable(tableNode);
-            doc.add(new TextField("tableContent", tableNode.asText(), Field.Store.YES)); // Campo analizzato per la ricerca
+            //Field type personalizzatoss
+            FieldType storedOnlyType = new FieldType();
+            storedOnlyType.setStored(true);  // Il valore sarà memorizzato
+            storedOnlyType.setIndexOptions(IndexOptions.NONE);  // Non sarà indicizzato
+            storedOnlyType.freeze();  // Blocca il FieldType per renderlo immutabile
+            doc.add(new Field("tableContent", tableNode.asText(), storedOnlyType));
         } else {
             emptyFieldsTables.get("tableContent").add(tableId);
         }
