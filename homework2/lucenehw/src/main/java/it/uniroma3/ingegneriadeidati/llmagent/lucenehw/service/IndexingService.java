@@ -9,10 +9,41 @@ import org.springframework.stereotype.Service;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
 
 /**
- * Service for handling the indexing process for different resource types.
- * This class manages the lifecycle of the indexing process, delegating tasks
- * to specific indexers and ensuring resources are properly prepared and marked
- * as indexed upon completion.
+ * Service for managing the indexing process for different resource types.
+ * <p>
+ * The {@code IndexingService} acts as a controller for the lifecycle of the indexing process. 
+ * It delegates specific tasks to appropriate implementations of the {@link IIndexer} interface 
+ * based on the resource type (e.g., "json", "html") and ensures that the indexing process is 
+ * completed correctly. This class supports the dynamic selection of indexing strategies 
+ * and promotes extensibility by relying on the {@link ResourceManager} to retrieve indexers.
+ * </p>
+ * 
+ * <h3>Responsibilities:</h3>
+ * <ul>
+ *   <li>Fetch the appropriate {@link IIndexer} instance for a given resource type from the {@link ResourceManager}.</li>
+ *   <li>Execute the indexing process using the selected {@link IIndexer}.</li>
+ *   <li>Handle errors gracefully, such as invalid resource types or indexing failures.</li>
+ * </ul>
+ * 
+ * <h3>Key Features:</h3>
+ * <ul>
+ *   <li>Ensures loose coupling between resource-specific indexing logic and the overall application.</li>
+ *   <li>Relies on the {@link ResourceManager} to manage and register resource-specific indexers.</li>
+ *   <li>Facilitates the addition of new resource types without modifying existing code (Open/Closed Principle).</li>
+ * </ul>
+ * 
+ * <h3>Usage:</h3>
+ * To perform indexing for a specific resource type, call the {@link #runIndexingForType(String)} method 
+ * with the desired resource type (e.g., "json", "html").
+ * 
+ * <h3>Design Pattern:</h3>
+ * This class is an example of the Strategy pattern in action. It dynamically selects the appropriate 
+ * strategy (i.e., {@link IIndexer} implementation) for indexing at runtime, promoting flexibility and reusability.
+ * 
+ * @see IIndexer
+ * @see ResourceManager
+ * @see it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JSONIndexer
+ * @see it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer
  */
 @Service
 public class IndexingService {

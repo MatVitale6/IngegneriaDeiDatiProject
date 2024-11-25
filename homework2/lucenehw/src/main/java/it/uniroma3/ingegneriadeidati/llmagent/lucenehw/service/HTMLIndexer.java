@@ -26,8 +26,39 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.util.HTMLParserUtils;
 
 /**
- * Service responsible for indexing HTML files.
- * Handles iterating through files, creating Lucene documents, and performing batch indexing.
+ * Service for indexing HTML files into a Lucene-based search system.
+ * <p>
+ * The {@code HTMLIndexer} class handles the entire lifecycle of HTML file indexing:
+ * <ul>
+ *   <li>Iterates through HTML files in a specified directory.</li>
+ *   <li>Extracts relevant content (e.g., title, authors, abstract, and content).</li>
+ *   <li>Creates Lucene documents from the extracted data and indexes them.</li>
+ *   <li>Tracks fields that are empty or missing in the files.</li>
+ *   <li>Updates indexing progress dynamically via {@link ProgressService}.</li>
+ * </ul>
+ * </p>
+ * <p>
+ * This class works in conjunction with {@link ResourceManager} to retrieve directory
+ * and analyzer configurations and with {@link HTMLParserUtils} to parse the HTML content.
+ * </p>
+ * 
+ * <h3>Workflow:</h3>
+ * <ol>
+ *   <li>Initialize indexing with {@link #run()}.</li>
+ *   <li>Iterate over HTML files and process each file to create a Lucene {@link Document}.</li>
+ *   <li>Commit the document to the Lucene index.</li>
+ *   <li>Log and analyze fields that are empty or missing.</li>
+ * </ol>
+ * 
+ * <h3>Configuration:</h3>
+ * <ul>
+ *   <li>HTML files directory path is specified in the property {@code html.files.path}.</li>
+ *   <li>Progress is dynamically updated for frontend integration.</li>
+ * </ul>
+ * 
+ * @see ResourceManager
+ * @see ProgressService
+ * @see HTMLParserUtils
  */
 @Service
 public class HTMLIndexer implements IIndexer{
@@ -62,9 +93,19 @@ public class HTMLIndexer implements IIndexer{
     }
 
     /**
-     * Metodo per indicizzare tutti i file HTML presenti nella directory specificata.
-     * @param directoryPath Percorso della directory contenente i file HTML da indicizzare.
-     * @throws IOException se si verifica un errore di I/O durante l'indicizzazione
+     * Indexes all HTML files in the specified directory.
+     * <p>
+     * For each HTML file:
+     * <ul>
+     *   <li>Creates a Lucene document using {@link #createDocumentFromFile(File)}.</li>
+     *   <li>Adds the document to the Lucene index via an {@link IndexWriter}.</li>
+     *   <li>Tracks and logs empty or missing fields.</li>
+     *   <li>Updates the indexing progress via {@link ProgressService}.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param directoryPath the path to the directory containing HTML files
+     * @throws IOException if an error occurs while reading files or writing to the index
      */
     @Override
     public void indexFiles(String directoryPath) throws IOException {

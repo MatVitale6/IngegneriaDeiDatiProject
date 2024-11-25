@@ -12,6 +12,7 @@ import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,7 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.IIndexer;
  */
 @Component
 public class ResourceManager {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ResourceManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
 
     private final String htmlIndexPath;
     private final String jsonIndexPath;
@@ -193,7 +194,4 @@ public class ResourceManager {
             throw new RuntimeException("Error preparing directories", e);
         }
     }
-
-    public String getHtmlIndexPath() { return this.htmlIndexPath; }
-    public String getJsonIndexPath() { return this.jsonIndexPath; }
 }

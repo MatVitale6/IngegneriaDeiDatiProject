@@ -17,9 +17,31 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 /**
  * REST Controller for handling search requests.
  * <p>
- * This class exposes an endpoint to perform searches on indexed resources.
- * It dynamically handles different resource types (e.g., "html", "json").
+ * This controller provides endpoints for executing searches on indexed resources.
+ * It supports dynamic handling of various resource types (e.g., "html", "json") 
+ * and validates resource types based on the application's configuration.
  * </p>
+ * 
+ * <h4>Responsibilities:</h4>
+ * <ul>
+ *   <li>Processes incoming search requests with user-provided query strings.</li>
+ *   <li>Validates resource types before performing a search.</li>
+ *   <li>Communicates with the {@link SearchService} to fetch search results.</li>
+ *   <li>Returns search results or appropriate HTTP error responses.</li>
+ * </ul>
+ * 
+ * <h4>Dependencies:</h4>
+ * <ul>
+ *   <li>{@link SearchService}: Executes search queries on the specified resource type.</li>
+ *   <li>{@link ResourceManager}: Validates resource types and retrieves resource-specific configurations.</li>
+ * </ul>
+ * 
+ * <h4>Endpoints:</h4>
+ * <ul>
+ *   <li><strong>POST /search</strong>: Searches for content in the specified resource type and returns the results.</li>
+ * </ul>
+ * 
+ * <p>This class is designed to be used as part of a Spring Boot REST API and integrates with the backend indexing and search system.</p>
  */
 @RestController
 public class SearchController {
@@ -51,8 +73,7 @@ public class SearchController {
         if(!this.resourceManager.getRegisteredTypes().contains(resourceType)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid resource type: " + resourceType);
         }
-
-
+        
         try {
             List<SearchResult> results = this.searchService.search(resourceType, queryStr, resultCount);
             return ResponseEntity.ok(results);

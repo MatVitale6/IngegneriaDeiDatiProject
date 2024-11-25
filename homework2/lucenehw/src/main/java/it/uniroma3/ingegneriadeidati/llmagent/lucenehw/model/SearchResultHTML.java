@@ -2,14 +2,6 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model;
 
 import org.apache.lucene.document.Document;
 
-/**
- * Modello per rappresentare un risultato di ricerca.
- * La classe 'SearchResult' contiene i campi essenziali per descrivere un documento trovato tramite la ricerca:
- * - titolo 
- * - autore
- * - estratto del contenuto
- * - abstract 
- */
 public class SearchResultHTML extends SearchResult {
     private String title;
     private String authors;

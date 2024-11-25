@@ -28,9 +28,28 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultJSON;
 
 
 /**
- * Seervizio per eseguire ricerche sull'indice Lucene.
- * La classe 'SearchService contiene la logica per elaborare la query di ricerca
- * e restituire i risultati corrispondenti'
+ * Service for performing search operations on the Lucene index.
+ * <p>
+ * This service handles the logic for querying the Lucene index and returning a list of search results
+ * that match the provided query string. It supports multiple resource types (e.g., "html", "json") and
+ * dynamically creates the appropriate {@link SearchResult} subclass for each resource type.
+ * </p>
+ * 
+ * <h3>Responsibilities:</h3>
+ * <ul>
+ *   <li>Constructs and executes Lucene queries using resource-specific analyzers and fields.</li>
+ *   <li>Retrieves and processes matching documents from the Lucene index.</li>
+ *   <li>Generates resource-specific search result objects populated with relevant data.</li>
+ *   <li>Logs detailed information about the search process, including query execution and results.</li>
+ * </ul>
+ *
+ * <h3>Usage:</h3>
+ * This service is used to execute search queries and return the corresponding results.
+ * The results can be further processed or displayed to the user in the application frontend.
+ * 
+ * @see SearchResult
+ * @see SearchResultHTML
+ * @see SearchResultJSON
  */
 @Service
 public class SearchService {
@@ -45,13 +64,19 @@ public class SearchService {
     private String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
    
     /**
-     * Esegue una ricerca utilizzando la query fornita.
-     * La query viene elaborata in base ai campi specifici (es. titolo, autore,
-     * contenuto, abstract) e restituisce una lista di risultati.
-     * 
-     * @param query La query di ricerca inserita dall'utente
-     * @return una lista di ogetti 'SearchResult' che rappresentano i documenti
-     *         trovati che soddisfano i criteri di ricerca.
+     * Executes a search on the Lucene index for the specified resource type.
+     * <p>
+     * The query string is parsed and matched against the fields of the given resource type
+     * (e.g., "title", "authors", "content", "abstract"). The search results include
+     * detailed information about each document, including its relevance score and the field
+     * that most closely matched the query.
+     * </p>
+     *
+     * @param resourceType the type of resource to search (e.g., "html", "json").
+     * @param queryStr the search query entered by the user.
+     * @param maxResults the maximum number of results to retrieve.
+     * @return a list of {@link SearchResult} objects representing the matching documents.
+     * @throws IOException if an error occurs while accessing the Lucene index.
      */
     public List<SearchResult> search(String resourceType, String queryStr, int maxResults) throws IOException {        
         // Parse query based on field 'title','authors','content','abstract'

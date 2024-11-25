@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -29,9 +28,38 @@ import org.apache.lucene.store.Directory;
 import org.jsoup.Jsoup;
 
 /**
- * Service responsible for indexing HTML files.
- * Handles iterating through files, creating Lucene documents, and performing
- * batch indexing.
+ * Service responsible for indexing JSON files.
+ * <p>
+ * The {@code JSONIndexer} processes JSON files, extracting relevant data and creating 
+ * Lucene {@link Document} objects to be indexed. It supports handling of multiple tables 
+ * in a single JSON file, dynamic progress tracking, and logging of empty fields and performance statistics.
+ * </p>
+ *
+ * <h3>Responsibilities:</h3>
+ * <ul>
+ *   <li>Iterates through JSON files and extracts tables, captions, footnotes, and references.</li>
+ *   <li>Generates and adds Lucene {@link Document} objects for each table.</li>
+ *   <li>Tracks progress dynamically and logs average processing times for files and tables.</li>
+ *   <li>Logs statistics on empty fields within tables for better data quality monitoring.</li>
+ * </ul>
+ *
+ * <h3>Key Features:</h3>
+ * <ul>
+ *   <li>Handles JSON structures with multiple tables in a single file.</li>
+ *   <li>Ensures proper progress updates using {@link ProgressService}.</li>
+ *   <li>Logs detailed performance metrics, including processing times for files and tables.</li>
+ *   <li>Detects and logs missing or empty fields in JSON tables.</li>
+ * </ul>
+ *
+ * <h3>Usage:</h3>
+ * <p>
+ * The {@link #run()} method is the main entry point to start the indexing process. It initializes
+ * the state, iterates through the files, and invokes internal methods to process each file and table.
+ * </p>
+ *
+ * @see IIndexer
+ * @see ResourceManager
+ * @see ProgressService
  */
 @Service
 public class JSONIndexer implements IIndexer {
@@ -103,6 +131,14 @@ public class JSONIndexer implements IIndexer {
         logProcessingSummary();
     }
 
+    /**
+     * Processes an individual JSON file, extracting tables and creating Lucene {@link Document}s.
+     *
+     * @param file      the JSON file being processed
+     * @param rootNode  the root JSON node representing the file's content
+     * @param writer    the {@link IndexWriter} used for adding documents
+     * @throws IOException if an I/O error occurs during table processing
+     */
     private void processFile(File file, JsonNode rootNode, IndexWriter writer) throws IOException {
         rootNode.fieldNames().forEachRemaining(entryKey -> {
             try {
@@ -127,6 +163,14 @@ public class JSONIndexer implements IIndexer {
         });
     }
 
+    /**
+     * Processes a specific table within a JSON file, creating a Lucene {@link Document}.
+     *
+     * @param tableId   the identifier of the table being processed
+     * @param entryNode the JSON node representing the table's content
+     * @param writer    the {@link IndexWriter} used for adding documents
+     * @throws IOException if an I/O error occurs during document creation
+     */
     private void processTable(String tableId, JsonNode entryNode, IndexWriter writer) throws IOException {
         JsonNode tableNode = entryNode.get("table");
         JsonNode captionNode = entryNode.get("caption");
@@ -253,6 +297,8 @@ public class JSONIndexer implements IIndexer {
 
     /**
      * Pulisce e concatena i contenuti delle celle di una tabella.
+     * 
+     * Forse questo andrebbe spostato in un'altra classe tipo HTMLParserUtils o una nuova?
      */
     private String cleanAndJoinTable(JsonNode tableNode) {
         StringBuilder tableText = new StringBuilder();

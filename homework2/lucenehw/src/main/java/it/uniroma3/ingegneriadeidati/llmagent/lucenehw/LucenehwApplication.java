@@ -13,9 +13,19 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.IndexingService;
 
 /**
- * Classe principale dell'applicazione Lucenehw.
- * 'LucenehwApplication' avvia l'applicazione Spring Boot e gestisce la configurazione iniziale.
- * É esclusa la configurazione automatica del 'DataSource', dato che l'applicazione non utilizza un database relazionale.
+ * Main application class for the Lucenehw application.
+ * <p>
+ * This class serves as the entry point for the Spring Boot application. It handles
+ * the initialization of the Spring context and manages the application's configuration.
+ * The application is designed to work without a relational database, so automatic
+ * {@code DataSource} configuration is excluded.
+ * </p>
+ * <h3>Responsibilities:</h3>
+ * <ul>
+ *   <li>Starts the Spring Boot application.</li>
+ *   <li>Configures the indexing process to run at application startup.</li>
+ *   <li>Manages dependencies like {@link ResourceManager} and {@link IndexingService}.</li>
+ * </ul>
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class LucenehwApplication {
@@ -42,12 +52,21 @@ public class LucenehwApplication {
     /**
      * Configures a {@link CommandLineRunner} bean to handle the indexing process.
      * <p>
-     * This method ensures that the indexing process runs only for resources
-     * where indexing is incomplete. It uses {@link ResourceManager} to determine
-     * the indexing status and {@link IndexingService} to perform indexing tasks.
+     * This method is executed after the Spring context is initialized. It iterates
+     * through the registered resource types and checks if indexing is required for
+     * each type. If indexing is incomplete, it triggers the indexing process using
+     * {@link IndexingService}. If all resources are already indexed, it skips the
+     * indexing process and logs this status.
      * </p>
-     * 
-     * @return a {@link CommandLineRunner} instance to manage the indexing process
+     *
+     * <h3>Behavior:</h3>
+     * <ul>
+     *   <li>Determines the indexing status for each registered resource type.</li>
+     *   <li>Delegates indexing tasks to {@link IndexingService}.</li>
+     *   <li>Logs information about the indexing status for transparency and debugging.</li>
+     * </ul>
+     *
+     * @return a {@link CommandLineRunner} instance that manages the indexing process.
      */
     @Bean
     public CommandLineRunner runIndexing() {
