@@ -27,7 +27,6 @@ import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.jsoup.Jsoup;
 
 /**
  * Service responsible for indexing JSON files.

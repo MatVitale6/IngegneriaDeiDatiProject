@@ -124,16 +124,4 @@ public class HTMLParserUtils {
 
         return paragraph.text().trim();
     }
-
-    // public static String parseKeywords(File file) throws IOException {
-    //     Document htmlDoc = Jsoup.parse(file, "UTF-8");
-    //     Element keywordsElement = htmlDoc.selectFirst("div.ltx_keywords");
-
-    //     if (keywordsElement == null) {
-    //         logger.warn("Extracted empty keywords at {}", file.getName());
-    //         return "";
-    //     }
-    //     return keywordsElement.text().trim();
-    // }
-
 }
