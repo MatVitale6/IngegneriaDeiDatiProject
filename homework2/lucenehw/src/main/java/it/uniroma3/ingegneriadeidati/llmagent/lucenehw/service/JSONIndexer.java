@@ -11,6 +11,7 @@ import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,12 @@ import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.lucene.document.BinaryDocValuesField;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -27,6 +34,8 @@ import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.BytesRef;
+
 
 /**
  * Service responsible for indexing JSON files.
@@ -78,6 +87,7 @@ public class JSONIndexer implements IIndexer {
 
     @Autowired
     private ProgressService progressService;
+
 
     @Override
     public void run() throws IOException {
@@ -274,6 +284,12 @@ public class JSONIndexer implements IIndexer {
         // Estrai e indicizza il campo "caption"
         if (captionNode != null && !captionNode.asText().isEmpty()) {
             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES)); // Campo analizzato
+
+            float[] captionEmbedding = computeEmbedding(captionNode.asText());
+            if (captionEmbedding != null) {
+                doc.add(new BinaryDocValuesField("caption_vector", toBytesRef(captionEmbedding)));
+            }
+
         } else {
             emptyFieldsTables.get("caption").add(tableId);
         }
@@ -290,6 +306,12 @@ public class JSONIndexer implements IIndexer {
         if (referencesNode != null && referencesNode.isArray()) {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
             doc.add(new TextField("references", referencesText, Field.Store.YES)); // Campo analizzato
+
+            float[] referencesEmbedding = computeEmbedding(referencesText);
+            if (referencesEmbedding != null) {
+                doc.add(new BinaryDocValuesField("references_vector", toBytesRef(referencesEmbedding)));
+            }
+            
         } else {
             emptyFieldsTables.get("references").add(tableId);
         }
@@ -297,17 +319,46 @@ public class JSONIndexer implements IIndexer {
         return doc;
     }
 
-    /**
-     * Pulisce e concatena i contenuti delle celle di una tabella.
-     * 
-     * Forse questo andrebbe spostato in un'altra classe tipo HTMLParserUtils o una nuova?
-     */
-    private String cleanAndJoinTable(JsonNode tableNode) {
-        StringBuilder tableText = new StringBuilder();
-        //tableNode.forEach(row -> row.forEach(cell -> {
-        //    tableText.append(Jsoup.parse(cell.asText()).text()).append(" ");
-        //}));
-        return tableNode.toString().trim();
+    private BytesRef toBytesRef(float[] vector) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(vector.length * Float.BYTES);
+        for (float value : vector) {
+            byteBuffer.putFloat(value);
+        }
+        return new BytesRef(byteBuffer.array());
+    }
+
+    public static float[] computeEmbedding(String text) {
+        String url = "http://localhost:5000/embed"; // URL del server Python
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost(url);
+            request.setHeader("Content-Type", "application/json");
+
+            // Corpo della richiesta JSON
+            if (text == null || text.isEmpty()) {
+                logger.error("Testo vuoto o nullo, impossibile calcolare embedding.");
+                return null;
+            }
+            String json = String.format("{\"text\": \"%s\"}", text);
+            request.setEntity(new StringEntity(json));
+
+            // Esegui la richiesta
+            try (CloseableHttpResponse response = httpClient.execute(request)) {
+                if (response.getStatusLine().getStatusCode() == 200) {
+                    // Leggi la risposta JSON
+                    ObjectMapper mapper = new ObjectMapper();
+                    float[] embedding = mapper.readTree(response.getEntity().getContent())
+                                              .get("embedding")
+                                              .traverse(mapper)
+                                              .readValueAs(float[].class);
+                    return embedding;
+                } else {
+                    System.err.println("Errore: " + response.getStatusLine().getStatusCode());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null; // Ritorna null in caso di errore
     }
 
     /**
