@@ -303,6 +303,7 @@ public class JSONIndexer implements IIndexer {
             storedOnlyType.freeze();  // Blocca il FieldType per renderlo immutabile
             doc.add(new Field("tableContent", tableNode.asText(), storedOnlyType));
         } else {
+            // this should not be possible cause of cleaner.py
             logger.warn("Missing or empty 'tableContent' for tableId: {}", tableId);
             emptyFieldsTables.get("tableContent").add(tableId);
         }
@@ -325,7 +326,7 @@ public class JSONIndexer implements IIndexer {
         }
 
         // Estrai e indicizza il campo "footnotes"
-        if (footnotesNode != null && footnotesNode.isArray()) {
+        if (hasNonEmptyValues(referencesNode)) {
             String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
             doc.add(new TextField("footnotes", footnotesText, Field.Store.YES)); // Campo analizzato
         } else {
@@ -334,7 +335,7 @@ public class JSONIndexer implements IIndexer {
         }
 
         // Estrai e indicizza il campo "references"
-        if (referencesNode != null && referencesNode.isArray()) {
+        if (hasNonEmptyValues(referencesNode)) {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
             doc.add(new TextField("references", referencesText, Field.Store.YES)); // Campo analizzato
 
@@ -363,11 +364,38 @@ public class JSONIndexer implements IIndexer {
     }
 
     /**
-     * Converte un array JSON in una lista di stringhe.
+     * Converte un array JSON in una lista di stringhe, gestendo anche array nidificati.
+     *
+     * @param arrayNode Il nodo JSON che rappresenta un array (può contenere valori semplici o array nidificati).
+     * @return Una lista piatta di stringhe con tutti i valori presenti nell'array e nei sotto-array.
      */
     private List<String> convertJsonArrayToList(JsonNode arrayNode) {
         List<String> list = new ArrayList<>();
-        arrayNode.forEach(element -> list.add(element.asText()));
+        if (arrayNode.isArray()) {
+            arrayNode.forEach(element -> {
+                if (element.isArray()) {
+                    list.addAll(convertJsonArrayToList(element));
+                } else {
+                    list.add(element.asText());
+                }
+            });
+        }
         return list;
+    }
+
+    private boolean hasNonEmptyValues(JsonNode arrayNode) {
+        if (arrayNode == null || !arrayNode.isArray()) {
+            return false;
+        }
+        for (JsonNode element : arrayNode) {
+            if (element.isArray()) {
+                if (hasNonEmptyValues(element)) {
+                    return true;
+                }
+            } else if (!element.asText().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
