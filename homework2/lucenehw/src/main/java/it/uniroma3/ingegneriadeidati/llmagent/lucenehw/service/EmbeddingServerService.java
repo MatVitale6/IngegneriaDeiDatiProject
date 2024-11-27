@@ -24,6 +24,8 @@ public class EmbeddingServerService {
     
     private final static Logger logger = LoggerFactory.getLogger(EmbeddingServerService.class);
 
+    private final static String DOCKER_IMAGE_NAME = "bert-server-gpu:latest";
+
     @Value("${python.server.url}")
     private String pythonServerUrl;
 
@@ -55,7 +57,7 @@ public class EmbeddingServerService {
 
         logger.info("Starting Docker container for embedding server...");
         ProcessBuilder processBuilder = new ProcessBuilder(
-            "docker", "run", "--rm", "--name", "bert-server","-d", "-p", "5000:5000", "hermannt1/bert-server:latest"
+            "docker", "run", "--rm", "--gpus", "all", "--ipc=host", "--ulimit", "memlock=-1", "--ulimit", "stack=67108864", "--name", "bert-server","-d", "-p", "5000:5000", DOCKER_IMAGE_NAME
         );
 
         Process process = processBuilder.start();

@@ -96,7 +96,7 @@ public class SearchService {
         try(DirectoryReader reader = DirectoryReader.open(directory)) {
             IndexSearcher searcher = new IndexSearcher(reader);
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
-
+            
             Query textQuery = queryParser.parse(queryStr);
             TopDocs textTopDocs = searcher.search(textQuery, maxResults); // Limitando la ricerca ai primi 10 risultati
             
