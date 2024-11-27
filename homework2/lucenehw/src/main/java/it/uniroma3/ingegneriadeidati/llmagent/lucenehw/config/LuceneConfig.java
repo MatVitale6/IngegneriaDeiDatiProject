@@ -6,10 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.EmbeddingServerService;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.JSONIndexer;
 
@@ -97,5 +98,11 @@ public class LuceneConfig {
         logger.info("Resources registered: {}", resourceManager.getRegisteredTypes());
 
         return resourceManager;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "indexing.use.embeddings", havingValue = "true")
+    public EmbeddingServerService embeddingServerService() {
+        return new EmbeddingServerService();
     }
 }

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
-import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.utils.QueryResult;
 
@@ -33,33 +32,33 @@ public class AnalyzerEvaluationTest {
     @Autowired
     private SearchService searchService;
 
-    // @Test
-    // public void evaluateQueryScores() throws Exception {
-    //     List<String> queries = loadQueries(QUERY_FILE_PATH);
-    //     List<QueryResult> queryResults = new ArrayList<>();
+    @Test
+    public void evaluateQueryScores() throws Exception {
+        List<String> queries = loadQueries(QUERY_FILE_PATH);
+        List<QueryResult> queryResults = new ArrayList<>();
         
 
-    //     for (String queryStr : queries) {
-    //         long startTime = System.nanoTime();
-    //         List<SearchResult> results = searchService.search("html", queryStr, 20);
-    //         long endTime = System.nanoTime();
-    //         long durationInMillis = (endTime - startTime) / 1_000_000; 
-    //         List<SearchResult> filteredResults = results.stream()
-    //             .map(result -> {
-    //                 //result.setContentSnippet(null);  // Escludi lo snippet
-    //                 //result.setAbstract(null);        // Escludi l'abstract
-    //                 return result;
-    //             })
-    //             .collect(Collectors.toList());
+        for (String queryStr : queries) {
+            long startTime = System.nanoTime();
+            List<SearchResult> results = searchService.search("html", queryStr, 20);
+            long endTime = System.nanoTime();
+            long durationInMillis = (endTime - startTime) / 1_000_000; 
+            List<SearchResult> filteredResults = results.stream()
+                .map(result -> {
+                    //result.setContentSnippet(null);  // Escludi lo snippet
+                    //result.setAbstract(null);        // Escludi l'abstract
+                    return result;
+                })
+                .collect(Collectors.toList());
 
-    //         double averageScore = filteredResults.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
-    //         double scoreVariance = calculateVariance(filteredResults, averageScore);
-    //         double scoreDecay = calculateScoreDecay(filteredResults);
+            double averageScore = filteredResults.stream().mapToDouble(SearchResult::getScore).average().orElse(0);
+            double scoreVariance = calculateVariance(filteredResults, averageScore);
+            double scoreDecay = calculateScoreDecay(filteredResults);
 
-    //         queryResults.add(new QueryResult(queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
-    //     }
-    //     saveAsJSON(queryResults, OUTPUT_DIR_PATH);
-    // }
+            queryResults.add(new QueryResult(, queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
+        }
+        saveAsJSON(queryResults, OUTPUT_DIR_PATH);
+    }
 
     private List<String> loadQueries(String filePath) throws Exception {
         return Files.lines(Paths.get(filePath))

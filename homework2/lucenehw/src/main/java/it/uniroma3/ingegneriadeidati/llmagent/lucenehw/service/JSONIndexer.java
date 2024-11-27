@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
+import jakarta.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,14 +17,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.lucene.document.BinaryDocValuesField;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -88,12 +85,40 @@ public class JSONIndexer implements IIndexer {
     @Autowired
     private ProgressService progressService;
 
+    @Autowired
+    private Optional<EmbeddingServerService> embeddingServerService;
+
+    @PostConstruct
+    private void initialize() {
+        embeddingServerService.ifPresentOrElse(service -> {
+            logger.info("Enabling embedding indexing...");
+            int retries = 20;
+            int waitTimeMs = 10000;
+
+            for (int i = 0; i < retries; i++) {
+                if (service.isServerRunning()) {
+                    logger.info("BERT Server is ready.");
+                    return;
+                }
+                logger.warn("BERT Server not ready. Retrying... ({}/{})", i+1, retries);
+                try {
+                    Thread.sleep(waitTimeMs);
+                } catch (InterruptedException e) {
+                    logger.error("Interrupted while waiting for BERT server to become ready.", e);
+                    Thread.currentThread().interrupt();
+                    return;
+                }   
+            }
+            logger.error("BERT server did not become ready within the expected time.");
+            throw new RuntimeException("Failed to initialize embedding server: Server health check failed.");
+        }, () -> {
+            logger.info("Embedding indexing is disabled.");
+        });
+    }
 
     @Override
     public void run() throws IOException {
-        if (emptyFieldsTables.isEmpty()) {
-            initializeEmptyFields();
-        }
+        initializeEmptyFields();
         progressService.startIndexing("json");
         indexFiles(jsonFilePath);
         progressService.completeIndexing("json");
@@ -278,6 +303,7 @@ public class JSONIndexer implements IIndexer {
             storedOnlyType.freeze();  // Blocca il FieldType per renderlo immutabile
             doc.add(new Field("tableContent", tableNode.asText(), storedOnlyType));
         } else {
+            logger.warn("Missing or empty 'tableContent' for tableId: {}", tableId);
             emptyFieldsTables.get("tableContent").add(tableId);
         }
 
@@ -285,12 +311,16 @@ public class JSONIndexer implements IIndexer {
         if (captionNode != null && !captionNode.asText().isEmpty()) {
             doc.add(new TextField("caption", captionNode.asText(), Field.Store.YES)); // Campo analizzato
 
-            float[] captionEmbedding = computeEmbedding(captionNode.asText());
-            if (captionEmbedding != null) {
-                doc.add(new BinaryDocValuesField("caption_vector", toBytesRef(captionEmbedding)));
-            }
-
+            embeddingServerService.ifPresent(service -> {
+                try {
+                    float[] captionEmbedding = service.computeEmbedding(captionNode.asText());
+                    doc.add(new BinaryDocValuesField("caption_vector", toBytesRef(captionEmbedding)));
+                } catch (RuntimeException e) {
+                    logger.error("Failed to compute embedding fro caption in tableId {}. Error: {}", tableId, e.getMessage());
+                }
+            });
         } else {
+            logger.warn("Missing or empty 'caption' for tableId: {}", tableId);
             emptyFieldsTables.get("caption").add(tableId);
         }
 
@@ -299,6 +329,7 @@ public class JSONIndexer implements IIndexer {
             String footnotesText = String.join(" ", convertJsonArrayToList(footnotesNode));
             doc.add(new TextField("footnotes", footnotesText, Field.Store.YES)); // Campo analizzato
         } else {
+            logger.warn("Missing or empty 'footnotes' for tableId: {}", tableId);
             emptyFieldsTables.get("footnotes").add(tableId);
         }
 
@@ -307,12 +338,16 @@ public class JSONIndexer implements IIndexer {
             String referencesText = String.join(" ", convertJsonArrayToList(referencesNode));
             doc.add(new TextField("references", referencesText, Field.Store.YES)); // Campo analizzato
 
-            float[] referencesEmbedding = computeEmbedding(referencesText);
-            if (referencesEmbedding != null) {
-                doc.add(new BinaryDocValuesField("references_vector", toBytesRef(referencesEmbedding)));
-            }
-            
+            embeddingServerService.ifPresent(service -> {
+                try{
+                    float[] referencesEmbedding = service.computeEmbedding(referencesText);
+                    doc.add(new BinaryDocValuesField("references_vector", toBytesRef(referencesEmbedding)));
+                } catch (RuntimeException e) {
+                    logger.error("Failed to compute embedding for references in tableId: {}. Error: {}", tableId, e.getMessage());
+                }            
+            });
         } else {
+            logger.warn("Missing or empty 'footnotes' for tableId: {}", tableId);
             emptyFieldsTables.get("references").add(tableId);
         }
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
@@ -325,40 +360,6 @@ public class JSONIndexer implements IIndexer {
             byteBuffer.putFloat(value);
         }
         return new BytesRef(byteBuffer.array());
-    }
-
-    public static float[] computeEmbedding(String text) {
-        String url = "http://localhost:5000/embed"; // URL del server Python
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost(url);
-            request.setHeader("Content-Type", "application/json");
-
-            // Corpo della richiesta JSON
-            if (text == null || text.isEmpty()) {
-                logger.error("Testo vuoto o nullo, impossibile calcolare embedding.");
-                return null;
-            }
-            String json = String.format("{\"text\": \"%s\"}", text);
-            request.setEntity(new StringEntity(json));
-
-            // Esegui la richiesta
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    // Leggi la risposta JSON
-                    ObjectMapper mapper = new ObjectMapper();
-                    float[] embedding = mapper.readTree(response.getEntity().getContent())
-                                              .get("embedding")
-                                              .traverse(mapper)
-                                              .readValueAs(float[].class);
-                    return embedding;
-                } else {
-                    System.err.println("Errore: " + response.getStatusLine().getStatusCode());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null; // Ritorna null in caso di errore
     }
 
     /**
