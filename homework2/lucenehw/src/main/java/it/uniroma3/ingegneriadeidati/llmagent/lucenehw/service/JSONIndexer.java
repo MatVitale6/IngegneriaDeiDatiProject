@@ -12,7 +12,6 @@ import jakarta.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.apache.lucene.document.BinaryDocValuesField;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -31,7 +29,7 @@ import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.document.KnnFloatVectorField;
 
 
 /**
@@ -315,7 +313,7 @@ public class JSONIndexer implements IIndexer {
             embeddingServerService.ifPresent(service -> {
                 try {
                     float[] captionEmbedding = service.computeEmbedding(captionNode.asText());
-                    doc.add(new BinaryDocValuesField("caption_vector", toBytesRef(captionEmbedding)));
+                    doc.add(new KnnFloatVectorField("captoin_vector", captionEmbedding));
                 } catch (RuntimeException e) {
                     logger.error("Failed to compute embedding fro caption in tableId {}. Error: {}", tableId, e.getMessage());
                 }
@@ -342,7 +340,7 @@ public class JSONIndexer implements IIndexer {
             embeddingServerService.ifPresent(service -> {
                 try{
                     float[] referencesEmbedding = service.computeEmbedding(referencesText);
-                    doc.add(new BinaryDocValuesField("references_vector", toBytesRef(referencesEmbedding)));
+                    doc.add(new KnnFloatVectorField("references_vector", referencesEmbedding));
                 } catch (RuntimeException e) {
                     logger.error("Failed to compute embedding for references in tableId: {}. Error: {}", tableId, e.getMessage());
                 }            
@@ -353,14 +351,6 @@ public class JSONIndexer implements IIndexer {
         }
         doc.add(new StringField("filename", file.getName(), Field.Store.YES));
         return doc;
-    }
-
-    private BytesRef toBytesRef(float[] vector) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(vector.length * Float.BYTES);
-        for (float value : vector) {
-            byteBuffer.putFloat(value);
-        }
-        return new BytesRef(byteBuffer.array());
     }
 
     /**
