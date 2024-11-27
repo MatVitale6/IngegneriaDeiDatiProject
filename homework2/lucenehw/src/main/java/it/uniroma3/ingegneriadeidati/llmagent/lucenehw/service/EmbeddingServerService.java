@@ -55,14 +55,13 @@ public class EmbeddingServerService {
 
         logger.info("Starting Docker container for embedding server...");
         ProcessBuilder processBuilder = new ProcessBuilder(
-            "docker", "run", "--rm", "--name", "bert-server","-d", "-p", "5000:5000", "bert-server:latest"
+            "docker", "run", "--rm", "--name", "bert-server","-d", "-p", "5000:5000", "hermannt1/bert-server:latest"
         );
 
         Process process = processBuilder.start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             this.containerId = reader.readLine();
         }
-
         logger.info("Docker container for BERT server started with id {}.", this.containerId);
     }
 
