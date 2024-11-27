@@ -1,8 +1,10 @@
 package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,11 +16,14 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.KnnFloatVectorQuery;
+import org.apache.lucene.search.KnnVectorQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.MergedAnnotations.Search;
 import org.springframework.stereotype.Service;
 
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.config.ResourceManager;
@@ -59,6 +64,9 @@ public class SearchService {
     @Autowired
     private ResourceManager resourceManager;
 
+    @Autowired
+    private Optional<EmbeddingServerService> embeddingServerService;
+
     private String regex = "(\\d{4})\\.(\\d{5})";
     private Pattern pattern = Pattern.compile(regex);
     private String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
@@ -78,9 +86,7 @@ public class SearchService {
      * @return a list of {@link SearchResult} objects representing the matching documents.
      * @throws IOException if an error occurs while accessing the Lucene index.
      */
-    public List<SearchResult> search(String resourceType, String queryStr, int maxResults) throws IOException {        
-        // Parse query based on field 'title','authors','content','abstract'
-        
+    public List<SearchResult> search(String resourceType, String queryStr, int maxResults) throws IOException {                
         Directory directory = this.resourceManager.getDirectory(resourceType);
         Analyzer analyzer = this.resourceManager.getAnalyzer(resourceType);
         String[] fields = this.resourceManager.getSearchFields(resourceType);
@@ -91,28 +97,85 @@ public class SearchService {
             IndexSearcher searcher = new IndexSearcher(reader);
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
 
-            Query query = queryParser.parse(queryStr);
+            Query textQuery = queryParser.parse(queryStr);
+            TopDocs textTopDocs = searcher.search(textQuery, maxResults); // Limitando la ricerca ai primi 10 risultati
             
-            TopDocs topDocs = searcher.search(query, maxResults); // Limitando la ricerca ai primi 10 risultati
-            
-            // Creazione degli oggetti SearchResult per ogni documento trovato
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                Explanation explanation = searcher.explain(query, scoreDoc.doc);
-                String matchField = getDominantField(explanation, fields);
-                
-                String filename = doc.get("filename");
-                String link = generateLink(filename);
-                
-                SearchResult searchResult = createSearchResult(resourceType, doc, matchField, link, scoreDoc.doc);
-                results.add(searchResult);
+            KnnFloatVectorQuery knnQuery = null;
+            TopDocs knnTopDocs = null;
+
+            if (this.embeddingServerService.isPresent()) {
+                float[] queryEmbedding = embeddingServerService.get().computeEmbedding(queryStr);
+                knnQuery = new KnnFloatVectorQuery("captoin_vector", queryEmbedding, maxResults);
+                knnTopDocs = searcher.search(knnQuery, maxResults);
             }
+
+            results = mergeResults(searcher, textTopDocs, textQuery, knnTopDocs, knnQuery, resourceType, fields, maxResults);
+
         } catch (Exception e) {
             logger.error("Error during search for type '{}': {}", resourceType, e.getMessage());
         }
         return results;
     }
 
+    private List<SearchResult> mergeResults(IndexSearcher searcher, TopDocs textTopDocs, Query textQuery, TopDocs knnTopDocs, KnnFloatVectorQuery knnQuery, String resourceType, String[] fields, int maxResults) {
+        List<SearchResult>  results = new ArrayList<>();
+        List<ScoreDoc> allDocs = new ArrayList<>();
+
+        float weight = 0.5f;
+
+        if (textTopDocs != null) {
+            for (ScoreDoc scoreDoc : textTopDocs.scoreDocs) {
+                scoreDoc.score *= weight;
+                allDocs.add(scoreDoc);
+            }
+        }
+    
+        // Add KNN-based results
+        if (knnTopDocs != null) {
+            for (ScoreDoc scoreDoc : knnTopDocs.scoreDocs) {
+                scoreDoc.score *= (1 - weight);
+                allDocs.add(scoreDoc);
+            }
+        }
+
+        allDocs.stream()
+            .distinct()
+            .sorted((d1,d2) -> Float.compare(d2.score, d1.score))
+            .limit(maxResults)
+            .forEach(scoreDoc -> {
+                try {
+                    Document doc = searcher.doc(scoreDoc.doc);
+
+                    Explanation explanation;
+                    if (textTopDocs != null && containsDoc(textTopDocs, scoreDoc.doc)) {
+                        explanation = searcher.explain(textQuery, scoreDoc.doc); 
+                    } else if (knnTopDocs != null && containsDoc(knnTopDocs, scoreDoc.doc)) {
+                        explanation = searcher.explain(knnQuery, scoreDoc.doc);
+                    } else {
+                        explanation = Explanation.noMatch("No matching query explanation available");
+                    }
+
+                    String matchField = getDominantField(explanation, fields);
+                    String filename = doc.get("filename");
+                    String link = generateLink(filename);
+
+                    SearchResult result = createSearchResult(resourceType, doc, matchField, link, scoreDoc.score);
+                    results.add(result);
+                } catch (IOException e) {
+                    logger.error("Error merging results: {}", e);
+                }
+            });
+        return results;
+    }
+
+    private boolean containsDoc(TopDocs topDocs, int docId) {
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            if (scoreDoc.doc == docId) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // chat gpt generates good javadoc :3
     /**
@@ -182,5 +245,9 @@ public class SearchService {
             }
         }
         return "N/A"; // Ritorna un valore di default se non è possibile determinare il campo
+    }
+
+    public boolean shouldPerformEmbeddingSearch() {
+        return embeddingServerService.isPresent();
     }
 }

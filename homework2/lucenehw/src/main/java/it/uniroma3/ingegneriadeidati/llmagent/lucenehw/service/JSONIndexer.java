@@ -313,7 +313,7 @@ public class JSONIndexer implements IIndexer {
             embeddingServerService.ifPresent(service -> {
                 try {
                     float[] captionEmbedding = service.computeEmbedding(captionNode.asText());
-                    doc.add(new KnnFloatVectorField("captoin_vector", captionEmbedding));
+                    doc.add(new KnnFloatVectorField("caption_vector", captionEmbedding));
                 } catch (RuntimeException e) {
                     logger.error("Failed to compute embedding fro caption in tableId {}. Error: {}", tableId, e.getMessage());
                 }

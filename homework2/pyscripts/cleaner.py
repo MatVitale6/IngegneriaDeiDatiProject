@@ -165,7 +165,7 @@ def main(input_dir: str, output_dir: str):
     for filename in all_files:
         input_file = os.path.join(input_dir, filename)
         try:
-            with open(input_file, 'rb') as i:
+            with open(input_file, 'r') as i:
                 json.load(i)
         except json.JSONDecodeError as e:
             debug_log(f"Fixing broken JSON file: {filename}")

@@ -65,7 +65,7 @@ public class EmbeddingServerService {
         logger.info("Docker container for BERT server started with id {}.", this.containerId);
     }
 
-    @PreDestroy
+    //@PreDestroy
     public void stopServer() throws IOException {
         if (containerId == null || containerId.isEmpty()) {
             logger.warn("No container found. The server might not have been started");
