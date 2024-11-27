@@ -203,6 +203,7 @@ public class SearchService {
      */
     private SearchResult createSearchResult(String resourceType, Document doc, String matchField, String link, float score) {
         SearchResult result;
+        
 
         switch (resourceType) {
             case "html":

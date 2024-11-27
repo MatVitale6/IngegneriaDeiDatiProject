@@ -91,42 +91,83 @@ function performSearch(event) {
             results.forEach(result => {
                 const li = document.createElement("li");
                 li.classList.add("mb-3", "p-4", "border", "rounded", "shadow-sm", "bg-light", "d-flex", "align-items-start");
-
+            
                 // Identifica il formato della risposta
                 if (result.tableId && result.caption) {
                     // Nuovo formato
                     const matchField = document.createElement("div");
-                    matchField.classList.add("text-danger", "fw-bold");
+                    matchField.classList.add("text-danger", "fw-bold", "match-field");
                     matchField.style.fontSize = "0.7rem";
                     matchField.style.marginLeft = "auto";
                     matchField.textContent = result.matchField;
-
+            
                     const resultContent = document.createElement("div");
                     resultContent.innerHTML = `
                         <h5 class="fw-bold" style="font-size: 1.1rem;">
-                            <a href="${result.link}" style="color: black" target="_blank">Table ID: ${result.tableId}</a>
+                            <a href="${result.link}#${result.tableId}" style="color: black" target="_blank">Table ID: ${result.tableId}</a>
                         </h5>
                         <p class="text-muted" style="font-size: 0.9rem;">
                             <strong>Caption:</strong> ${result.caption}
                         </p>
-                    `;
-
+                        `;
+            
+                    // Se ci sono contenuti della tabella, creiamo il contenitore della tabella
                     if (result.tableContent) {
                         const tableContainer = document.createElement("div");
-                        tableContainer.classList.add("d-flex", "justify-content-center", "mt-2"); // Flexbox per centrare
+                        tableContainer.classList.add("table-preview"); // Classe per il comportamento di scorrimento
                         tableContainer.innerHTML = `
-                            <div class="table-container">
-                                <p class="fw-bold text-center" style="font-size: 0.9rem;">Table Preview:</p>
-                                <div class="table-preview border rounded p-3 bg-light">
-                                    ${result.tableContent}
-                                </div>
-                            </div>
+                            <table>
+                                ${result.tableContent} <!-- Righe e colonne valide -->
+                            </table>
                         `;
+                        
                         resultContent.appendChild(tableContainer);
                     }
 
-                    li.appendChild(resultContent);
-                    li.appendChild(matchField);
+                    if (result.references) {
+                        const referencesContainer = document.createElement("div");
+                        referencesContainer.style.fontSize = "0.9rem";
+                    
+                        // Intestazione "References"
+                        const referencesTitle = document.createElement("p");
+                        referencesTitle.classList.add("fw-bold", "mb-2"); // Grassetto e margine inferiore
+                        referencesTitle.textContent = "References:";
+                    
+                        // Versione abbreviata delle references
+                        const shortReferences = result.references.slice(0, 150) + "...";
+                        const referencesText = document.createElement("span");
+                        referencesText.classList.add("references-text");
+                        referencesText.textContent = shortReferences;
+                    
+                        // Bottone per espandere/comprimere
+                        const expandButton = document.createElement("button");
+                        expandButton.textContent = "Read references";
+                        expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
+                        expandButton.style.fontSize = "0.7rem";
+                    
+                        expandButton.addEventListener("click", () => {
+                            const referencesText = referencesContainer.querySelector(".references-text");
+                            if (expandButton.textContent === "Read references") {
+                                referencesText.textContent = result.references; // Mostra tutte le references
+                                expandButton.textContent = "Compress references";
+                            } else {
+                                referencesText.textContent = shortReferences; // Torna alla versione breve
+                                expandButton.textContent = "Read references";
+                            }
+                        });
+                    
+                        // Costruzione del contenitore delle references
+                        referencesContainer.appendChild(referencesTitle); // Aggiunge il titolo
+                        referencesContainer.appendChild(referencesText); // Aggiunge il testo abbreviato
+                        referencesContainer.appendChild(expandButton);   // Aggiunge il bottone
+                    
+                        resultContent.appendChild(referencesContainer); // Aggiunge tutto a resultContent
+                    }                    
+                    
+            
+                    li.appendChild(resultContent); // Aggiungiamo il contenuto del risultato (testo, tabella, ecc.)
+                    li.appendChild(matchField); // Aggiungiamo il campo di match
+            
                 } else if (result.title && result.author) {
                     // Vecchio formato
                     const matchField = document.createElement("div");
@@ -134,7 +175,7 @@ function performSearch(event) {
                     matchField.style.fontSize = "0.7rem";
                     matchField.style.marginLeft = "auto";
                     matchField.textContent = result.matchField;
-
+            
                     const resultContent = document.createElement("div");
                     resultContent.innerHTML = `
                         <h5 class="fw-bold" style="font-size: 1.1rem;">
@@ -144,20 +185,20 @@ function performSearch(event) {
                             <strong>Author:</strong> ${result.author}
                         </p>
                     `;
-
+            
                     const abstractContainer = document.createElement("p");
                     abstractContainer.style.fontSize = "0.9rem";
-
+            
                     const shortAbstract = result.abstract.slice(0, 150) + "...";
                     const abstractText = document.createElement("span");
                     abstractText.classList.add("abstract-text");
                     abstractText.textContent = shortAbstract;
-
+            
                     const expandButton = document.createElement("button");
                     expandButton.textContent = "Read abstract";
                     expandButton.classList.add("btn", "btn-link", "p-0", "text-decoration-none");
                     expandButton.style.fontSize = "0.7rem";
-
+            
                     expandButton.addEventListener("click", () => {
                         const abstractText = abstractContainer.querySelector(".abstract-text");
                         if (expandButton.textContent === "Read abstract") {
@@ -168,13 +209,13 @@ function performSearch(event) {
                             expandButton.textContent = "Read abstract";
                         }
                     });
-
+            
                     abstractContainer.appendChild(abstractText);
                     abstractContainer.appendChild(expandButton);
                     resultContent.appendChild(abstractContainer);
-
-                    li.appendChild(resultContent);
-                    li.appendChild(matchField);
+            
+                    li.appendChild(resultContent); // Aggiungiamo il contenuto del risultato
+                    li.appendChild(matchField); // Aggiungiamo il campo di match
                 } else {
                     // Formato sconosciuto
                     const errorMessage = document.createElement("p");
@@ -183,8 +224,9 @@ function performSearch(event) {
                     li.appendChild(errorMessage);
                 }
             
+                // Alla fine, aggiungiamo il li a resultsList
                 resultsList.appendChild(li);
-            });
+            });            
             
         }
     })
