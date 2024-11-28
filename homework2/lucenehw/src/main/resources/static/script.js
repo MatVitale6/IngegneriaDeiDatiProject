@@ -65,10 +65,12 @@ function performSearch(event) {
     event.preventDefault();  // Previene l'invio predefinito del form
 
     // Ottieni il valore del campo di input
-    const query = document.getElementById("inputString").value;
+    let query = document.getElementById("inputString").value;
     const resultCount = document.getElementById("resultCount").value;
     const resourceType = event.submitter.getAttribute("data-resource-type");
 
+    query = sanitizeInput(query);
+    console.log(query);
     // Invia la richiesta POST tramite fetch
     fetch("/search", {
         method: "POST",
@@ -232,3 +234,10 @@ function performSearch(event) {
     })
 }
 
+function sanitizeInput(input) {
+    // we <3 cysec and pizzo... and whitelist ofc
+    const allowedCharacters = /^[a-zA-Z0-9\s_$-]+$/;
+    const tempDiv = document.createElement("div");
+    tempDiv.textContent = input.split('').filter(char => allowedCharacters.test(char)).join('');
+    return tempDiv.innerHTML;
+}
