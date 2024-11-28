@@ -72,19 +72,41 @@ public class SearchService {
     private String baseUrl = "https://ar5iv.labs.arxiv.org/html/";
    
     /**
-     * Executes a search on the Lucene index for the specified resource type.
+     * Executes a combined search on the Lucene index for the specified resource type, 
+     * using both textual and vector-based queries (if available).
      * <p>
-     * The query string is parsed and matched against the fields of the given resource type
-     * (e.g., "title", "authors", "content", "abstract"). The search results include
-     * detailed information about each document, including its relevance score and the field
-     * that most closely matched the query.
+     * This method allows users to perform a search against indexed fields (e.g., "title", "authors", "content", "abstract")
+     * using a query string. If an embedding server is available, a vector-based search is also conducted to enhance
+     * the results with semantic similarity matching. The method combines results from both searches, providing
+     * detailed information for each matching document, such as its relevance score, matched fields, and document metadata.
      * </p>
      *
+     * <h3>Workflow:</h3>
+     * <ol>
+     *   <li>Retrieve the appropriate Lucene directory, analyzer, and search fields for the specified resource type.</li>
+     *   <li>Perform a text-based search using the Lucene {@code MultiFieldQueryParser} to match the query string against indexed fields.</li>
+     *   <li>If an embedding server is configured, compute the query embedding and perform a vector-based k-NN search using {@code KnnFloatVectorQuery}.</li>
+     *   <li>Merge results from the text and vector-based searches, ranking them according to relevance.</li>
+     * </ol>
+     *
      * @param resourceType the type of resource to search (e.g., "html", "json").
-     * @param queryStr the search query entered by the user.
-     * @param maxResults the maximum number of results to retrieve.
-     * @return a list of {@link SearchResult} objects representing the matching documents.
-     * @throws IOException if an error occurs while accessing the Lucene index.
+     *                     This determines which Lucene index, fields, and analyzer to use.
+     * @param queryStr the search query entered by the user, which is parsed and matched against indexed fields.
+     * @param maxResults the maximum number of results to retrieve from the search.
+     * @return a list of {@link SearchResult} objects representing the matching documents, each containing:
+     *         <ul>
+     *           <li>Document metadata (e.g., ID, title, content).</li>
+     *           <li>Relevance score.</li>
+     *           <li>Information about the matched fields.</li>
+     *         </ul>
+     * @throws IOException if an error occurs while accessing the Lucene index or reading document data.
+     * 
+     * <h3>Note:</h3>
+     * <ul>
+     *   <li>If the embedding server is not configured or fails, only text-based search results are returned.</li>
+     *   <li>Vector-based searches rely on embeddings generated for the query and indexed documents.</li>
+     *   <li>The merging logic prioritizes relevance from both textual and semantic similarity perspectives.</li>
+     * </ul>
      */
     public List<SearchResult> search(String resourceType, String queryStr, int maxResults) throws IOException {                
         Directory directory = this.resourceManager.getDirectory(resourceType);
@@ -117,6 +139,41 @@ public class SearchService {
         return results;
     }
 
+    /**
+     * Merges and ranks search results from text-based and vector-based queries.
+     * <p>
+     * This method integrates search results obtained from a text query and a vector-based k-NN query.
+     * It assigns weights to the scores of the respective query results, combines them into a unified list,
+     * removes duplicates, ranks them by their adjusted scores, and limits the output to a maximum number of results.
+     * Each result is enriched with relevant metadata, including explanations, field information, and document links.
+     * </p>
+     *
+     * <h3>Workflow:</h3>
+     * <ol>
+     *   <li>Apply a weight to the scores from text-based and vector-based results.</li>
+     *   <li>Combine all scored results into a single list.</li>
+     *   <li>Deduplicate the combined list, rank by descending score, and limit to the specified maximum results.</li>
+     *   <li>For each result:
+     *       <ul>
+     *           <li>Retrieve the document metadata from the Lucene index.</li>
+     *           <li>Generate an explanation for the match based on the corresponding query.</li>
+     *           <li>Determine the dominant matching field using the explanation.</li>
+     *           <li>Create a {@link SearchResult} object with the document's metadata and score.</li>
+     *       </ul>
+     *   </li>
+     * </ol>
+     *
+     * @param searcher the {@link IndexSearcher} to access the Lucene index.
+     * @param textTopDocs the results from the text-based query; may be null if no text search was performed.
+     * @param textQuery the text-based {@link Query}; used for explanations and matching fields.
+     * @param knnTopDocs the results from the vector-based query; may be null if no vector search was performed.
+     * @param knnQuery the vector-based {@link KnnFloatVectorQuery}; used for explanations if vector search is applied.
+     * @param resourceType the type of resource being searched (e.g., "html", "json").
+     * @param fields the array of searchable fields in the Lucene index.
+     * @param maxResults the maximum number of results to return after merging and ranking.
+     * @return a ranked list of {@link SearchResult} objects, each representing a merged and enriched search result.
+     * @throws IOException if an error occurs while retrieving document metadata from the Lucene index.
+     */
     private List<SearchResult> mergeResults(IndexSearcher searcher, TopDocs textTopDocs, Query textQuery, TopDocs knnTopDocs, KnnFloatVectorQuery knnQuery, String resourceType, String[] fields, int maxResults) {
         List<SearchResult>  results = new ArrayList<>();
         List<ScoreDoc> allDocs = new ArrayList<>();

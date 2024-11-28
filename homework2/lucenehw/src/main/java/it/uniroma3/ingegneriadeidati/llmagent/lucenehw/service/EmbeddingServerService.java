@@ -3,6 +3,7 @@ package it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -16,15 +17,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import jakarta.annotation.PreDestroy;
-
 @Service
 @ConditionalOnProperty(name = "indexing.use.embeddings", havingValue = "true")
 public class EmbeddingServerService {
     
-    private final static Logger logger = LoggerFactory.getLogger(EmbeddingServerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmbeddingServerService.class);
+    private static final List<String> DOCKER_COMMAND_RUN_GPU_ACCELERATED = Arrays.asList(
+        "docker", "run", 
+        "--rm", 
+        "--gpus", "all", 
+        "--ipc=host", 
+        "--ulimit", "memlock=-1", 
+        "--ulimit", "stack=67108864", 
+        "--name", "bert-server",
+        "-d", 
+        "-p", "5000:5000", 
+        "bert-server-gpu:latest"
+    );
 
-    private final static String DOCKER_IMAGE_NAME = "bert-server-gpu:latest";
+    private static final List<String> DOCKER_COMMAND_RUN_CPU = Arrays.asList(
+        "docker", "run", 
+        "--rm",  
+        "--name", "bert-server",
+        "-d", 
+        "-p", "5000:5000", 
+        "bert-server:latest"
+    );
 
     @Value("${python.server.url}")
     private String pythonServerUrl;
@@ -56,9 +74,7 @@ public class EmbeddingServerService {
         }
 
         logger.info("Starting Docker container for embedding server...");
-        ProcessBuilder processBuilder = new ProcessBuilder(
-            "docker", "run", "--rm", "--gpus", "all", "--ipc=host", "--ulimit", "memlock=-1", "--ulimit", "stack=67108864", "--name", "bert-server","-d", "-p", "5000:5000", DOCKER_IMAGE_NAME
-        );
+        ProcessBuilder processBuilder = new ProcessBuilder(DOCKER_COMMAND_RUN_CPU);
 
         Process process = processBuilder.start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
