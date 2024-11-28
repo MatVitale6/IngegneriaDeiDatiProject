@@ -13,7 +13,7 @@ processed_files_count = 0
 total_tables_count = 0
 
 # Debug flag
-DEBUG = True
+DEBUG = False
 
 def debug_log(message: str):
     """
@@ -162,6 +162,8 @@ def main(input_dir: str, output_dir: str):
 
     all_files = os.listdir(input_dir)
 
+    print(f"Total files count: {len(all_files)}")
+
     for filename in all_files:
         input_file = os.path.join(input_dir, filename)
         try:
@@ -172,6 +174,8 @@ def main(input_dir: str, output_dir: str):
             fix_json(input_file, input_file)
 
     all_files = [f for f in all_files if not delete_empty_json(os.path.join(input_dir, f))]
+
+    print(f"Total files count after first removal: {len(all_files)}")
 
     for filename in all_files:
         input_file = os.path.join(input_dir, filename)
@@ -184,6 +188,7 @@ def main(input_dir: str, output_dir: str):
     total_files = len(all_files)
     print(f"{processed_files_count} files were cleaned, which is {processed_files_count / total_files * 100:.2f}% of total files")
     print(f"{number_of_keys_removed} 'tables' were removed, which is {number_of_keys_removed / total_tables_count * 100:.2f}% of total tables")
+    print(f"Total files remaining: {len(all_files)}")
 
 # Example usage
 if __name__ == "__main__":
