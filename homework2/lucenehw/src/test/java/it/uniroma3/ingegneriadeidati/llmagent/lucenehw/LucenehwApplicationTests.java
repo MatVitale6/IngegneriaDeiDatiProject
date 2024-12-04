@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
+import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResult;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.model.SearchResultHTML;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.HTMLIndexer;
 import it.uniroma3.ingegneriadeidati.llmagent.lucenehw.service.SearchService;
@@ -67,7 +68,7 @@ class LucenehwApplicationTests {
         String query = "Neural networks for financial forecasting";  // Definisce una query di esempio per testare il servizio di ricerca
         try {
             // Esegui la ricerca con la query di esempio, richiedendo un massimo di 10 risultati
-            var results = searchService.search(query, 10);  
+            var results = searchService.search("html", query, 10);  
             Assert.notNull(results, "I risultati della ricerca non dovrebbero essere nulli.");  // Verifica che i risultati non siano nulli
             Assert.isTrue(!results.isEmpty(), "I risultati della ricerca non dovrebbero essere vuoti.");  // Verifica che ci siano risultati
 
@@ -85,7 +86,7 @@ class LucenehwApplicationTests {
 
             // Log dei dettagli di ciascun risultato
             for (var result : results) {
-                System.out.println("Titolo: " + result.getTitle());
+                //System.out.println("Titolo: " + result.getTitle());
                 System.out.println("Punteggio: " + result.getScore() + " sul campo: " + result.getMatchField());
             }
 
@@ -99,9 +100,9 @@ class LucenehwApplicationTests {
      * @param results Lista dei risultati della ricerca
      * @return Punteggio medio
      */
-    private double calculateAverageScore(List<SearchResultHTML> results) {
+    private double calculateAverageScore(List<SearchResult> results) {
         return results.stream()
-                      .mapToDouble(SearchResultHTML::getScore)  // Ottieni i punteggi dai risultati
+                      .mapToDouble(SearchResult::getScore)  // Ottieni i punteggi dai risultati
                       .average()  // Calcola la media dei punteggi
                       .orElse(0);  // Se la lista è vuota, restituisce 0 come valore predefinito
     }
@@ -112,7 +113,7 @@ class LucenehwApplicationTests {
      * @param averageScore Punteggio medio dei risultati
      * @return Varianza dei punteggi
      */
-    private double calculateScoreVariance(List<SearchResultHTML> results, double averageScore) {
+    private double calculateScoreVariance(List<SearchResult> results, double averageScore) {
         return results.stream()
                       .mapToDouble(result -> Math.pow(result.getScore() - averageScore, 2))  // Calcola la distanza quadrata tra il punteggio e la media
                       .average()  // Calcola la media delle distanze quadrate (varianza)
@@ -124,7 +125,7 @@ class LucenehwApplicationTests {
      * @param results Lista dei risultati della ricerca
      * @return Decadimento del punteggio (differenza tra massimo e minimo)
      */
-    private double calculateScoreDecay(List<SearchResultHTML> results) {
+    private double calculateScoreDecay(List<SearchResult> results) {
         if (results.size() < 2) return 0;  // Se ci sono meno di 2 risultati, non è possibile calcolare il decadimento
         double maxScore = results.get(0).getScore();  // Prendi il punteggio del primo risultato (assumendo che la lista sia ordinata)
         double minScore = results.get(results.size() - 1).getScore();  // Prendi il punteggio dell'ultimo risultato
