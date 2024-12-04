@@ -55,7 +55,7 @@ public class AnalyzerEvaluationTest {
             double scoreVariance = calculateVariance(filteredResults, averageScore);
             double scoreDecay = calculateScoreDecay(filteredResults);
 
-            queryResults.add(new QueryResult(, queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
+            queryResults.add(new QueryResult(queryStr, durationInMillis, filteredResults.size(), averageScore, scoreVariance, scoreDecay, filteredResults));   
         }
         saveAsJSON(queryResults, OUTPUT_DIR_PATH);
     }
