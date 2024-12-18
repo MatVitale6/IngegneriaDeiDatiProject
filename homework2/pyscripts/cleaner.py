@@ -154,6 +154,25 @@ def process_file(input_file: str, output_file: str) -> bool:
         debug_log(f"Error processing file {input_file}: {e}")
         return False
 
+def remove_duplicates(input, output):
+    unique_ids = {}
+    duplicates = []
+    pattern = re.compile(r'(?:\d+_)?arXiv_(\d{4}\.\d{4,5})\.json|(\d{4}\.\d{4,5})(?:v\d+)?\.json')
+    files = os.listdir(input)
+
+    for file in files:
+        match = pattern.search(file)
+        if match:
+            file_id = match.group(1) or match.group(2)
+            if file_id not in unique_ids:
+                unique_ids[file_id] = file
+            else:
+                duplicate_path = os.path.join(input, file)
+                os.remove(duplicate_path)
+                
+    print(f"File removed: {len(files) - len(unique_ids)}")
+
+
 def main(input_dir: str, output_dir: str):
     """
     Main function to process all files in the directory.
@@ -183,6 +202,10 @@ def main(input_dir: str, output_dir: str):
 
         if process_file(input_file, output_file):
             processed_files_count += 1
+
+    remove_duplicates(input_dir, output_dir)
+
+    all_files = os.listdir(input_dir)
 
     # Final summary
     total_files = len(all_files)
