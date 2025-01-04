@@ -215,5 +215,5 @@ def main(input_dir: str, output_dir: str):
 
 # Example usage
 if __name__ == "__main__":
-    JSON_DIR = "../lucenehw/urls_htmls_tables/all_tables"
+    JSON_DIR = "../../homework1/extraction"
     main(JSON_DIR, JSON_DIR)
