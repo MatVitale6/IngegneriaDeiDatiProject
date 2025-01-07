@@ -1,0 +1,26 @@
+
+Consider the claims being in the form |{Specification, Specification, …}, Measure, Outcome|
+
+Claims must be extracted according to the following format:
+|{Specification, Specification, …}, Measure, Outcome|
+Specification: |name, value| pair describing the details of an experiment
+E.g.: |dataset, Spider|, or |LLM, Llama27b|
+Measure: metric or measure used to evaluate the experiment
+E.g.: F1-measure
+Outcome: outcome value related to metric 
+E.g.: 0.89
+
+The format have to follows this examples:
+Claim 0: |{|Model Type, General LLM|, |Model Name, ChatGPT-3.5-turbo|, |Parameter Size, 175B|, |Dataset, Spider dev|, |Difficulty Level, 1|}, Execution Match , 0.760|
+Claim 1:| .... |
+
+Extract all the claims, even with empty value for the measure in that exact form from the following html table:
+
+<table id="S5.T2.fig2.1" class="ltx_tabular ltx_align_middle"> <tbody><tr id="S5.T2.fig2.1.1" class="ltx_tr"> <td id="S5.T2.fig2.1.1.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">Model</td> <td id="S5.T2.fig2.1.1.2" class="ltx_td ltx_align_right ltx_border_tt">Pref. Rank</td> </tr> <tr id="S5.T2.fig2.1.2" class="ltx_tr"> <td id="S5.T2.fig2.1.2.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">CoT@3</td> <td id="S5.T2.fig2.1.2.2" class="ltx_td ltx_align_right ltx_border_t">3.45</td> </tr> <tr id="S5.T2.fig2.1.3" class="ltx_tr"> <td id="S5.T2.fig2.1.3.1" class="ltx_td ltx_align_left ltx_border_r">Reflexion</td> <td id="S5.T2.fig2.1.3.2" class="ltx_td ltx_align_right">3.48</td> </tr> <tr id="S5.T2.fig2.1.4" class="ltx_tr"> <td id="S5.T2.fig2.1.4.1" class="ltx_td ltx_align_left ltx_border_r">BFS</td> <td id="S5.T2.fig2.1.4.2" class="ltx_td ltx_align_right">3.25</td> </tr> <tr id="S5.T2.fig2.1.5" class="ltx_tr"> <td id="S5.T2.fig2.1.5.1" class="ltx_td ltx_align_left ltx_border_r">DFSDT</td> <td id="S5.T2.fig2.1.5.2" class="ltx_td ltx_align_right">2.91</td> </tr> <tr id="S5.T2.fig2.1.6" class="ltx_tr"> <td id="S5.T2.fig2.1.6.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t"><span id="S5.T2.fig2.1.6.1.1" class="ltx_text ltx_font_smallcaps">RaDAgent</span></td> <td id="S5.T2.fig2.1.6.2" class="ltx_td ltx_border_t"></td> </tr> <tr id="S5.T2.fig2.1.7" class="ltx_tr"> <td id="S5.T2.fig2.1.7.1" class="ltx_td ltx_align_left ltx_border_r">&nbsp;&nbsp; -<span id="S5.T2.fig2.1.7.1.1" class="ltx_text ltx_font_italic">Rand. Select</span> </td> <td id="S5.T2.fig2.1.7.2" class="ltx_td ltx_align_right">3.24</td> </tr> <tr id="S5.T2.fig2.1.8" class="ltx_tr"> <td id="S5.T2.fig2.1.8.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_r">&nbsp;&nbsp; -<span id="S5.T2.fig2.1.8.1.1" class="ltx_text ltx_font_italic">Elo Select</span> </td> <td id="S5.T2.fig2.1.8.2" class="ltx_td ltx_align_right ltx_border_bb"><span id="S5.T2.fig2.1.8.2.1" class="ltx_text ltx_font_bold">2.19</span></td> </tr> </tbody></table>
+
+
+Know that the context where the table was mentioned is the following:
+
+Solution ranking experimental results on ToolBench dataset. Bold marks the top rank.
+
+To validate the effectiveness of our proposed RaDAgent approach, we first study whether our approach can accomplish more complex tasks.The results are shown in Table 2 , from which we can observe that:(1) CoT only solves 16.60 16.60 16.60 % instructions when facing complex tasks.That is because CoT only explores one decision sequence, leading to inadequate exploration of the whole solution space.Especially, a failure of API call may impact the following decisions, causing the model to be trapped in a faulty loop.CoT@3 exhibited a 14.6 14.6 14.6 % gain over CoT, indicating that the increasing number of decision explorations is more likely to reach a feasible solution.(2) Compared with CoT@3, Reflexion, despite introducing self-reflection on decision making, does not yield any improvement and even results in inferior performance.This outcome suggests that, when faced with complex instructions, mere self-reflection may not be sufficient to provide informative guidance for LLMs to search for a feasible solution.(3) All tree-based methods (BFS, DFS and DFSDT) yield lower Pass Rate than RaDAgent , which indicates that without task-specific expert knowledge, the tree-based methods cannot work effectively to accomplish diverse tasks.(4) RaDAgent achieves superior performance against all baselines.Compared with the best baseline method, DFSDT, RaDAgent exhibits a substantial 10 10 10 % improvement in Pass Rate.Such a significant improvement is attributed to the capability of RaDAgent to autonomously make decisions by itself to accomplish the complex instructions via self-judgment.
